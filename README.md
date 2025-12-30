@@ -8,7 +8,8 @@ A comprehensive local marketplace platform with mobile app (React Native), web a
 LocalMarket/
 ├── LocalMarketMobile/      # React Native mobile app
 ├── Localmarketweb/         # React web application
-└── Admin/admin-panel/      # Next.js admin panel
+├── Admin/admin-panel/      # Next.js admin panel
+└── website/                # Next.js website (matches mobile app)
 ```
 
 ## Features
@@ -28,6 +29,13 @@ LocalMarket/
 - Vendor and customer portals
 - Business listings
 - Search and filters
+
+### Website (Next.js)
+- Complete replica of mobile app functionality
+- All pages from mobile app (Home, Categories, Search, Saved, Offers)
+- Vendor dashboard with Analytics, Catalog, Enquiries, Reviews, Profile
+- Settings, Help, Notifications pages
+- Responsive design matching mobile app UI/UX
 
 ### Admin Panel (Next.js)
 - Vendor management and approval
@@ -60,12 +68,20 @@ npm install
 npm run dev
 ```
 
+### Website (Next.js)
+```bash
+cd website
+npm install
+npm run dev
+```
+
 ## Tech Stack
 
 - **Mobile**: React Native 0.83, React Navigation
 - **Web**: React, Vite, TypeScript
+- **Website**: Next.js 16, React 19, Tailwind CSS, TypeScript
 - **Admin**: Next.js 16, React 19, Tailwind CSS
-- **Icons**: React Native Vector Icons (Feather)
+- **Icons**: React Native Vector Icons (Feather), Lucide React
 
 ## Deployment
 
@@ -74,4 +90,5 @@ See individual README files in each directory for deployment instructions.
 ## License
 
 Private project
+
 

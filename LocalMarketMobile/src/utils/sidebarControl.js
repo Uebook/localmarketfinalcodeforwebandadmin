@@ -7,3 +7,4 @@ export const setSidebarControl = (control) => {
 
 export const getSidebarControl = () => sidebarControl;
 
+
