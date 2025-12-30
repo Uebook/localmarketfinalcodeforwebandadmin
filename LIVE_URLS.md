@@ -3,15 +3,21 @@
 Your Local Market platform is now live! Here are all the public URLs:
 
 ## 📱 Admin Panel (Next.js)
-**Production URL:** https://admin-panel-ndjdulzlk-abhisheks-projects-19c6e9a3.vercel.app
+**Production URL (Recommended):** https://admin-panel-rho-sepia-57.vercel.app
 
-**Alternative URLs:**
-- https://admin-panel-rho-sepia-57.vercel.app
+**Alternative Preview URLs:**
+- https://admin-panel-ndjdulzlk-abhisheks-projects-19c6e9a3.vercel.app
 - https://admin-panel-p98sme4wv-abhisheks-projects-19c6e9a3.vercel.app
 
 **Dashboard:** https://vercel.com/abhisheks-projects-19c6e9a3/admin-panel
 
-**Status:** ✅ **PUBLIC ACCESS** - No login required (if password protection is disabled)
+**Status:** ⚠️ **Requires Vercel Login** - See `DISABLE_VERCEL_LOGIN.md` to make it public
+
+**To Make Public:**
+1. Go to Vercel Dashboard → admin-panel → Settings
+2. Find "Deployment Protection" section
+3. Set "Protection Level" to **"None"**
+4. Click Save
 
 **Features:**
 - Vendor Management
@@ -46,9 +52,10 @@ Your Local Market platform is now live! Here are all the public URLs:
 ## 🔗 Quick Links
 
 ### Admin Panel
-- **Live URL:** https://admin-panel-ndjdulzlk-abhisheks-projects-19c6e9a3.vercel.app
-- **Access:** ✅ **PUBLIC** - No login required (direct access to dashboard)
-- **Note:** If you see a login page, disable "Password Protection" in Vercel dashboard → Settings → Deployment Protection
+- **Production URL:** https://admin-panel-rho-sepia-57.vercel.app
+- **Access:** ⚠️ **Currently requires Vercel login**
+- **To Make Public:** Follow instructions in `DISABLE_VERCEL_LOGIN.md`
+- **Quick Fix:** Vercel Dashboard → admin-panel → Settings → Deployment Protection → Set to "None"
 
 ### Web App
 - **Live URL:** https://localmarket-7chm3rbx2-abhisheks-projects-19c6e9a3.vercel.app
