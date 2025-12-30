@@ -109,6 +109,8 @@ const HomeScreen = ({ navigation, route }) => {
         
         <CategoryGrid onCategorySelect={handleCategorySelect} />
 
+        <PromoCarousel />
+
         <HorizontalSection
           title="Home Services"
           items={HOME_SERVICES}
@@ -148,8 +150,6 @@ const HomeScreen = ({ navigation, route }) => {
           containerClass="bg-black/60"
           isCircular={true}
         />
-
-        <PromoCarousel />
       </ScrollView>
     </View>
   );

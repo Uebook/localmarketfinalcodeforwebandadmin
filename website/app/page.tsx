@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import BusinessCard from '@/components/BusinessCard';
 import CategoryCard from '@/components/CategoryCard';
+import PromoCarousel from '@/components/PromoCarousel';
 import { Search } from 'lucide-react';
 import { NEARBY_BUSINESSES, FEATURED_BUSINESSES, HOME_SERVICES, EDUCATION_SERVICES, DAILY_ESSENTIALS, HEALTH_FITNESS, BEAUTY_SPA, RECENT_SEARCHES } from '@/lib/data';
 import { CATEGORIES } from '@/lib/constants';
@@ -104,6 +105,11 @@ export default function HomePage() {
               />
             ))}
           </div>
+        </section>
+
+        {/* Promo Banner/Carousel */}
+        <section className="mb-16">
+          <PromoCarousel />
         </section>
 
         {/* Featured Businesses */}

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { Settings, User, Bell, Shield, HelpCircle, LogOut, ShoppingBag, ChevronRight, CheckCircle } from 'lucide-react';
+import { Settings, User, Bell, HelpCircle, LogOut, ShoppingBag, ChevronRight, CheckCircle } from 'lucide-react';
 
 export default function SettingsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,13 +24,6 @@ export default function SettingsPage() {
       description: 'Control notification preferences',
       href: '/settings/notifications',
       color: 'text-orange-600'
-    },
-    { 
-      icon: Shield, 
-      label: 'Privacy & Security', 
-      description: 'Manage your privacy settings',
-      href: '/settings/privacy',
-      color: 'text-green-600'
     },
     { 
       icon: HelpCircle, 

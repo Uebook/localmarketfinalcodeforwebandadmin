@@ -33,13 +33,14 @@ export default function VendorDetailsPage() {
   ];
 
   const handleCall = () => {
-    if (business.contactNumber) {
-      window.location.href = `tel:${business.contactNumber}`;
+    const contactNumber = (business as any).contactNumber;
+    if (contactNumber) {
+      window.location.href = `tel:${contactNumber}`;
     }
   };
 
   const handleWhatsApp = () => {
-    const phone = business.whatsappNumber || business.contactNumber;
+    const phone = (business as any).whatsappNumber || (business as any).contactNumber;
     if (phone) {
       window.open(`https://wa.me/${phone.replace(/\D/g, '')}`, '_blank');
     }
@@ -120,7 +121,7 @@ export default function VendorDetailsPage() {
                 <span className="font-semibold">{business.rating}</span>
                 <span className="text-white/80">({business.reviewCount} reviews)</span>
               </div>
-              {business.isVerified && (
+              {(business as any).isVerified && (
                 <div className="flex items-center gap-1 bg-blue-500 px-3 py-1 rounded-full">
                   <CheckCircle size={16} />
                   <span className="text-sm font-medium">Verified</span>
@@ -144,7 +145,7 @@ export default function VendorDetailsPage() {
             </div>
             <div className="text-left">
               <p className="font-semibold text-gray-900">Call Now</p>
-              <p className="text-sm text-gray-900">{business.contactNumber || 'Not available'}</p>
+              <p className="text-sm text-gray-900">{(business as any).contactNumber || 'Not available'}</p>
             </div>
           </button>
 
@@ -211,8 +212,8 @@ export default function VendorDetailsPage() {
                       <div>
                         <p className="font-semibold text-gray-900 mb-1">Address</p>
                         <p className="text-gray-900">{business.address}</p>
-                        {business.landmark && (
-                          <p className="text-gray-900">Near {business.landmark}</p>
+                        {(business as any).landmark && (
+                          <p className="text-gray-900">Near {(business as any).landmark}</p>
                         )}
                         <button
                           onClick={handleCopyAddress}
@@ -229,8 +230,8 @@ export default function VendorDetailsPage() {
                       <div>
                         <p className="font-semibold text-gray-900 mb-1">Opening Hours</p>
                         <p className="text-gray-900">{business.openTime || 'Open Now'}</p>
-                        {business.weeklyOff && (
-                          <p className="text-gray-900 text-sm">Weekly Off: {business.weeklyOff}</p>
+                        {(business as any).weeklyOff && (
+                          <p className="text-gray-900 text-sm">Weekly Off: {(business as any).weeklyOff}</p>
                         )}
                       </div>
                     </div>
@@ -242,8 +243,8 @@ export default function VendorDetailsPage() {
                       <div>
                         <p className="font-semibold text-gray-900 mb-1">Category</p>
                         <p className="text-gray-900">{business.category}</p>
-                        {business.yearsInBusiness && (
-                          <p className="text-gray-900 text-sm mt-1">In business for {business.yearsInBusiness}</p>
+                        {(business as any).yearsInBusiness && (
+                          <p className="text-gray-900 text-sm mt-1">In business for {(business as any).yearsInBusiness}</p>
                         )}
                       </div>
                     </div>
@@ -274,9 +275,9 @@ export default function VendorDetailsPage() {
 
             {activeTab === 'products' && (
               <div>
-                {business.products && business.products.length > 0 ? (
+                {(business as any).products && (business as any).products.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {business.products.map((product) => (
+                    {(business as any).products.map((product: any) => (
                       <div key={product.id} className="bg-gray-50 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
                         <div className="relative h-48">
                           <Image
@@ -298,7 +299,7 @@ export default function VendorDetailsPage() {
                                 <p className="text-gray-400 text-sm line-through">{product.mrp}</p>
                               )}
                             </div>
-                            {product.inStock && (
+                            {(product as any).inStock && (
                               <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                                 In Stock
                               </span>
@@ -322,9 +323,9 @@ export default function VendorDetailsPage() {
 
             {activeTab === 'reviews' && (
               <div>
-                {business.reviews && business.reviews.length > 0 ? (
+                {(business as any).reviews && (business as any).reviews.length > 0 ? (
                   <div className="space-y-6">
-                    {business.reviews.map((review: any) => (
+                    {(business as any).reviews.map((review: any) => (
                       <div key={review.id} className="border-b border-gray-200 pb-6 last:border-0">
                         <div className="flex items-start justify-between mb-3">
                           <div>
@@ -378,27 +379,27 @@ export default function VendorDetailsPage() {
                       <Phone className="text-gray-400" size={20} />
                       <p className="font-semibold">Contact Number</p>
                     </div>
-                    <p className="text-gray-900">{business.contactNumber || 'Not available'}</p>
+                    <p className="text-gray-900">{(business as any).contactNumber || 'Not available'}</p>
                   </div>
 
-                  {business.alternateMobile && (
+                  {(business as any).alternateMobile && (
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3 mb-2">
                         <Phone className="text-gray-400" size={20} />
                         <p className="font-semibold">Alternate Mobile</p>
                       </div>
-                      <p className="text-gray-900">{business.alternateMobile}</p>
+                      <p className="text-gray-900">{(business as any).alternateMobile}</p>
                     </div>
                   )}
 
-                  {business.email && (
+                  {(business as any).email && (
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3 mb-2">
                         <Mail className="text-gray-400" size={20} />
                         <p className="font-semibold">Email</p>
                       </div>
-                      <a href={`mailto:${business.email}`} className="text-orange-500 hover:text-orange-600">
-                        {business.email}
+                      <a href={`mailto:${(business as any).email}`} className="text-orange-500 hover:text-orange-600">
+                        {(business as any).email}
                       </a>
                     </div>
                   )}
@@ -412,10 +413,10 @@ export default function VendorDetailsPage() {
                     </div>
                     <p className="text-gray-900">
                       {business.address}
-                      {business.landmark && `, ${business.landmark}`}
+                      {(business as any).landmark && `, ${(business as any).landmark}`}
                     </p>
-                    {business.city && (
-                      <p className="text-gray-900">{business.city}, {business.pincode}</p>
+                    {(business as any).city && (
+                      <p className="text-gray-900">{(business as any).city}, {(business as any).pincode}</p>
                     )}
                   </div>
 
@@ -425,23 +426,23 @@ export default function VendorDetailsPage() {
                       <p className="font-semibold">Business Hours</p>
                     </div>
                     <p className="text-gray-900">{business.openTime || 'Open Now'}</p>
-                    {business.openingTime && business.closingTime && (
+                    {(business as any).openingTime && (business as any).closingTime && (
                       <p className="text-gray-900 text-sm mt-1">
-                        {business.openingTime} - {business.closingTime}
+                        {(business as any).openingTime} - {(business as any).closingTime}
                       </p>
                     )}
-                    {business.weeklyOff && (
-                      <p className="text-gray-900 text-sm mt-1">Closed on: {business.weeklyOff}</p>
+                    {(business as any).weeklyOff && (
+                      <p className="text-gray-900 text-sm mt-1">Closed on: {(business as any).weeklyOff}</p>
                     )}
                   </div>
 
-                  {business.yearsInBusiness && (
+                  {(business as any).yearsInBusiness && (
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3 mb-2">
                         <Calendar className="text-gray-400" size={20} />
                         <p className="font-semibold">Years in Business</p>
                       </div>
-                      <p className="text-gray-900">{business.yearsInBusiness}</p>
+                      <p className="text-gray-900">{(business as any).yearsInBusiness}</p>
                     </div>
                   )}
                 </div>
@@ -451,11 +452,11 @@ export default function VendorDetailsPage() {
         </div>
 
         {/* Offers Section */}
-        {business.offers && business.offers.length > 0 && (
+        {(business as any).offers && (business as any).offers.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h3 className="text-xl font-bold mb-4">Current Offers</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {business.offers.map((offer: any) => (
+              {(business as any).offers.map((offer: any) => (
                 <div key={offer.id} className={`p-4 rounded-lg ${offer.color || 'bg-orange-500'} text-white`}>
                   <h4 className="font-bold text-lg mb-1">{offer.title}</h4>
                   <p className="text-white/90 mb-3">{offer.description}</p>
