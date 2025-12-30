@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import LoginPage from '@/components/LoginPage';
+import { useState } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
@@ -12,25 +11,20 @@ import Reports from '@/components/Reports';
 import NotificationManagement from '@/components/NotificationManagement';
 
 export default function AdminPanel() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Public access - no authentication required
+  const [isAuthenticated] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
 
-  // Check if user is already logged in (from localStorage)
-  useEffect(() => {
-    const authStatus = localStorage.getItem('admin_authenticated');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  const handleLogin = () => {
-    localStorage.setItem('admin_authenticated', 'true');
-    setIsAuthenticated(true);
-  };
+  // Authentication removed for public access
+  // const handleLogin = () => {
+  //   localStorage.setItem('admin_authenticated', 'true');
+  //   setIsAuthenticated(true);
+  // };
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_authenticated');
-    setIsAuthenticated(false);
+    // Logout disabled for public access
+    // localStorage.removeItem('admin_authenticated');
+    // setIsAuthenticated(false);
   };
 
   const getPageTitle = () => {
@@ -71,9 +65,10 @@ export default function AdminPanel() {
     }
   };
 
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
+  // Login page removed - public access enabled
+  // if (!isAuthenticated) {
+  //   return <LoginPage onLogin={handleLogin} />;
+  // }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
