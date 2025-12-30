@@ -3,11 +3,15 @@
 Your Local Market platform is now live! Here are all the public URLs:
 
 ## 📱 Admin Panel (Next.js)
-**Production URL:** https://admin-panel-p98sme4wv-abhisheks-projects-19c6e9a3.vercel.app
+**Production URL:** https://admin-panel-ndjdulzlk-abhisheks-projects-19c6e9a3.vercel.app
+
+**Alternative URLs:**
+- https://admin-panel-rho-sepia-57.vercel.app
+- https://admin-panel-p98sme4wv-abhisheks-projects-19c6e9a3.vercel.app
 
 **Dashboard:** https://vercel.com/abhisheks-projects-19c6e9a3/admin-panel
 
-**Status:** ✅ **PUBLIC ACCESS** - No login required
+**Status:** ✅ **PUBLIC ACCESS** - No login required (if password protection is disabled)
 
 **Features:**
 - Vendor Management
@@ -42,8 +46,9 @@ Your Local Market platform is now live! Here are all the public URLs:
 ## 🔗 Quick Links
 
 ### Admin Panel
-- **Live URL:** https://admin-panel-p98sme4wv-abhisheks-projects-19c6e9a3.vercel.app
+- **Live URL:** https://admin-panel-ndjdulzlk-abhisheks-projects-19c6e9a3.vercel.app
 - **Access:** ✅ **PUBLIC** - No login required (direct access to dashboard)
+- **Note:** If you see a login page, disable "Password Protection" in Vercel dashboard → Settings → Deployment Protection
 
 ### Web App
 - **Live URL:** https://localmarket-7chm3rbx2-abhisheks-projects-19c6e9a3.vercel.app
@@ -87,7 +92,9 @@ vercel --prod
 
 You can now share these URLs with your team, clients, or stakeholders!
 
-**Admin Panel:** https://admin-panel-p98sme4wv-abhisheks-projects-19c6e9a3.vercel.app (Public Access - No Login)
+**Admin Panel:** https://admin-panel-ndjdulzlk-abhisheks-projects-19c6e9a3.vercel.app (Public Access - No Login)
+
+**⚠️ If Vercel asks for login:** See `VERCEL_PUBLIC_ACCESS.md` for instructions to disable password protection
 **Web App:** https://localmarket-7chm3rbx2-abhisheks-projects-19c6e9a3.vercel.app
 
 ---
