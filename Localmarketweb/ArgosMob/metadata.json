@@ -1,0 +1,7 @@
+{
+  "name": "Local",
+  "description": "A hyper-local marketplace app connecting users with nearby vendors, services, and businesses.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
