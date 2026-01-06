@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { FESTIVAL_THEMES, getThemeCSS } from '@/constants/festivalThemes';
+import { getAllThemes, getThemeCSS } from '@/lib/themeUtils';
 
 export default function ThemeProvider({ children }) {
   useEffect(() => {
     // Load saved theme from localStorage
     const savedTheme = localStorage.getItem('selectedFestivalTheme') || 'diwali';
-    const theme = FESTIVAL_THEMES[savedTheme];
+    const allThemes = getAllThemes();
+    const theme = allThemes[savedTheme];
     
     if (theme) {
       // Apply theme CSS

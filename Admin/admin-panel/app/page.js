@@ -52,7 +52,7 @@ export default function AdminPanel() {
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onNavigate={setActiveSection} />;
       case 'vendors':
         return <VendorManagement />;
       case 'categories':

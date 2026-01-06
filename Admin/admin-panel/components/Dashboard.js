@@ -27,8 +27,29 @@ const searchVolumeData = [
   { date: 'Dec 20', searches: 8234 },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('overview');
+
+  const handleQuickAction = (action) => {
+    if (!onNavigate) return;
+    
+    switch(action) {
+      case 'review-pending':
+        // Navigate to vendors section
+        onNavigate('vendors');
+        break;
+      case 'flagged-products':
+        // Navigate to price verification section
+        onNavigate('price-verification');
+        break;
+      case 'view-reports':
+        // Navigate to reports section
+        onNavigate('reports');
+        break;
+      default:
+        break;
+    }
+  };
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -199,13 +220,22 @@ export default function Dashboard() {
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button className="gradient-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition">
+              <button 
+                onClick={() => handleQuickAction('review-pending')}
+                className="gradient-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition shadow-md"
+              >
                 Review Pending Vendors
               </button>
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+              <button 
+                onClick={() => handleQuickAction('flagged-products')}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md"
+              >
                 Check Flagged Products
               </button>
-              <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+              <button 
+                onClick={() => handleQuickAction('view-reports')}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-md"
+              >
                 View Reports
               </button>
             </div>
