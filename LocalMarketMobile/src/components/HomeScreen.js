@@ -151,7 +151,7 @@ const HomeScreen = ({ navigation, route }) => {
           isCircular={true}
         />
       </ScrollView>
-    </View>
+      </View>
   );
 };
 

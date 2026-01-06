@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
+import BulkPriceUpdate from './BulkPriceUpdate';
+import FeedbackForm from './FeedbackForm';
 
 const VendorDashboard = ({
   navigation,
@@ -30,6 +32,8 @@ const VendorDashboard = ({
     { id: 'reviews', label: 'Reviews', icon: 'star' },
     { id: 'profile', label: 'Profile', icon: 'settings' },
     { id: 'offers', label: 'Offers', icon: 'tag' },
+    { id: 'bulk-update', label: 'Bulk Update', icon: 'upload' },
+    { id: 'feedback', label: 'Feedback', icon: 'message-circle' },
   ];
 
   const profileCompletion = 85;
@@ -343,6 +347,29 @@ const VendorDashboard = ({
         {activeTab === 'reviews' && renderReviews()}
         {activeTab === 'offers' && renderOffers()}
         {activeTab === 'profile' && renderProfile()}
+        {activeTab === 'bulk-update' && (
+          <BulkPriceUpdate
+            navigation={navigation}
+            onBack={() => setActiveTab('overview')}
+            vendorProducts={vendor?.products || []}
+            onUpdatePrices={() => {
+              // Refresh products after update
+              setActiveTab('products');
+            }}
+          />
+        )}
+        {activeTab === 'feedback' && (
+          <FeedbackForm
+            navigation={navigation}
+            onBack={() => setActiveTab('overview')}
+            userRole="vendor"
+            onSubmit={(feedbackData) => {
+              // Handle feedback submission
+              console.log('Feedback submitted:', feedbackData);
+              setActiveTab('overview');
+            }}
+          />
+        )}
       </ScrollView>
     </View>
   );

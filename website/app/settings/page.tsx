@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { Settings, User, Bell, HelpCircle, LogOut, ShoppingBag, ChevronRight, CheckCircle } from 'lucide-react';
+import { Settings, User, Bell, HelpCircle, LogOut, ShoppingBag, ChevronRight, CheckCircle, MessageCircle, Palette } from 'lucide-react';
+import FeedbackForm from '@/components/FeedbackForm';
+import { FESTIVAL_THEMES } from '@/lib/festivalThemes';
+import { useTheme } from '@/components/ThemeProvider';
 
 export default function SettingsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showThemes, setShowThemes] = useState(false);
   const router = useRouter();
 
   const menuItems = [
@@ -16,21 +21,40 @@ export default function SettingsPage() {
       label: 'Profile', 
       description: 'Manage your personal information',
       href: '/settings/profile',
-      color: 'text-blue-600'
+      color: 'text-blue-600',
+      onClick: () => router.push('/settings/profile')
     },
     { 
       icon: Bell, 
       label: 'Notifications', 
       description: 'Control notification preferences',
       href: '/settings/notifications',
-      color: 'text-orange-600'
+      color: 'text-orange-600',
+      onClick: () => router.push('/settings/notifications')
+    },
+    { 
+      icon: MessageCircle, 
+      label: 'Give Feedback', 
+      description: 'Share your thoughts and suggestions',
+      href: '#',
+      color: 'text-green-600',
+      onClick: () => setShowFeedback(true)
+    },
+    { 
+      icon: Palette, 
+      label: 'Festival Themes', 
+      description: 'Choose your favorite festival theme',
+      href: '#',
+      color: 'text-purple-600',
+      onClick: () => setShowThemes(true)
     },
     { 
       icon: HelpCircle, 
       label: 'Help & Support', 
       description: 'Get help and contact support',
       href: '/help',
-      color: 'text-purple-600'
+      color: 'text-purple-600',
+      onClick: () => router.push('/help')
     },
   ];
 
@@ -63,7 +87,7 @@ export default function SettingsPage() {
             return (
               <button
                 key={item.label}
-                onClick={() => router.push(item.href)}
+                onClick={item.onClick}
                 className="w-full flex items-center gap-4 p-4 sm:p-6 hover:bg-gray-50 transition-colors group"
               >
                 <div className={`w-12 h-12 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0`}>
@@ -114,6 +138,105 @@ export default function SettingsPage() {
         }}
         userRole="customer"
       />
+
+      {/* Feedback Modal */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Give Feedback</h2>
+              <button
+                onClick={() => setShowFeedback(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600 rotate-90" />
+              </button>
+            </div>
+            <FeedbackForm
+              onBack={() => setShowFeedback(false)}
+              userRole="user"
+              onSubmit={(data) => {
+                console.log('Feedback submitted:', data);
+                setShowFeedback(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Themes Modal */}
+      {showThemes && (
+        <ThemeSelectorModal onClose={() => setShowThemes(false)} />
+      )}
+    </div>
+  );
+}
+
+function ThemeSelectorModal({ onClose }: { onClose: () => void }) {
+  const [selectedTheme, setSelectedTheme] = useState('default');
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('selectedFestivalTheme') || 'default';
+    setSelectedTheme(saved);
+  }, [setTheme]);
+
+  const themes = [
+    { id: 'default', name: 'Default', icon: '🎨', description: 'Red & Orange (Default)', colors: ['#E86A2C', '#4A6CF7'] },
+    ...Object.values(FESTIVAL_THEMES).map((theme: any) => ({
+      id: theme.id,
+      name: theme.name,
+      icon: theme.icon,
+      description: theme.description,
+      colors: [theme.colors.primary, theme.colors.secondary]
+    }))
+  ];
+
+  const handleThemeSelect = (themeId: string) => {
+    setSelectedTheme(themeId);
+    setTheme(themeId);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Festival Themes</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-600 rotate-90" />
+          </button>
+        </div>
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {themes.map((theme) => (
+            <button
+              key={theme.id}
+              onClick={() => handleThemeSelect(theme.id)}
+              className={`p-4 rounded-lg border-2 transition ${
+                selectedTheme === theme.id
+                  ? 'border-orange-500 bg-orange-50'
+                  : 'border-gray-200 hover:border-orange-300'
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div
+                  className="w-12 h-12 rounded-lg"
+                  style={{ background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})` }}
+                />
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-gray-900">{theme.icon} {theme.name}</p>
+                  <p className="text-xs text-gray-600">{theme.description}</p>
+                </div>
+                {selectedTheme === theme.id && (
+                  <CheckCircle className="text-orange-500" size={20} />
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { INITIAL_VENDOR_DATA } from '@/lib/constants';
-import { Activity, Package, MessageSquare, Star, User } from 'lucide-react';
+import { Activity, Package, MessageSquare, Star, User, Upload, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface VendorDashboardLayoutProps {
@@ -25,6 +25,8 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
     { id: 'enquiries', label: 'Enquiries', icon: MessageSquare, href: '/vendor/dashboard/enquiries' },
     { id: 'reviews', label: 'Reviews', icon: Star, href: '/vendor/dashboard/reviews' },
     { id: 'profile', label: 'Profile', icon: User, href: '/vendor/dashboard/profile' },
+    { id: 'bulk-update', label: 'Bulk Update', icon: Upload, href: '/vendor/dashboard/bulk-update' },
+    { id: 'feedback', label: 'Feedback', icon: MessageCircle, href: '/vendor/dashboard/feedback' },
   ];
 
   const activeTab = tabs.find(tab => pathname.includes(tab.href))?.id || 'analytics';

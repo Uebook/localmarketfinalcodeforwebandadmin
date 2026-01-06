@@ -5,6 +5,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
+import FeedbackForm from './FeedbackForm';
+import { FESTIVAL_THEMES } from '../constants/festivalThemes';
 
 const SettingsScreen = ({ 
   navigation,
@@ -74,13 +76,29 @@ const SettingsScreen = ({
 
   const displayImageUrl = getDisplayImage();
 
-  const themes = [
-    { id: 'default', name: 'Red & Orange (Default)', color: COLORS.orange, gradient: COLORS.primaryGradient },
-    { id: 'blue', name: 'Ocean Blue', color: '#2563eb', gradient: null },
-    { id: 'green', name: 'Nature Green', color: '#16a34a', gradient: null },
-    { id: 'purple', name: 'Royal Purple', color: '#9333ea', gradient: null },
-    { id: 'dark', name: 'Midnight Dark', color: '#1f2937', gradient: null },
-  ];
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  
+  // Convert festival themes to app format
+  const themes = Object.values(FESTIVAL_THEMES).map(theme => ({
+    id: theme.id,
+    name: theme.name,
+    icon: theme.icon,
+    description: theme.description,
+    color: theme.colors.primary,
+    secondaryColor: theme.colors.secondary,
+    gradient: [theme.colors.primary, theme.colors.secondary],
+  }));
+  
+  // Add default theme
+  themes.unshift({
+    id: 'default',
+    name: 'Red & Orange (Default)',
+    icon: '🎨',
+    description: 'Default theme',
+    color: COLORS.orange,
+    secondaryColor: COLORS.blue,
+    gradient: COLORS.primaryGradient,
+  });
 
   const handleBack = () => {
     if (onBack) {
@@ -234,11 +252,31 @@ const SettingsScreen = ({
           )}
         </View>
 
+        {/* Feedback Section */}
+        <View style={styles.settingsCard}>
+          <TouchableOpacity
+            style={styles.settingsItem}
+            onPress={() => setShowFeedbackForm(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingsItemLeft}>
+              <View style={[styles.settingsIcon, { backgroundColor: '#FFF4EC' }]}>
+                <Icon name="message-circle" size={20} color={COLORS.orange} />
+              </View>
+              <View style={styles.settingsText}>
+                <Text style={styles.settingsLabel}>Give Feedback</Text>
+                <Text style={styles.settingsDescription}>Share your thoughts and suggestions</Text>
+              </View>
+            </View>
+            <Icon name="chevron-right" size={20} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         {/* Theme Settings */}
         <View style={styles.themeCard}>
           <View style={styles.themeHeader}>
             <Icon name={getIconName('Palette')} size={20} color={COLORS.textMuted} />
-            <Text style={styles.themeTitle}>App Theme</Text>
+            <Text style={styles.themeTitle}>Festival Themes</Text>
           </View>
           
           <View style={styles.themeList}>
@@ -263,12 +301,17 @@ const SettingsScreen = ({
                   ) : (
                     <View style={[styles.themeColorCircle, { backgroundColor: theme.color }]} />
                   )}
-                  <Text style={[
-                    styles.themeName,
-                    currentTheme === theme.id && styles.themeNameActive
-                  ]}>
-                    {theme.name}
-                  </Text>
+                  <View style={styles.themeTextContainer}>
+                    <Text style={[
+                      styles.themeName,
+                      currentTheme === theme.id && styles.themeNameActive
+                    ]}>
+                      {theme.icon} {theme.name}
+                    </Text>
+                    {theme.description && (
+                      <Text style={styles.themeDescription}>{theme.description}</Text>
+                    )}
+                  </View>
                 </View>
                 {currentTheme === theme.id && (
                   <View style={styles.checkCircle}>
@@ -305,6 +348,19 @@ const SettingsScreen = ({
           <Text style={styles.versionText}>Version 1.0.3</Text>
         </View>
       </ScrollView>
+
+      {/* Feedback Form Modal */}
+      {showFeedbackForm && (
+        <FeedbackForm
+          navigation={navigation}
+          onBack={() => setShowFeedbackForm(false)}
+          userRole={userRole}
+          onSubmit={(feedbackData) => {
+            console.log('Feedback submitted:', feedbackData);
+            setShowFeedbackForm(false);
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -565,6 +621,55 @@ const styles = StyleSheet.create({
   themeNameActive: {
     fontWeight: '700',
     color: COLORS.textPrimary,
+  },
+  themeTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  themeDescription: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  settingsCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    overflow: 'hidden',
+    marginBottom: 24,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  settingsItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  settingsIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  settingsText: {
+    flex: 1,
+  },
+  settingsLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: 2,
+  },
+  settingsDescription: {
+    fontSize: 12,
+    color: COLORS.textMuted,
   },
   checkCircle: {
     width: 20,
