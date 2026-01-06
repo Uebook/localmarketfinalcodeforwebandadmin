@@ -1,7 +1,7 @@
 'use client';
 
-import { ShoppingBag, Smartphone, Shirt, Pill, Zap, Home, Headphones, Trophy } from 'lucide-react';
-import { CATEGORIES } from '@/lib/constants';
+import { ShoppingBag, Smartphone, Shirt, Pill, Zap, Home, Headphones, Trophy, Apple, Droplet, Gift, Camera, Music, Activity, Gamepad, Car, Bike, Palette, Square, Layers, Bed, Image, Sun, Utensils, Box, Star, Package, Heart, Leaf, Eye, Monitor } from 'lucide-react';
+import { ALL_CATEGORIES, TOP_8_CATEGORIES } from '@/lib/categories';
 
 interface CategoryGridProps {
   onCategorySelect: (categoryName: string) => void;
@@ -15,16 +15,50 @@ const iconMap: Record<string, any> = {
   Pill,
   Zap,
   Home,
-  Headphones,
-  Trophy,
+  FileText: Headphones, // Fallback
+  Tool: Trophy, // Fallback
+  Apple,
+  Droplet,
+  Gift,
+  Camera,
+  Music,
+  Activity,
+  Gamepad,
+  Car,
+  Bike,
+  Circle: Square, // Fallback
+  Palette,
+  Square,
+  Layers,
+  Bed,
+  Image,
+  Sun,
+  Utensils,
+  Box,
+  Star,
+  Package,
+  Heart,
+  Leaf,
+  Eye,
+  Monitor,
+  Drumstick: Gift, // Fallback
+  Fish: Droplet, // Fallback
+  Sparkles: Star, // Fallback
+  Wind: Activity, // Fallback
+  Gem: Star, // Fallback
+  Footprints: Activity, // Fallback
+  Toy: Gift, // Fallback
+  Briefcase: Box, // Fallback
+  Clock: Activity, // Fallback
 };
 
-export default function CategoryGrid({ onCategorySelect, variant = 'light' }: CategoryGridProps) {
+export default function CategoryGrid({ onCategorySelect, variant = 'light', showAll = false }: CategoryGridProps & { showAll?: boolean }) {
   const isDark = variant === 'dark';
+  const categoriesToShow = showAll ? ALL_CATEGORIES : TOP_8_CATEGORIES;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 sm:gap-8">
-      {CATEGORIES.map((category) => {
+      {categoriesToShow.map((category) => {
         const Icon = iconMap[category.iconName] || ShoppingBag;
         return (
           <button

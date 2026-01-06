@@ -9,7 +9,7 @@ import CategoryCard from '@/components/CategoryCard';
 import PromoCarousel from '@/components/PromoCarousel';
 import { Search } from 'lucide-react';
 import { NEARBY_BUSINESSES, FEATURED_BUSINESSES, HOME_SERVICES, EDUCATION_SERVICES, DAILY_ESSENTIALS, HEALTH_FITNESS, BEAUTY_SPA, RECENT_SEARCHES } from '@/lib/data';
-import { CATEGORIES } from '@/lib/constants';
+import { TOP_8_CATEGORIES } from '@/lib/categories';
 import Image from 'next/image';
 
 export default function HomePage() {
@@ -93,11 +93,22 @@ export default function HomePage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Categories Section */}
+        {/* Top Categories Section */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Browse Categories</h2>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Top Categories</h2>
+              <p className="text-gray-600">Most frequent search, daily need, guaranteed usage</p>
+            </div>
+            <button
+              onClick={() => router.push('/categories')}
+              className="text-orange-500 font-semibold hover:text-orange-600 transition-colors"
+            >
+              View All →
+            </button>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {CATEGORIES.map((category) => (
+            {TOP_8_CATEGORIES.map((category) => (
               <CategoryCard
                 key={category.id}
                 category={category}

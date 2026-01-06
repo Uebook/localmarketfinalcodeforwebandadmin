@@ -25,6 +25,7 @@ export const COLORS = {
   highlightBg: '#FFF4EC',
 };
 
+// Legacy categories - kept for backward compatibility
 export const CATEGORIES = [
   { id: '1', name: 'Groceries', iconName: 'ShoppingBag' },
   { id: '2', name: 'Electronics', iconName: 'Smartphone' },
@@ -35,6 +36,9 @@ export const CATEGORIES = [
   { id: '7', name: 'Accessories', iconName: 'Headphones' },
   { id: '8', name: 'Sports', iconName: 'Trophy' },
 ];
+
+// Import full category system
+export * from './categories';
 
 export const INITIAL_VENDOR_DATA = {
   id: 'v1',
