@@ -9,7 +9,7 @@ import { INITIAL_VENDOR_DATA } from '@/lib/constants';
 import { 
   MapPin, Star, Phone, MessageCircle, Heart, Share2, Clock, CheckCircle, 
   ArrowLeft, Mail, Calendar, Award, Package, MessageSquare, ThumbsUp,
-  Copy, ExternalLink, ChevronRight
+  Copy, ExternalLink, ChevronRight, Send, X
 } from 'lucide-react';
 import Image from 'next/image';
 import EnquiryModal from '@/components/EnquiryModal';
@@ -19,6 +19,10 @@ export default function VendorDetailsPage() {
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [userName, setUserName] = useState('');
   const params = useParams();
   const router = useRouter();
 
@@ -62,6 +66,29 @@ export default function VendorDetailsPage() {
       navigator.clipboard.writeText(window.location.href);
       alert('Link copied to clipboard!');
     }
+  };
+
+  const handleSubmitReview = () => {
+    if (!userName.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+    if (!reviewComment.trim()) {
+      alert('Please write a review comment');
+      return;
+    }
+    // In real app, this would submit to backend
+    console.log('Review submitted:', {
+      vendorId: business.id,
+      userName,
+      rating: reviewRating,
+      comment: reviewComment,
+    });
+    alert('Thank you for your review! It will be published after verification.');
+    setShowReviewForm(false);
+    setReviewRating(5);
+    setReviewComment('');
+    setUserName('');
   };
 
   return (
@@ -322,7 +349,25 @@ export default function VendorDetailsPage() {
             )}
 
             {activeTab === 'reviews' && (
-              <div>
+              <div className="space-y-6">
+                {/* Write Review Button */}
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Customer Reviews</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {business.reviewCount} review{business.reviewCount !== 1 ? 's' : ''} • {business.rating} average rating
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowReviewForm(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:opacity-90 transition flex items-center gap-2"
+                  >
+                    <MessageSquare size={18} />
+                    <span>Write a Review</span>
+                  </button>
+                </div>
+
+                {/* Reviews List */}
                 {(business as any).reviews && (business as any).reviews.length > 0 ? (
                   <div className="space-y-6">
                     {(business as any).reviews.map((review: any) => (
@@ -340,11 +385,11 @@ export default function VendorDetailsPage() {
                                   />
                                 ))}
                               </div>
-                              <span className="text-gray-900 text-sm">{review.date}</span>
+                              <span className="text-gray-500 text-sm">{review.date}</span>
                             </div>
                           </div>
                         </div>
-                        <p className="text-gray-900 mb-3">{review.comment}</p>
+                        <p className="text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
                         {review.reply && (
                           <div className="ml-4 pl-4 border-l-4 border-orange-500 bg-orange-50 rounded-r-lg p-4">
                             <div className="flex items-center gap-2 mb-2">
@@ -353,19 +398,20 @@ export default function VendorDetailsPage() {
                             <p className="text-orange-800">{review.reply}</p>
                           </div>
                         )}
-                        {!review.reply && (
-                          <button className="text-orange-500 text-sm font-medium hover:text-orange-600 flex items-center gap-1">
+                        <div className="mt-3">
+                          <button className="text-gray-600 text-sm font-medium hover:text-gray-900 flex items-center gap-1">
                             <ThumbsUp size={14} />
-                            <span>Helpful</span>
+                            <span>Helpful ({Math.floor(Math.random() * 10)})</span>
                           </button>
-                        )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
                     <MessageSquare className="text-gray-300 mx-auto mb-4" size={48} />
-                    <p className="text-gray-900">No reviews yet. Be the first to review!</p>
+                    <p className="text-gray-900 mb-2">No reviews yet.</p>
+                    <p className="text-gray-600 text-sm">Be the first to review this business!</p>
                   </div>
                 )}
               </div>
@@ -497,6 +543,116 @@ export default function VendorDetailsPage() {
           onClose={() => setIsEnquiryModalOpen(false)}
           businessName={business.name}
         />
+      )}
+
+      {/* Review Form Modal */}
+      {showReviewForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Write a Review</h2>
+              <button
+                onClick={() => {
+                  setShowReviewForm(false);
+                  setReviewRating(5);
+                  setReviewComment('');
+                  setUserName('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Business Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-1">{business.name}</h3>
+                <p className="text-sm text-gray-600">{business.category}</p>
+              </div>
+
+              {/* Name Input */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Your Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Rating Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-3">
+                  Rating <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => setReviewRating(rating)}
+                      className="transition-transform hover:scale-110"
+                    >
+                      <Star
+                        className={rating <= reviewRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+                        size={40}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-4 text-gray-700 font-medium">
+                    {reviewRating === 5 && 'Excellent'}
+                    {reviewRating === 4 && 'Very Good'}
+                    {reviewRating === 3 && 'Good'}
+                    {reviewRating === 2 && 'Fair'}
+                    {reviewRating === 1 && 'Poor'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Comment Textarea */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Your Review <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                  rows={6}
+                  placeholder="Share your experience with this business..."
+                />
+                <p className="text-right text-xs text-gray-500 mt-1">{reviewComment.length}/500</p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowReviewForm(false);
+                    setReviewRating(5);
+                    setReviewComment('');
+                    setUserName('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={!userName.trim() || !reviewComment.trim()}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Send size={16} />
+                  <span>Submit Review</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
