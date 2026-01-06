@@ -9,6 +9,7 @@ import CategoryManagement from '@/components/CategoryManagement';
 import PriceVerification from '@/components/PriceVerification';
 import Reports from '@/components/Reports';
 import NotificationManagement from '@/components/NotificationManagement';
+import Settings from '@/components/Settings';
 
 export default function AdminPanel() {
   // Public access - no authentication required
@@ -41,6 +42,8 @@ export default function AdminPanel() {
         return 'Reports & Analytics';
       case 'notifications':
         return 'Notifications';
+      case 'settings':
+        return 'Settings';
       default:
         return 'Dashboard';
     }
@@ -60,6 +63,8 @@ export default function AdminPanel() {
         return <Reports />;
       case 'notifications':
         return <NotificationManagement />;
+      case 'settings':
+        return <Settings />;
       default:
         return <Dashboard />;
     }

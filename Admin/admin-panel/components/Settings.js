@@ -1,17 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import SendNotificationForm from './NotificationManagement/SendNotificationForm';
-import NotificationHistory from './NotificationManagement/NotificationHistory';
-import AutoNotificationSettings from './AutoNotifications/AutoNotificationSettings';
+import ThemeManagement from './Settings/ThemeManagement';
 
-export default function NotificationManagement() {
-  const [activeTab, setActiveTab] = useState('send');
+export default function Settings() {
+  const [activeTab, setActiveTab] = useState('theme');
 
   const tabs = [
-    { id: 'send', label: 'Send Notification' },
-    { id: 'history', label: 'Notification History' },
-    { id: 'auto', label: 'Auto Notifications' },
+    { id: 'theme', label: 'Festival Themes' },
   ];
 
   return (
@@ -36,12 +32,7 @@ export default function NotificationManagement() {
       </div>
 
       {/* Content */}
-      {activeTab === 'send' && <SendNotificationForm />}
-      {activeTab === 'history' && <NotificationHistory />}
-      {activeTab === 'auto' && <AutoNotificationSettings />}
+      {activeTab === 'theme' && <ThemeManagement />}
     </div>
   );
 }
-
-
-

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import UserManagement from './Dashboard/UserManagement';
 import SendNotification from './SendNotification';
+import ValueFeedback from './FeedbackManagement/ValueFeedback';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const stats = [
@@ -33,6 +34,7 @@ export default function Dashboard() {
     { id: 'overview', label: 'Overview' },
     { id: 'users', label: 'User Management' },
     { id: 'notifications', label: 'Send Notification' },
+    { id: 'feedback', label: 'Value Feedback' },
   ];
 
   return (
@@ -213,6 +215,7 @@ export default function Dashboard() {
 
       {activeTab === 'users' && <UserManagement />}
       {activeTab === 'notifications' && <SendNotification />}
+      {activeTab === 'feedback' && <ValueFeedback />}
     </div>
   );
 }

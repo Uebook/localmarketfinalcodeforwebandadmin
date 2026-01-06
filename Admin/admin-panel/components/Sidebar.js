@@ -9,6 +9,7 @@ const menuItems = [
   { id: 'price-verification', label: 'Price Verification', icon: '💰' },
   { id: 'reports', label: 'Reports & Analytics', icon: '📈' },
   { id: 'notifications', label: 'Notifications', icon: '🔔' },
+  { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
 export default function Sidebar({ activeSection, setActiveSection, onLogout }) {

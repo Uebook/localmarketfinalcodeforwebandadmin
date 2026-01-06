@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import CategoryMaster from './CategoryManagement/CategoryMaster';
 import ProductImport from './CategoryManagement/ProductImport';
+import BulkPriceUpdate from './CategoryManagement/BulkPriceUpdate';
 import GlobalSettings from './CategoryManagement/GlobalSettings';
 
 export default function CategoryManagement() {
@@ -11,6 +12,7 @@ export default function CategoryManagement() {
   const tabs = [
     { id: 'categories', label: 'Category Master' },
     { id: 'import', label: 'Master Product Import' },
+    { id: 'bulk-price', label: 'Bulk Price Update' },
     { id: 'settings', label: 'Global Settings' },
   ];
 
@@ -38,6 +40,7 @@ export default function CategoryManagement() {
       {/* Content */}
       {activeTab === 'categories' && <CategoryMaster />}
       {activeTab === 'import' && <ProductImport />}
+      {activeTab === 'bulk-price' && <BulkPriceUpdate />}
       {activeTab === 'settings' && <GlobalSettings />}
     </div>
   );

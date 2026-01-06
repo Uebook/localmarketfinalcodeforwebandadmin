@@ -5,9 +5,9 @@ import NotificationBell from './NotificationBell';
 export default function Header({ currentPage, currentSubPage }) {
   return (
     <div 
-      className="w-full p-6 text-white"
+      className="w-full p-6 text-white header-gradient"
       style={{
-        background: 'linear-gradient(to right, #E86A2C, #4A6CF7)'
+        background: 'var(--theme-header-gradient, linear-gradient(to right, #E86A2C, #4A6CF7))'
       }}
     >
       <div className="flex items-center justify-between">
