@@ -20,9 +20,9 @@ const menuItems = [
 
 export default function Sidebar({ activeSection, setActiveSection, onLogout }) {
   return (
-    <div className="w-64 bg-white shadow-lg h-full flex flex-col">
+    <div className="w-64 bg-white shadow-lg h-full flex flex-col overflow-hidden">
       {/* Menu Items */}
-      <nav className="flex-1 p-4 space-y-2 pt-6">
+      <nav className="flex-1 p-4 space-y-2 pt-6 overflow-y-auto">
         {menuItems.map((item) => (
           <button
             key={item.id}
