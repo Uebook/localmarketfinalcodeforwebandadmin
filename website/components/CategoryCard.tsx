@@ -1,6 +1,6 @@
 'use client';
 
-import { ShoppingBag, Smartphone, Shirt, Pill, Zap, Home, Headphones, Trophy } from 'lucide-react';
+import { ShoppingBag, Smartphone, Shirt, Pill, Zap, Home, Headphones, Trophy, Apple, Droplet, Gift, Camera, Music, Activity, Gamepad, Car, Bike, Palette, Square, Layers, Bed, Image, Sun, Utensils, Box, Star, Package, Heart, Leaf, Eye, Monitor } from 'lucide-react';
 
 interface CategoryCardProps {
   category: {
@@ -18,8 +18,41 @@ const iconMap: Record<string, any> = {
   Pill,
   Zap,
   Home,
-  Headphones,
-  Trophy,
+  FileText: Headphones,
+  Tool: Trophy,
+  Apple,
+  Droplet,
+  Gift,
+  Camera,
+  Music,
+  Activity,
+  Gamepad,
+  Car,
+  Bike,
+  Circle: Square,
+  Palette,
+  Square,
+  Layers,
+  Bed,
+  Image,
+  Sun,
+  Utensils,
+  Box,
+  Star,
+  Package,
+  Heart,
+  Leaf,
+  Eye,
+  Monitor,
+  Drumstick: Gift,
+  Fish: Droplet,
+  Sparkles: Star,
+  Wind: Activity,
+  Gem: Star,
+  Footprints: Activity,
+  Toy: Gift,
+  Briefcase: Box,
+  Clock: Activity,
 };
 
 export default function CategoryCard({ category, onSelect }: CategoryCardProps) {
