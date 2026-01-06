@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
+import { getSidebarControl } from '../utils/sidebarControl';
 
 const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
   const [locationState] = React.useState({
@@ -45,9 +46,13 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
   ]);
 
   const handleMenuClick = () => {
-    const control = getVendorSidebarControl();
+    const vendorControl = getVendorSidebarControl();
+    const customerControl = getSidebarControl();
+    const control = vendorControl || customerControl;
     if (control) {
       control(true);
+    } else {
+      console.warn('Sidebar control not available');
     }
   };
 

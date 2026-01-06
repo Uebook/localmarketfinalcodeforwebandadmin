@@ -7,6 +7,7 @@ import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 import FeedbackForm from './FeedbackForm';
 import { FESTIVAL_THEMES } from '../constants/festivalThemes';
+import { generateUserId } from '../utils/paymentUtils';
 
 const SettingsScreen = ({ 
   navigation,
@@ -238,6 +239,21 @@ const SettingsScreen = ({
                 )}
               </View>
             </View>
+
+            {/* User ID Display (for customers) */}
+            {userRole !== 'vendor' && (
+              <View style={styles.infoRow}>
+                <View style={styles.infoIcon}>
+                  <Icon name={getIconName('User')} size={16} color={COLORS.textMuted} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>USER ID</Text>
+                  <Text style={styles.infoValue}>
+                    {profileData?.userId || generateUserId({ mobile: formData.mobile || '9876543210' })}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {userRole === 'vendor' && onNavigateToBusiness && (

@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { launchImageLibrary } from 'react-native-image-picker';
+import LocationPicker from './LocationPicker';
+import { formatLocation } from '../constants/locations';
 
 const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   const [step, setStep] = useState(1);
@@ -22,6 +24,7 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showIdProofPicker, setShowIdProofPicker] = useState(false);
   const [showShopProofPicker, setShowShopProofPicker] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     ownerName: '',
@@ -37,6 +40,7 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     city: '',
     district: '',
     circle: '',
+    location: null, // { state, city, town, tehsil, subTehsil }
     openingTime: '',
     closingTime: '',
     weeklyOff: '',
@@ -365,8 +369,16 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
                   required
                 />
 
+                <DropdownField
+                  label="Location (State/City/Town/Tehsil/Sub-Tehsil)"
+                  value={formData.location ? formatLocation(formData.location) : ''}
+                  onPress={() => setShowLocationPicker(true)}
+                  iconName="MapPin"
+                  placeholder="Select Location"
+                />
+
                 <InputField
-                  label="City"
+                  label="City (Legacy)"
                   iconName="MapPin"
                   value={formData.city}
                   onChange={(v) => updateField('city', v)}
@@ -559,6 +571,20 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
         onSelect={(item) => updateField('shopProofType', item)}
         selectedValue={formData.shopProofType}
         title="Select Proof Type"
+      />
+
+      {/* Location Picker */}
+      <LocationPicker
+        visible={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onSelect={(location) => {
+          updateField('location', location);
+          // Also update city field for backward compatibility
+          if (location.city) {
+            updateField('city', location.city);
+          }
+        }}
+        initialLocation={formData.location || {}}
       />
     </View>
   );

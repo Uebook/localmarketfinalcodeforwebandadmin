@@ -26,6 +26,9 @@ import VendorEnquiriesScreen from './src/components/VendorEnquiriesScreen';
 import VendorReviewsScreen from './src/components/VendorReviewsScreen';
 import VendorProfileScreen from './src/components/VendorProfileScreen';
 import VendorOffersScreen from './src/components/VendorOffersScreen';
+import BulkPriceUpdate from './src/components/BulkPriceUpdate';
+import PaymentManagement from './src/components/PaymentManagement';
+import ServiceProviderRegistration from './src/components/ServiceProviderRegistration';
 import Sidebar from './src/components/Sidebar';
 import OffersScreen from './src/components/OffersScreen';
 import SavedScreen from './src/components/SavedScreen';
@@ -312,6 +315,8 @@ function App() {
         navigationRef.current?.navigate('VendorTabs', { screen: 'Analytics' });
       } else if (tab === 'business-details') {
         navigationRef.current?.navigate('VendorTabs', { screen: 'Profile' });
+      } else if (tab === 'payment-management') {
+        navigationRef.current?.navigate('PaymentManagement');
       }
     } else {
       // Customer navigation - navigate to nested tab navigator
@@ -435,6 +440,34 @@ function App() {
               />
             )}
           </Stack.Screen>
+          <Stack.Screen name="BulkPriceUpdate">
+            {(props) => (
+              <BulkPriceUpdate
+                {...props}
+                route={{
+                  ...props.route,
+                  params: {
+                    ...props.route?.params,
+                    vendorProducts: vendorData?.products || [],
+                  }
+                }}
+                vendorProducts={vendorData?.products || []}
+                onUpdatePrices={() => {
+                  // In production, this would refresh vendor data from backend
+                  console.log('Prices updated');
+                }}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="PaymentManagement">
+            {(props) => (
+              <PaymentManagement
+                {...props}
+                vendorData={vendorData}
+                onUpdateVendor={setVendorData}
+              />
+            )}
+          </Stack.Screen>
           <Stack.Screen name="Settings">
             {(props) => (
               <SettingsScreen
@@ -465,6 +498,15 @@ function App() {
           <Stack.Screen name="VendorRegistration">
             {(props) => (
               <VendorRegistration
+                {...props}
+                onComplete={handleRegistrationComplete}
+                onCancel={() => setIsRegistering(false)}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="ServiceProviderRegistration">
+            {(props) => (
+              <ServiceProviderRegistration
                 {...props}
                 onComplete={handleRegistrationComplete}
                 onCancel={() => setIsRegistering(false)}

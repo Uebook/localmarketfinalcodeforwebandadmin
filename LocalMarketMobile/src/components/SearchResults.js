@@ -47,14 +47,35 @@ const SearchResults = ({
 
         if (query && !propResults) {
             const lowerQuery = query.toLowerCase();
-            results = results.filter(item =>
-                item.name.toLowerCase().includes(lowerQuery) ||
-                item.category.toLowerCase().includes(lowerQuery) ||
-                (item.products && item.products.some(p => p.name.toLowerCase().includes(lowerQuery)))
-            );
+            // Split query into words for better matching
+            const queryWords = lowerQuery.split(/[\s\/]+/).filter(w => w.length > 0);
+            
+            results = results.filter(item => {
+                const itemName = item.name.toLowerCase();
+                const itemCategory = item.category.toLowerCase();
+                
+                // Check if any query word matches name or category
+                const matchesName = queryWords.some(word => itemName.includes(word));
+                const matchesCategory = queryWords.some(word => itemCategory.includes(word)) || 
+                                       itemCategory.includes(lowerQuery) || 
+                                       lowerQuery.includes(itemCategory);
+                
+                // Also check if category name is in the query (e.g., "Groceries" in "Groceries / General Store")
+                const categoryInQuery = itemCategory && lowerQuery.includes(itemCategory.split(' ')[0]);
+                
+                // Check products
+                const matchesProducts = item.products && item.products.some(p => 
+                    queryWords.some(word => p.name.toLowerCase().includes(word))
+                );
+                
+                return matchesName || matchesCategory || categoryInQuery || matchesProducts;
+            });
         }
 
-        results = results.filter(item => parseDistance(item.distance) <= maxDistance);
+        results = results.filter(item => {
+            const distance = item.distance ? parseDistance(item.distance) : 0;
+            return distance <= maxDistance;
+        });
 
         if (filterTopRated) {
             results = results.filter((item) => item.rating >= 4.0);

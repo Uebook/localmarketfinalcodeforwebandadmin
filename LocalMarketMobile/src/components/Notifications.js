@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
+import { COLORS } from '../constants/colors';
 
 const Notifications = ({ navigation, onClose }) => {
   const [notifications, setNotifications] = useState([
@@ -68,7 +70,17 @@ const Notifications = ({ navigation, onClose }) => {
       prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
     );
     // Handle navigation based on notification type
-    if (onClose) {
+    if (navigation?.canGoBack()) {
+      navigation.goBack();
+    } else if (onClose) {
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    if (navigation?.canGoBack()) {
+      navigation.goBack();
+    } else if (onClose) {
       onClose();
     }
   };
@@ -96,114 +108,121 @@ const Notifications = ({ navigation, onClose }) => {
   );
 
   return (
-    <Modal
-      visible={true}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <TouchableOpacity 
-          style={styles.backdrop} 
-          activeOpacity={1}
-          onPress={onClose}
-        />
-        <View style={styles.modal}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <View style={styles.headerIcon}>
-                <Icon name={getIconName('Bell')} size={20} color="#dc2626" />
-                {unreadCount > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{unreadCount}</Text>
-                  </View>
-                )}
-              </View>
-              <View>
-                <Text style={styles.headerTitle}>Notifications</Text>
-                {unreadCount > 0 && (
-                  <Text style={styles.headerSubtitle}>{unreadCount} new notification{unreadCount > 1 ? 's' : ''}</Text>
-                )}
-              </View>
+    <View style={styles.container}>
+      {/* Gradient Header Background */}
+      <LinearGradient
+        colors={COLORS.primaryGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.gradientBackground}
+      />
+      
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={handleClose} 
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          
+          <View style={styles.headerCenter}>
+            <View style={styles.headerIcon}>
+              <Icon name={getIconName('Bell')} size={20} color={COLORS.white} />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount}</Text>
+                </View>
+              )}
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton} activeOpacity={0.7}>
-              <Icon name={getIconName('X')} size={20} color="#6b7280" />
-            </TouchableOpacity>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Notifications</Text>
+              {unreadCount > 0 && (
+                <Text style={styles.headerSubtitle}>{unreadCount} new notification{unreadCount > 1 ? 's' : ''}</Text>
+              )}
+            </View>
           </View>
           
-          {/* Notifications List */}
-          <FlatList
-            data={notifications}
-            renderItem={renderNotification}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Icon name={getIconName('Bell')} size={48} color="#9ca3af" />
-                <Text style={styles.emptyText}>No notifications</Text>
-              </View>
-            }
-          />
-
-          {/* Footer */}
-          {notifications.length > 0 && (
-            <View style={styles.footer}>
-              <TouchableOpacity 
-                style={styles.markAllButton}
-                onPress={handleMarkAllRead}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.markAllText}>Mark all as read</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.headerRight} />
         </View>
+        
+        {/* Notifications List */}
+        <FlatList
+          data={notifications}
+          renderItem={renderNotification}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          style={styles.list}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Icon name={getIconName('Bell')} size={48} color="#9ca3af" />
+              <Text style={styles.emptyText}>No notifications</Text>
+            </View>
+          }
+        />
+
+        {/* Footer */}
+        {notifications.length > 0 && (
+          <View style={styles.footer}>
+            <TouchableOpacity 
+              style={styles.markAllButton}
+              onPress={handleMarkAllRead}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.markAllText}>Mark all as read</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </SafeAreaView>
-    </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: 64,
+    backgroundColor: '#F3F4F6',
   },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 64,
   },
-  modal: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    marginHorizontal: 16,
-    maxHeight: '85%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 12,
-    overflow: 'hidden',
+  safeArea: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#f9fafb',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    height: 64,
   },
-  headerLeft: {
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  headerCenter: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     flex: 1,
+    justifyContent: 'center',
   },
   headerIcon: {
     position: 'relative',
+  },
+  headerText: {
+    flex: 1,
+  },
+  headerRight: {
+    width: 40,
   },
   badge: {
     position: 'absolute',
@@ -227,16 +246,17 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1e293b',
+    color: COLORS.white,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#dc2626',
-    fontWeight: '600',
+    color: COLORS.white,
+    fontWeight: '500',
     marginTop: 2,
+    opacity: 0.9,
   },
-  closeButton: {
-    padding: 8,
+  list: {
+    flex: 1,
   },
   listContent: {
     paddingVertical: 8,
@@ -245,14 +265,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f9fafb',
+    borderBottomColor: '#f3f4f6',
     gap: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
   },
   notificationItemUnread: {
     backgroundColor: '#fef2f2',
     borderLeftWidth: 3,
-    borderLeftColor: '#dc2626',
+    borderLeftColor: COLORS.orange,
   },
   iconContainer: {
     width: 40,

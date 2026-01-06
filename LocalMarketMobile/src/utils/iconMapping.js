@@ -78,8 +78,43 @@ export const getIconName = (lucideIconName) => {
         'Lock': 'lock',
         'ArrowRight': 'arrow-right',
         'PlusCircle': 'plus-circle',
+        'CreditCard': 'credit-card',
+        'Download': 'download',
+        'Upload': 'upload',
+        'Tool': 'tool',
+        'Apple': 'circle', // Using circle as fallback for apple
+        'Droplet': 'droplet',
+        'Drumstick': 'circle', // Using circle as fallback
+        'Fish': 'circle', // Using circle as fallback
+        'Sparkles': 'star', // Using star as fallback
+        'Wind': 'wind',
+        'Gem': 'star', // Using star as fallback
+        'Footprints': 'circle', // Using circle as fallback
+        'Toy': 'circle', // Using circle as fallback
+        'Music': 'music',
+        'Monitor': 'monitor',
+        'Gamepad': 'circle', // Using circle as fallback
+        'Car': 'circle', // Using circle as fallback
+        'Bike': 'circle', // Using circle as fallback
+        'Square': 'square',
+        'Layers': 'layers',
+        'Bed': 'circle', // Using circle as fallback
+        'Sun': 'sun',
+        'Utensils': 'circle', // Using circle as fallback
+        'Box': 'box',
+        'Leaf': 'circle', // Using circle as fallback
+        'Wrench': 'tool',
+        'Toy': 'circle', // Using circle as fallback
+        'Drumstick': 'circle', // Using circle as fallback
+        'Fish': 'circle', // Using circle as fallback
+        'Footprints': 'circle', // Using circle as fallback
+        'Gamepad': 'circle', // Using circle as fallback
+        'Car': 'circle', // Using circle as fallback
+        'Bike': 'circle', // Using circle as fallback
+        'Bed': 'circle', // Using circle as fallback
+        'Utensils': 'circle', // Using circle as fallback
     };
 
-    return iconMap[lucideIconName] || 'circle'; // Default fallback
+    return iconMap[lucideIconName] || 'circle'; // Default fallback to circle
 };
 

@@ -1,63 +1,97 @@
-// Default Indian States, Cities, Towns, Tehsils, and Sub-tehsils
-// Shared from Admin Panel
-export const INDIAN_LOCATIONS = {
-  "Delhi": {
+// Comprehensive location data structure for India
+// States/Cities/Towns/Tehsils/Sub-tehsils
+
+export const LOCATION_DATA = {
+  'Delhi': {
     cities: {
-      "New Delhi": {
+      'New Delhi': {
         towns: {
-          "Central Delhi": {
+          'Connaught Place': {
             tehsils: {
-              "Connaught Place": {
-                subTehsils: ["CP", "Janpath", "Parliament Street"]
+              'CP Central': {
+                subTehsils: ['CP North', 'CP South', 'CP East', 'CP West']
               },
-              "Chandni Chowk": {
-                subTehsils: ["Old Delhi", "Red Fort", "Jama Masjid"]
+              'CP Outer': {
+                subTehsils: ['CP Outer North', 'CP Outer South']
               }
             }
           },
-          "South Delhi": {
+          'Karol Bagh': {
             tehsils: {
-              "Saket": {
-                subTehsils: ["Malviya Nagar", "Hauz Khas", "Green Park"]
-              },
-              "Vasant Kunj": {
-                subTehsils: ["Vasant Vihar", "Munirka", "RK Puram"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "Maharashtra": {
-    cities: {
-      "Mumbai": {
-        towns: {
-          "Mumbai Suburban": {
-            tehsils: {
-              "Andheri": {
-                subTehsils: ["Andheri East", "Andheri West", "Jogeshwari"]
-              },
-              "Bandra": {
-                subTehsils: ["Bandra East", "Bandra West", "Khar"]
-              }
-            }
-          },
-          "Thane": {
-            tehsils: {
-              "Thane": {
-                subTehsils: ["Thane West", "Thane East", "Kopri"]
+              'Karol Bagh Main': {
+                subTehsils: ['KB North', 'KB South', 'KB East', 'KB West']
               }
             }
           }
         }
       },
-      "Pune": {
+      'South Delhi': {
         towns: {
-          "Pune": {
+          'Saket': {
             tehsils: {
-              "Pune City": {
-                subTehsils: ["Shivajinagar", "Kothrud", "Hinjewadi"]
+              'Saket Main': {
+                subTehsils: ['Saket North', 'Saket South']
+              }
+            }
+          },
+          'Hauz Khas': {
+            tehsils: {
+              'Hauz Khas Main': {
+                subTehsils: ['HK North', 'HK South']
+              }
+            }
+          }
+        }
+      },
+      'East Delhi': {
+        towns: {
+          'Laxmi Nagar': {
+            tehsils: {
+              'Laxmi Nagar Main': {
+                subTehsils: ['LN North', 'LN South']
+              }
+            }
+          },
+          'Mayur Vihar': {
+            tehsils: {
+              'Mayur Vihar Main': {
+                subTehsils: ['MV Phase 1', 'MV Phase 2', 'MV Phase 3']
+              }
+            }
+          }
+        }
+      },
+      'North Delhi': {
+        towns: {
+          'Rohini': {
+            tehsils: {
+              'Rohini Main': {
+                subTehsils: ['Rohini Sector 1-10', 'Rohini Sector 11-20']
+              }
+            }
+          },
+          'Pitampura': {
+            tehsils: {
+              'Pitampura Main': {
+                subTehsils: ['Pitampura North', 'Pitampura South']
+              }
+            }
+          }
+        }
+      },
+      'West Delhi': {
+        towns: {
+          'Dwarka': {
+            tehsils: {
+              'Dwarka Main': {
+                subTehsils: ['Dwarka Sector 1-10', 'Dwarka Sector 11-20']
+              }
+            }
+          },
+          'Rajouri Garden': {
+            tehsils: {
+              'Rajouri Garden Main': {
+                subTehsils: ['RG North', 'RG South']
               }
             }
           }
@@ -65,17 +99,79 @@ export const INDIAN_LOCATIONS = {
       }
     }
   },
-  "Karnataka": {
+  'Uttar Pradesh': {
     cities: {
-      "Bangalore": {
+      'Noida': {
         towns: {
-          "Bangalore Urban": {
+          'Sector 18': {
             tehsils: {
-              "Bangalore North": {
-                subTehsils: ["Hebbal", "Yelahanka", "Yeshwanthpur"]
+              'Sector 18 Main': {
+                subTehsils: ['Sector 18 North', 'Sector 18 South']
+              }
+            }
+          },
+          'Sector 62': {
+            tehsils: {
+              'Sector 62 Main': {
+                subTehsils: ['Sector 62 North', 'Sector 62 South']
+              }
+            }
+          }
+        }
+      },
+      'Ghaziabad': {
+        towns: {
+          'Vaishali': {
+            tehsils: {
+              'Vaishali Main': {
+                subTehsils: ['Vaishali Sector 1', 'Vaishali Sector 2']
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  'Haryana': {
+    cities: {
+      'Gurgaon': {
+        towns: {
+          'Cyber City': {
+            tehsils: {
+              'Cyber City Main': {
+                subTehsils: ['Cyber City Phase 1', 'Cyber City Phase 2']
+              }
+            }
+          },
+          'Sector 29': {
+            tehsils: {
+              'Sector 29 Main': {
+                subTehsils: ['Sector 29 North', 'Sector 29 South']
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  'Maharashtra': {
+    cities: {
+      'Mumbai': {
+        towns: {
+          'Andheri': {
+            tehsils: {
+              'Andheri East': {
+                subTehsils: ['Andheri East Main', 'Andheri East Sub']
               },
-              "Bangalore South": {
-                subTehsils: ["Koramangala", "HSR Layout", "BTM Layout"]
+              'Andheri West': {
+                subTehsils: ['Andheri West Main', 'Andheri West Sub']
+              }
+            }
+          },
+          'Bandra': {
+            tehsils: {
+              'Bandra Main': {
+                subTehsils: ['Bandra North', 'Bandra South']
               }
             }
           }
@@ -83,104 +179,14 @@ export const INDIAN_LOCATIONS = {
       }
     }
   },
-  "Gujarat": {
+  'Karnataka': {
     cities: {
-      "Ahmedabad": {
+      'Bangalore': {
         towns: {
-          "Ahmedabad": {
+          'Koramangala': {
             tehsils: {
-              "Ahmedabad City": {
-                subTehsils: ["Navrangpura", "Maninagar", "Vastrapur"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "Tamil Nadu": {
-    cities: {
-      "Chennai": {
-        towns: {
-          "Chennai": {
-            tehsils: {
-              "Chennai North": {
-                subTehsils: ["T Nagar", "Anna Nagar", "Kilpauk"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "West Bengal": {
-    cities: {
-      "Kolkata": {
-        towns: {
-          "Kolkata": {
-            tehsils: {
-              "Kolkata North": {
-                subTehsils: ["Salt Lake", "New Town", "Rajarhat"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "Rajasthan": {
-    cities: {
-      "Jaipur": {
-        towns: {
-          "Jaipur": {
-            tehsils: {
-              "Jaipur City": {
-                subTehsils: ["Malviya Nagar", "Vaishali Nagar", "C Scheme"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "Uttar Pradesh": {
-    cities: {
-      "Lucknow": {
-        towns: {
-          "Lucknow": {
-            tehsils: {
-              "Lucknow City": {
-                subTehsils: ["Gomti Nagar", "Hazratganj", "Aliganj"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "Telangana": {
-    cities: {
-      "Hyderabad": {
-        towns: {
-          "Hyderabad": {
-            tehsils: {
-              "Hyderabad Central": {
-                subTehsils: ["Banjara Hills", "Jubilee Hills", "Hitech City"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "Punjab": {
-    cities: {
-      "Chandigarh": {
-        towns: {
-          "Chandigarh": {
-            tehsils: {
-              "Chandigarh": {
-                subTehsils: ["Sector 17", "Sector 35", "Sector 22"]
+              'Koramangala Main': {
+                subTehsils: ['Koramangala 1st Block', 'Koramangala 5th Block']
               }
             }
           }
@@ -191,27 +197,36 @@ export const INDIAN_LOCATIONS = {
 };
 
 // Helper functions to get location lists
-export const getStates = () => Object.keys(INDIAN_LOCATIONS);
+export const getStates = () => Object.keys(LOCATION_DATA);
 
 export const getCities = (state) => {
-  if (!state || !INDIAN_LOCATIONS[state]) return [];
-  return Object.keys(INDIAN_LOCATIONS[state].cities);
+  if (!state || !LOCATION_DATA[state]) return [];
+  return Object.keys(LOCATION_DATA[state].cities || {});
 };
 
 export const getTowns = (state, city) => {
-  if (!state || !city || !INDIAN_LOCATIONS[state]?.cities[city]) return [];
-  return Object.keys(INDIAN_LOCATIONS[state].cities[city].towns);
+  if (!state || !city || !LOCATION_DATA[state]?.cities?.[city]) return [];
+  return Object.keys(LOCATION_DATA[state].cities[city].towns || {});
 };
 
 export const getTehsils = (state, city, town) => {
-  if (!state || !city || !town || !INDIAN_LOCATIONS[state]?.cities[city]?.towns[town]) return [];
-  return Object.keys(INDIAN_LOCATIONS[state].cities[city].towns[town].tehsils);
+  if (!state || !city || !town || !LOCATION_DATA[state]?.cities?.[city]?.towns?.[town]) return [];
+  return Object.keys(LOCATION_DATA[state].cities[city].towns[town].tehsils || {});
 };
 
 export const getSubTehsils = (state, city, town, tehsil) => {
-  if (!state || !city || !town || !tehsil || !INDIAN_LOCATIONS[state]?.cities[city]?.towns[town]?.tehsils[tehsil]) return [];
-  return INDIAN_LOCATIONS[state].cities[city].towns[town].tehsils[tehsil].subTehsils;
+  if (!state || !city || !town || !tehsil || !LOCATION_DATA[state]?.cities?.[city]?.towns?.[town]?.tehsils?.[tehsil]) return [];
+  return LOCATION_DATA[state].cities[city].towns[town].tehsils[tehsil].subTehsils || [];
 };
 
-// Circles for filtering
-export const CIRCLES = ['North Circle', 'South Circle', 'East Circle', 'West Circle', 'Central Circle'];
+// Format full address
+export const formatLocation = (location) => {
+  const parts = [];
+  if (location.subTehsil) parts.push(location.subTehsil);
+  if (location.tehsil) parts.push(location.tehsil);
+  if (location.town) parts.push(location.town);
+  if (location.city) parts.push(location.city);
+  if (location.state) parts.push(location.state);
+  if (location.pincode) parts.push(location.pincode);
+  return parts.join(', ');
+};

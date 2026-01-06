@@ -8,8 +8,10 @@ import { COLORS } from '../constants/colors';
 // Import sidebar control from shared utility
 import { setSidebarControl, getSidebarControl } from '../utils/sidebarControl';
 import SearchBar from './SearchBar';
-import CategoryGrid from './CategoryGrid';
+import TopCategoriesGrid from './TopCategoriesGrid';
 import NearbySection from './NearbySection';
+import CategoryBusinessSection from './CategoryBusinessSection';
+import { TOP_8_CATEGORIES } from '../constants/categories';
 import HorizontalSection from './HorizontalSection';
 import RecentSearches from './RecentSearches';
 import PromoCarousel from './PromoCarousel';
@@ -47,6 +49,13 @@ const HomeScreen = ({ navigation, route }) => {
     // Navigate to search results with category as query
     if (navigation) {
       navigation.navigate('SearchResults', { query: categoryName });
+    }
+  };
+
+  const handleViewAllCategories = () => {
+    // Navigate to Categories screen
+    if (navigation) {
+      navigation.navigate('MainTabs', { screen: 'Categories' });
     }
   };
 
@@ -107,9 +116,39 @@ const HomeScreen = ({ navigation, route }) => {
       >
         <SearchBar onSearch={handleSearch} />
         
-        <CategoryGrid onCategorySelect={handleCategorySelect} />
+        <TopCategoriesGrid 
+          onCategorySelect={handleCategorySelect}
+          onViewAll={handleViewAllCategories}
+        />
 
         <PromoCarousel />
+
+        {/* Category-based Business Sections */}
+        {TOP_8_CATEGORIES.slice(0, 4).map((category) => (
+          <CategoryBusinessSection
+            key={category.id}
+            categoryId={category.id}
+            categoryName={category.name}
+            onBusinessClick={(business) => {
+              // Convert to full business object format
+              const fullBusiness = {
+                ...business,
+                category: category.name,
+                address: business.address || 'Nearby',
+                openTime: 'Open Now',
+                about: `${category.name} store in your area`,
+                isVerified: true,
+              };
+              handleBusinessClick(fullBusiness);
+            }}
+            onViewAll={(catId) => {
+              // Navigate to Categories screen
+              if (navigation) {
+                navigation.navigate('MainTabs', { screen: 'Categories' });
+              }
+            }}
+          />
+        ))}
 
         <HorizontalSection
           title="Home Services"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, TextInput, Switch, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, TextInput, Switch, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -8,6 +8,7 @@ import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
+import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare } from '../utils/vendorActions';
 
 const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
@@ -40,9 +41,13 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const units = ['Piece', 'Kg', 'Litre', 'Pack', 'Box', 'Dozen'];
 
   const handleMenuClick = () => {
-    const control = getVendorSidebarControl();
+    const vendorControl = getVendorSidebarControl();
+    const customerControl = getSidebarControl();
+    const control = vendorControl || customerControl;
     if (control) {
       control(true);
+    } else {
+      console.warn('Sidebar control not available');
     }
   };
 
@@ -56,6 +61,36 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     if (navigation) {
       navigation.navigate('Notifications');
     }
+  };
+
+  const handleDownloadCatalog = () => {
+    if (products.length === 0) {
+      Alert.alert('Empty Catalog', 'Please add products to your catalog before downloading.');
+      return;
+    }
+
+    // Generate catalog data for download
+    const catalogData = products.map((product, index) => ({
+      'S.No': index + 1,
+      'Product ID': product.id || `PROD-${index + 1}`,
+      'Product Name': product.name || '',
+      'Category': product.category || '',
+      'Price': product.price || '0',
+      'MRP': product.mrp || product.originalPrice || product.price || '0',
+      'Unit': product.unit || 'Piece',
+      'In Stock': product.inStock ? 'Yes' : 'No',
+      'Best Seller': product.bestSeller ? 'Yes' : 'No',
+      'Description': product.description || '',
+    }));
+
+    // In production, this would generate and download an actual Excel/CSV file
+    Alert.alert(
+      'Catalog Download',
+      `Catalog file generated for ${products.length} products.\n\n` +
+      `In production, this would download an Excel/CSV file with all your catalog items.\n\n` +
+      `File includes: Product ID, Name, Category, Price, MRP, Unit, Stock Status, and Description.`,
+      [{ text: 'OK' }]
+    );
   };
 
   const profileCompletion = 85;
@@ -336,9 +371,41 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         <View style={styles.catalogSection}>
           <View style={styles.catalogHeader}>
             <Text style={styles.catalogTitle}>Your Catalog ({products.length})</Text>
-            <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
-              <Icon name={getIconName('Plus')} size={16} color={COLORS.white} />
-              <Text style={styles.addItemButtonText}>Add Item</Text>
+          </View>
+
+          {/* Action Buttons Row */}
+          <View style={styles.catalogButtonsRow}>
+            <TouchableOpacity 
+              style={styles.catalogActionButton} 
+              onPress={handleDownloadCatalog}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.catalogButtonIcon, { backgroundColor: '#16a34a' }]}>
+                <Icon name={getIconName('Download')} size={20} color={COLORS.white} />
+              </View>
+              <Text style={styles.catalogButtonText}>Download Excel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.catalogActionButton} 
+              onPress={() => navigation?.navigate('BulkPriceUpdate')}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.catalogButtonIcon, { backgroundColor: COLORS.blue }]}>
+                <Icon name={getIconName('Upload')} size={20} color={COLORS.white} />
+              </View>
+              <Text style={styles.catalogButtonText}>Bulk Update</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.catalogActionButton} 
+              onPress={handleAddItem}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.catalogButtonIcon, { backgroundColor: COLORS.orange }]}>
+                <Icon name={getIconName('Plus')} size={20} color={COLORS.white} />
+              </View>
+              <Text style={styles.catalogButtonText}>Add Product</Text>
             </TouchableOpacity>
           </View>
 
@@ -577,6 +644,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           />
         </View>
       </ScrollView>
+
     </View>
   );
 };
@@ -736,9 +804,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   catalogHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 16,
   },
   catalogTitle: {
@@ -746,19 +811,41 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.textPrimary,
   },
-  addItemButton: {
+  catalogButtonsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.orange,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
   },
-  addItemButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.white,
+  catalogActionButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  catalogButtonIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  catalogButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
   },
   productCard: {
     flexDirection: 'row',

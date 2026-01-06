@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
+import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare, handlePreview } from '../utils/vendorActions';
 
 const VendorReviewsScreen = ({ navigation, vendorData }) => {
@@ -19,9 +20,13 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
   });
 
   const handleMenuClick = () => {
-    const control = getVendorSidebarControl();
+    const vendorControl = getVendorSidebarControl();
+    const customerControl = getSidebarControl();
+    const control = vendorControl || customerControl;
     if (control) {
       control(true);
+    } else {
+      console.warn('Sidebar control not available');
     }
   };
   const handleProfileClick = () => navigation?.navigate('Settings');

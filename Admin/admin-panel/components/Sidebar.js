@@ -7,8 +7,14 @@ const menuItems = [
   { id: 'vendors', label: 'Vendor Management', icon: '🏪' },
   { id: 'categories', label: 'Category & Products', icon: '📦' },
   { id: 'price-verification', label: 'Price Verification', icon: '💰' },
+  { id: 'payment-fees', label: 'Payment & Fees', icon: '💳' },
+  { id: 'festive-offers', label: 'Festive Offers', icon: '🎉' },
+  { id: 'banners', label: 'Banner Management', icon: '🖼️' },
+  { id: 'e-auction', label: 'E-Auction & Draw', icon: '🎲' },
+  { id: 'circle-analytics', label: 'Circle Analytics', icon: '📊' },
   { id: 'reports', label: 'Reports & Analytics', icon: '📈' },
   { id: 'notifications', label: 'Notifications', icon: '🔔' },
+  { id: 'locations', label: 'Location Management', icon: '📍' },
   { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 

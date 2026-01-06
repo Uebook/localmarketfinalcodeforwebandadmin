@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 import EnquiryModal from './EnquiryModal';
+import WriteReview from './WriteReview';
 
 const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusinessIds }) => {
     // Handle both 'business' and 'vendor' parameter names
@@ -13,6 +14,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
     const [activeTab, setActiveTab] = useState('Overview');
     const [isSaved, setIsSaved] = useState(savedBusinessIds.includes(business?.id));
     const [showEnquiryModal, setShowEnquiryModal] = useState(false);
+    const [showWriteReview, setShowWriteReview] = useState(false);
 
     if (!business) {
         return (
@@ -57,6 +59,16 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
         const address = business.address || '';
         // In a real app, you'd use Clipboard API
         Alert.alert('Copied', 'Address copied to clipboard');
+    };
+
+    const handleReviewSubmit = (reviewData) => {
+        Alert.alert(
+            'Review Submitted',
+            `Thank you for your ${reviewData.rating}-star review! Your feedback helps other customers make better decisions.`,
+            [{ text: 'OK' }]
+        );
+        // In a real app, this would send the review to the backend
+        console.log('Review submitted for business:', business.name, reviewData);
     };
 
     return (
@@ -202,11 +214,18 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                             {/* Start Review */}
                             <View style={styles.reviewSection}>
                                 <Text style={styles.sectionTitle}>Start a review</Text>
-                                <View style={styles.starRow}>
-                                    {[1, 2, 3, 4, 5].map((s) => (
-                                        <Icon key={s} name={getIconName('Star')} size={32} color="#e5e7eb" />
-                                    ))}
-                                </View>
+                                <TouchableOpacity
+                                    style={styles.reviewButton}
+                                    onPress={() => setShowWriteReview(true)}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={styles.starRow}>
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Icon key={s} name={getIconName('Star')} size={32} color="#e5e7eb" />
+                                        ))}
+                                    </View>
+                                    <Text style={styles.writeReviewText}>Tap to write a review</Text>
+                                </TouchableOpacity>
                             </View>
 
                             {/* About */}
@@ -351,7 +370,10 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                             ) : (
                                 <View style={styles.emptyState}>
                                     <Text style={styles.emptyText}>No reviews yet.</Text>
-                                    <TouchableOpacity activeOpacity={0.7}>
+                                    <TouchableOpacity 
+                                        activeOpacity={0.7}
+                                        onPress={() => setShowWriteReview(true)}
+                                    >
                                         <Text style={styles.writeReviewText}>Be the first to write a review</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -435,6 +457,14 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                 isOpen={showEnquiryModal}
                 businessName={business.name}
                 onClose={() => setShowEnquiryModal(false)}
+            />
+
+            {/* Write Review Modal */}
+            <WriteReview
+                visible={showWriteReview}
+                onClose={() => setShowWriteReview(false)}
+                onSubmit={handleReviewSubmit}
+                vendorName={business.name}
             />
         </View>
     );
@@ -641,10 +671,15 @@ const styles = StyleSheet.create({
     reviewSection: {
         marginBottom: 8,
     },
+    reviewButton: {
+        alignItems: 'center',
+        paddingVertical: 8,
+    },
     starRow: {
         flexDirection: 'row',
         gap: 8,
         marginTop: 8,
+        justifyContent: 'center',
     },
     sectionTitle: {
         fontSize: 18,

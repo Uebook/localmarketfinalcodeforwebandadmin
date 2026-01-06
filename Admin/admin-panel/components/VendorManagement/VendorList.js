@@ -2,73 +2,9 @@
 
 import { useState } from 'react';
 import { getStates, getCities, getTowns, getTehsils, getSubTehsils } from '@/constants/locations';
+import { VENDORS } from '@/constants/vendors';
 
-const vendors = [
-  {
-    id: 1,
-    name: 'My Awesome Shop',
-    owner: 'John Doe',
-    status: 'Active',
-    kycStatus: 'Verified',
-    productCount: 45,
-    state: 'Delhi',
-    city: 'New Delhi',
-    town: 'Central Delhi',
-    tehsil: 'Connaught Place',
-    subTehsil: 'CP',
-    circle: 'North Circle',
-    joinedDate: '2024-01-15',
-    lastActive: '2 hours ago',
-  },
-  {
-    id: 2,
-    name: 'Quick Mart',
-    owner: 'Jane Smith',
-    status: 'Pending',
-    kycStatus: 'Pending',
-    productCount: 0,
-    state: 'Maharashtra',
-    city: 'Mumbai',
-    town: 'Mumbai Suburban',
-    tehsil: 'Andheri',
-    subTehsil: 'Andheri East',
-    circle: 'West Circle',
-    joinedDate: '2024-12-20',
-    lastActive: 'Never',
-  },
-  {
-    id: 3,
-    name: 'City Groceries',
-    owner: 'Raj Kumar',
-    status: 'Blocked',
-    kycStatus: 'Verified',
-    productCount: 120,
-    state: 'Karnataka',
-    city: 'Bangalore',
-    town: 'Bangalore Urban',
-    tehsil: 'Bangalore North',
-    subTehsil: 'Hebbal',
-    circle: 'South Circle',
-    joinedDate: '2023-11-10',
-    lastActive: '5 days ago',
-  },
-  {
-    id: 4,
-    name: 'Fresh Market',
-    owner: 'Priya Singh',
-    status: 'Active',
-    kycStatus: 'Verified',
-    productCount: 78,
-    state: 'Delhi',
-    city: 'New Delhi',
-    town: 'South Delhi',
-    tehsil: 'Saket',
-    subTehsil: 'Malviya Nagar',
-    circle: 'South Circle',
-    joinedDate: '2024-03-15',
-    lastActive: '1 day ago',
-  },
-];
+const vendors = VENDORS;
 
 const statusColors = {
   Active: 'bg-green-100 text-green-800',

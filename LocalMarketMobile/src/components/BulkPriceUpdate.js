@@ -1,46 +1,111 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
-import DocumentPicker from 'react-native-document-picker';
+// import DocumentPicker from 'react-native-document-picker'; // Temporarily disabled due to compatibility issues
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 
 const BulkPriceUpdate = ({ 
   navigation, 
-  onBack,
+  route,
   vendorProducts = [],
   onUpdatePrices 
 }) => {
+  // Get products from route params or props
+  const products = route?.params?.vendorProducts || vendorProducts || [];
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
 
   const handleDownloadTemplate = () => {
-    // In a real app, this would download the Excel template
-    // For now, show alert
+    if (products && products.length === 0) {
+      Alert.alert(
+        'No Products',
+        'Please add products to your catalog first before downloading the price update template.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // Generate Excel template data structure
+    const templateData = products.map((product, index) => ({
+      'Product ID': product.id || `PROD-${index + 1}`,
+      'Product Name': product.name || '',
+      'Current Price': product.price || '0',
+      'New Price': '', // Empty for vendor to fill
+      'MRP': product.mrp || product.price || '0',
+      'Category': product.category || '',
+      'Unit': product.unit || 'Piece',
+      'In Stock': product.inStock ? 'Yes' : 'No',
+    }));
+
+    // In a real app, this would generate and download an actual Excel file
+    // For now, show detailed information about the template
+    const templateInfo = `Excel Template Format:\n\n` +
+      `Columns:\n` +
+      `1. Product ID (DO NOT MODIFY)\n` +
+      `2. Product Name (DO NOT MODIFY)\n` +
+      `3. Current Price (DO NOT MODIFY)\n` +
+      `4. New Price (FILL THIS COLUMN)\n` +
+      `5. MRP (DO NOT MODIFY)\n` +
+      `6. Category (DO NOT MODIFY)\n` +
+      `7. Unit (DO NOT MODIFY)\n` +
+      `8. In Stock (DO NOT MODIFY)\n\n` +
+      `Total Products: ${products.length}\n\n` +
+      `Instructions:\n` +
+      `• Only modify the "New Price" column\n` +
+      `• Keep all other columns unchanged\n` +
+      `• Save as .xlsx or .xls format\n` +
+      `• Upload the file after filling prices`;
+
     Alert.alert(
       'Download Template',
-      'Template download will be available after backend integration. The template will include: Product ID, Product Name, Current Price, New Price, Category, Unit',
-      [{ text: 'OK' }]
+      templateInfo,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Generate Template', 
+          onPress: () => {
+            // Simulate template generation
+            setLoading(true);
+            setTimeout(() => {
+              setLoading(false);
+              Alert.alert(
+                'Template Ready',
+                `Template generated for ${products.length} products. In production, this would download an Excel file. The template includes all your current products with their details.`,
+                [{ text: 'OK' }]
+              );
+            }, 1500);
+          }
+        }
+      ]
     );
   };
 
   const handlePickFile = async () => {
-    try {
-      const result = await DocumentPicker.pick({
-        type: [DocumentPicker.types.xlsx, DocumentPicker.types.xls],
-        copyTo: 'cachesDirectory',
-      });
-
-      setFile(result[0]);
-    } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        // User cancelled
-      } else {
-        Alert.alert('Error', 'Failed to pick file. Please try again.');
-      }
-    }
+    // Temporarily disabled - File picker will be available after backend integration
+    Alert.alert(
+      'File Picker',
+      'File selection feature will be available after backend integration. For now, please use the template download feature.',
+      [{ text: 'OK' }]
+    );
+    
+    // TODO: Re-enable when compatible document picker is available
+    // try {
+    //   const result = await DocumentPicker.pick({
+    //     type: [DocumentPicker.types.xlsx, DocumentPicker.types.xls],
+    //     copyTo: 'cachesDirectory',
+    //   });
+    //   setFile(result[0]);
+    // } catch (err) {
+    //   if (DocumentPicker.isCancel(err)) {
+    //     // User cancelled
+    //   } else {
+    //     Alert.alert('Error', 'Failed to pick file. Please try again.');
+    //   }
+    // }
   };
 
   const handleUpload = async () => {
@@ -74,17 +139,26 @@ const BulkPriceUpdate = ({
 
   return (
     <View style={styles.container}>
+      {/* Gradient Header Background */}
+      <LinearGradient
+        colors={COLORS.primaryGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.gradientBackground}
+      />
+      
       <SafeAreaView edges={['top']} style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity 
             onPress={() => {
-              if (onBack) onBack();
-              else if (navigation) navigation.goBack();
+              if (navigation?.canGoBack()) {
+                navigation.goBack();
+              }
             }} 
             style={styles.backButton} 
             activeOpacity={0.7}
           >
-            <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.textPrimary} />
+            <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Bulk Price Update</Text>
           <TouchableOpacity 
@@ -92,7 +166,7 @@ const BulkPriceUpdate = ({
             style={styles.helpButton}
             activeOpacity={0.7}
           >
-            <Icon name="help-circle" size={24} color={COLORS.orange} />
+            <Icon name="help-circle" size={24} color={COLORS.white} />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -105,8 +179,15 @@ const BulkPriceUpdate = ({
             <Text style={styles.sectionTitle}>Download Template</Text>
           </View>
           <Text style={styles.sectionDescription}>
-            Download the Excel template with your current products. Fill in the "New Price" column and upload it back.
+            Download the Excel template with your current products ({products?.length || 0} items). Fill in the "New Price" column and upload it back. The system will automatically import and update prices.
           </Text>
+          {products && products.length > 0 && (
+            <View style={styles.productCountBadge}>
+              <Text style={styles.productCountText}>
+                {products.length} {products.length === 1 ? 'product' : 'products'} in catalog
+              </Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.downloadButton}
             onPress={handleDownloadTemplate}
@@ -242,10 +323,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 64,
+  },
   header: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    backgroundColor: 'transparent',
   },
   headerContent: {
     flexDirection: 'row',
@@ -253,19 +339,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    height: 64,
   },
   backButton: {
     padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '700',
+    color: COLORS.white,
     flex: 1,
     textAlign: 'center',
   },
   helpButton: {
     padding: 8,
+    marginRight: -8,
   },
   content: {
     flex: 1,
@@ -442,6 +531,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textPrimary,
     lineHeight: 24,
+  },
+  productCountBadge: {
+    backgroundColor: '#FFF4EC',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  productCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.orange,
   },
 });
 

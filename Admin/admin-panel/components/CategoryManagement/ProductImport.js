@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ALL_CATEGORIES } from '@/constants/categories';
 
 export default function ProductImport() {
   const [file, setFile] = useState(null);
@@ -61,9 +62,11 @@ export default function ProductImport() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="">Select Category</option>
-              <option value="groceries">Groceries</option>
-              <option value="electronics">Electronics</option>
-              <option value="clothing">Clothing</option>
+              {ALL_CATEGORIES.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </div>
           <div>

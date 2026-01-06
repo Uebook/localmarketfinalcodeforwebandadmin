@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -7,10 +7,15 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
+import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare, handlePreview } from '../utils/vendorActions';
+import WriteReview from './WriteReview';
+import LocationPicker from './LocationPicker';
+import { formatLocation } from '../constants/locations';
+import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
 
 const VendorProfileScreen = ({ navigation, vendorData }) => {
-  const [locationState] = React.useState({
+  const [locationState] = useState({
     lat: null,
     lng: null,
     city: 'Delhi, India',
@@ -20,12 +25,29 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
 
   const [priceAlerts, setPriceAlerts] = useState(false);
   const [bulkUploads, setBulkUploads] = useState(false);
+  const [showWriteReview, setShowWriteReview] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [location, setLocation] = useState(vendorData?.location || null);
 
   const handleMenuClick = () => {
-    const control = getVendorSidebarControl();
+    const vendorControl = getVendorSidebarControl();
+    const customerControl = getSidebarControl();
+    const control = vendorControl || customerControl;
     if (control) {
       control(true);
+    } else {
+      console.warn('Sidebar control not available');
     }
+  };
+
+  const handleWriteReview = (reviewData) => {
+    Alert.alert(
+      'Review Submitted',
+      `Thank you for your review! Your ${reviewData.rating}-star review has been submitted.`,
+      [{ text: 'OK' }]
+    );
+    // In a real app, this would send the review to the backend
+    console.log('Review submitted:', reviewData);
   };
   const handleProfileClick = () => navigation?.navigate('Settings');
   const handleNotificationClick = () => navigation?.navigate('Notifications');
@@ -126,6 +148,61 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               <Text style={styles.actionText}>Settings</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Payment Status Alert */}
+          {vendorData && shouldBlockVendor(vendorData) && (
+            <View style={styles.paymentAlert}>
+              <Icon name={getIconName('AlertCircle')} size={20} color="#dc2626" />
+              <View style={styles.paymentAlertContent}>
+                <Text style={styles.paymentAlertTitle}>Payment Overdue</Text>
+                <Text style={styles.paymentAlertText}>
+                  Your account will be blocked. Please complete payment to continue.
+                </Text>
+                <TouchableOpacity
+                  style={styles.paymentButton}
+                  onPress={() => navigation?.navigate('PaymentManagement')}
+                >
+                  <Text style={styles.paymentButtonText}>Pay Now</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Vendor ID Display */}
+          {vendorData?.vendorId && (
+            <View style={styles.vendorIdCard}>
+              <Text style={styles.vendorIdLabel}>Vendor ID</Text>
+              <Text style={styles.vendorIdValue}>{vendorData.vendorId}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Write Review Section */}
+        <View style={styles.writeReviewSection}>
+          <View style={styles.writeReviewHeader}>
+            <View style={styles.writeReviewHeaderLeft}>
+              <Icon name={getIconName('Star')} size={24} color={COLORS.orange} />
+              <View style={styles.writeReviewHeaderText}>
+                <Text style={styles.writeReviewTitle}>Customer Reviews</Text>
+                <Text style={styles.writeReviewSubtitle}>Share your experience</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.writeReviewButton}
+              onPress={() => setShowWriteReview(true)}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={COLORS.primaryGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.writeReviewButtonGradient}
+              >
+                <Icon name={getIconName('Edit')} size={16} color={COLORS.white} />
+                <Text style={styles.writeReviewButtonText}>Write Review</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Business Profile Section */}
@@ -189,6 +266,23 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
             </View>
 
+            <TouchableOpacity 
+              style={styles.profileField}
+              onPress={() => setShowLocationPicker(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.fieldIcon}>
+                <Icon name={getIconName('MapPin')} size={16} color={COLORS.textMuted} />
+              </View>
+              <View style={styles.fieldContent}>
+                <Text style={styles.fieldLabel}>LOCATION (State/City/Town/Tehsil/Sub-Tehsil)</Text>
+                <Text style={styles.fieldValue}>
+                  {location ? formatLocation(location) : 'Tap to select location'}
+                </Text>
+              </View>
+              <Icon name={getIconName('ChevronRight')} size={16} color={COLORS.textMuted} />
+            </TouchableOpacity>
+
             <View style={styles.profileField}>
               <View style={styles.fieldIcon}>
                 <Icon name={getIconName('Clock')} size={16} color={COLORS.textMuted} />
@@ -236,6 +330,29 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Write Review Modal */}
+      <WriteReview
+        visible={showWriteReview}
+        onClose={() => setShowWriteReview(false)}
+        onSubmit={handleWriteReview}
+        vendorName={vendorData?.name || 'My Awesome Shop'}
+      />
+
+      {/* Location Picker */}
+      <LocationPicker
+        visible={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onSelect={(selectedLocation) => {
+          setLocation(selectedLocation);
+          // In production, this would save to backend
+          if (vendorData) {
+            // Update vendor data with new location
+            console.log('Location updated:', selectedLocation);
+          }
+        }}
+        initialLocation={location || {}}
+      />
     </View>
   );
 };
@@ -473,6 +590,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textPrimary,
+  },
+  writeReviewSection: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  writeReviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  writeReviewHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  writeReviewHeaderText: {
+    flex: 1,
+  },
+  writeReviewTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: 2,
+  },
+  writeReviewSubtitle: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+  },
+  writeReviewButton: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  writeReviewButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 6,
+  },
+  writeReviewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
   },
 });
 

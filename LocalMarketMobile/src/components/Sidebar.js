@@ -282,6 +282,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
                       onPress={() => handleNav('business-details')}
                     />
                     <MenuItem
+                      iconName="CreditCard"
+                      label="Payment & Subscription"
+                      onPress={() => handleNav('payment-management')}
+                    />
+                    <MenuItem
                       iconName="TrendingUp"
                       label="Grow Your Business"
                       onPress={() => handleNav('business-analytics')}

@@ -1,23 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-
-const categories = [
-  { id: 1, name: 'Groceries', subCategories: ['Vegetables', 'Fruits', 'Dairy'], visible: true },
-  { id: 2, name: 'Electronics', subCategories: ['Mobile', 'Laptops', 'Accessories'], visible: true },
-  { id: 3, name: 'Clothing', subCategories: ['Men', 'Women', 'Kids'], visible: true },
-  { id: 4, name: 'Medicines', subCategories: ['Prescription', 'OTC'], visible: false },
-];
+import { ALL_CATEGORIES, TOP_8_CATEGORIES } from '@/constants/categories';
+import { getDefaultProducts } from '@/constants/defaultProducts';
 
 export default function CategoryMaster() {
   const [isCreating, setIsCreating] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', subCategories: [] });
+  const [categories] = useState(
+    ALL_CATEGORIES.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      iconName: cat.iconName,
+      priority: cat.priority,
+      isTop8: TOP_8_CATEGORIES.some(top => top.id === cat.id),
+      subCategories: getDefaultProducts(cat.id).slice(0, 5) || [], // Show first 5 products as sub-categories
+      visible: true,
+      productCount: getDefaultProducts(cat.id).length || 0,
+    }))
+  );
 
   return (
     <div className="space-y-6">
       {/* Header Actions */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">Categories</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Categories ({categories.length})</h2>
+          <p className="text-sm text-gray-600 mt-1">Top 8 Priority Categories + {categories.length - 8} Additional Categories</p>
+        </div>
         <button
           onClick={() => setIsCreating(true)}
           className="gradient-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition"
@@ -62,7 +72,9 @@ export default function CategoryMaster() {
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sub-Categories</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Products</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sample Products</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Visibility</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
@@ -71,15 +83,38 @@ export default function CategoryMaster() {
             {categories.map((category) => (
               <tr key={category.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                  <div className="flex items-center gap-2">
+                    {category.isTop8 && (
+                      <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded">
+                        Top 8
+                      </span>
+                    )}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                      <div className="text-xs text-gray-500">ID: {category.id}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <span className="text-sm text-gray-700">#{category.priority}</span>
+                </td>
+                <td className="px-6 py-4">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                    {category.productCount} items
+                  </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-wrap gap-2">
-                    {category.subCategories.map((sub, idx) => (
+                    {category.subCategories.slice(0, 3).map((sub, idx) => (
                       <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                         {sub}
                       </span>
                     ))}
+                    {category.subCategories.length > 3 && (
+                      <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
+                        +{category.subCategories.length - 3} more
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4">

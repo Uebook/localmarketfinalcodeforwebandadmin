@@ -9,6 +9,12 @@ import CategoryManagement from '@/components/CategoryManagement';
 import PriceVerification from '@/components/PriceVerification';
 import Reports from '@/components/Reports';
 import NotificationManagement from '@/components/NotificationManagement';
+import LocationManagement from '@/components/LocationManagement';
+import PaymentFeesManagement from '@/components/PaymentFeesManagement';
+import FestiveOffersManagement from '@/components/FestiveOffersManagement';
+import BannerManagement from '@/components/BannerManagement';
+import EAuctionManagement from '@/components/EAuctionManagement';
+import CircleAnalytics from '@/components/Analytics/CircleAnalytics';
 import Settings from '@/components/Settings';
 
 export default function AdminPanel() {
@@ -42,6 +48,18 @@ export default function AdminPanel() {
         return 'Reports & Analytics';
       case 'notifications':
         return 'Notifications';
+      case 'locations':
+        return 'Location Management';
+      case 'payment-fees':
+        return 'Payment & Fees Management';
+      case 'festive-offers':
+        return 'Festive Offers Management';
+      case 'banners':
+        return 'Banner Management';
+      case 'e-auction':
+        return 'E-Auction & Online Draw';
+      case 'circle-analytics':
+        return 'Circle Analytics';
       case 'settings':
         return 'Settings';
       default:
@@ -63,6 +81,18 @@ export default function AdminPanel() {
         return <Reports />;
       case 'notifications':
         return <NotificationManagement />;
+      case 'locations':
+        return <LocationManagement />;
+      case 'payment-fees':
+        return <PaymentFeesManagement />;
+      case 'festive-offers':
+        return <FestiveOffersManagement />;
+      case 'banners':
+        return <BannerManagement />;
+      case 'e-auction':
+        return <EAuctionManagement />;
+      case 'circle-analytics':
+        return <CircleAnalytics />;
       case 'settings':
         return <Settings />;
       default:
