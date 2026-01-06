@@ -194,23 +194,46 @@ export const INDIAN_LOCATIONS = {
 export const getStates = () => Object.keys(INDIAN_LOCATIONS);
 
 export const getCities = (state: string) => {
-  if (!state || !INDIAN_LOCATIONS[state]) return [];
-  return Object.keys(INDIAN_LOCATIONS[state].cities);
+  if (!state) return [];
+  const stateKey = state as keyof typeof INDIAN_LOCATIONS;
+  if (!INDIAN_LOCATIONS[stateKey]) return [];
+  return Object.keys(INDIAN_LOCATIONS[stateKey].cities);
 };
 
 export const getTowns = (state: string, city: string) => {
-  if (!state || !city || !INDIAN_LOCATIONS[state]?.cities[city]) return [];
-  return Object.keys(INDIAN_LOCATIONS[state].cities[city].towns);
+  if (!state || !city) return [];
+  const stateKey = state as keyof typeof INDIAN_LOCATIONS;
+  const stateData = INDIAN_LOCATIONS[stateKey];
+  if (!stateData) return [];
+  const cityData = (stateData.cities as any)[city];
+  if (!cityData) return [];
+  return Object.keys(cityData.towns);
 };
 
 export const getTehsils = (state: string, city: string, town: string) => {
-  if (!state || !city || !town || !INDIAN_LOCATIONS[state]?.cities[city]?.towns[town]) return [];
-  return Object.keys(INDIAN_LOCATIONS[state].cities[city].towns[town].tehsils);
+  if (!state || !city || !town) return [];
+  const stateKey = state as keyof typeof INDIAN_LOCATIONS;
+  const stateData = INDIAN_LOCATIONS[stateKey];
+  if (!stateData) return [];
+  const cityData = (stateData.cities as any)[city];
+  if (!cityData) return [];
+  const townData = (cityData.towns as any)[town];
+  if (!townData) return [];
+  return Object.keys(townData.tehsils);
 };
 
 export const getSubTehsils = (state: string, city: string, town: string, tehsil: string) => {
-  if (!state || !city || !town || !tehsil || !INDIAN_LOCATIONS[state]?.cities[city]?.towns[town]?.tehsils[tehsil]) return [];
-  return INDIAN_LOCATIONS[state].cities[city].towns[town].tehsils[tehsil].subTehsils;
+  if (!state || !city || !town || !tehsil) return [];
+  const stateKey = state as keyof typeof INDIAN_LOCATIONS;
+  const stateData = INDIAN_LOCATIONS[stateKey];
+  if (!stateData) return [];
+  const cityData = (stateData.cities as any)[city];
+  if (!cityData) return [];
+  const townData = (cityData.towns as any)[town];
+  if (!townData) return [];
+  const tehsilData = (townData.tehsils as any)[tehsil];
+  if (!tehsilData) return [];
+  return tehsilData.subTehsils;
 };
 
 // Circles for filtering
