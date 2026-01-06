@@ -2,16 +2,24 @@
 
 import { useState } from 'react';
 import ThemeManagement from './Settings/ThemeManagement';
+import GeneralSettings from './Settings/GeneralSettings';
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('theme');
+  const [activeTab, setActiveTab] = useState('general');
 
   const tabs = [
-    { id: 'theme', label: 'Festival Themes' },
+    { id: 'general', label: 'General Settings', icon: '⚙️' },
+    { id: 'theme', label: 'Festival Themes', icon: '🎨' },
   ];
 
   return (
     <div className="p-8">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
+        <p className="text-gray-600">Manage your admin panel preferences and appearance</p>
+      </div>
+
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <div className="flex space-x-8">
@@ -19,19 +27,21 @@ export default function Settings() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors ${
+              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === tab.id
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              {tab.label}
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Content */}
+      {activeTab === 'general' && <GeneralSettings onSwitchToTheme={() => setActiveTab('theme')} />}
       {activeTab === 'theme' && <ThemeManagement />}
     </div>
   );
