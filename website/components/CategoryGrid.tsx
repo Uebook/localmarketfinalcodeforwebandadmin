@@ -73,7 +73,7 @@ export default function CategoryGrid({ onCategorySelect, variant = 'light', show
             <div className={`p-4 sm:p-5 md:p-6 rounded-2xl ${isDark ? 'bg-white/10' : 'bg-white/20'}`}>
               <Icon className={isDark ? 'text-white' : 'text-white'} size={48} />
             </div>
-            <span className={`text-base sm:text-lg md:text-xl font-bold ${isDark ? 'text-white' : 'text-white'}`}>
+            <span className={`text-base sm:text-lg md:text-xl font-bold text-center line-clamp-2 break-words px-2 ${isDark ? 'text-white' : 'text-white'}`}>
               {category.name}
             </span>
           </button>

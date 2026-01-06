@@ -88,7 +88,7 @@ const CategoryGrid = ({ onCategorySelect, variant = 'light' }) => {
         <View style={[styles.iconContainer, { backgroundColor }]}>
           <Icon name={iconName} size={32} color="#ffffff" />
         </View>
-        <Text style={[styles.categoryName, { color: textColor }]} numberOfLines={2}>
+        <Text style={[styles.categoryName, { color: textColor }]} numberOfLines={2} ellipsizeMode="tail">
           {item.name}
         </Text>
       </TouchableOpacity>
@@ -138,10 +138,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   categoryName: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     textAlign: 'center',
     letterSpacing: 0.3,
+    maxWidth: '100%',
+    paddingHorizontal: 4,
   },
 });
 

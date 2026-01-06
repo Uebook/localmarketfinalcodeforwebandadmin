@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     width: '22%',
     alignItems: 'center',
     marginBottom: 16,
+    minHeight: 100,
   },
   iconContainer: {
     width: 64,
@@ -122,11 +123,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   categoryName: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.white,
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 13,
+    maxWidth: '100%',
+    paddingHorizontal: 2,
   },
 });
 
