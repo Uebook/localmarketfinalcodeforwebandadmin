@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Image as ImageIcon, ChevronDown, ChevronUp, Upload, Camera } from 'lucide-react';
 import Image from 'next/image';
 
 interface ProductFormModalProps {
@@ -26,6 +26,9 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
     imageUrl: '',
   });
 
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,6 +38,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
 
   useEffect(() => {
     if (editingProduct) {
+      const imageUrl = editingProduct.imageUrl || '';
       setFormData({
         name: editingProduct.name || '',
         price: editingProduct.price?.replace('₹', '') || '',
@@ -46,8 +50,9 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
         inStock: editingProduct.inStock !== false,
         bestSeller: editingProduct.isFastMoving || false,
         stockQty: editingProduct.stockQty || '',
-        imageUrl: editingProduct.imageUrl || '',
+        imageUrl: imageUrl,
       });
+      setImagePreview(imageUrl);
     } else {
       setFormData({
         name: '',
@@ -62,6 +67,8 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
         stockQty: '',
         imageUrl: '',
       });
+      setImagePreview('');
+      setImageFile(null);
     }
     setErrors({});
   }, [editingProduct, isOpen]);
@@ -92,21 +99,21 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
     e.preventDefault();
     if (!validate()) return;
 
-    const product = {
-      id: editingProduct?.id || `product-${Date.now()}`,
-      name: formData.name,
-      category: formData.category,
-      price: `₹${formData.price}`,
-      mrp: formData.mrp ? `₹${formData.mrp}` : undefined,
-      type: formData.type,
-      uom: formData.unit,
-      unit: formData.unit,
-      description: formData.description,
-      inStock: formData.inStock,
-      isFastMoving: formData.bestSeller,
-      stockQty: formData.stockQty,
-      imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=400&q=80',
-    };
+      const product = {
+        id: editingProduct?.id || `product-${Date.now()}`,
+        name: formData.name,
+        category: formData.category,
+        price: `₹${formData.price}`,
+        mrp: formData.mrp ? `₹${formData.mrp}` : undefined,
+        type: formData.type,
+        uom: formData.unit,
+        unit: formData.unit,
+        description: formData.description,
+        inStock: formData.inStock,
+        isFastMoving: formData.bestSeller,
+        stockQty: formData.stockQty,
+        imageUrl: formData.imageUrl || imagePreview || 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=400&q=80',
+      };
 
     onSave(product);
     onClose();
@@ -116,6 +123,54 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
     // Basic URL validation
     if (url.trim() === '' || url.startsWith('http://') || url.startsWith('https://')) {
       handleChange('imageUrl', url);
+      setImagePreview(url);
+      setImageFile(null);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, image: 'Please select a valid image file' }));
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Image size should be less than 5MB' }));
+        return;
+      }
+
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setImagePreview(result);
+        handleChange('imageUrl', result);
+      };
+      reader.readAsDataURL(file);
+      if (errors.image) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.image;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview('');
+    setImageFile(null);
+    handleChange('imageUrl', '');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -164,45 +219,82 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
         {/* Form Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 space-y-6">
-            {/* Image Upload Section */}
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="w-full sm:w-48 flex-shrink-0">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Product Image</label>
-                <div className="relative w-full aspect-square bg-gray-100 rounded-xl overflow-hidden border-2 border-dashed border-gray-300">
-                  {formData.imageUrl ? (
-                    <>
-                      <Image
-                        src={formData.imageUrl}
-                        alt="Product"
-                        fill
-                        className="object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleChange('imageUrl', '')}
-                        className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-lg hover:bg-black/70 transition-colors"
+            {/* Image Upload Section - More Prominent */}
+            <div className="bg-gray-50 rounded-xl p-4 border-2 border-dashed border-gray-300">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Product Image <span className="text-orange-500">*</span>
+              </label>
+              <div className="flex flex-col sm:flex-row gap-6">
+                {/* Image Preview */}
+                <div className="w-full sm:w-64 flex-shrink-0">
+                  <div className="relative w-full aspect-square bg-white rounded-xl overflow-hidden border-2 border-gray-300 shadow-sm">
+                    {imagePreview ? (
+                      <>
+                        <Image
+                          src={imagePreview}
+                          alt="Product preview"
+                          fill
+                          className="object-cover"
+                          unoptimized={imagePreview.startsWith('data:')}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute top-2 right-2 p-2 bg-black/70 text-white rounded-lg hover:bg-black transition-colors z-10"
+                          title="Remove image"
+                        >
+                          <X size={18} />
+                        </button>
+                      </>
+                    ) : (
+                      <div 
+                        className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={handleImageClick}
                       >
-                        <X size={16} />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center">
-                      <ImageIcon className="text-gray-400 mb-2" size={32} />
-                      <span className="text-gray-500 text-sm">Add Photo</span>
-                    </div>
-                  )}
+                        <div className="bg-orange-100 rounded-full p-4 mb-3">
+                          <Camera className="text-orange-500" size={32} />
+                        </div>
+                        <span className="text-gray-700 text-sm font-medium">Click to upload image</span>
+                        <span className="text-gray-500 text-xs mt-1">or paste image URL below</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* File Upload Input (Hidden) */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  
+                  {/* Upload Button */}
+                  <button
+                    type="button"
+                    onClick={handleImageClick}
+                    className="w-full mt-3 px-4 py-2.5 bg-white border-2 border-orange-500 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Upload size={18} />
+                    <span>{imagePreview ? 'Change Image' : 'Upload Image'}</span>
+                  </button>
+                  
+                  {/* URL Input */}
+                  <div className="mt-3">
+                    <label className="block text-xs text-gray-600 mb-1">Or enter image URL:</label>
+                    <input
+                      type="url"
+                      value={formData.imageUrl && !imagePreview.includes('data:') ? formData.imageUrl : ''}
+                      onChange={(e) => handleImageUrlChange(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                    />
+                    {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image}</p>}
+                  </div>
                 </div>
-                <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => handleImageUrlChange(e.target.value)}
-                  placeholder="Enter image URL"
-                  className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                />
-              </div>
 
-              {/* Form Fields */}
-              <div className="flex-1 space-y-4">
+                {/* Form Fields */}
+                <div className="flex-1 space-y-4">
                 {/* Product Name */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -408,6 +500,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
                       className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
                     />
                   </label>
+                </div>
                 </div>
               </div>
             </div>
