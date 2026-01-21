@@ -11,16 +11,45 @@ CREATE TABLE IF NOT EXISTS public.vendor_products (
     uom TEXT, -- Unit of Measure (kg, piece, litre, etc.)
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
     image_url TEXT,
-    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add is_active column if it doesn't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'vendor_products' 
+        AND column_name = 'is_active'
+    ) THEN
+        ALTER TABLE public.vendor_products 
+        ADD COLUMN is_active BOOLEAN DEFAULT true;
+        
+        COMMENT ON COLUMN public.vendor_products.is_active IS 'Whether this product is currently active/available';
+    END IF;
+END $$;
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_vendor_products_vendor_id ON public.vendor_products(vendor_id);
 CREATE INDEX IF NOT EXISTS idx_vendor_products_category_id ON public.vendor_products(category_id);
 CREATE INDEX IF NOT EXISTS idx_vendor_products_name ON public.vendor_products(name);
-CREATE INDEX IF NOT EXISTS idx_vendor_products_is_active ON public.vendor_products(is_active);
+
+-- Add is_active index only if column exists
+DO $$ 
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'vendor_products' 
+        AND column_name = 'is_active'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_vendor_products_is_active ON public.vendor_products(is_active);
+    END IF;
+END $$;
 
 -- Add updated_at trigger
 CREATE OR REPLACE FUNCTION update_vendor_products_updated_at()
@@ -74,7 +103,6 @@ COMMENT ON COLUMN public.vendor_products.price IS 'Selling price set by the vend
 COMMENT ON COLUMN public.vendor_products.mrp IS 'Maximum Retail Price (MRP)';
 COMMENT ON COLUMN public.vendor_products.uom IS 'Unit of Measure (kg, piece, litre, etc.)';
 COMMENT ON COLUMN public.vendor_products.category_id IS 'Product category reference';
-COMMENT ON COLUMN public.vendor_products.is_active IS 'Whether this product is currently active/available';
 
 -- Verify table structure
 SELECT 
