@@ -83,13 +83,15 @@ export async function POST(request) {
             is_active: false,
         };
 
-        const result = await supabaseRestInsert('/rest/v1/festival_themes', theme);
+        const result = await supabaseRestInsert('/rest/v1/festival_themes', [theme]);
 
         if (!result || (Array.isArray(result) && result.length === 0)) {
             return NextResponse.json({ error: 'Failed to create theme - no data returned' }, { status: 500 });
         }
 
-        return NextResponse.json(result[0] || result, { status: 201 });
+        // Ensure we return the created theme with all fields
+        const createdTheme = Array.isArray(result) ? result[0] : result;
+        return NextResponse.json(createdTheme || theme, { status: 201 });
     } catch (error) {
         console.error('Error creating theme:', error);
 
@@ -114,6 +116,45 @@ export async function PATCH(request) {
             return NextResponse.json({ error: 'Theme ID is required' }, { status: 400 });
         }
 
+        // Check if theme exists first
+        try {
+            const existingTheme = await supabaseRestGet(`/rest/v1/festival_themes?id=eq.${id}&select=id`);
+            if (!existingTheme || (Array.isArray(existingTheme) && existingTheme.length === 0)) {
+                // Theme doesn't exist, create it (for custom themes that might not be in DB yet)
+                if (updates.name && updates.colors) {
+                    const newTheme = {
+                        id,
+                        name: updates.name,
+                        description: updates.description || null,
+                        icon: updates.icon || '🎨',
+                        colors: updates.colors,
+                        is_default: false,
+                        is_active: updates.is_active || false,
+                    };
+                    const result = await supabaseRestInsert('/rest/v1/festival_themes', [newTheme]);
+                    const createdTheme = Array.isArray(result) ? result[0] : result;
+
+                    // If setting as active, update all users
+                    if (updates.is_active === true) {
+                        await supabaseRestPatch('/rest/v1/festival_themes?is_active=eq.true', { is_active: false });
+                        try {
+                            await supabaseRestPatch('/rest/v1/users', { selected_theme: id });
+                            console.log(`Updated all users' theme to: ${id}`);
+                        } catch (userUpdateError) {
+                            console.error('Error updating users theme:', userUpdateError);
+                        }
+                    }
+
+                    return NextResponse.json(createdTheme || newTheme);
+                } else {
+                    return NextResponse.json({ error: 'Theme not found and insufficient data to create' }, { status: 404 });
+                }
+            }
+        } catch (checkError) {
+            console.error('Error checking theme existence:', checkError);
+            // Continue with update attempt
+        }
+
         // If setting a theme as active, deactivate all others first and update all users
         if (updates.is_active === true) {
             // Deactivate all other themes
@@ -130,7 +171,7 @@ export async function PATCH(request) {
         }
 
         const result = await supabaseRestPatch(`/rest/v1/festival_themes?id=eq.${id}`, updates);
-        return NextResponse.json(result[0] || result);
+        return NextResponse.json(Array.isArray(result) ? result[0] : result);
     } catch (error) {
         console.error('Error updating theme:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

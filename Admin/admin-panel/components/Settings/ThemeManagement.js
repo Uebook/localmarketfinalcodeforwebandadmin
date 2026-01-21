@@ -384,7 +384,21 @@ export default function ThemeManagement() {
         throw new Error(errorMessage);
       }
 
+      // Get the theme ID from response or form data
+      const themeId = data?.id || editingTheme?.id || themeData.id;
+
+      // Reload themes to get the updated/created theme
       await loadThemes();
+
+      // If it's a new theme, select it automatically
+      if (!editingTheme && themeId) {
+        // Wait a bit for themes to reload
+        setTimeout(() => {
+          setSelectedTheme(themeId);
+          applyTheme(themeId);
+        }, 100);
+      }
+
       setShowAddThemeModal(false);
       setEditingTheme(null);
       setThemeForm({
@@ -399,7 +413,7 @@ export default function ThemeManagement() {
           text: '#1A1A1A'
         }
       });
-      alert(editingTheme ? 'Theme updated successfully!' : 'Theme created successfully!');
+      alert(editingTheme ? 'Theme updated successfully!' : `Theme "${themeData.name}" created successfully!`);
     } catch (error) {
       console.error('Error saving theme:', error);
       alert(`Error saving theme: ${error.message || 'Unknown error'}`);
