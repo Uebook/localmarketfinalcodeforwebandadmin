@@ -29,13 +29,6 @@ export default function GeneralSettings({ onSwitchToTheme }) {
     }
   }, []);
 
-  const handleThemeChange = (themeId) => {
-    setCurrentTheme(themeId);
-    localStorage.setItem('selectedFestivalTheme', themeId);
-    // Trigger theme update
-    window.location.reload();
-  };
-
   const handleNotificationsToggle = (enabled) => {
     setNotificationsEnabled(enabled);
     localStorage.setItem('notificationsEnabled', enabled.toString());
@@ -138,30 +131,6 @@ export default function GeneralSettings({ onSwitchToTheme }) {
               </select>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Quick Theme Selector */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Theme Change</h2>
-        <p className="text-sm text-gray-600 mb-4">Quickly switch between festival themes</p>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {Object.values(FESTIVAL_THEMES).map((theme) => (
-            <button
-              key={theme.id}
-              onClick={() => handleThemeChange(theme.id)}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                currentTheme === theme.id
-                  ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-200'
-                  : 'border-gray-200 hover:border-orange-300 hover:bg-gray-50'
-              }`}
-            >
-              <div className="text-center">
-                <span className="text-3xl block mb-2">{theme.icon}</span>
-                <span className="text-sm font-semibold text-gray-900">{theme.name}</span>
-              </div>
-            </button>
-          ))}
         </div>
       </div>
 
