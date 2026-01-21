@@ -62,14 +62,18 @@ export default function PriceVerification() {
           auto_alert_enabled: autoAlertEnabled,
         }),
       });
+      
+      const data = await res.json().catch(() => ({}));
+      
       if (res.ok) {
         alert('Settings saved successfully!');
       } else {
-        throw new Error('Failed to save settings');
+        const errorMsg = data?.error || 'Failed to save settings';
+        throw new Error(errorMsg);
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings');
+      alert(`Failed to save settings: ${error.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
     }

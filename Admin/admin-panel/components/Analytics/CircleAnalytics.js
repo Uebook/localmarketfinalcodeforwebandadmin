@@ -6,6 +6,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 export default function CircleAnalytics() {
   const [selectedCircle, setSelectedCircle] = useState('All');
   const [circles, setCircles] = useState([]);
+  const [useCircles, setUseCircles] = useState(true);
+  const [groupingKey, setGroupingKey] = useState('circle');
   const [categoryDemandData, setCategoryDemandData] = useState([]);
   const [circleUserLimits, setCircleUserLimits] = useState([]);
   const [userEngagement, setUserEngagement] = useState([]);
@@ -25,10 +27,18 @@ export default function CircleAnalytics() {
 
       if (res.ok) {
         const data = await res.json();
+        console.log('Circle Analytics Response:', data);
         setCircles(['All', ...(data.circles || [])]);
+        setUseCircles(data.useCircles !== false); // Default to true if not specified
+        setGroupingKey(data.groupingKey || 'circle');
         setCategoryDemandData(data.categoryDemandData || []);
         setCircleUserLimits(data.circleUserLimits || []);
         setUserEngagement(data.userEngagement || []);
+
+        // Show warning if no data
+        if ((data.circles || []).length === 0) {
+          setError(`No ${data.groupingKey || 'circle'}s found. Analytics will show data by ${data.groupingKey || 'city'} when available.`);
+        }
       } else {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to load analytics');
@@ -41,9 +51,17 @@ export default function CircleAnalytics() {
     }
   };
 
+  const displayLabel = useCircles ? 'Circle' : 'City';
+  const displayLabelPlural = useCircles ? 'Circles' : 'Cities';
+
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Circle Analytics</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        {displayLabel} Analytics
+        {!useCircles && (
+          <span className="text-sm font-normal text-gray-500 ml-2">(Using Cities - Circles are optional)</span>
+        )}
+      </h1>
 
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
@@ -52,9 +70,9 @@ export default function CircleAnalytics() {
         </div>
       )}
 
-      {/* Circle Selector */}
+      {/* Circle/City Selector */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Select Circle</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Select {displayLabel}</label>
         <select
           value={selectedCircle}
           onChange={(e) => setSelectedCircle(e.target.value)}
@@ -62,7 +80,7 @@ export default function CircleAnalytics() {
           disabled={loading}
         >
           {circles.length === 0 ? (
-            <option>Loading circles...</option>
+            <option>Loading {displayLabelPlural.toLowerCase()}...</option>
           ) : (
             circles.map(circle => (
               <option key={circle} value={circle}>{circle}</option>
@@ -75,6 +93,51 @@ export default function CircleAnalytics() {
         <div className="text-center py-12 text-gray-500">Loading analytics data...</div>
       )}
 
+      {!loading && circles.length === 1 && circles[0] === 'All' && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-6 mb-6">
+          <div className="font-semibold mb-2">⚠️ No {displayLabelPlural} Found</div>
+          <div className="text-sm">
+            <p className="mb-2">To see {displayLabel.toLowerCase()} analytics, you need to:</p>
+            <ul className="list-disc list-inside space-y-1">
+              {useCircles ? (
+                <>
+                  <li>Add locations with circles assigned (via Location Management)</li>
+                  <li>Or add vendors with circles assigned</li>
+                  <li>Or ensure search logs have location_circle data</li>
+                </>
+              ) : (
+                <>
+                  <li>Add locations with cities (via Location Management)</li>
+                  <li>Or add vendors/users with city information</li>
+                  <li>Or ensure search logs have location_city data</li>
+                </>
+              )}
+            </ul>
+            <p className="mt-3 font-semibold">How User Mapping Works:</p>
+            <ul className="list-disc list-inside space-y-1 mt-1">
+              <li>Users are mapped to {displayLabelPlural.toLowerCase()} based on their State + City</li>
+              <li>The system looks up the {displayLabel.toLowerCase()} from the locations table</li>
+              <li>If circles are not available, the system automatically uses cities for analytics</li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {!loading && circles.length > 1 && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-4 mb-6">
+          <div className="text-sm">
+            <p className="font-semibold mb-1">ℹ️ Analytics Information</p>
+            <p>
+              {useCircles
+                ? 'Users are automatically mapped to circles based on their State + City matching locations in the locations table.'
+                : 'Users are automatically mapped to cities based on their location data. Circles are optional - when not available, analytics use cities instead.'
+              }
+              {' '}Check the browser console for detailed mapping statistics.
+            </p>
+          </div>
+        </div>
+      )}
+
       {!loading && (
         <>
 
@@ -82,7 +145,10 @@ export default function CircleAnalytics() {
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Category-wise Max Demanding Products - {selectedCircle}</h2>
             {categoryDemandData.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No data available for this circle</div>
+              <div className="text-center py-8 text-gray-500">
+                <p>No data available for this {displayLabel.toLowerCase()}.</p>
+                <p className="text-xs mt-2">Search logs are needed to generate category demand data.</p>
+              </div>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={400}>
@@ -123,20 +189,20 @@ export default function CircleAnalytics() {
             )}
           </div>
 
-          {/* Maximum Users per Circle */}
+          {/* Maximum Users per Circle/City */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-            <h2 className="text-xl font-semibold mb-4">Maximum Users per Circle</h2>
+            <h2 className="text-xl font-semibold mb-4">Maximum Users per {displayLabel}</h2>
             {circleUserLimits.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No circle data available</div>
+              <div className="text-center py-8 text-gray-500">No {displayLabel.toLowerCase()} data available</div>
             ) : (
               <div className="space-y-4">
                 {circleUserLimits.map((circle, index) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-semibold text-gray-900">{circle.circle}</h3>
+                      <h3 className="font-semibold text-gray-900">{circle.circle || circle.groupName}</h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${circle.percentage > 90 ? 'bg-red-100 text-red-800' :
-                          circle.percentage > 75 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
+                        circle.percentage > 75 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
                         }`}>
                         {circle.percentage}% Full
                       </span>
@@ -149,8 +215,8 @@ export default function CircleAnalytics() {
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${circle.percentage > 90 ? 'bg-red-600' :
-                              circle.percentage > 75 ? 'bg-yellow-600' :
-                                'bg-green-600'
+                            circle.percentage > 75 ? 'bg-yellow-600' :
+                              'bg-green-600'
                             }`}
                           style={{ width: `${circle.percentage}%` }}
                         />
@@ -174,7 +240,7 @@ export default function CircleAnalytics() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={userEngagement}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="circle" />
+                  <XAxis dataKey="circle" label={{ value: displayLabel, position: 'insideBottom', offset: -5 }} />
                   <YAxis />
                   <Tooltip />
                   <Legend />

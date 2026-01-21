@@ -24,10 +24,19 @@ export async function PATCH(request) {
       auto_alert_enabled: auto_alert_enabled !== undefined ? auto_alert_enabled : undefined,
     };
     
-    const result = await supabaseRestUpsert('/rest/v1/price_verification_settings', settings);
-    return NextResponse.json(result[0] || result);
+    // supabaseRestUpsert expects an array
+    const result = await supabaseRestUpsert('/rest/v1/price_verification_settings', [settings]);
+    const finalResult = Array.isArray(result) ? result[0] : result;
+    return NextResponse.json(finalResult || settings);
   } catch (error) {
     console.error('Error updating price verification settings:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    let errorMessage = error.message || 'Failed to update settings';
+    
+    // Provide helpful error message if table doesn't exist
+    if (errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorMessage.includes('PGRST205')) {
+      errorMessage = 'The price_verification_settings table does not exist in Supabase. Please run the SQL script: supabase_schema_additional.sql';
+    }
+    
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
