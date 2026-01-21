@@ -99,21 +99,21 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
     e.preventDefault();
     if (!validate()) return;
 
-      const product = {
-        id: editingProduct?.id || `product-${Date.now()}`,
-        name: formData.name,
-        category: formData.category,
-        price: `₹${formData.price}`,
-        mrp: formData.mrp ? `₹${formData.mrp}` : undefined,
-        type: formData.type,
-        uom: formData.unit,
-        unit: formData.unit,
-        description: formData.description,
-        inStock: formData.inStock,
-        isFastMoving: formData.bestSeller,
-        stockQty: formData.stockQty,
-        imageUrl: formData.imageUrl || imagePreview || 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=400&q=80',
-      };
+    const product = {
+      id: editingProduct?.id || `product-${Date.now()}`,
+      name: formData.name,
+      category: formData.category,
+      price: `₹${formData.price}`,
+      mrp: formData.mrp ? `₹${formData.mrp}` : undefined,
+      type: formData.type,
+      uom: formData.unit,
+      unit: formData.unit,
+      description: formData.description,
+      inStock: formData.inStock,
+      isFastMoving: formData.bestSeller,
+      stockQty: formData.stockQty,
+      imageUrl: formData.imageUrl || imagePreview || 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=400&q=80',
+    };
 
     onSave(product);
     onClose();
@@ -136,7 +136,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
         setErrors(prev => ({ ...prev, image: 'Please select a valid image file' }));
         return;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErrors(prev => ({ ...prev, image: 'Image size should be less than 5MB' }));
@@ -191,7 +191,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -199,7 +199,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
         }
       }}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
@@ -247,7 +247,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
                         </button>
                       </>
                     ) : (
-                      <div 
+                      <div
                         className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={handleImageClick}
                       >
@@ -259,7 +259,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
                       </div>
                     )}
                   </div>
-                  
+
                   {/* File Upload Input (Hidden) */}
                   <input
                     ref={fileInputRef}
@@ -268,7 +268,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-                  
+
                   {/* Upload Button */}
                   <button
                     type="button"
@@ -278,7 +278,7 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
                     <Upload size={18} />
                     <span>{imagePreview ? 'Change Image' : 'Upload Image'}</span>
                   </button>
-                  
+
                   {/* URL Input */}
                   <div className="mt-3">
                     <label className="block text-xs text-gray-600 mb-1">Or enter image URL:</label>
@@ -295,212 +295,207 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
 
                 {/* Form Fields */}
                 <div className="flex-1 space-y-4">
-                {/* Product Name */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Product Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="Enter product name"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                </div>
-
-                {/* Price and MRP */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Product Name */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Price <span className="text-red-500">*</span>
+                      Product Name <span className="text-red-500">*</span>
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">₹</span>
-                      <input
-                        type="number"
-                        value={formData.price}
-                        onChange={(e) => handleChange('price', e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="0"
-                        className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 ${
-                          errors.price ? 'border-red-500' : 'border-gray-300'
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => handleChange('name', e.target.value)}
+                      placeholder="Enter product name"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 ${errors.name ? 'border-red-500' : 'border-gray-300'
                         }`}
-                      />
-                    </div>
-                    {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+                    />
+                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                   </div>
+
+                  {/* Price and MRP */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Price <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">₹</span>
+                        <input
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => handleChange('price', e.target.value.replace(/[^0-9]/g, ''))}
+                          placeholder="0"
+                          className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 ${errors.price ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                        />
+                      </div>
+                      {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">MRP</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">₹</span>
+                        <input
+                          type="number"
+                          value={formData.mrp}
+                          onChange={(e) => handleChange('mrp', e.target.value.replace(/[^0-9]/g, ''))}
+                          placeholder="0"
+                          className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 ${errors.mrp ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                        />
+                      </div>
+                      {errors.mrp && <p className="text-red-500 text-sm mt-1">{errors.mrp}</p>}
+                    </div>
+                  </div>
+
+                  {/* Product/Service Toggle */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">MRP</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">₹</span>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+                    <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
+                      <button
+                        type="button"
+                        onClick={() => handleChange('type', 'Product')}
+                        className={`flex-1 py-2 rounded-lg font-medium transition-all ${formData.type === 'Product'
+                            ? 'bg-white text-gray-900 shadow-sm'
+                            : 'text-gray-600'
+                          }`}
+                      >
+                        Product
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleChange('type', 'Service')}
+                        className={`flex-1 py-2 rounded-lg font-medium transition-all ${formData.type === 'Service'
+                            ? 'bg-white text-gray-900 shadow-sm'
+                            : 'text-gray-600'
+                          }`}
+                      >
+                        Service
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Category and Unit */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="relative dropdown-container">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCategoryDropdown(!showCategoryDropdown);
+                          setShowUnitDropdown(false);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
+                      >
+                        <span className={formData.category ? 'text-gray-900' : 'text-gray-400'}>
+                          {formData.category || 'Select Category'}
+                        </span>
+                        {showCategoryDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </button>
+                      {showCategoryDropdown && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto dropdown-container">
+                          {categories.map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => {
+                                handleChange('category', cat);
+                                setShowCategoryDropdown(false);
+                              }}
+                              className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-gray-900"
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative dropdown-container">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Unit</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUnitDropdown(!showUnitDropdown);
+                          setShowCategoryDropdown(false);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
+                      >
+                        <span className={formData.unit ? 'text-gray-900' : 'text-gray-400'}>
+                          {formData.unit || 'Select Unit'}
+                        </span>
+                        {showUnitDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </button>
+                      {showUnitDropdown && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto dropdown-container">
+                          {units.map((unit) => (
+                            <button
+                              key={unit}
+                              type="button"
+                              onClick={() => {
+                                handleChange('unit', unit);
+                                setShowUnitDropdown(false);
+                              }}
+                              className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-gray-900"
+                            >
+                              {unit}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Stock Quantity */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Quantity</label>
+                    <input
+                      type="number"
+                      value={formData.stockQty}
+                      onChange={(e) => handleChange('stockQty', e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="Enter stock quantity"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => handleChange('description', e.target.value)}
+                      placeholder="Enter product description"
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-gray-900"
+                    />
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="space-y-3">
+                    <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer">
+                      <div>
+                        <p className="font-semibold text-gray-900">In Stock</p>
+                        <p className="text-sm text-gray-600">Product is available for sale</p>
+                      </div>
                       <input
-                        type="number"
-                        value={formData.mrp}
-                        onChange={(e) => handleChange('mrp', e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="0"
-                        className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 ${
-                          errors.mrp ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        type="checkbox"
+                        checked={formData.inStock}
+                        onChange={(e) => handleChange('inStock', e.target.checked)}
+                        className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
                       />
-                    </div>
-                    {errors.mrp && <p className="text-red-500 text-sm mt-1">{errors.mrp}</p>}
-                  </div>
-                </div>
-
-                {/* Product/Service Toggle */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
-                  <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
-                    <button
-                      type="button"
-                      onClick={() => handleChange('type', 'Product')}
-                      className={`flex-1 py-2 rounded-lg font-medium transition-all ${
-                        formData.type === 'Product'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600'
-                      }`}
-                    >
-                      Product
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleChange('type', 'Service')}
-                      className={`flex-1 py-2 rounded-lg font-medium transition-all ${
-                        formData.type === 'Service'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600'
-                      }`}
-                    >
-                      Service
-                    </button>
-                  </div>
-                </div>
-
-                {/* Category and Unit */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="relative dropdown-container">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowCategoryDropdown(!showCategoryDropdown);
-                        setShowUnitDropdown(false);
-                      }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
-                    >
-                      <span className={formData.category ? 'text-gray-900' : 'text-gray-400'}>
-                        {formData.category || 'Select Category'}
-                      </span>
-                      {showCategoryDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </button>
-                    {showCategoryDropdown && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto dropdown-container">
-                        {categories.map((cat) => (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => {
-                              handleChange('category', cat);
-                              setShowCategoryDropdown(false);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-gray-900"
-                          >
-                            {cat}
-                          </button>
-                        ))}
+                    </label>
+                    <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer">
+                      <div>
+                        <p className="font-semibold text-gray-900">Best Seller</p>
+                        <p className="text-sm text-gray-600">Mark as fast-moving product</p>
                       </div>
-                    )}
+                      <input
+                        type="checkbox"
+                        checked={formData.bestSeller}
+                        onChange={(e) => handleChange('bestSeller', e.target.checked)}
+                        className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+                      />
+                    </label>
                   </div>
-
-                  <div className="relative dropdown-container">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Unit</label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowUnitDropdown(!showUnitDropdown);
-                        setShowCategoryDropdown(false);
-                      }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
-                    >
-                      <span className={formData.unit ? 'text-gray-900' : 'text-gray-400'}>
-                        {formData.unit || 'Select Unit'}
-                      </span>
-                      {showUnitDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </button>
-                    {showUnitDropdown && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto dropdown-container">
-                        {units.map((unit) => (
-                          <button
-                            key={unit}
-                            type="button"
-                            onClick={() => {
-                              handleChange('unit', unit);
-                              setShowUnitDropdown(false);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-gray-900"
-                          >
-                            {unit}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Stock Quantity */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Quantity</label>
-                  <input
-                    type="number"
-                    value={formData.stockQty}
-                    onChange={(e) => handleChange('stockQty', e.target.value.replace(/[^0-9]/g, ''))}
-                    placeholder="Enter stock quantity"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
-                    placeholder="Enter product description"
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-gray-900"
-                  />
-                </div>
-
-                {/* Toggles */}
-                <div className="space-y-3">
-                  <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer">
-                    <div>
-                      <p className="font-semibold text-gray-900">In Stock</p>
-                      <p className="text-sm text-gray-600">Product is available for sale</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={formData.inStock}
-                      onChange={(e) => handleChange('inStock', e.target.checked)}
-                      className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
-                    />
-                  </label>
-                  <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer">
-                    <div>
-                      <p className="font-semibold text-gray-900">Best Seller</p>
-                      <p className="text-sm text-gray-600">Mark as fast-moving product</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={formData.bestSeller}
-                      onChange={(e) => handleChange('bestSeller', e.target.checked)}
-                      className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
-                    />
-                  </label>
-                </div>
                 </div>
               </div>
             </div>

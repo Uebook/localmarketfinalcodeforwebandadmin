@@ -1,10 +1,67 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { getBusinessesByCategory } from '../constants/categoryBusinesses';
 import { COLORS } from '../constants/colors';
+import { getVendors } from '../services/api';
 
 const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, onViewAll }) => {
-  const businesses = getBusinessesByCategory(categoryId);
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadVendorsByCategory();
+  }, [categoryName]);
+
+  const loadVendorsByCategory = async () => {
+    try {
+      setLoading(true);
+      // Try to fetch vendors by category name
+      const data = await getVendors({
+        status: 'Active',
+        q: categoryName, // Search by category name
+        limit: 10,
+      });
+      
+      if (data && data.vendors && data.vendors.length > 0) {
+        // Transform vendors to business format
+        const transformedBusinesses = data.vendors.map(vendor => ({
+          id: vendor.id,
+          name: vendor.name,
+          category: vendor.category || categoryName,
+          rating: vendor.rating || 4.0,
+          reviewCount: vendor.reviewCount || 0,
+          distance: vendor.city ? `${vendor.city}` : 'Nearby',
+          imageUrl: vendor.imageUrl || 'https://via.placeholder.com/160x120',
+          address: vendor.address || '',
+        }));
+        setBusinesses(transformedBusinesses);
+      } else {
+        // Fallback to constants
+        const fallbackBusinesses = getBusinessesByCategory(categoryId);
+        setBusinesses(fallbackBusinesses || []);
+      }
+    } catch (error) {
+      console.error('Error loading vendors by category:', error);
+      // Fallback to constants
+      const fallbackBusinesses = getBusinessesByCategory(categoryId);
+      setBusinesses(fallbackBusinesses || []);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{categoryName}</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={COLORS.orange} />
+        </View>
+      </View>
+    );
+  }
 
   if (!businesses || businesses.length === 0) {
     return null;
@@ -130,6 +187,11 @@ const styles = StyleSheet.create({
   distance: {
     fontSize: 11,
     color: COLORS.textMuted,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

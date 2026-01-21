@@ -1,10 +1,65 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { NEARBY_BUSINESSES } from '../constants';
 import { getIconName } from '../utils/iconMapping';
+import { getVendors } from '../services/api';
 
-const NearbySection = ({ onBusinessClick }) => {
+const NearbySection = ({ onBusinessClick, locationState }) => {
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadNearbyVendors();
+  }, [locationState?.city]);
+
+  const loadNearbyVendors = async () => {
+    try {
+      setLoading(true);
+      // Fetch active vendors, optionally filtered by city
+      const filters = {
+        status: 'Active',
+        limit: 10,
+      };
+
+      if (locationState?.city) {
+        // Extract city name from locationState.city (e.g., "Connaught Place, Delhi" -> "Delhi")
+        const cityParts = locationState.city.split(',');
+        if (cityParts.length > 1) {
+          filters.city = cityParts[cityParts.length - 1].trim();
+        } else {
+          filters.city = locationState.city;
+        }
+      }
+
+      const data = await getVendors(filters);
+
+      if (data && data.vendors && data.vendors.length > 0) {
+        // Transform vendors to business format
+        const transformedBusinesses = data.vendors.map(vendor => ({
+          id: vendor.id,
+          name: vendor.name,
+          category: vendor.category || 'General',
+          rating: vendor.rating || 4.0,
+          reviewCount: vendor.reviewCount || 0,
+          distance: vendor.city ? `${vendor.city}` : 'Nearby',
+          imageUrl: vendor.imageUrl || 'https://via.placeholder.com/288x160',
+          address: vendor.address || '',
+        }));
+        setBusinesses(transformedBusinesses);
+      } else {
+        // Fallback to constants
+        setBusinesses(NEARBY_BUSINESSES);
+      }
+    } catch (error) {
+      console.error('Error loading nearby vendors:', error);
+      // Fallback to constants
+      setBusinesses(NEARBY_BUSINESSES);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -17,54 +72,65 @@ const NearbySection = ({ onBusinessClick }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {NEARBY_BUSINESSES.map((business) => (
-          <TouchableOpacity
-            key={business.id}
-            style={styles.businessCard}
-            onPress={() => onBusinessClick && onBusinessClick(business)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.imageContainer}>
-              <Image 
-                source={{ uri: business.imageUrl }} 
-                style={styles.image}
-                resizeMode="cover"
-              />
-              <View style={styles.ratingBadge}>
-                <Icon name={getIconName('Star')} size={12} color="#fbbf24" />
-                <Text style={styles.ratingText}>{business.rating}</Text>
-              </View>
-            </View>
-
-            <View style={styles.cardContent}>
-              <View style={styles.businessHeader}>
-                <View style={styles.businessInfo}>
-                  <Text style={styles.businessName} numberOfLines={1}>{business.name}</Text>
-                  <Text style={styles.businessCategory} numberOfLines={1}>{business.category}</Text>
-                </View>
-                <View style={styles.distanceBadge}>
-                  <Icon name={getIconName('MapPin')} size={14} color="#ea580c" />
-                  <Text style={styles.distanceText}>{business.distance}</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color="#fbbf24" />
+          <Text style={styles.loadingText}>Loading nearby shops...</Text>
+        </View>
+      ) : businesses.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No shops found nearby</Text>
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {businesses.map((business) => (
+            <TouchableOpacity
+              key={business.id}
+              style={styles.businessCard}
+              onPress={() => onBusinessClick && onBusinessClick(business)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: business.imageUrl }}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+                <View style={styles.ratingBadge}>
+                  <Icon name={getIconName('Star')} size={12} color="#fbbf24" />
+                  <Text style={styles.ratingText}>{business.rating}</Text>
                 </View>
               </View>
 
-              <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.viewButton} activeOpacity={0.7}>
-                  <Text style={styles.viewButtonText}>View Details</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.callButton} activeOpacity={0.7}>
-                  <Icon name={getIconName('Phone')} size={18} color="#ffffff" />
-                </TouchableOpacity>
+              <View style={styles.cardContent}>
+                <View style={styles.businessHeader}>
+                  <View style={styles.businessInfo}>
+                    <Text style={styles.businessName} numberOfLines={1}>{business.name}</Text>
+                    <Text style={styles.businessCategory} numberOfLines={1}>{business.category}</Text>
+                  </View>
+                  <View style={styles.distanceBadge}>
+                    <Icon name={getIconName('MapPin')} size={14} color="#ea580c" />
+                    <Text style={styles.distanceText}>{business.distance}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity style={styles.viewButton} activeOpacity={0.7}>
+                    <Text style={styles.viewButtonText}>View Details</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.callButton} activeOpacity={0.7}>
+                    <Icon name={getIconName('Phone')} size={18} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -198,6 +264,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#22c55e', // Green
     borderRadius: 8,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#ffffff',
+    opacity: 0.7,
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#ffffff',
+    opacity: 0.7,
   },
 });
 

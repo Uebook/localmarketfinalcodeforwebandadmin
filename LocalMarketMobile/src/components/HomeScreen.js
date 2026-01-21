@@ -22,6 +22,7 @@ import {
   HEALTH_FITNESS,
   BEAUTY_SPA,
 } from '../constants';
+import { getCategories } from '../services/api';
 
 const HomeScreen = ({ navigation, route }) => {
   const [locationState, setLocationState] = useState({
@@ -31,6 +32,7 @@ const HomeScreen = ({ navigation, route }) => {
     loading: true,
     error: null,
   });
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     // Mock geolocation - in real app, use @react-native-community/geolocation
@@ -43,12 +45,31 @@ const HomeScreen = ({ navigation, route }) => {
         error: null,
       });
     }, 1500);
+
+    // Load categories from API
+    loadCategories();
   }, []);
 
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories();
+      if (data && data.categories) {
+        setCategories(data.categories);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      // Fallback to constants
+      setCategories(TOP_8_CATEGORIES);
+    }
+  };
+
   const handleCategorySelect = (categoryName) => {
-    // Navigate to search results with category as query
+    // Navigate to search results with category as query - show vendors only
     if (navigation) {
-      navigation.navigate('SearchResults', { query: categoryName });
+      navigation.navigate('SearchResults', { 
+        query: categoryName,
+        isCategorySearch: true // Flag to show only vendors
+      });
     }
   };
 
@@ -117,6 +138,7 @@ const HomeScreen = ({ navigation, route }) => {
         <SearchBar onSearch={handleSearch} />
         
         <TopCategoriesGrid 
+          categories={categories.length > 0 ? categories.slice(0, 8) : TOP_8_CATEGORIES}
           onCategorySelect={handleCategorySelect}
           onViewAll={handleViewAllCategories}
         />
@@ -124,7 +146,7 @@ const HomeScreen = ({ navigation, route }) => {
         <PromoCarousel />
 
         {/* Category-based Business Sections */}
-        {TOP_8_CATEGORIES.slice(0, 4).map((category) => (
+        {(categories.length > 0 ? categories : TOP_8_CATEGORIES).slice(0, 4).map((category) => (
           <CategoryBusinessSection
             key={category.id}
             categoryId={category.id}
@@ -157,7 +179,7 @@ const HomeScreen = ({ navigation, route }) => {
           containerClass="bg-black/60"
         />
 
-        <RecentSearches />
+        <RecentSearches onSearchClick={handleSearch} />
 
         <HorizontalSection
           title="Education"
@@ -180,7 +202,7 @@ const HomeScreen = ({ navigation, route }) => {
           containerClass="bg-black/60"
         />
 
-        <NearbySection onBusinessClick={handleBusinessClick} />
+        <NearbySection onBusinessClick={handleBusinessClick} locationState={locationState} />
 
         <HorizontalSection
           title="Beauty & Spa"

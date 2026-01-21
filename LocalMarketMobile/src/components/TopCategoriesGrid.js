@@ -6,7 +6,9 @@ import { TOP_8_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 
-const TopCategoriesGrid = ({ onCategorySelect, onViewAll }) => {
+const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
+  const displayCategories = categories && categories.length > 0 ? categories : TOP_8_CATEGORIES;
+
   const handleCategoryPress = (category) => {
     if (onCategorySelect) {
       onCategorySelect(category.name);
@@ -34,9 +36,9 @@ const TopCategoriesGrid = ({ onCategorySelect, onViewAll }) => {
         </View>
       </View>
       <View style={styles.grid}>
-        {TOP_8_CATEGORIES.map((category) => (
+        {displayCategories.map((category, index) => (
           <TouchableOpacity
-            key={category.id}
+            key={category.id || index}
             style={styles.categoryCard}
             onPress={() => handleCategoryPress(category)}
             activeOpacity={0.7}
@@ -47,7 +49,7 @@ const TopCategoriesGrid = ({ onCategorySelect, onViewAll }) => {
               end={{ x: 1, y: 0 }}
               style={styles.iconContainer}
             >
-              <Icon name={getIconName(category.iconName)} size={24} color={COLORS.white} />
+              <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={24} color={COLORS.white} />
             </LinearGradient>
             <Text style={styles.categoryName} numberOfLines={2}>
               {category.name}

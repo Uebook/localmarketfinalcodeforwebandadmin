@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Linking, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Linking, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -7,6 +7,7 @@ import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
 import EnquiryModal from './EnquiryModal';
 import WriteReview from './WriteReview';
+import { getVendorProducts } from '../services/api';
 
 const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusinessIds }) => {
     // Handle both 'business' and 'vendor' parameter names
@@ -15,6 +16,57 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
     const [isSaved, setIsSaved] = useState(savedBusinessIds.includes(business?.id));
     const [showEnquiryModal, setShowEnquiryModal] = useState(false);
     const [showWriteReview, setShowWriteReview] = useState(false);
+    const [vendorProducts, setVendorProducts] = useState([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+    const [businessWithProducts, setBusinessWithProducts] = useState(business);
+
+    useEffect(() => {
+        // Load vendor products when component mounts or business changes
+        if (business?.id) {
+            loadVendorProducts();
+        }
+    }, [business?.id]);
+
+    const loadVendorProducts = async () => {
+        if (!business?.id) return;
+        
+        try {
+            setLoadingProducts(true);
+            const data = await getVendorProducts(business.id);
+            
+            if (data?.products && Array.isArray(data.products)) {
+                // Transform vendor products to match the expected format
+                const transformedProducts = data.products.map(product => ({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price ? `₹${product.price}` : product.mrp ? `₹${product.mrp}` : 'Price on request',
+                    mrp: product.mrp ? `₹${product.mrp}` : null,
+                    uom: product.uom || '',
+                    description: product.description || `${product.name}${product.uom ? ` (${product.uom})` : ''}`,
+                    imageUrl: product.image_url || product.imageUrl || 'https://via.placeholder.com/200',
+                    category_id: product.category_id,
+                }));
+                
+                setVendorProducts(transformedProducts);
+                // Update business object with products
+                setBusinessWithProducts({
+                    ...business,
+                    products: transformedProducts,
+                });
+            } else {
+                // If no products from API, use products from business object if available
+                setVendorProducts(business.products || []);
+                setBusinessWithProducts(business);
+            }
+        } catch (error) {
+            console.error('Error loading vendor products:', error);
+            // Fallback to products from business object if available
+            setVendorProducts(business.products || []);
+            setBusinessWithProducts(business);
+        } finally {
+            setLoadingProducts(false);
+        }
+    };
 
     if (!business) {
         return (
@@ -23,6 +75,9 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
             </View>
         );
     }
+
+    // Use businessWithProducts if available, otherwise use business
+    const displayBusiness = businessWithProducts || business;
 
     const tabs = ['Overview', 'Products/Services', 'Reviews', 'Quick Info'];
 
@@ -100,9 +155,9 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                 {/* Main Info Card */}
                 <View style={styles.infoCard}>
                     <View style={styles.businessHeader}>
-                        <Text style={styles.businessName}>{business.name}</Text>
+                        <Text style={styles.businessName}>{displayBusiness.name}</Text>
                         <Image
-                            source={{ uri: business.imageUrl }}
+                            source={{ uri: displayBusiness.imageUrl }}
                             style={styles.businessImage}
                             resizeMode="cover"
                         />
@@ -110,11 +165,11 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
 
                     <View style={styles.ratingRow}>
                         <View style={styles.ratingBadge}>
-                            <Text style={styles.ratingText}>{business.rating}</Text>
+                            <Text style={styles.ratingText}>{displayBusiness.rating}</Text>
                             <Icon name={getIconName('Star')} size={10} color="#ffffff" />
                         </View>
-                        <Text style={styles.reviewCount}>{business.reviewCount} Ratings</Text>
-                        {business.isVerified && (
+                        <Text style={styles.reviewCount}>{displayBusiness.reviewCount} Ratings</Text>
+                        {displayBusiness.isVerified && (
                             <View style={styles.verifiedBadge}>
                                 <Text style={styles.verifiedText}>Verified</Text>
                                 <Icon name={getIconName('CheckCircle')} size={12} color="#2563eb" />
@@ -125,14 +180,14 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                     <View style={styles.locationRow}>
                         <Icon name={getIconName('MapPin')} size={14} color="#9ca3af" />
                         <Text style={styles.locationText}>
-                            {business.address || 'Location Unavailable'}
-                            {business.landmark ? `, ${business.landmark}` : ''}
+                            {displayBusiness.address || 'Location Unavailable'}
+                            {displayBusiness.landmark ? `, ${displayBusiness.landmark}` : ''}
                         </Text>
                     </View>
                     <Text style={styles.categoryText}>
-                        {business.category} • {business.yearsInBusiness || 'New Business'}
+                        {displayBusiness.category} • {displayBusiness.yearsInBusiness || 'New Business'}
                     </Text>
-                    <Text style={styles.openTime}>{business.openTime || 'Open Now'}</Text>
+                    <Text style={styles.openTime}>{displayBusiness.openTime || 'Open Now'}</Text>
 
                     {/* Action Grid */}
                     <View style={styles.actionGrid}>
@@ -265,13 +320,21 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                     {activeTab === 'Products/Services' && (
                         <View style={styles.productsContent}>
                             <Text style={styles.sectionTitle}>Products & Services</Text>
-                            {business.products && business.products.length > 0 ? (
+                            {loadingProducts ? (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="large" color={COLORS.orange} />
+                                    <Text style={styles.loadingText}>Loading products...</Text>
+                                </View>
+                            ) : vendorProducts.length > 0 ? (
                                 <View style={styles.productsList}>
-                                    {business.products.map((product) => (
+                                    {vendorProducts.map((product) => (
                                         <TouchableOpacity
                                             key={product.id}
                                             style={styles.productCard}
-                                            onPress={() => navigation?.navigate('ProductDetails', { product, business })}
+                                            onPress={() => navigation?.navigate('ProductDetails', { 
+                                                product, 
+                                                business: displayBusiness 
+                                            })}
                                             activeOpacity={0.7}
                                         >
                                             <Image
@@ -286,14 +349,23 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                                                         {product.description}
                                                     </Text>
                                                 )}
+                                                {product.uom && (
+                                                    <Text style={styles.productUom}>{product.uom}</Text>
+                                                )}
                                                 <View style={styles.productFooter}>
-                                                    <Text style={styles.productPrice}>{product.price}</Text>
+                                                    <View>
+                                                        <Text style={styles.productPrice}>{product.price}</Text>
+                                                        {product.mrp && product.mrp !== product.price && (
+                                                            <Text style={styles.productMrp}>{product.mrp}</Text>
+                                                        )}
+                                                    </View>
                                                     <TouchableOpacity
                                                         style={styles.addButton}
                                                         activeOpacity={0.7}
                                                         onPress={(e) => {
                                                             e.stopPropagation();
                                                             // Handle add to cart or enquiry
+                                                            setShowEnquiryModal(true);
                                                         }}
                                                     >
                                                         <Icon name={getIconName('Plus')} size={16} color="#dc2626" />
@@ -305,7 +377,9 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                                 </View>
                             ) : (
                                 <View style={styles.emptyState}>
+                                    <Icon name={getIconName('Package')} size={48} color={COLORS.textMuted} />
                                     <Text style={styles.emptyText}>No products listed by this vendor yet.</Text>
+                                    <Text style={styles.emptySubtext}>Check back later or contact the vendor directly.</Text>
                                 </View>
                             )}
                         </View>
@@ -790,10 +864,38 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#dc2626',
     },
+    productUom: {
+        fontSize: 12,
+        color: '#6b7280',
+        marginTop: 2,
+        marginBottom: 4,
+    },
+    productMrp: {
+        fontSize: 12,
+        color: '#9ca3af',
+        textDecorationLine: 'line-through',
+        marginTop: 2,
+    },
     addButton: {
         padding: 4,
         backgroundColor: '#fee2e2',
         borderRadius: 12,
+    },
+    loadingContainer: {
+        padding: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 14,
+        color: COLORS.textSecondary,
+    },
+    emptySubtext: {
+        fontSize: 12,
+        color: COLORS.textMuted,
+        marginTop: 8,
+        textAlign: 'center',
     },
     reviewsContent: {
         gap: 16,

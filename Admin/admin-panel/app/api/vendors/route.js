@@ -61,10 +61,16 @@ export async function GET(req) {
         if (tehsil && tehsil !== 'All') baseQuery.set('tehsil', `eq.${tehsil}`);
         if (subTehsil && subTehsil !== 'All') baseQuery.set('subTehsil', `eq.${subTehsil}`);
 
-        // Search (name OR owner)
+        // Search (name OR owner OR category)
         if (q) {
-            // PostgREST OR syntax: or=(col.op.value,col.op.value)
-            baseQuery.set('or', `(name.ilike.*${q}*,owner.ilike.*${q}*)`);
+            // PostgREST OR syntax: or=(col.op.value,col.op.value,col.op.value)
+            baseQuery.set('or', `(name.ilike.*${q}*,owner.ilike.*${q}*,category.ilike.*${q}*)`);
+        }
+
+        // Also support direct category filter
+        const category = toStr(searchParams.get('category'));
+        if (category && category !== 'All') {
+            baseQuery.set('category', `ilike.*${category}*`);
         }
 
         // Get total count for pagination

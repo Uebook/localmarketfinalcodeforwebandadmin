@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -8,9 +8,12 @@ import { COLORS } from '../constants/colors';
 import { TOP_8_CATEGORIES, ALL_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
 import Icon from 'react-native-vector-icons/Feather';
+import { getCategories } from '../services/api';
 
 const CategoriesScreen = ({ navigation, route }) => {
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [locationState] = React.useState({
     lat: null,
     lng: null,
@@ -19,16 +22,43 @@ const CategoriesScreen = ({ navigation, route }) => {
     error: null,
   });
 
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      const data = await getCategories();
+      if (data && data.categories) {
+        setCategories(data.categories);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      // Fallback to constants if API fails
+      setCategories(ALL_CATEGORIES);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCategorySelect = (categoryName) => {
-    // Navigate to SearchResults with category as query
+    // Navigate to SearchResults with category as query - show vendors only
     if (navigation) {
-      navigation.navigate('SearchResults', { query: categoryName });
+      navigation.navigate('SearchResults', { 
+        query: categoryName,
+        isCategorySearch: true // Flag to show only vendors
+      });
     }
   };
 
   const handleTopCategoryPress = (category) => {
     if (navigation) {
-      navigation.navigate('SearchResults', { query: category.name, categoryId: category.id });
+      navigation.navigate('SearchResults', { 
+        query: category.name, 
+        categoryId: category.id,
+        isCategorySearch: true // Flag to show only vendors
+      });
     }
   };
 
@@ -80,28 +110,39 @@ const CategoriesScreen = ({ navigation, route }) => {
           <Text style={styles.sectionSubtitle}>Most frequent search, daily need, guaranteed usage</Text>
         </View>
 
-        <View style={styles.topCategoriesGrid}>
-          {TOP_8_CATEGORIES.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={styles.topCategoryCard}
-              onPress={() => handleTopCategoryPress(category)}
-              activeOpacity={0.7}
-            >
-              <LinearGradient
-                colors={COLORS.primaryGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.topCategoryIcon}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.orange} />
+            <Text style={styles.loadingText}>Loading categories...</Text>
+          </View>
+        ) : (
+          <View style={styles.topCategoriesGrid}>
+            {(categories.length > 0 ? categories.slice(0, 8) : TOP_8_CATEGORIES).map((category, index) => (
+              <TouchableOpacity
+                key={category.id || index}
+                style={styles.topCategoryCard}
+                onPress={() => handleTopCategoryPress(category)}
+                activeOpacity={0.7}
               >
-                <Icon name={getIconName(category.iconName)} size={24} color={COLORS.white} />
-              </LinearGradient>
-              <Text style={styles.topCategoryName} numberOfLines={2}>
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <LinearGradient
+                  colors={COLORS.primaryGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.topCategoryIcon}
+                >
+                  <Icon 
+                    name={getIconName(category.iconName || category.icon_name || 'grid')} 
+                    size={24} 
+                    color={COLORS.white} 
+                  />
+                </LinearGradient>
+                <Text style={styles.topCategoryName} numberOfLines={2}>
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* View All Categories Button */}
         <TouchableOpacity
@@ -153,9 +194,17 @@ const CategoriesScreen = ({ navigation, route }) => {
           <>
             <View style={styles.sectionHeader}>
               <View style={styles.orangeLine} />
-              <Text style={styles.sectionTitle}>All Categories ({ALL_CATEGORIES.length})</Text>
+              <Text style={styles.sectionTitle}>All Categories ({categories.length > 0 ? categories.length : ALL_CATEGORIES.length})</Text>
             </View>
-            <CategoryGrid onCategorySelect={handleCategorySelect} variant="dark" />
+            {categories.length > 0 ? (
+              <CategoryGrid 
+                categories={categories} 
+                onCategorySelect={handleCategorySelect} 
+                variant="dark" 
+              />
+            ) : (
+              <CategoryGrid onCategorySelect={handleCategorySelect} variant="dark" />
+            )}
           </>
         )}
         
@@ -295,6 +344,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.orange,
     textDecorationLine: 'underline',
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
 });
 

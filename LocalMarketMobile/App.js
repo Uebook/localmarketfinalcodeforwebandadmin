@@ -202,7 +202,7 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
         {(props) => (
           <OffersScreen
             {...props}
-            vendorData={userRole === 'vendor' ? vendorData : INITIAL_VENDOR_DATA}
+            locationState={locationState || { city: 'Delhi, India' }}
           />
         )}
       </Tab.Screen>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -8,6 +8,8 @@ import { COLORS } from '../constants/colors';
 import FeedbackForm from './FeedbackForm';
 import { FESTIVAL_THEMES } from '../constants/festivalThemes';
 import { generateUserId } from '../utils/paymentUtils';
+import { getThemes, getUserTheme, updateUserTheme } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingsScreen = ({ 
   navigation,
@@ -22,6 +24,9 @@ const SettingsScreen = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [themes, setThemes] = useState([]);
+  const [selectedTheme, setSelectedTheme] = useState(currentTheme);
+  const [loadingThemes, setLoadingThemes] = useState(true);
 
   useEffect(() => {
     if (userRole === 'vendor') {
@@ -41,7 +46,132 @@ const SettingsScreen = ({
         photo: profileData?.profilePhotoUrl || ''
       });
     }
+    loadThemes();
+    loadUserTheme();
   }, [profileData, userRole]);
+
+  const loadThemes = async () => {
+    try {
+      setLoadingThemes(true);
+      const apiThemes = await getThemes();
+      
+      // Transform API themes to app format
+      const transformedThemes = [];
+      
+      // Add default theme first
+      transformedThemes.push({
+        id: 'default',
+        name: 'Red & Orange (Default)',
+        icon: '🎨',
+        description: 'Default theme',
+        color: COLORS.orange,
+        secondaryColor: COLORS.blue,
+        gradient: [COLORS.orange, COLORS.blue],
+      });
+      
+      // Add API themes
+      if (Array.isArray(apiThemes)) {
+        apiThemes.forEach(theme => {
+          transformedThemes.push({
+            id: theme.id,
+            name: theme.name || theme.id,
+            icon: theme.icon || '🎨',
+            description: theme.description || '',
+            color: theme.colors?.primary || COLORS.orange,
+            secondaryColor: theme.colors?.secondary || COLORS.blue,
+            gradient: theme.colors ? [theme.colors.primary, theme.colors.secondary] : [COLORS.orange, COLORS.blue],
+          });
+        });
+      } else {
+        // Fallback to constants if API fails
+        Object.values(FESTIVAL_THEMES).forEach(theme => {
+          transformedThemes.push({
+            id: theme.id,
+            name: theme.name,
+            icon: theme.icon,
+            description: theme.description,
+            color: theme.colors.primary,
+            secondaryColor: theme.colors.secondary,
+            gradient: [theme.colors.primary, theme.colors.secondary],
+          });
+        });
+      }
+      
+      setThemes(transformedThemes);
+    } catch (error) {
+      console.error('Error loading themes:', error);
+      // Fallback to constants
+      const fallbackThemes = Object.values(FESTIVAL_THEMES).map(theme => ({
+        id: theme.id,
+        name: theme.name,
+        icon: theme.icon,
+        description: theme.description,
+        color: theme.colors.primary,
+        secondaryColor: theme.colors.secondary,
+        gradient: [theme.colors.primary, theme.colors.secondary],
+      }));
+      fallbackThemes.unshift({
+        id: 'default',
+        name: 'Red & Orange (Default)',
+        icon: '🎨',
+        description: 'Default theme',
+        color: COLORS.orange,
+        secondaryColor: COLORS.blue,
+        gradient: [COLORS.orange, COLORS.blue],
+      });
+      setThemes(fallbackThemes);
+    } finally {
+      setLoadingThemes(false);
+    }
+  };
+
+  const loadUserTheme = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const phone = await AsyncStorage.getItem('userPhone');
+      const email = await AsyncStorage.getItem('userEmail');
+      
+      if (userId || phone || email) {
+        const themeData = await getUserTheme({ userId, phone, email });
+        if (themeData && themeData.theme) {
+          setSelectedTheme(themeData.theme);
+          if (onThemeChange) {
+            onThemeChange(themeData.theme);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user theme:', error);
+    }
+  };
+
+  const handleThemeSelect = async (themeId) => {
+    setSelectedTheme(themeId);
+    
+    // Update theme locally
+    if (onThemeChange) {
+      onThemeChange(themeId);
+    }
+    
+    // Save to API
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const phone = await AsyncStorage.getItem('userPhone');
+      const email = await AsyncStorage.getItem('userEmail');
+      
+      if (userId || phone || email) {
+        await updateUserTheme({
+          userId,
+          phone,
+          email,
+          themeId: themeId,
+        });
+      }
+    } catch (error) {
+      console.error('Error updating user theme:', error);
+      // Still allow theme change even if API fails
+    }
+  };
 
   const handleSave = () => {
     if (userRole === 'vendor') {
@@ -78,28 +208,6 @@ const SettingsScreen = ({
   const displayImageUrl = getDisplayImage();
 
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
-  
-  // Convert festival themes to app format
-  const themes = Object.values(FESTIVAL_THEMES).map(theme => ({
-    id: theme.id,
-    name: theme.name,
-    icon: theme.icon,
-    description: theme.description,
-    color: theme.colors.primary,
-    secondaryColor: theme.colors.secondary,
-    gradient: [theme.colors.primary, theme.colors.secondary],
-  }));
-  
-  // Add default theme
-  themes.unshift({
-    id: 'default',
-    name: 'Red & Orange (Default)',
-    icon: '🎨',
-    description: 'Default theme',
-    color: COLORS.orange,
-    secondaryColor: COLORS.blue,
-    gradient: COLORS.primaryGradient,
-  });
 
   const handleBack = () => {
     if (onBack) {
@@ -295,17 +403,23 @@ const SettingsScreen = ({
             <Text style={styles.themeTitle}>Festival Themes</Text>
           </View>
           
-          <View style={styles.themeList}>
-            {themes.map(theme => (
-              <TouchableOpacity
-                key={theme.id}
-                onPress={() => onThemeChange && onThemeChange(theme.id)}
-                style={[
-                  styles.themeItem,
-                  currentTheme === theme.id && styles.themeItemActive
-                ]}
-                activeOpacity={0.7}
-              >
+          {loadingThemes ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={COLORS.orange} />
+              <Text style={styles.loadingText}>Loading themes...</Text>
+            </View>
+          ) : (
+            <View style={styles.themeList}>
+              {themes.map(theme => (
+                <TouchableOpacity
+                  key={theme.id}
+                  onPress={() => handleThemeSelect(theme.id)}
+                  style={[
+                    styles.themeItem,
+                    selectedTheme === theme.id && styles.themeItemActive
+                  ]}
+                  activeOpacity={0.7}
+                >
                 <View style={styles.themeItemContent}>
                   {theme.gradient ? (
                     <LinearGradient
@@ -329,14 +443,15 @@ const SettingsScreen = ({
                     )}
                   </View>
                 </View>
-                {currentTheme === theme.id && (
-                  <View style={styles.checkCircle}>
-                    <Icon name={getIconName('Check')} size={12} color={COLORS.textPrimary} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
+                  {selectedTheme === theme.id && (
+                    <View style={styles.checkCircle}>
+                      <Icon name={getIconName('Check')} size={12} color={COLORS.textPrimary} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Logout Button */}
@@ -646,6 +761,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textMuted,
     marginTop: 2,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
   settingsCard: {
     backgroundColor: COLORS.white,

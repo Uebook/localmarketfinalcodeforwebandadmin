@@ -74,6 +74,7 @@ const SearchScreen = ({ navigation, route }) => {
           onBusinessClick={handleBusinessClick}
           savedIds={savedIds}
           onToggleSave={toggleSave}
+          locationState={locationState}
         />
       </View>
     );

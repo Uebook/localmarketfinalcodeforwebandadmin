@@ -1,64 +1,88 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
+import { getNotifications } from '../services/api';
 
 const Notifications = ({ navigation, onClose }) => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Welcome to Local!",
-      message: "Find the best services and vendors near you. Start exploring now!",
-      time: "Just now",
-      iconName: 'Bell',
-      color: '#3b82f6',
-      bgColor: '#dbeafe',
-      isRead: false,
-    },
-    {
-      id: 2,
-      title: "50% Off Sale",
-      message: "Great discounts on Electronics this weekend at Nehru Place.",
-      time: "2 hours ago",
-      iconName: 'Tag',
-      color: '#9333ea',
-      bgColor: '#f3e8ff',
-      isRead: false,
-    },
-    {
-      id: 3,
-      title: "Order Status",
-      message: "Your enquiry to 'Tech World Repairs' has been viewed.",
-      time: "1 day ago",
-      iconName: 'Clock',
-      color: '#16a34a',
-      bgColor: '#dcfce7',
-      isRead: true,
-    },
-    {
-      id: 4,
-      title: "New Vendor Added",
-      message: "A new restaurant 'Joe's Pizza & Grill' has opened near you!",
-      time: "2 days ago",
-      iconName: 'Store',
-      color: '#ea580c',
-      bgColor: '#fed7aa',
-      isRead: true,
-    },
-    {
-      id: 5,
-      title: "Review Request",
-      message: "How was your experience at 'City Care Pharmacy'? Share your feedback.",
-      time: "3 days ago",
-      iconName: 'Star',
-      color: '#fbbf24',
-      bgColor: '#fef3c7',
-      isRead: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      const data = await getNotifications();
+      if (data && data.notifications) {
+        // Transform API notifications to app format
+        const transformedNotifications = data.notifications.map((notif, index) => {
+          // Map notification type to icon and colors
+          const typeMap = {
+            'info': { iconName: 'Bell', color: '#3b82f6', bgColor: '#dbeafe' },
+            'success': { iconName: 'CheckCircle', color: '#16a34a', bgColor: '#dcfce7' },
+            'warning': { iconName: 'AlertTriangle', color: '#fbbf24', bgColor: '#fef3c7' },
+            'error': { iconName: 'XCircle', color: '#dc2626', bgColor: '#fee2e2' },
+            'promo': { iconName: 'Tag', color: '#9333ea', bgColor: '#f3e8ff' },
+            'order': { iconName: 'Clock', color: '#16a34a', bgColor: '#dcfce7' },
+            'vendor': { iconName: 'Store', color: '#ea580c', bgColor: '#fed7aa' },
+            'review': { iconName: 'Star', color: '#fbbf24', bgColor: '#fef3c7' },
+          };
+          
+          const typeInfo = typeMap[notif.type] || typeMap['info'];
+          const createdAt = notif.created_at ? new Date(notif.created_at) : new Date();
+          const now = new Date();
+          const diffMs = now - createdAt;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMins / 60);
+          const diffDays = Math.floor(diffHours / 24);
+          
+          let timeAgo = 'Just now';
+          if (diffDays > 0) {
+            timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+          } else if (diffHours > 0) {
+            timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+          } else if (diffMins > 0) {
+            timeAgo = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+          }
+
+          return {
+            id: notif.id || index,
+            title: notif.title || 'Notification',
+            message: notif.message || notif.body || '',
+            time: timeAgo,
+            iconName: typeInfo.iconName,
+            color: typeInfo.color,
+            bgColor: typeInfo.bgColor,
+            isRead: notif.read || notif.isRead || false,
+            createdAt: createdAt,
+          };
+        });
+        
+        // Sort by created_at descending (newest first)
+        transformedNotifications.sort((a, b) => {
+          if (!a.createdAt || !b.createdAt) return 0;
+          return b.createdAt - a.createdAt;
+        });
+        
+        setNotifications(transformedNotifications);
+      } else {
+        // Fallback to empty array if no notifications
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+      // Keep empty array on error
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMarkAllRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
@@ -149,20 +173,27 @@ const Notifications = ({ navigation, onClose }) => {
         </View>
         
         {/* Notifications List */}
-        <FlatList
-          data={notifications}
-          renderItem={renderNotification}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          style={styles.list}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Icon name={getIconName('Bell')} size={48} color="#9ca3af" />
-              <Text style={styles.emptyText}>No notifications</Text>
-            </View>
-          }
-        />
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.orange} />
+            <Text style={styles.loadingText}>Loading notifications...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            renderItem={renderNotification}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            style={styles.list}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Icon name={getIconName('Bell')} size={48} color="#9ca3af" />
+                <Text style={styles.emptyText}>No notifications</Text>
+              </View>
+            }
+          />
+        )}
 
         {/* Footer */}
         {notifications.length > 0 && (
@@ -342,6 +373,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9ca3af',
     marginTop: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6b7280',
   },
 });
 

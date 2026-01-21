@@ -1,11 +1,12 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, PanResponder, Dimensions } from 'react-native';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, PanResponder, Dimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { SEARCH_RESULTS, NEARBY_BUSINESSES, FEATURED_BUSINESSES, IT_COMPANIES } from '../constants';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
+import { getVendors, getVendorProducts, getMasterProducts, getCategories } from '../services/api';
 
 const SearchResults = ({
     navigation,
@@ -17,10 +18,13 @@ const SearchResults = ({
     setSavedBusinessIds,
     results: propResults,
     isSavedTab = false,
-    query: propQuery
+    query: propQuery,
+    locationState
 }) => {
     // Get query from route params or props
     const query = route?.params?.query || propQuery;
+    const categoryId = route?.params?.categoryId;
+    const isCategorySearch = route?.params?.isCategorySearch || false; // Flag to indicate category-based search
     // Use savedBusinessIds from props if available, otherwise use savedIds
     const savedIds = savedBusinessIds.length > 0 ? savedBusinessIds : propSavedIds;
     const [sortBy, setSortBy] = useState('default');
@@ -28,17 +32,179 @@ const SearchResults = ({
     const [filterTopRated, setFilterTopRated] = useState(false);
     const [filterVerified, setFilterVerified] = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
+    const [vendors, setVendors] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const sliderTrackRef = useRef(null);
     const [sliderWidth, setSliderWidth] = useState(0);
+
+    useEffect(() => {
+        loadSearchData();
+    }, [query, categoryId]);
+
+    const loadSearchData = async () => {
+        try {
+            setLoading(true);
+
+            // Fetch categories to match query to category
+            let matchedCategoryIds = [];
+            if (query) {
+                try {
+                    const categoriesData = await getCategories();
+                    if (categoriesData?.categories) {
+                        const lowerQuery = query.toLowerCase();
+                        // Find all categories that match the query (including partial matches)
+                        const matchedCategories = categoriesData.categories.filter(cat => {
+                            const catName = (cat.name || '').toLowerCase();
+                            // Check if category name contains query or query contains category name
+                            // Also check for partial word matches (e.g., "Fruits" matches "Fresh Fruits")
+                            const queryWords = lowerQuery.split(/[\s&]+/).filter(w => w.length > 2);
+                            const catWords = catName.split(/[\s&]+/).filter(w => w.length > 2);
+
+                            return catName.includes(lowerQuery) ||
+                                lowerQuery.includes(catName) ||
+                                queryWords.some(qw => catWords.some(cw => cw.includes(qw) || qw.includes(cw)));
+                        });
+
+                        if (matchedCategories.length > 0) {
+                            matchedCategoryIds = matchedCategories.map(cat => cat.id);
+                            console.log(`Matched ${matchedCategories.length} categories:`, matchedCategories.map(c => c.name));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching categories:', error);
+                }
+            }
+
+            // Fetch vendors based on query/category
+            const vendorFilters = {
+                status: 'Active',
+                limit: 100,
+            };
+
+            // If query is provided, search by name, owner, or category
+            if (query) {
+                vendorFilters.q = query;
+            }
+
+            // Also filter by location if available
+            if (locationState?.city) {
+                const cityParts = locationState.city.split(',');
+                if (cityParts.length > 1) {
+                    vendorFilters.city = cityParts[cityParts.length - 1].trim();
+                } else {
+                    vendorFilters.city = locationState.city;
+                }
+            }
+
+            const vendorsData = await getVendors(vendorFilters);
+            const fetchedVendors = vendorsData?.vendors || [];
+
+            // Only fetch products if NOT a category search (category search should show vendors only)
+            let fetchedProducts = [];
+            if (!isCategorySearch && query && query.length > 2) {
+                try {
+                    // If we found matching categories, fetch products for each category
+                    if (matchedCategoryIds.length > 0) {
+                        const allProducts = [];
+                        // Fetch products for each matched category
+                        for (const categoryId of matchedCategoryIds) {
+                            try {
+                                const productsData = await getMasterProducts({
+                                    categoryId: categoryId,
+                                    limit: 50,
+                                });
+                                if (productsData?.products) {
+                                    allProducts.push(...productsData.products);
+                                }
+                            } catch (error) {
+                                console.error(`Error fetching products for category ${categoryId}:`, error);
+                            }
+                        }
+                        // Remove duplicates by product ID
+                        const uniqueProducts = Array.from(
+                            new Map(allProducts.map(p => [p.id, p])).values()
+                        );
+                        fetchedProducts = uniqueProducts;
+                    } else {
+                        // If no category match, search by product name
+                        const productsData = await getMasterProducts({
+                            q: query,
+                            limit: 50,
+                        });
+                        fetchedProducts = productsData?.products || [];
+                    }
+
+                    console.log(`Fetched ${fetchedProducts.length} products for query: "${query}"`);
+                } catch (error) {
+                    console.error('Error fetching products:', error);
+                }
+            }
+
+            // Fetch vendor products for each vendor to match against
+            const vendorsWithProducts = await Promise.all(
+                fetchedVendors.map(async (vendor) => {
+                    try {
+                        const vendorProductsData = await getVendorProducts(vendor.id);
+                        return {
+                            ...vendor,
+                            products: vendorProductsData?.products || [],
+                        };
+                    } catch (error) {
+                        console.error(`Error fetching products for vendor ${vendor.id}:`, error);
+                        return {
+                            ...vendor,
+                            products: [],
+                        };
+                    }
+                })
+            );
+
+            setVendors(vendorsWithProducts);
+            setProducts(fetchedProducts);
+        } catch (error) {
+            console.error('Error loading search data:', error);
+            // Fallback to constants
+            const allBusinesses = [...SEARCH_RESULTS, ...NEARBY_BUSINESSES, ...FEATURED_BUSINESSES, ...IT_COMPANIES];
+            setVendors(Array.from(new Map(allBusinesses.map(item => [item.id, item])).values()));
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const parseDistance = (distStr) => {
         return parseFloat(distStr.toLowerCase().replace(' km', '').trim()) || 0;
     };
 
+    // Transform vendors to business format
+    const transformVendorToBusiness = (vendor) => {
+        // Calculate distance (mock for now, can be enhanced with actual location)
+        const distance = vendor.city ? `${Math.floor(Math.random() * 10) + 1}.0 km` : 'Nearby';
+
+        return {
+            id: vendor.id,
+            name: vendor.name || vendor.shop_name || '',
+            category: vendor.category || 'General',
+            rating: vendor.rating || 4.0,
+            reviewCount: vendor.reviewCount || vendor.review_count || 0,
+            distance: distance,
+            imageUrl: vendor.imageUrl || vendor.image_url || 'https://via.placeholder.com/300x200',
+            address: vendor.address || `${vendor.city || ''} ${vendor.state || ''}`.trim() || 'Nearby',
+            isVerified: vendor.kycStatus === 'Approved' || vendor.kyc_status === 'Approved',
+            products: vendor.products || [],
+            contactNumber: vendor.contactNumber || vendor.contact_number || '',
+            email: vendor.email || '',
+        };
+    };
+
     const allBusinesses = useMemo(() => {
+        // Use database vendors if available, otherwise fallback to constants
+        if (vendors.length > 0) {
+            return vendors.map(transformVendorToBusiness);
+        }
         const combined = [...SEARCH_RESULTS, ...NEARBY_BUSINESSES, ...FEATURED_BUSINESSES, ...IT_COMPANIES];
         return Array.from(new Map(combined.map(item => [item.id, item])).values());
-    }, []);
+    }, [vendors]);
 
     const baseResults = propResults || allBusinesses;
 
@@ -48,27 +214,34 @@ const SearchResults = ({
         if (query && !propResults) {
             const lowerQuery = query.toLowerCase();
             // Split query into words for better matching
-            const queryWords = lowerQuery.split(/[\s\/]+/).filter(w => w.length > 0);
-            
+            const queryWords = lowerQuery.split(/[\s\/&]+/).filter(w => w.length > 0);
+
             results = results.filter(item => {
-                const itemName = item.name.toLowerCase();
-                const itemCategory = item.category.toLowerCase();
-                
+                const itemName = (item.name || '').toLowerCase();
+                const itemCategory = (item.category || '').toLowerCase();
+
                 // Check if any query word matches name or category
                 const matchesName = queryWords.some(word => itemName.includes(word));
-                const matchesCategory = queryWords.some(word => itemCategory.includes(word)) || 
-                                       itemCategory.includes(lowerQuery) || 
-                                       lowerQuery.includes(itemCategory);
-                
+                const matchesCategory = queryWords.some(word => itemCategory.includes(word)) ||
+                    itemCategory.includes(lowerQuery) ||
+                    lowerQuery.includes(itemCategory);
+
                 // Also check if category name is in the query (e.g., "Groceries" in "Groceries / General Store")
                 const categoryInQuery = itemCategory && lowerQuery.includes(itemCategory.split(' ')[0]);
-                
-                // Check products
-                const matchesProducts = item.products && item.products.some(p => 
-                    queryWords.some(word => p.name.toLowerCase().includes(word))
-                );
-                
-                return matchesName || matchesCategory || categoryInQuery || matchesProducts;
+
+                // Check vendor products
+                const matchesVendorProducts = item.products && Array.isArray(item.products) && item.products.some(p => {
+                    const productName = (p.name || '').toLowerCase();
+                    return queryWords.some(word => productName.includes(word));
+                });
+
+                // Check if query matches any master product names (for product searches)
+                const matchesMasterProducts = products.some(mp => {
+                    const productName = (mp.name || '').toLowerCase();
+                    return queryWords.some(word => productName.includes(word));
+                }) && itemCategory; // If master product matches, show vendors in that category
+
+                return matchesName || matchesCategory || categoryInQuery || matchesVendorProducts || matchesMasterProducts;
             });
         }
 
@@ -92,7 +265,7 @@ const SearchResults = ({
         }
 
         return results;
-    }, [baseResults, sortBy, filterTopRated, filterVerified, maxDistance, query, propResults]);
+    }, [baseResults, sortBy, filterTopRated, filterVerified, maxDistance, query, propResults, products]);
 
     const handleBusinessClick = (business) => {
         if (onBusinessClick) {
@@ -114,7 +287,7 @@ const SearchResults = ({
 
     const handleSliderMove = (gestureState) => {
         if (sliderWidth === 0) return;
-        
+
         const { locationX } = gestureState;
         const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
         const newDistance = Math.round(1 + percentage * 49); // Range: 1 to 50 km
@@ -223,7 +396,7 @@ const SearchResults = ({
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientBackground}
             />
-            
+
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
@@ -320,7 +493,7 @@ const SearchResults = ({
                         </View>
                         <View style={styles.sliderContainer}>
                             <Text style={styles.sliderLabel}>1 km</Text>
-                            <View 
+                            <View
                                 style={styles.sliderTrack}
                                 ref={sliderTrackRef}
                                 onLayout={(event) => {
@@ -329,15 +502,15 @@ const SearchResults = ({
                                 }}
                                 {...panResponder.panHandlers}
                             >
-                                <View 
+                                <View
                                     style={[
-                                        styles.sliderFill, 
-                                        { 
-                                            width: `${((maxDistance - 1) / 49) * 100}%` 
+                                        styles.sliderFill,
+                                        {
+                                            width: `${((maxDistance - 1) / 49) * 100}%`
                                         }
-                                    ]} 
+                                    ]}
                                 />
-                                <View 
+                                <View
                                     style={[
                                         styles.sliderThumb,
                                         {
@@ -353,17 +526,102 @@ const SearchResults = ({
                 )}
             </View>
 
-            {filteredResults.length === 0 ? (
-                <View style={styles.emptyStateContainer}>
-                    <Text style={styles.resultsCount}>
-                        {filteredResults.length} Results for your search
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={COLORS.orange} />
+                    <Text style={styles.loadingText}>
+                        {isCategorySearch ? 'Loading vendors...' : 'Searching vendors and products...'}
                     </Text>
+                </View>
+            ) : filteredResults.length > 0 ? (
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Products Section - Only show if NOT a category search */}
+                    {!isCategorySearch && products.length > 0 && (
+                        <View style={styles.sectionContainer}>
+                            <View style={styles.sectionHeader}>
+                                <Text style={styles.sectionTitle}>Products ({products.length})</Text>
+                            </View>
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.productsScroll}
+                            >
+                                {products.map((product) => (
+                                    <TouchableOpacity
+                                        key={product.id}
+                                        style={styles.productCard}
+                                        onPress={() => {
+                                            // Find vendors that have this product
+                                            const vendorsWithProduct = filteredResults.filter(v =>
+                                                v.products && v.products.some(p => p.name === product.name)
+                                            );
+                                            if (navigation && vendorsWithProduct.length > 0) {
+                                                navigation.navigate('ProductDetails', {
+                                                    product: {
+                                                        ...product,
+                                                        imageUrl: product.image_url || 'https://via.placeholder.com/200',
+                                                        price: product.default_mrp || 0,
+                                                    },
+                                                    business: vendorsWithProduct[0]
+                                                });
+                                            }
+                                        }}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Image
+                                            source={{ uri: product.image_url || 'https://via.placeholder.com/200' }}
+                                            style={styles.productImage}
+                                            resizeMode="cover"
+                                        />
+                                        <View style={styles.productInfo}>
+                                            <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
+                                            {product.brand && (
+                                                <Text style={styles.productBrand} numberOfLines={1}>{product.brand}</Text>
+                                            )}
+                                            {product.default_mrp && (
+                                                <Text style={styles.productPrice}>₹{product.default_mrp}</Text>
+                                            )}
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    )}
+
+                    {/* Vendors Section */}
+                    <View style={styles.sectionContainer}>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>
+                                {isCategorySearch ? `${query} Vendors` : `Vendors`} ({filteredResults.length})
+                            </Text>
+                        </View>
+                        <View style={styles.listContent}>
+                            {filteredResults.map((item) => (
+                                <View key={item.id}>
+                                    {renderBusinessCard({ item })}
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                </ScrollView>
+            ) : (
+                <View style={styles.emptyStateContainer}>
                     <View style={styles.emptyState}>
                         <View style={styles.emptyIcon}>
                             <Icon name={getIconName('Search')} size={48} color={COLORS.textMuted} />
                         </View>
                         <Text style={styles.emptyTitle}>No matches found</Text>
-                        <Text style={styles.emptyText}>Try increasing the distance or changing filters.</Text>
+                        <Text style={styles.emptyText}>
+                            {isCategorySearch
+                                ? `No vendors found for "${query}" category. Try another category or check back later.`
+                                : query
+                                    ? `No vendors or products found for "${query}"`
+                                    : 'Try increasing the distance or changing filters.'}
+                        </Text>
                         <TouchableOpacity
                             style={styles.resetButton}
                             onPress={() => {
@@ -378,20 +636,6 @@ const SearchResults = ({
                         </TouchableOpacity>
                     </View>
                 </View>
-            ) : (
-                <>
-                    <View style={styles.resultsHeader}>
-                        <Text style={styles.resultsTitle}>
-                            {filteredResults.length} Result{filteredResults.length !== 1 ? 's' : ''} for your search
-                        </Text>
-                    </View>
-                    <FlatList
-                        data={filteredResults}
-                        renderItem={renderBusinessCard}
-                        keyExtractor={(item) => item.id}
-                        contentContainerStyle={styles.listContent}
-                    />
-                </>
             )}
         </View>
     );
@@ -788,6 +1032,77 @@ const styles = StyleSheet.create({
     },
     resetButtonText: {
         fontSize: 14,
+        fontWeight: '700',
+        color: COLORS.orange,
+    },
+    loadingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 64,
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 14,
+        color: COLORS.textSecondary,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingBottom: 100,
+    },
+    sectionContainer: {
+        marginBottom: 24,
+    },
+    sectionHeader: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 12,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: COLORS.textPrimary,
+    },
+    productsScroll: {
+        paddingHorizontal: 16,
+        gap: 12,
+    },
+    productCard: {
+        width: 160,
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: COLORS.divider,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+        overflow: 'hidden',
+    },
+    productImage: {
+        width: '100%',
+        height: 120,
+        backgroundColor: '#f3f4f6',
+    },
+    productInfo: {
+        padding: 12,
+    },
+    productName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.textPrimary,
+        marginBottom: 4,
+    },
+    productBrand: {
+        fontSize: 12,
+        color: COLORS.textSecondary,
+        marginBottom: 6,
+    },
+    productPrice: {
+        fontSize: 16,
         fontWeight: '700',
         color: COLORS.orange,
     },

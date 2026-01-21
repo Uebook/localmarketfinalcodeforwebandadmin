@@ -71,12 +71,14 @@ const getCategoryIcon = (iconName) => {
   return getIconName(iconName);
 };
 
-const CategoryGrid = ({ onCategorySelect, variant = 'light' }) => {
+const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
+  const displayCategories = categories && categories.length > 0 ? categories : ALL_CATEGORIES;
+
   const renderCategory = ({ item, index }) => {
     // Get color from category name or use default
     const categoryNameKey = item.name.split(' ')[0] || item.name;
     const backgroundColor = colorMap[categoryNameKey] || colorMap[item.name] || '#9ca3af';
-    const iconName = getCategoryIcon(item.iconName);
+    const iconName = getCategoryIcon(item.iconName || item.icon_name);
     const textColor = variant === 'dark' ? COLORS.textPrimary : COLORS.white;
 
     return (
@@ -98,9 +100,9 @@ const CategoryGrid = ({ onCategorySelect, variant = 'light' }) => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={ALL_CATEGORIES}
+        data={displayCategories}
         renderItem={renderCategory}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id || `category-${index}`}
         numColumns={4}
         scrollEnabled={false}
         contentContainerStyle={styles.grid}

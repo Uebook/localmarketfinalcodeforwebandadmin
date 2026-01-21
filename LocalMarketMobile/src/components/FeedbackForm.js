@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
+import { submitFeedback } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FeedbackForm = ({ 
   navigation, 
@@ -17,6 +19,7 @@ const FeedbackForm = ({
     comment: '',
     type: userRole
   });
+  const [submitting, setSubmitting] = useState(false);
 
   const categories = [
     'Product Quality',
@@ -28,7 +31,7 @@ const FeedbackForm = ({
     'Other'
   ];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.category) {
       Alert.alert('Error', 'Please select a category');
       return;
@@ -42,24 +45,62 @@ const FeedbackForm = ({
       return;
     }
 
-    // Call onSubmit callback if provided
-    if (onSubmit) {
-      onSubmit(formData);
-    } else {
-      // Default behavior - show success and go back
-      Alert.alert(
-        'Success',
-        'Thank you for your feedback! We appreciate your input.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              if (onBack) onBack();
-              else if (navigation) navigation.goBack();
-            }
+    try {
+      setSubmitting(true);
+      
+      // Get user ID from storage or generate one
+      let userId = null;
+      try {
+        userId = await AsyncStorage.getItem('userId');
+        if (!userId) {
+          // Try to get from phone
+          const phone = await AsyncStorage.getItem('userPhone');
+          if (phone) {
+            userId = phone; // Use phone as identifier
           }
-        ]
+        }
+      } catch (e) {
+        console.log('Could not get userId from storage:', e);
+      }
+
+      // Prepare feedback data for API
+      const feedbackData = {
+        userId: userId || 'anonymous',
+        type: formData.type || 'suggestion',
+        message: `${formData.category}: ${formData.comment} (Rating: ${formData.rating}/5)`,
+      };
+
+      // Submit to API
+      await submitFeedback(feedbackData);
+
+      // Call onSubmit callback if provided
+      if (onSubmit) {
+        onSubmit(formData);
+      } else {
+        // Default behavior - show success and go back
+        Alert.alert(
+          'Success',
+          'Thank you for your feedback! We appreciate your input.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                if (onBack) onBack();
+                else if (navigation) navigation.goBack();
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      Alert.alert(
+        'Error',
+        'Failed to submit feedback. Please try again later.',
+        [{ text: 'OK' }]
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -173,14 +214,23 @@ const FeedbackForm = ({
           <TouchableOpacity
             style={[
               styles.submitButton,
-              (!formData.category || formData.rating === 0 || !formData.comment.trim()) && styles.submitButtonDisabled
+              ((!formData.category || formData.rating === 0 || !formData.comment.trim()) || submitting) && styles.submitButtonDisabled
             ]}
             onPress={handleSubmit}
-            disabled={!formData.category || formData.rating === 0 || !formData.comment.trim()}
+            disabled={!formData.category || formData.rating === 0 || !formData.comment.trim() || submitting}
             activeOpacity={0.8}
           >
-            <Text style={styles.submitButtonText}>Submit Feedback</Text>
-            <Icon name="send" size={20} color="#FFFFFF" style={styles.submitIcon} />
+            {submitting ? (
+              <>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+                <Text style={styles.submitButtonText}>Submitting...</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.submitButtonText}>Submit Feedback</Text>
+                <Icon name="send" size={20} color="#FFFFFF" style={styles.submitIcon} />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
