@@ -18,9 +18,9 @@ export default function VendorManagement() {
 
   if (selectedVendor) {
     return (
-      <VendorProfile 
-        vendor={selectedVendor} 
-        onBack={() => setSelectedVendor(null)} 
+      <VendorProfile
+        vendor={selectedVendor}
+        onBack={() => setSelectedVendor(null)}
       />
     );
   }
@@ -34,11 +34,10 @@ export default function VendorManagement() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors ${
-                activeTab === tab.id
+              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === tab.id
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               {tab.label}
             </button>

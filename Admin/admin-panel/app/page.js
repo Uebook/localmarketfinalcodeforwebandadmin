@@ -114,10 +114,10 @@ export default function AdminPanel() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Full Width Header */}
       <Header currentPage={getPageTitle()} />
-      
+
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          activeSection={activeSection} 
+        <Sidebar
+          activeSection={activeSection}
           setActiveSection={setActiveSection}
           onLogout={handleLogout}
         />

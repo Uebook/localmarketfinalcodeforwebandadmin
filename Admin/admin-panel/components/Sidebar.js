@@ -28,11 +28,10 @@ export default function Sidebar({ activeSection, setActiveSection, onLogout }) {
           <button
             key={item.id}
             onClick={() => setActiveSection(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              activeSection === item.id
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeSection === item.id
                 ? 'gradient-primary text-white shadow-md'
                 : 'text-gray-700 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <span className="text-xl">{item.icon}</span>
             <span className="font-medium">{item.label}</span>

@@ -546,8 +546,8 @@ export default function VendorList({ onViewProfile }) {
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
                           className={`px-3 py-1 text-sm border rounded-lg transition ${pagination.page === pageNum
-                              ? 'bg-orange-500 text-white border-orange-500'
-                              : 'border-gray-300 hover:bg-gray-100'
+                            ? 'bg-orange-500 text-white border-orange-500'
+                            : 'border-gray-300 hover:bg-gray-100'
                             }`}
                         >
                           {pageNum}

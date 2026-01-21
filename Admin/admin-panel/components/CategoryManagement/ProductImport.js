@@ -19,7 +19,7 @@ export default function ProductImport() {
       // Try API first
       const res = await fetch('/api/master-products/import-history?limit=10', { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      
+
       if (res.ok && Array.isArray(data?.history)) {
         setImportHistory(data.history);
       } else {
@@ -137,14 +137,14 @@ export default function ProductImport() {
         } else {
           message = `No products were imported or updated.`;
         }
-        
+
         // Add warnings if any categories couldn't be resolved
         if (data?.warnings && data.warnings.length > 0) {
           message += `\n\nWarning: ${data.warnings.join(' ')}`;
         }
-        
+
         setResult({ success: true, message, warnings: data?.warnings, unresolvedCategories: data?.unresolvedCategories });
-        
+
         // Save to import history
         const importData = {
           filename: file.name,
@@ -153,7 +153,7 @@ export default function ProductImport() {
           total,
           status: 'success',
         };
-        
+
         // Try API first
         try {
           await fetch('/api/master-products/import-history', {
@@ -167,14 +167,14 @@ export default function ProductImport() {
         } catch (e) {
           saveToLocalHistory(importData);
         }
-        
+
         // Reload history
         await loadImportHistory();
         setFile(null);
       } else {
         const errorMsg = data?.error || `Import failed: ${(data?.errors || []).length} row errors.`;
         setResult({ success: false, message: errorMsg });
-        
+
         // Save failed import to history
         const importData = {
           filename: file.name,
@@ -292,14 +292,14 @@ export default function ProductImport() {
             {importHistory.map((importItem, idx) => {
               const date = importItem.created_at ? new Date(importItem.created_at) : new Date();
               const timeAgo = getTimeAgo(date);
-              
+
               let statusText = 'Success';
               let statusColor = 'text-green-600';
               if (importItem.status === 'failed') {
                 statusText = 'Failed';
                 statusColor = 'text-red-600';
               }
-              
+
               let detailText = '';
               if (importItem.inserted > 0 && importItem.updated > 0) {
                 detailText = `Imported ${importItem.inserted} new, updated ${importItem.updated} existing (${importItem.total} total)`;
@@ -310,7 +310,7 @@ export default function ProductImport() {
               } else {
                 detailText = `No products imported`;
               }
-              
+
               return (
                 <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">

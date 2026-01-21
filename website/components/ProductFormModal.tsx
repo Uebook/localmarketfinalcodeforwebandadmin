@@ -355,8 +355,8 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
                         type="button"
                         onClick={() => handleChange('type', 'Product')}
                         className={`flex-1 py-2 rounded-lg font-medium transition-all ${formData.type === 'Product'
-                            ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-600'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600'
                           }`}
                       >
                         Product
@@ -365,8 +365,8 @@ export default function ProductFormModal({ isOpen, onClose, onSave, editingProdu
                         type="button"
                         onClick={() => handleChange('type', 'Service')}
                         className={`flex-1 py-2 rounded-lg font-medium transition-all ${formData.type === 'Service'
-                            ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-600'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600'
                           }`}
                       >
                         Service
