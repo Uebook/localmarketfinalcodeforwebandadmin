@@ -114,9 +114,19 @@ export async function PATCH(request) {
             return NextResponse.json({ error: 'Theme ID is required' }, { status: 400 });
         }
 
-        // If setting a theme as active, deactivate all others first
+        // If setting a theme as active, deactivate all others first and update all users
         if (updates.is_active === true) {
+            // Deactivate all other themes
             await supabaseRestPatch('/rest/v1/festival_themes?is_active=eq.true', { is_active: false });
+
+            // Update ALL users' selected_theme to this theme
+            try {
+                await supabaseRestPatch('/rest/v1/users', { selected_theme: id });
+                console.log(`Updated all users' theme to: ${id}`);
+            } catch (userUpdateError) {
+                console.error('Error updating users theme:', userUpdateError);
+                // Continue even if user update fails - theme is still set as active
+            }
         }
 
         const result = await supabaseRestPatch(`/rest/v1/festival_themes?id=eq.${id}`, updates);

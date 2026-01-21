@@ -174,11 +174,42 @@ export default function SettingsPage() {
 
 function ThemeSelectorModal({ onClose }: { onClose: () => void }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
+  const [loading, setLoading] = useState(false);
   const { setTheme } = useTheme();
 
   useEffect(() => {
-    const saved = localStorage.getItem('selectedFestivalTheme') || 'default';
-    setSelectedTheme(saved);
+    const loadTheme = async () => {
+      // Try to get user ID from localStorage
+      const userId = localStorage.getItem('userId');
+      const userPhone = localStorage.getItem('userPhone');
+      const userEmail = localStorage.getItem('userEmail');
+
+      let themeToUse = localStorage.getItem('selectedFestivalTheme') || 'default';
+
+      // If user is identified, try to fetch theme from database
+      if (userId || userPhone || userEmail) {
+        try {
+          const params = new URLSearchParams();
+          if (userId) params.set('userId', userId);
+          else if (userPhone) params.set('phone', userPhone);
+          else if (userEmail) params.set('email', userEmail);
+
+          const res = await fetch(`/api/user/theme?${params.toString()}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.theme) {
+              themeToUse = data.theme;
+            }
+          }
+        } catch (error) {
+          console.error('Error loading theme from database:', error);
+        }
+      }
+
+      setSelectedTheme(themeToUse);
+    };
+
+    loadTheme();
   }, [setTheme]);
 
   const themes = [
@@ -192,9 +223,14 @@ function ThemeSelectorModal({ onClose }: { onClose: () => void }) {
     }))
   ];
 
-  const handleThemeSelect = (themeId: string) => {
+  const handleThemeSelect = async (themeId: string) => {
     setSelectedTheme(themeId);
-    setTheme(themeId);
+    setLoading(true);
+    try {
+      await setTheme(themeId);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -214,11 +250,12 @@ function ThemeSelectorModal({ onClose }: { onClose: () => void }) {
             <button
               key={theme.id}
               onClick={() => handleThemeSelect(theme.id)}
+              disabled={loading}
               className={`p-4 rounded-lg border-2 transition ${
                 selectedTheme === theme.id
                   ? 'border-orange-500 bg-orange-50'
                   : 'border-gray-200 hover:border-orange-300'
-              }`}
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <div className="flex items-center gap-3 mb-2">
                 <div
@@ -236,6 +273,11 @@ function ThemeSelectorModal({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
+        {loading && (
+          <div className="px-6 pb-6 text-center text-sm text-gray-500">
+            Saving theme preference...
+          </div>
+        )}
       </div>
     </div>
   );

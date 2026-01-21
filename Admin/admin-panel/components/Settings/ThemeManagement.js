@@ -195,13 +195,20 @@ export default function ThemeManagement() {
       // Save to localStorage for persistence
       localStorage.setItem('selectedFestivalTheme', themeId);
 
-      // Set as active theme in DB
+      // Set as active theme in DB and update all users
       try {
-        await fetch('/api/themes', {
+        const res = await fetch('/api/themes', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: themeId, is_active: true }),
         });
+
+        if (res.ok) {
+          console.log(`Theme "${themeId}" set as default for all users`);
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          console.error('Error setting active theme:', errorData.error || 'Unknown error');
+        }
       } catch (error) {
         console.error('Error setting active theme:', error);
         // Even if DB fails, localStorage is saved, so theme persists
@@ -214,18 +221,23 @@ export default function ThemeManagement() {
       // Save to localStorage for persistence
       localStorage.setItem('selectedFestivalTheme', selectedTheme);
 
-      await fetch('/api/themes', {
+      const res = await fetch('/api/themes', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: selectedTheme, is_active: true }),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save theme');
+      }
+
       applyTheme(selectedTheme);
       setPreviewMode(false);
-      alert('Theme saved successfully!');
+      alert(`Theme "${allThemes[selectedTheme]?.name || selectedTheme}" has been set as the default theme for all users!`);
     } catch (error) {
       console.error('Error saving theme:', error);
-      // Even if DB fails, localStorage is saved
-      alert('Theme saved locally. Database update failed.');
+      alert(`Error: ${error.message || 'Failed to save theme. Please try again.'}`);
     }
   };
 
@@ -426,8 +438,8 @@ export default function ThemeManagement() {
                   key={theme.id}
                   onClick={() => handleThemeChange(theme.id)}
                   className={`bg-white rounded-lg shadow-md p-6 border-2 cursor-pointer transition-all ${selectedTheme === theme.id
-                      ? 'border-orange-500 ring-4 ring-orange-200'
-                      : 'border-gray-200 hover:border-orange-300'
+                    ? 'border-orange-500 ring-4 ring-orange-200'
+                    : 'border-gray-200 hover:border-orange-300'
                     }`}
                 >
                   <div className="flex items-center justify-between mb-4">
@@ -466,8 +478,8 @@ export default function ThemeManagement() {
                       handleThemeChange(theme.id);
                     }}
                     className={`w-full px-4 py-2 rounded-lg font-medium transition ${selectedTheme === theme.id
-                        ? 'gradient-primary text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'gradient-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >
                     {selectedTheme === theme.id ? 'Selected' : 'Select Theme'}
@@ -489,8 +501,8 @@ export default function ThemeManagement() {
                       key={theme.id}
                       onClick={() => handleThemeChange(theme.id)}
                       className={`bg-white rounded-lg shadow-md p-6 border-2 cursor-pointer transition-all ${selectedTheme === theme.id
-                          ? 'border-orange-500 ring-4 ring-orange-200'
-                          : 'border-gray-200 hover:border-orange-300'
+                        ? 'border-orange-500 ring-4 ring-orange-200'
+                        : 'border-gray-200 hover:border-orange-300'
                         }`}
                     >
                       <div className="flex items-center justify-between mb-4">
@@ -551,8 +563,8 @@ export default function ThemeManagement() {
                           handleThemeChange(theme.id);
                         }}
                         className={`w-full px-4 py-2 rounded-lg font-medium transition ${selectedTheme === theme.id
-                            ? 'gradient-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'gradient-primary text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
                         {selectedTheme === theme.id ? 'Selected' : 'Select Theme'}
