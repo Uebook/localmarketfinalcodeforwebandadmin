@@ -5,13 +5,22 @@ import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const location = searchParams.get('location'); // state, city, or town
+        const state = searchParams.get('state');
+        const city = searchParams.get('city');
 
         let query = '/rest/v1/search_logs?select=search_query,location_state,location_city,location_town,searched_at';
 
-        if (location) {
-            // Filter by location (simplified - you may want to enhance this)
-            query += `&location_state=eq.${location}`;
+        // Build query with filters
+        const filters = [];
+        if (state) {
+            filters.push(`location_state=eq.${encodeURIComponent(state)}`);
+        }
+        if (city) {
+            filters.push(`location_city=eq.${encodeURIComponent(city)}`);
+        }
+
+        if (filters.length > 0) {
+            query += '&' + filters.join('&');
         }
 
         let logs = [];

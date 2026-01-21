@@ -327,19 +327,17 @@ export async function GET(request) {
             };
         });
 
-        // Calculate user engagement (purchases/contacts)
-        // Note: This is estimated based on search activity - you may need to add actual purchase/contact tracking
+        // Calculate user engagement (users and vendors by circle/city)
         const userEngagement = groupingValues.map(groupName => {
-            const searches = searchesByGroup[groupName] || 0;
-            const purchases = Math.floor(searches * 0.3); // Estimate 30% conversion
-            const contacts = Math.floor(searches * 0.5); // Estimate 50% contact rate
+            const users = usersByGroup[groupName] || 0;
+            const vendors = vendorsByGroup[groupName] || 0;
 
             return {
                 circle: groupName, // Keep 'circle' key for backward compatibility
                 groupName: groupName, // Add explicit groupName
-                purchases,
-                contacts,
-                total: purchases + contacts,
+                users,
+                vendors,
+                total: users + vendors,
             };
         });
 

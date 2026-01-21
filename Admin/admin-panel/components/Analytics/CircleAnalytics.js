@@ -70,24 +70,6 @@ export default function CircleAnalytics() {
         </div>
       )}
 
-      {/* Circle/City Selector */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Select {displayLabel}</label>
-        <select
-          value={selectedCircle}
-          onChange={(e) => setSelectedCircle(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg"
-          disabled={loading}
-        >
-          {circles.length === 0 ? (
-            <option>Loading {displayLabelPlural.toLowerCase()}...</option>
-          ) : (
-            circles.map(circle => (
-              <option key={circle} value={circle}>{circle}</option>
-            ))
-          )}
-        </select>
-      </div>
 
       {loading && (
         <div className="text-center py-12 text-gray-500">Loading analytics data...</div>
@@ -142,14 +124,9 @@ export default function CircleAnalytics() {
         <>
 
           {/* Category-wise Max Demanding Products */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-            <h2 className="text-xl font-semibold mb-4">Category-wise Max Demanding Products - {selectedCircle}</h2>
-            {categoryDemandData.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No data available for this {displayLabel.toLowerCase()}.</p>
-                <p className="text-xs mt-2">Search logs are needed to generate category demand data.</p>
-              </div>
-            ) : (
+          {categoryDemandData.length > 0 && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
+              <h2 className="text-xl font-semibold mb-4">Category-wise Max Demanding Products - {selectedCircle}</h2>
               <>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={categoryDemandData}>
@@ -186,8 +163,8 @@ export default function CircleAnalytics() {
                   </table>
                 </div>
               </>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Maximum Users per Circle/City */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
@@ -233,21 +210,45 @@ export default function CircleAnalytics() {
 
           {/* User Engagement Tracking */}
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <h2 className="text-xl font-semibold mb-4">User Engagement (Purchases/Contacts)</h2>
+            <h2 className="text-xl font-semibold mb-4">Users and Vendors by {displayLabel}</h2>
             {userEngagement.length === 0 ? (
               <div className="text-center py-8 text-gray-500">No engagement data available</div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={userEngagement}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="circle" label={{ value: displayLabel, position: 'insideBottom', offset: -5 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="purchases" fill="#16a34a" name="Purchases" />
-                  <Bar dataKey="contacts" fill="#3b82f6" name="Contacts" />
-                </BarChart>
-              </ResponsiveContainer>
+              <>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={userEngagement}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="circle" label={{ value: displayLabel, position: 'insideBottom', offset: -5 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="users" fill="#16a34a" name="Users" />
+                    <Bar dataKey="vendors" fill="#3b82f6" name="Vendors" />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 text-sm font-semibold">{displayLabel}</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold">Users</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold">Vendors</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userEngagement.map((item, index) => (
+                        <tr key={index} className="border-b border-gray-100">
+                          <td className="py-3 px-4 text-sm font-semibold">{item.circle || item.groupName}</td>
+                          <td className="py-3 px-4 text-sm">{item.users.toLocaleString()}</td>
+                          <td className="py-3 px-4 text-sm">{item.vendors.toLocaleString()}</td>
+                          <td className="py-3 px-4 text-sm font-semibold">{item.total.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         </>
