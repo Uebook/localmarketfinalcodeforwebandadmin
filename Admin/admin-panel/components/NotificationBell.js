@@ -3,50 +3,90 @@
 import { useState, useRef, useEffect } from 'react';
 import { requestNotificationPermission, onMessageListener } from '@/lib/firebase';
 
-const initialNotifications = [
-  {
-    id: 1,
-    title: 'New Vendor Registration',
-    message: 'Quick Mart has submitted registration documents',
-    time: '5 minutes ago',
-    type: 'info',
-    read: false,
-    timestamp: Date.now() - 5 * 60 * 1000,
-  },
-  {
-    id: 2,
-    title: 'Price Alert',
-    message: 'Premium Rice 5kg price flagged for review',
-    time: '15 minutes ago',
-    type: 'warning',
-    read: false,
-    timestamp: Date.now() - 15 * 60 * 1000,
-  },
-  {
-    id: 3,
-    title: 'Vendor Approved',
-    message: 'City Groceries has been approved',
-    time: '1 hour ago',
-    type: 'success',
-    read: true,
-    timestamp: Date.now() - 60 * 60 * 1000,
-  },
-  {
-    id: 4,
-    title: 'Category Update',
-    message: 'New category "Electronics" has been added',
-    time: '2 hours ago',
-    type: 'info',
-    read: true,
-    timestamp: Date.now() - 2 * 60 * 60 * 1000,
-  },
-];
-
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifs, setNotifs] = useState(initialNotifications);
+  const [notifs, setNotifs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [fcmToken, setFcmToken] = useState(null);
   const dropdownRef = useRef(null);
+
+  // Load read status from localStorage
+  const getReadStatus = () => {
+    try {
+      const stored = localStorage.getItem('notificationReadStatus');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  // Save read status to localStorage
+  const saveReadStatus = (readStatus) => {
+    try {
+      localStorage.setItem('notificationReadStatus', JSON.stringify(readStatus));
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
+
+  // Format time helper function
+  const formatTime = (date) => {
+    const now = Date.now();
+    const timestamp = date instanceof Date ? date.getTime() : new Date(date).getTime();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  };
+
+  // Load notifications from database
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/notifications?limit=50', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          const notifications = Array.isArray(data?.notifications) ? data.notifications : [];
+
+          // Get read status from localStorage
+          const readStatus = getReadStatus();
+
+          // Map database notifications to component format
+          const mappedNotifications = notifications.map((notif) => {
+            const timestamp = notif.sent_at || notif.created_at;
+            return {
+              id: notif.id,
+              title: notif.title || 'Notification',
+              message: notif.message || '',
+              time: formatTime(new Date(timestamp)),
+              type: notif.type || 'info',
+              read: readStatus[notif.id] || false,
+              timestamp: new Date(timestamp).getTime(),
+              dbId: notif.id,
+            };
+          });
+
+          setNotifs(mappedNotifications);
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNotifications();
+
+    // Refresh notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Request notification permission and get FCM token on mount
   useEffect(() => {
@@ -86,7 +126,7 @@ export default function NotificationBell() {
 
     // Set up interval to check for new messages
     const interval = setInterval(setupMessageListener, 1000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -103,6 +143,37 @@ export default function NotificationBell() {
     };
 
     setNotifs((prev) => [newNotification, ...prev]);
+
+    // Reload notifications from database to get the latest
+    setTimeout(() => {
+      const loadNotifications = async () => {
+        try {
+          const res = await fetch('/api/notifications?limit=50', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            const notifications = Array.isArray(data?.notifications) ? data.notifications : [];
+            const readStatus = getReadStatus();
+            const mappedNotifications = notifications.map((notif) => {
+              const timestamp = notif.sent_at || notif.created_at;
+              return {
+                id: notif.id,
+                title: notif.title || 'Notification',
+                message: notif.message || '',
+                time: formatTime(new Date(timestamp)),
+                type: notif.type || 'info',
+                read: readStatus[notif.id] || false,
+                timestamp: new Date(timestamp).getTime(),
+                dbId: notif.id,
+              };
+            });
+            setNotifs(mappedNotifications);
+          }
+        } catch (error) {
+          console.error('Error reloading notifications:', error);
+        }
+      };
+      loadNotifications();
+    }, 1000);
 
     // Show browser notification if permission granted
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -129,28 +200,37 @@ export default function NotificationBell() {
     };
   }, []);
 
-  // Format time
-  const formatTime = (timestamp) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    return `${days} day${days > 1 ? 's' : ''} ago`;
-  };
 
   const unreadCount = notifs.filter(n => !n.read).length;
 
   const handleMarkAsRead = (id) => {
-    setNotifs(notifs.map(n => n.id === id ? { ...n, read: true } : n));
+    const updatedNotifs = notifs.map(n => {
+      if (n.id === id || n.dbId === id) {
+        return { ...n, read: true };
+      }
+      return n;
+    });
+    setNotifs(updatedNotifs);
+
+    // Save read status to localStorage
+    const readStatus = getReadStatus();
+    const notifId = notifs.find(n => n.id === id || n.dbId === id)?.dbId || id;
+    readStatus[notifId] = true;
+    saveReadStatus(readStatus);
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifs(notifs.map(n => ({ ...n, read: true })));
+    const updatedNotifs = notifs.map(n => ({ ...n, read: true }));
+    setNotifs(updatedNotifs);
+
+    // Save all as read to localStorage
+    const readStatus = getReadStatus();
+    notifs.forEach(n => {
+      if (n.dbId) {
+        readStatus[n.dbId] = true;
+      }
+    });
+    saveReadStatus(readStatus);
   };
 
   const getNotificationIcon = (type) => {
@@ -197,9 +277,13 @@ export default function NotificationBell() {
               </button>
             )}
           </div>
-          
+
           <div className="overflow-y-auto flex-1">
-            {notifs.length === 0 ? (
+            {loading ? (
+              <div className="p-8 text-center text-gray-500">
+                <p>Loading notifications...</p>
+              </div>
+            ) : notifs.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 <p>No notifications</p>
               </div>
@@ -207,11 +291,10 @@ export default function NotificationBell() {
               <div className="divide-y divide-gray-200">
                 {notifs.map((notification) => (
                   <div
-                    key={notification.id}
-                    onClick={() => handleMarkAsRead(notification.id)}
-                    className={`p-4 hover:bg-gray-50 cursor-pointer transition ${
-                      !notification.read ? 'bg-blue-50/50' : ''
-                    }`}
+                    key={notification.dbId || notification.id}
+                    onClick={() => handleMarkAsRead(notification.dbId || notification.id)}
+                    className={`p-4 hover:bg-gray-50 cursor-pointer transition ${!notification.read ? 'bg-blue-50/50' : ''
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-xl flex-shrink-0">
@@ -239,7 +322,7 @@ export default function NotificationBell() {
               </div>
             )}
           </div>
-          
+
           <div className="p-3 border-t border-gray-200 text-center">
             <button className="text-sm text-orange-600 hover:text-orange-800 font-medium">
               View All Notifications

@@ -41,9 +41,27 @@ export default function AutoNotificationSettings() {
   };
 
   const handleSave = async () => {
-    // Save settings to localStorage or API
-    localStorage.setItem('autoNotificationSettings', JSON.stringify(settings));
-    alert('Settings saved successfully!');
+    try {
+      // Persist each key into Supabase
+      await fetch('/api/auto-notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'regular_price_update', enabled: settings.priceUpdate.enabled, config: settings.priceUpdate }),
+      });
+      await fetch('/api/auto-notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'idle_vendor', enabled: settings.idleVendors.enabled, config: settings.idleVendors }),
+      });
+      await fetch('/api/auto-notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'idle_user', enabled: settings.idleUsers.enabled, config: settings.idleUsers }),
+      });
+      alert('Settings saved successfully!');
+    } catch (e) {
+      alert(e?.message || 'Failed to save settings');
+    }
   };
 
   const handleTestNotification = async (type) => {
@@ -79,11 +97,30 @@ export default function AutoNotificationSettings() {
   };
 
   useEffect(() => {
-    // Load settings from localStorage
-    const saved = localStorage.getItem('autoNotificationSettings');
-    if (saved) {
-      setSettings(JSON.parse(saved));
-    }
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/auto-notifications', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || 'Failed to load settings');
+        const rows = Array.isArray(data?.settings) ? data.settings : [];
+        const map = new Map(rows.map(r => [r.key, r]));
+        if (!cancelled) {
+          const p = map.get('regular_price_update');
+          const v = map.get('idle_vendor');
+          const u = map.get('idle_user');
+          setSettings(prev => ({
+            priceUpdate: { ...prev.priceUpdate, ...(p?.config || {}), enabled: p ? !!p.enabled : prev.priceUpdate.enabled },
+            idleVendors: { ...prev.idleVendors, ...(v?.config || {}), enabled: v ? !!v.enabled : prev.idleVendors.enabled },
+            idleUsers: { ...prev.idleUsers, ...(u?.config || {}), enabled: u ? !!u.enabled : prev.idleUsers.enabled },
+          }));
+        }
+      } catch {
+        // Keep defaults if not available yet
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, []);
 
   return (

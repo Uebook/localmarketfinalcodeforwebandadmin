@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function NotificationHistory() {
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [filters, setFilters] = useState({
     search: '',
     type: 'All',
@@ -12,20 +14,35 @@ export default function NotificationHistory() {
   });
 
   useEffect(() => {
-    // Load history from localStorage
-    const storedHistory = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
-    setHistory(storedHistory);
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await fetch(`/api/notifications?limit=500`, { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || 'Failed to load notifications');
+        if (!cancelled) setHistory(Array.isArray(data?.notifications) ? data.notifications : []);
+      } catch (e) {
+        if (!cancelled) setError(e?.message || 'Failed to load notifications');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, []);
 
-  const filteredHistory = history.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         item.message.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesType = filters.type === 'All' || item.type === filters.type.toLowerCase();
-    const matchesRecipient = filters.recipientType === 'All' || item.recipientType === filters.recipientType.toLowerCase();
+  const filteredHistory = useMemo(() => history.filter((item) => {
+    const title = (item.title || '').toLowerCase();
+    const msg = (item.message || '').toLowerCase();
+    const matchesSearch = title.includes(filters.search.toLowerCase()) || msg.includes(filters.search.toLowerCase());
+    const matchesType = true; // type not stored in DB yet
+    const matchesRecipient = filters.recipientType === 'All' || item.audience === filters.recipientType;
     
     let matchesDate = true;
     if (filters.dateRange !== 'All') {
-      const itemDate = new Date(item.sentAt);
+      const itemDate = new Date(item.sent_at || item.created_at);
       const now = new Date();
       const diffDays = Math.floor((now - itemDate) / (1000 * 60 * 60 * 24));
       
@@ -35,7 +52,7 @@ export default function NotificationHistory() {
     }
     
     return matchesSearch && matchesType && matchesRecipient && matchesDate;
-  });
+  }), [history, filters]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -69,8 +86,6 @@ export default function NotificationHistory() {
         return 'Users';
       case 'vendors':
         return 'Vendors';
-      case 'custom':
-        return 'Custom Selection';
       default:
         return type;
     }
@@ -78,6 +93,12 @@ export default function NotificationHistory() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+          <div className="font-semibold">Notification history API error</div>
+          <div className="text-sm mt-1">{error}</div>
+        </div>
+      )}
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Notification History</h2>
@@ -110,7 +131,6 @@ export default function NotificationHistory() {
             <option value="all">All</option>
             <option value="users">Users</option>
             <option value="vendors">Vendors</option>
-            <option value="custom">Custom</option>
           </select>
           <select
             value={filters.dateRange}
@@ -127,7 +147,9 @@ export default function NotificationHistory() {
 
       {/* History List */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-        {filteredHistory.length === 0 ? (
+        {loading ? (
+          <div className="p-12 text-center text-gray-600">Loading…</div>
+        ) : filteredHistory.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
             <p className="text-lg">No notifications sent yet</p>
             <p className="text-sm mt-2">Notifications you send will appear here</p>
@@ -138,28 +160,27 @@ export default function NotificationHistory() {
               <div key={item.id} className="p-6 hover:bg-gray-50 transition">
                 <div className="flex items-start gap-4">
                   <span className="text-2xl flex-shrink-0">
-                    {getNotificationIcon(item.type)}
+                    {getNotificationIcon('info')}
                   </span>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
                       <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        item.status === 'Sent' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        'bg-green-100 text-green-800'
                       }`}>
-                        {item.status}
+                        Sent
                       </span>
                     </div>
                     <p className="text-gray-600 mb-3">{item.message}</p>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                       <span>
-                        <span className="font-medium">Type:</span> {item.type}
+                        <span className="font-medium">Audience:</span> {item.audience}
                       </span>
                       <span>
-                        <span className="font-medium">Recipients:</span> {getRecipientTypeLabel(item.recipientType)}
-                        {typeof item.recipients === 'number' && ` (${item.recipients})`}
+                        <span className="font-medium">Recipients:</span> {getRecipientTypeLabel(item.audience)}
                       </span>
                       <span>
-                        <span className="font-medium">Sent:</span> {formatDate(item.sentAt)}
+                        <span className="font-medium">Sent:</span> {formatDate(item.sent_at || item.created_at)}
                       </span>
                     </div>
                   </div>
@@ -181,19 +202,19 @@ export default function NotificationHistory() {
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600">
-                {filteredHistory.filter(h => h.status === 'Sent').length}
+                {filteredHistory.length}
               </div>
               <div className="text-sm text-gray-600">Sent</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-orange-600">
-                {filteredHistory.filter(h => h.recipientType === 'all').length}
+                {filteredHistory.filter(h => h.audience === 'all').length}
               </div>
               <div className="text-sm text-gray-600">Broadcast</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-blue-600">
-                {filteredHistory.filter(h => h.recipientType === 'users' || h.recipientType === 'vendors').length}
+                {filteredHistory.filter(h => h.audience === 'users' || h.audience === 'vendors').length}
               </div>
               <div className="text-sm text-gray-600">Targeted</div>
             </div>

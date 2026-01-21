@@ -1,21 +1,65 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function PaymentFeesManagement() {
   const [feesConfig, setFeesConfig] = useState({
     monthly: 999,
     sixMonthly: 4999,
     yearly: 8999,
-    gracePeriod: 7, // days
+    gracePeriod: 7,
     autoBlockEnabled: true,
   });
 
-  const [vendors, setVendors] = useState([
-    { id: 'v1', name: 'ABC Store', vendorId: 'VEND-123456', plan: 'monthly', status: 'paid', dueDate: '2024-01-15', amount: 999 },
-    { id: 'v2', name: 'XYZ Shop', vendorId: 'VEND-123457', plan: 'yearly', status: 'overdue', dueDate: '2023-12-20', amount: 8999 },
-    { id: 'v3', name: 'Local Mart', vendorId: 'VEND-123458', plan: 'six_monthly', status: 'paid', dueDate: '2024-06-15', amount: 4999 },
-  ]);
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadConfig();
+    loadVendors();
+  }, []);
+
+  const loadConfig = async () => {
+    try {
+      const res = await fetch('/api/payment-fees/config');
+      if (res.ok) {
+        const config = await res.json();
+        setFeesConfig({
+          monthly: config.monthly_fee || 999,
+          sixMonthly: config.six_monthly_fee || 4999,
+          yearly: config.yearly_fee || 8999,
+          gracePeriod: config.grace_period_days || 7,
+          autoBlockEnabled: config.auto_block_enabled !== false,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading config:', error);
+    }
+  };
+
+  const loadVendors = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/payment-fees/vendors');
+      if (res.ok) {
+        const billing = await res.json();
+        setVendors(billing.map(b => ({
+          id: b.id,
+          vendorId: b.vendors?.vendor_id || 'N/A',
+          name: b.vendors?.name || 'Unknown',
+          plan: b.plan,
+          status: b.status,
+          dueDate: b.due_date,
+          amount: parseFloat(b.amount),
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading vendors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUpdateFees = (plan, value) => {
     setFeesConfig(prev => ({
@@ -24,16 +68,93 @@ export default function PaymentFeesManagement() {
     }));
   };
 
-  const handleBlockVendor = (vendorId) => {
-    setVendors(prev => prev.map(v => 
-      v.id === vendorId ? { ...v, status: 'blocked' } : v
-    ));
+  const handleSaveConfig = async () => {
+    try {
+      setSaving(true);
+      const res = await fetch('/api/payment-fees/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          monthly_fee: feesConfig.monthly,
+          six_monthly_fee: feesConfig.sixMonthly,
+          yearly_fee: feesConfig.yearly,
+          grace_period_days: feesConfig.gracePeriod,
+          auto_block_enabled: feesConfig.autoBlockEnabled,
+        }),
+      });
+      
+      const data = await res.json().catch(() => ({}));
+      
+      if (res.ok) {
+        alert('Configuration saved successfully!');
+      } else {
+        const errorMessage = data.error || `Failed to save config (${res.status})`;
+        console.error('Save config error:', errorMessage);
+        alert(`Failed to save configuration: ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error('Error saving config:', error);
+      alert(`Failed to save configuration: ${error.message || 'Unknown error'}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleActivateVendor = (vendorId) => {
-    setVendors(prev => prev.map(v => 
-      v.id === vendorId ? { ...v, status: 'paid', dueDate: calculateNextDueDate(new Date(), v.plan) } : v
-    ));
+  const handleBlockVendor = async (vendorId) => {
+    try {
+      const vendor = vendors.find(v => v.id === vendorId);
+      if (!vendor) return;
+
+      const res = await fetch('/api/payment-fees/vendors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendor_id: vendor.vendorId,
+          status: 'blocked',
+        }),
+      });
+
+      if (res.ok) {
+        await loadVendors();
+        alert('Vendor blocked successfully');
+      } else {
+        throw new Error('Failed to block vendor');
+      }
+    } catch (error) {
+      console.error('Error blocking vendor:', error);
+      alert('Failed to block vendor');
+    }
+  };
+
+  const handleActivateVendor = async (vendorId) => {
+    try {
+      const vendor = vendors.find(v => v.id === vendorId);
+      if (!vendor) return;
+
+      const nextDueDate = calculateNextDueDate(new Date(), vendor.plan);
+
+      const res = await fetch('/api/payment-fees/vendors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendor_id: vendor.vendorId,
+          status: 'paid',
+          plan: vendor.plan,
+          amount: feesConfig[vendor.plan === 'monthly' ? 'monthly' : vendor.plan === 'six_monthly' ? 'sixMonthly' : 'yearly'],
+          due_date: nextDueDate,
+        }),
+      });
+
+      if (res.ok) {
+        await loadVendors();
+        alert('Vendor activated successfully');
+      } else {
+        throw new Error('Failed to activate vendor');
+      }
+    } catch (error) {
+      console.error('Error activating vendor:', error);
+      alert('Failed to activate vendor');
+    }
   };
 
   const calculateNextDueDate = (currentDate, plan) => {
@@ -110,14 +231,31 @@ export default function PaymentFeesManagement() {
             />
           </div>
         </div>
-        <button className="mt-4 px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:opacity-90 transition">
-          Save Configuration
+        <button
+          onClick={handleSaveConfig}
+          disabled={saving}
+          className="mt-4 px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:opacity-90 transition disabled:opacity-50"
+        >
+          {saving ? 'Saving...' : 'Save Configuration'}
         </button>
       </div>
 
       {/* Vendor Payment Status */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h2 className="text-xl font-semibold mb-4">Vendor Payment Status</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Vendor Payment Status</h2>
+          <button
+            onClick={loadVendors}
+            className="text-sm text-orange-600 hover:text-orange-700"
+          >
+            Refresh
+          </button>
+        </div>
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">Loading vendor billing...</div>
+        ) : vendors.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No vendor billing records found</div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -169,6 +307,7 @@ export default function PaymentFeesManagement() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

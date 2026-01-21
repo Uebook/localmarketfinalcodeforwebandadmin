@@ -1,18 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function FestiveOffersManagement() {
-  const [offers, setOffers] = useState([
-    { id: 'o1', title: 'Diwali Special', type: 'vendor', target: 'all', status: 'active', startDate: '2024-11-01', endDate: '2024-11-15' },
-    { id: 'o2', title: 'New Year Sale', type: 'user', target: 'circle', circle: 'Connaught Place', status: 'active', startDate: '2024-12-25', endDate: '2025-01-05' },
-  ]);
-
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    type: 'vendor', // vendor or user
-    target: 'all', // all, circle, specific
+    type: 'vendor',
+    target: 'all',
     circle: '',
     vendorIds: [],
     startDate: '',
@@ -21,31 +18,119 @@ export default function FestiveOffersManagement() {
     description: '',
   });
 
-  const handleCreateOffer = () => {
-    const newOffer = {
-      id: `o${Date.now()}`,
-      ...formData,
-      status: 'active',
-    };
-    setOffers([...offers, newOffer]);
-    setShowForm(false);
-    setFormData({
-      title: '',
-      type: 'vendor',
-      target: 'all',
-      circle: '',
-      vendorIds: [],
-      startDate: '',
-      endDate: '',
-      discount: '',
-      description: '',
-    });
+  useEffect(() => {
+    loadOffers();
+  }, []);
+
+  const loadOffers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/festive-offers');
+      if (res.ok) {
+        const data = await res.json();
+        setOffers(data);
+      }
+    } catch (error) {
+      console.error('Error loading offers:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleToggleStatus = (offerId) => {
-    setOffers(prev => prev.map(o => 
-      o.id === offerId ? { ...o, status: o.status === 'active' ? 'inactive' : 'active' } : o
-    ));
+  const handleCreateOffer = async () => {
+    try {
+      // Validate required fields
+      if (!formData.title || !formData.startDate || !formData.endDate) {
+        alert('Please fill in all required fields (Title, Start Date, End Date)');
+        return;
+      }
+
+      // Validate date format and ensure end date is after start date
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        alert('Please enter valid dates');
+        return;
+      }
+
+      if (endDate < startDate) {
+        alert('End date must be after start date');
+        return;
+      }
+
+      // Format dates as YYYY-MM-DD for database
+      const formattedStartDate = formData.startDate; // Already in YYYY-MM-DD format from date input
+      const formattedEndDate = formData.endDate; // Already in YYYY-MM-DD format from date input
+
+      const res = await fetch('/api/festive-offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          type: formData.type,
+          target: formData.target,
+          circle: formData.circle?.trim() || null,
+          vendor_ids: formData.vendorIds.length > 0 ? formData.vendorIds : null,
+          start_date: formattedStartDate,
+          end_date: formattedEndDate,
+          discount_percent: formData.discount ? parseFloat(formData.discount) : null,
+          description: formData.description?.trim() || null,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        await loadOffers();
+        setShowForm(false);
+        setFormData({
+          title: '',
+          type: 'vendor',
+          target: 'all',
+          circle: '',
+          vendorIds: [],
+          startDate: '',
+          endDate: '',
+          discount: '',
+          description: '',
+        });
+        alert('Offer created successfully!');
+      } else {
+        const errorMessage = data?.error || 'Failed to create offer';
+        console.error('API Error:', errorMessage);
+        alert(`Failed to create offer: ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error('Error creating offer:', error);
+      alert(`Failed to create offer: ${error.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleToggleStatus = async (offerId) => {
+    try {
+      const offer = offers.find(o => o.id === offerId);
+      if (!offer) return;
+
+      const newStatus = offer.status === 'active' ? 'inactive' : 'active';
+      const res = await fetch('/api/festive-offers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: offerId,
+          status: newStatus,
+        }),
+      });
+
+      if (res.ok) {
+        await loadOffers();
+      } else {
+        throw new Error('Failed to update offer');
+      }
+    } catch (error) {
+      console.error('Error updating offer:', error);
+      alert('Failed to update offer');
+    }
   };
 
   return (
@@ -160,39 +245,52 @@ export default function FestiveOffersManagement() {
 
       {/* Offers List */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h2 className="text-xl font-semibold mb-4">Active Offers</h2>
-        <div className="space-y-4">
-          {offers.map((offer) => (
-            <div key={offer.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{offer.title}</h3>
-                  <div className="mt-2 flex gap-4 text-sm text-gray-600">
-                    <span>Type: <span className="font-semibold capitalize">{offer.type}-wise</span></span>
-                    <span>Target: <span className="font-semibold capitalize">{offer.target}</span></span>
-                    {offer.circle && <span>Circle: <span className="font-semibold">{offer.circle}</span></span>}
-                    <span>Period: {offer.startDate} to {offer.endDate}</span>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Offers</h2>
+          <button
+            onClick={loadOffers}
+            className="text-sm text-orange-600 hover:text-orange-700"
+          >
+            Refresh
+          </button>
+        </div>
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">Loading offers...</div>
+        ) : offers.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No offers found</div>
+        ) : (
+          <div className="space-y-4">
+            {offers.map((offer) => (
+              <div key={offer.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{offer.title}</h3>
+                    <div className="mt-2 flex gap-4 text-sm text-gray-600">
+                      <span>Type: <span className="font-semibold capitalize">{offer.type}-wise</span></span>
+                      <span>Target: <span className="font-semibold capitalize">{offer.target}</span></span>
+                      {offer.circle && <span>Circle: <span className="font-semibold">{offer.circle}</span></span>}
+                      <span>Period: {offer.start_date ? new Date(offer.start_date).toLocaleDateString('en-IN') : '—'} to {offer.end_date ? new Date(offer.end_date).toLocaleDateString('en-IN') : '—'}</span>
+                      {offer.discount_percent && <span>Discount: <span className="font-semibold">{offer.discount_percent}%</span></span>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${offer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                      {offer.status.toUpperCase()}
+                    </span>
+                    <button
+                      onClick={() => handleToggleStatus(offer.id)}
+                      className={`px-3 py-1 rounded text-xs ${offer.status === 'active' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+                        }`}
+                    >
+                      {offer.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    offer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {offer.status.toUpperCase()}
-                  </span>
-                  <button
-                    onClick={() => handleToggleStatus(offer.id)}
-                    className={`px-3 py-1 rounded text-xs ${
-                      offer.status === 'active' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
-                    }`}
-                  >
-                    {offer.status === 'active' ? 'Deactivate' : 'Activate'}
-                  </button>
-                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

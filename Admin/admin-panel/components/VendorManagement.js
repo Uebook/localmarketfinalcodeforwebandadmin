@@ -4,6 +4,7 @@ import { useState } from 'react';
 import VendorList from './VendorManagement/VendorList';
 import VendorApproval from './VendorManagement/VendorApproval';
 import VendorProfile from './VendorManagement/VendorProfile';
+import VendorImport from './VendorManagement/VendorImport';
 
 export default function VendorManagement() {
   const [activeTab, setActiveTab] = useState('list');
@@ -12,6 +13,7 @@ export default function VendorManagement() {
   const tabs = [
     { id: 'list', label: 'Vendor List & Status' },
     { id: 'approval', label: 'Approval Workflow' },
+    { id: 'import', label: 'Import Vendors' },
   ];
 
   if (selectedVendor) {
@@ -50,6 +52,9 @@ export default function VendorManagement() {
       )}
       {activeTab === 'approval' && (
         <VendorApproval onViewProfile={(vendor) => setSelectedVendor(vendor)} />
+      )}
+      {activeTab === 'import' && (
+        <VendorImport />
       )}
     </div>
   );

@@ -1,39 +1,48 @@
 'use client';
 
-import { useState } from 'react';
-
-const vendorActivity = [
-  {
-    id: 1,
-    name: 'My Awesome Shop',
-    status: 'Active',
-    priceUpdates: 45,
-    viewCount: 1234,
-    completeness: 85,
-    lastActive: '2 hours ago',
-  },
-  {
-    id: 2,
-    name: 'Quick Mart',
-    status: 'Inactive',
-    priceUpdates: 2,
-    viewCount: 89,
-    completeness: 45,
-    lastActive: '5 days ago',
-  },
-  {
-    id: 3,
-    name: 'City Groceries',
-    status: 'Active',
-    priceUpdates: 120,
-    viewCount: 3456,
-    completeness: 92,
-    lastActive: '1 hour ago',
-  },
-];
+import { useState, useEffect } from 'react';
 
 export default function VendorActivityReports() {
   const [sortBy, setSortBy] = useState('views');
+  const [vendorActivity, setVendorActivity] = useState([]);
+  const [activeVendors, setActiveVendors] = useState(0);
+  const [inactiveVendors, setInactiveVendors] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadVendorActivity();
+  }, [sortBy]);
+
+  const loadVendorActivity = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/reports/vendor-activity?sortBy=${sortBy}`);
+      if (res.ok) {
+        const data = await res.json();
+        setVendorActivity(data.vendors || []);
+        setActiveVendors(data.activeVendors || 0);
+        setInactiveVendors(data.inactiveVendors || 0);
+      }
+    } catch (error) {
+      console.error('Error loading vendor activity:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatLastActive = (dateString) => {
+    if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    return `${diffDays} days ago`;
+  };
 
   return (
     <div className="space-y-6">
@@ -57,21 +66,32 @@ export default function VendorActivityReports() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Active Vendors</h3>
-          <div className="text-3xl font-bold text-green-600 mb-2">892</div>
+          <div className="text-3xl font-bold text-green-600 mb-2">{activeVendors}</div>
           <p className="text-sm text-gray-600">Vendors active in last 7 days</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Inactive Vendors</h3>
-          <div className="text-3xl font-bold text-red-600 mb-2">353</div>
+          <div className="text-3xl font-bold text-red-600 mb-2">{inactiveVendors}</div>
           <p className="text-sm text-gray-600">Vendors inactive for 7+ days</p>
         </div>
       </div>
 
       {/* Vendor Activity Table */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">Vendor Activity Details</h2>
+          <button
+            onClick={loadVendorActivity}
+            className="text-sm text-orange-600 hover:text-orange-700"
+          >
+            Refresh
+          </button>
         </div>
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">Loading vendor activity...</div>
+        ) : vendorActivity.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">No vendor activity data found</div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -110,12 +130,13 @@ export default function VendorActivityReports() {
                       <span className="text-xs text-gray-600">{vendor.completeness}%</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{vendor.lastActive}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatLastActive(vendor.lastActive)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

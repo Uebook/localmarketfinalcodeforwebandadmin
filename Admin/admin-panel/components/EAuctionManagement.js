@@ -1,17 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function EAuctionManagement() {
-  const [auctions, setAuctions] = useState([
-    { id: 'a1', title: 'Festive E-Auction', circle: 'Connaught Place', status: 'active', startDate: '2024-12-20', endDate: '2024-12-25', participants: 234, offers: 45 },
-    { id: 'a2', title: 'New Year Draw', circle: 'Saket', status: 'upcoming', startDate: '2024-12-28', endDate: '2025-01-05', participants: 0, offers: 0 },
-  ]);
-
+  const [auctions, setAuctions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    type: 'e-auction', // e-auction or online-draw
+    type: 'e-auction',
     circle: '',
     startDate: '',
     endDate: '',
@@ -20,31 +17,83 @@ export default function EAuctionManagement() {
     maxParticipants: '',
   });
 
-  const handleCreateAuction = () => {
-    const newAuction = {
-      id: `a${Date.now()}`,
-      ...formData,
-      status: 'upcoming',
-      participants: 0,
-      offers: 0,
-    };
-    setAuctions([...auctions, newAuction]);
-    setShowForm(false);
-    setFormData({
-      title: '',
-      type: 'e-auction',
-      circle: '',
-      startDate: '',
-      endDate: '',
-      description: '',
-      minBid: '',
-      maxParticipants: '',
-    });
+  useEffect(() => {
+    loadAuctions();
+  }, []);
+
+  const loadAuctions = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/e-auctions');
+      if (res.ok) {
+        const data = await res.json();
+        setAuctions(data);
+      }
+    } catch (error) {
+      console.error('Error loading auctions:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSendOffer = (auctionId) => {
-    // In production, this would send offers to circle users
-    alert(`Offers will be sent to all users in the circle for auction ${auctionId}`);
+  const handleCreateAuction = async () => {
+    try {
+      const res = await fetch('/api/e-auctions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          type: formData.type,
+          circle: formData.circle,
+          start_date: formData.startDate,
+          end_date: formData.endDate,
+          description: formData.description || null,
+          min_bid: formData.minBid || null,
+          max_participants: formData.maxParticipants || null,
+        }),
+      });
+
+      if (res.ok) {
+        await loadAuctions();
+        setShowForm(false);
+        setFormData({
+          title: '',
+          type: 'e-auction',
+          circle: '',
+          startDate: '',
+          endDate: '',
+          description: '',
+          minBid: '',
+          maxParticipants: '',
+        });
+        alert('Event created successfully!');
+      } else {
+        throw new Error('Failed to create event');
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Failed to create event');
+    }
+  };
+
+  const handleSendOffer = async (auctionId) => {
+    try {
+      const res = await fetch(`/api/e-auctions/${auctionId}/send-offer`, {
+        method: 'POST',
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        await loadAuctions();
+        alert(data.message || `Offers sent successfully to ${data.notifications_sent} users`);
+      } else {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to send offers');
+      }
+    } catch (error) {
+      console.error('Error sending offers:', error);
+      alert(error.message || 'Failed to send offers');
+    }
   };
 
   return (
@@ -161,7 +210,20 @@ export default function EAuctionManagement() {
 
       {/* Events List */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h2 className="text-xl font-semibold mb-4">Active Events</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Events</h2>
+          <button
+            onClick={loadAuctions}
+            className="text-sm text-orange-600 hover:text-orange-700"
+          >
+            Refresh
+          </button>
+        </div>
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">Loading events...</div>
+        ) : auctions.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No events found</div>
+        ) : (
         <div className="space-y-4">
           {auctions.map((auction) => (
             <div key={auction.id} className="border border-gray-200 rounded-lg p-4">
@@ -174,8 +236,8 @@ export default function EAuctionManagement() {
                     <span>Period: {auction.startDate} to {auction.endDate}</span>
                   </div>
                   <div className="mt-2 flex gap-4 text-sm">
-                    <span>Participants: <span className="font-semibold">{auction.participants}</span></span>
-                    <span>Offers: <span className="font-semibold">{auction.offers}</span></span>
+                    <span>Participants: <span className="font-semibold">{auction.participants_count || 0}</span></span>
+                    <span>Offers: <span className="font-semibold">{auction.offers_count || 0}</span></span>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -197,6 +259,7 @@ export default function EAuctionManagement() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </div>
   );

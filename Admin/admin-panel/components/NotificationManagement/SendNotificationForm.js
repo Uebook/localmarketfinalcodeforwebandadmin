@@ -1,30 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { sendNotification, sendNotificationToTopic } from '@/lib/firebaseAdmin';
-
-// Sample users data
-const users = [
-  { id: 1, name: 'Rahul Sharma', email: 'rahul@example.com', phone: '+91 9876543210', location: 'Delhi', status: 'Active', joinedDate: '2024-01-15' },
-  { id: 2, name: 'Priya Patel', email: 'priya@example.com', phone: '+91 9876543211', location: 'Mumbai', status: 'Active', joinedDate: '2024-02-20' },
-  { id: 3, name: 'Amit Kumar', email: 'amit@example.com', phone: '+91 9876543212', location: 'Bangalore', status: 'Inactive', joinedDate: '2024-03-10' },
-  { id: 4, name: 'Sneha Reddy', email: 'sneha@example.com', phone: '+91 9876543213', location: 'Hyderabad', status: 'Active', joinedDate: '2024-04-05' },
-  { id: 5, name: 'Vikram Singh', email: 'vikram@example.com', phone: '+91 9876543214', location: 'Pune', status: 'Inactive', joinedDate: '2024-05-12' },
-];
-
-// Sample vendors data
-const vendors = [
-  { id: 1, name: 'My Awesome Shop', owner: 'John Doe', email: 'john@example.com', phone: '+91 9876543220', location: 'Delhi', status: 'Active', kycStatus: 'Verified' },
-  { id: 2, name: 'Quick Mart', owner: 'Jane Smith', email: 'jane@example.com', phone: '+91 9876543221', location: 'Mumbai', status: 'Pending', kycStatus: 'Pending' },
-  { id: 3, name: 'City Groceries', owner: 'Raj Kumar', email: 'raj@example.com', phone: '+91 9876543222', location: 'Bangalore', status: 'Active', kycStatus: 'Verified' },
-  { id: 4, name: 'Tech World', owner: 'Amit Patel', email: 'amit@example.com', phone: '+91 9876543223', location: 'Ahmedabad', status: 'Active', kycStatus: 'Verified' },
-  { id: 5, name: 'Fresh Groceries', owner: 'Sneha Reddy', email: 'sneha@example.com', phone: '+91 9876543224', location: 'Hyderabad', status: 'Blocked', kycStatus: 'Verified' },
-];
+import { useEffect, useMemo, useState } from 'react';
+import { sendNotificationToTopic } from '@/lib/firebaseAdmin';
 
 const locations = ['All', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Ahmedabad'];
 const statuses = ['All', 'Active', 'Inactive', 'Pending', 'Blocked'];
 
 export default function SendNotificationForm() {
+  const [users, setUsers] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     message: '',
@@ -49,25 +33,69 @@ export default function SendNotificationForm() {
   const [selectedVendors, setSelectedVendors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [dataLoading, setDataLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setDataLoading(true);
+        const [uRes, vRes] = await Promise.all([
+          fetch('/api/users?limit=500', { cache: 'no-store' }),
+          fetch('/api/vendors', { cache: 'no-store' }),
+        ]);
+        const uData = await uRes.json().catch(() => ({}));
+        const vData = await vRes.json().catch(() => ({}));
+        if (!uRes.ok) throw new Error(uData?.error || 'Failed to load users');
+        if (!vRes.ok) throw new Error(vData?.error || 'Failed to load vendors');
+        if (!cancelled) {
+          setUsers((uData?.users || []).map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            phone: u.phone,
+            location: [u.city, u.state].filter(Boolean).join(', ') || '—',
+            status: u.status,
+          })));
+          setVendors((vData?.vendors || []).map(v => ({
+            id: v.id,
+            name: v.name,
+            owner: v.owner,
+            email: v.email,
+            phone: v.contactNumber || v.phone,
+            location: [v.city, v.state].filter(Boolean).join(', ') || '—',
+            status: v.status,
+            kycStatus: v.kycStatus || v.kyc_status,
+          })));
+        }
+      } catch (e) {
+        if (!cancelled) setResult({ success: false, message: e?.message || 'Failed to load recipients' });
+      } finally {
+        if (!cancelled) setDataLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   // Filter users
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = useMemo(() => users.filter((user) => {
     const matchesSearch = user.name.toLowerCase().includes(userFilters.search.toLowerCase()) ||
                          user.email.toLowerCase().includes(userFilters.search.toLowerCase());
     const matchesLocation = userFilters.location === 'All' || user.location === userFilters.location;
     const matchesStatus = userFilters.status === 'All' || user.status === userFilters.status;
     return matchesSearch && matchesLocation && matchesStatus;
-  });
+  }), [users, userFilters]);
 
   // Filter vendors
-  const filteredVendors = vendors.filter((vendor) => {
+  const filteredVendors = useMemo(() => vendors.filter((vendor) => {
     const matchesSearch = vendor.name.toLowerCase().includes(vendorFilters.search.toLowerCase()) ||
                          vendor.owner.toLowerCase().includes(vendorFilters.search.toLowerCase());
     const matchesLocation = vendorFilters.location === 'All' || vendor.location === vendorFilters.location;
     const matchesStatus = vendorFilters.status === 'All' || vendor.status === vendorFilters.status;
     const matchesKyc = vendorFilters.kycStatus === 'All' || vendor.kycStatus === vendorFilters.kycStatus;
     return matchesSearch && matchesLocation && matchesStatus && matchesKyc;
-  });
+  }), [vendors, vendorFilters]);
 
   const handleUserToggle = (userId) => {
     setSelectedUsers(prev =>
@@ -114,39 +142,25 @@ export default function SendNotificationForm() {
         id: Date.now(),
       };
 
-      let response;
-      
-      if (formData.recipientType === 'all') {
-        // Send to all (topic)
-        response = await sendNotificationToTopic('all', notification);
-      } else if (formData.recipientType === 'users') {
-        // Send to selected users
-        // In real implementation, you would get FCM tokens for selected users
-        response = await sendNotificationToTopic('users', notification);
-      } else if (formData.recipientType === 'vendors') {
-        // Send to selected vendors
-        response = await sendNotificationToTopic('vendors', notification);
-      } else {
-        // Send to custom selection
-        response = await sendNotificationToTopic('custom', notification);
-      }
+      // Topic send (placeholder routes exist)
+      const topic =
+        formData.recipientType === 'all' ? 'all' :
+        formData.recipientType === 'users' ? 'users' :
+        formData.recipientType === 'vendors' ? 'vendors' :
+        'all';
+      await sendNotificationToTopic(topic, notification);
 
-      // Save to history
-      const historyItem = {
-        id: Date.now(),
-        title: formData.title,
-        message: formData.message,
-        type: formData.type,
-        recipientType: formData.recipientType,
-        recipients: formData.recipientType === 'users' ? selectedUsers.length :
-                   formData.recipientType === 'vendors' ? selectedVendors.length : 'All',
-        sentAt: new Date().toISOString(),
-        status: 'Sent',
-      };
-      
-      const existingHistory = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
-      existingHistory.unshift(historyItem);
-      localStorage.setItem('notificationHistory', JSON.stringify(existingHistory));
+      // Persist to DB history
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audience: topic,
+          title: formData.title,
+          message: formData.message,
+          topic,
+        }),
+      });
 
       setResult({ success: true, message: 'Notification sent successfully!' });
       
@@ -168,6 +182,11 @@ export default function SendNotificationForm() {
 
   return (
     <div className="space-y-6">
+      {dataLoading && (
+        <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 text-sm text-gray-700">
+          Loading recipients…
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Send Notification</h2>
 

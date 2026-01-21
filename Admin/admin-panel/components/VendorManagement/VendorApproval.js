@@ -1,54 +1,71 @@
 'use client';
 
-import { useState } from 'react';
-
-const pendingVendors = [
-  {
-    id: 1,
-    name: 'Quick Mart',
-    owner: 'Jane Smith',
-    email: 'jane@example.com',
-    phone: '+91 9876543210',
-    location: 'Mumbai, India',
-    submittedDate: '2024-12-20',
-    documents: {
-      aadhar: 'Verified',
-      pan: 'Verified',
-      shopLicense: 'Pending',
-    },
-  },
-  {
-    id: 2,
-    name: 'Fresh Groceries',
-    owner: 'Amit Patel',
-    email: 'amit@example.com',
-    phone: '+91 9876543211',
-    location: 'Ahmedabad, India',
-    submittedDate: '2024-12-19',
-    documents: {
-      aadhar: 'Verified',
-      pan: 'Verified',
-      shopLicense: 'Verified',
-    },
-  },
-];
+import { useEffect, useState } from 'react';
 
 export default function VendorApproval({ onViewProfile }) {
+  const [pendingVendors, setPendingVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedVendor, setSelectedVendor] = useState(null);
 
-  const handleApprove = (vendorId) => {
-    // Handle approval logic
-    console.log('Approving vendor:', vendorId);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await fetch('/api/vendors/pending', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || 'Failed to load pending vendors');
+        if (!cancelled) setPendingVendors(Array.isArray(data?.vendors) ? data.vendors : []);
+      } catch (e) {
+        if (!cancelled) setError(e?.message || 'Failed to load pending vendors');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const updateVendor = async (vendorId, patch) => {
+    const res = await fetch('/api/vendors/status', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: vendorId, ...patch }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error || 'Failed to update vendor');
+    return data.vendor;
   };
 
-  const handleReject = (vendorId) => {
-    // Handle rejection logic
-    console.log('Rejecting vendor:', vendorId);
+  const handleApprove = async (vendorId) => {
+    try {
+      await updateVendor(vendorId, { status: 'Active', kycStatus: 'Verified' });
+      setPendingVendors(prev => prev.filter(v => v.id !== vendorId));
+      setSelectedVendor(null);
+    } catch (e) {
+      setError(e?.message || 'Failed to approve vendor');
+    }
   };
 
-  const handleHold = (vendorId) => {
-    // Handle hold logic
-    console.log('Putting vendor on hold:', vendorId);
+  const handleReject = async (vendorId) => {
+    try {
+      await updateVendor(vendorId, { status: 'Blocked', kycStatus: 'Rejected' });
+      setPendingVendors(prev => prev.filter(v => v.id !== vendorId));
+      setSelectedVendor(null);
+    } catch (e) {
+      setError(e?.message || 'Failed to reject vendor');
+    }
+  };
+
+  const handleHold = async (vendorId) => {
+    try {
+      await updateVendor(vendorId, { status: 'Pending', kycStatus: 'Pending' });
+      setSelectedVendor(null);
+    } catch (e) {
+      setError(e?.message || 'Failed to put vendor on hold');
+    }
   };
 
   if (selectedVendor) {
@@ -78,26 +95,20 @@ export default function VendorApproval({ onViewProfile }) {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Location</label>
-                <p className="text-gray-900">{selectedVendor.location}</p>
+                <p className="text-gray-900">
+                  {[selectedVendor.city, selectedVendor.state].filter(Boolean).join(', ') || '—'}
+                </p>
               </div>
             </div>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">KYC Documents</h3>
-            <div className="space-y-3">
-              {Object.entries(selectedVendor.documents).map(([doc, status]) => (
-                <div key={doc} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700 capitalize">
-                    {doc.replace(/([A-Z])/g, ' $1').trim()}
-                  </span>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    status === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {status}
-                  </span>
-                </div>
-              ))}
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700">
+              KYC Status: <span className="font-semibold">{selectedVendor.kyc_status || selectedVendor.kycStatus || 'Pending'}</span>
+              <div className="text-xs text-gray-500 mt-1">
+                (Document-level KYC fields can be added later when you store documents in DB)
+              </div>
             </div>
           </div>
 
@@ -128,8 +139,15 @@ export default function VendorApproval({ onViewProfile }) {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+          <div className="font-semibold">Vendor approval API error</div>
+          <div className="text-sm mt-1">{error}</div>
+        </div>
+      )}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Pending Approvals</h2>
+        {loading && <div className="text-sm text-gray-600 mb-4">Loading…</div>}
         <div className="space-y-4">
           {pendingVendors.map((vendor) => (
             <div
@@ -139,8 +157,12 @@ export default function VendorApproval({ onViewProfile }) {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{vendor.name}</h3>
-                  <p className="text-sm text-gray-600">{vendor.owner} • {vendor.location}</p>
-                  <p className="text-xs text-gray-500 mt-1">Submitted: {vendor.submittedDate}</p>
+                  <p className="text-sm text-gray-600">
+                    {vendor.owner} • {[vendor.city, vendor.state].filter(Boolean).join(', ') || '—'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Submitted: {vendor.created_at ? new Date(vendor.created_at).toLocaleDateString('en-IN') : '—'}
+                  </p>
                 </div>
                 <button
                   onClick={() => setSelectedVendor(vendor)}
@@ -151,6 +173,9 @@ export default function VendorApproval({ onViewProfile }) {
               </div>
             </div>
           ))}
+          {!loading && pendingVendors.length === 0 && (
+            <div className="text-sm text-gray-600">No pending vendors.</div>
+          )}
         </div>
       </div>
     </div>

@@ -1,45 +1,106 @@
 'use client';
 
-import { useState } from 'react';
-
-const flaggedProducts = [
-  {
-    id: 1,
-    productName: 'Premium Rice 5kg',
-    vendorName: 'My Awesome Shop',
-    oldPrice: '₹500',
-    newPrice: '₹1200',
-    marketAverage: '₹550',
-    flagReason: 'Price too high',
-    flaggedDate: '2024-12-20',
-  },
-  {
-    id: 2,
-    productName: 'Mobile Phone',
-    vendorName: 'Tech World',
-    oldPrice: '₹15,000',
-    newPrice: '₹8,000',
-    marketAverage: '₹12,000',
-    flagReason: 'Price too low',
-    flaggedDate: '2024-12-19',
-  },
-  {
-    id: 3,
-    productName: 'Banana Chips',
-    vendorName: 'Quick Mart',
-    oldPrice: '₹100',
-    newPrice: '₹50',
-    marketAverage: '₹90',
-    flagReason: 'Price too low',
-    flaggedDate: '2024-12-18',
-  },
-];
+import { useState, useEffect } from 'react';
 
 export default function PriceVerification() {
-  const [threshold, setThreshold] = useState(20); // 20% threshold
+  const [threshold, setThreshold] = useState(20);
+  const [autoAlertEnabled, setAutoAlertEnabled] = useState(true);
+  const [flaggedProducts, setFlaggedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleAction = (productId, action) => {
-    console.log(`Action: ${action} for product: ${productId}`);
+  useEffect(() => {
+    loadSettings();
+    loadFlags();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const res = await fetch('/api/price-verification/settings');
+      if (res.ok) {
+        const settings = await res.json();
+        setThreshold(settings.threshold_percent || 20);
+        setAutoAlertEnabled(settings.auto_alert_enabled !== false);
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadFlags = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/price-verification/flags?status=pending');
+      if (res.ok) {
+        const flags = await res.json();
+        setFlaggedProducts(flags.map(flag => ({
+          id: flag.id,
+          productName: flag.product_name,
+          vendorName: flag.vendor_name,
+          oldPrice: flag.old_price ? `₹${flag.old_price}` : 'N/A',
+          newPrice: `₹${flag.new_price}`,
+          marketAverage: flag.market_average ? `₹${flag.market_average}` : 'N/A',
+          flagReason: flag.flag_reason === 'price_too_high' ? 'Price too high' : 'Price too low',
+          flaggedDate: new Date(flag.flagged_at).toLocaleDateString(),
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading flags:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true);
+      const res = await fetch('/api/price-verification/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          threshold_percent: threshold,
+          auto_alert_enabled: autoAlertEnabled,
+        }),
+      });
+      if (res.ok) {
+        alert('Settings saved successfully!');
+      } else {
+        throw new Error('Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAction = async (productId, action) => {
+    try {
+      let status = 'pending';
+      if (action === 'warn') status = 'warned';
+      else if (action === 'hide') status = 'hidden';
+      else if (action === 'block') status = 'vendor_blocked';
+
+      const res = await fetch('/api/price-verification/flags', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: productId,
+          status,
+        }),
+      });
+
+      if (res.ok) {
+        await loadFlags();
+        alert(`Action "${action}" completed successfully`);
+      } else {
+        throw new Error('Failed to update flag');
+      }
+    } catch (error) {
+      console.error('Error performing action:', error);
+      alert('Failed to perform action');
+    }
   };
 
   return (
@@ -63,10 +124,23 @@ export default function PriceVerification() {
             <p className="text-xs text-gray-500 mt-1">
               Products with prices deviating more than {threshold}% from market average will be flagged
             </p>
+            <div className="mt-4 flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={autoAlertEnabled}
+                onChange={(e) => setAutoAlertEnabled(e.target.checked)}
+                className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+              />
+              <label className="text-sm text-gray-700">Enable Auto-Alerts</label>
+            </div>
           </div>
           <div className="flex items-end">
-            <button className="gradient-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition">
-              Save Settings
+            <button
+              onClick={handleSaveSettings}
+              disabled={saving}
+              className="gradient-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Settings'}
             </button>
           </div>
         </div>
@@ -83,7 +157,9 @@ export default function PriceVerification() {
           <div className="ml-3">
             <h3 className="text-sm font-medium text-blue-800">Auto-alerts Active</h3>
             <p className="mt-1 text-sm text-blue-700">
-              When a product price is outside the defined threshold ({threshold}%), an alert is automatically generated.
+              {autoAlertEnabled
+                ? `When a product price is outside the defined threshold (${threshold}%), an alert is automatically generated.`
+                : 'Auto-alerts are currently disabled. Enable them in settings above.'}
             </p>
           </div>
         </div>
@@ -91,9 +167,20 @@ export default function PriceVerification() {
 
       {/* Flagged Products */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">Flagged Products</h2>
+          <button
+            onClick={loadFlags}
+            className="text-sm text-orange-600 hover:text-orange-700"
+          >
+            Refresh
+          </button>
         </div>
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">Loading flagged products...</div>
+        ) : flaggedProducts.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">No flagged products found</div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -152,6 +239,7 @@ export default function PriceVerification() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

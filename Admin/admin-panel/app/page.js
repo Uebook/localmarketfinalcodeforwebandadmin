@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
+import UserManagement from '@/components/Dashboard/UserManagement';
 import VendorManagement from '@/components/VendorManagement';
 import CategoryManagement from '@/components/CategoryManagement';
 import PriceVerification from '@/components/PriceVerification';
@@ -38,6 +39,8 @@ export default function AdminPanel() {
     switch (activeSection) {
       case 'dashboard':
         return 'Dashboard';
+      case 'users':
+        return 'User Management';
       case 'vendors':
         return 'Vendor Management';
       case 'categories':
@@ -71,6 +74,8 @@ export default function AdminPanel() {
     switch (activeSection) {
       case 'dashboard':
         return <Dashboard onNavigate={setActiveSection} />;
+      case 'users':
+        return <UserManagement />;
       case 'vendors':
         return <VendorManagement />;
       case 'categories':

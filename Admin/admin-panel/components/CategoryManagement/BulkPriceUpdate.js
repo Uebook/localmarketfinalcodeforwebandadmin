@@ -1,96 +1,68 @@
 'use client';
 
-import { useState } from 'react';
-import * as XLSX from 'xlsx';
+import { useEffect, useState } from 'react';
 
 export default function BulkPriceUpdate() {
   const [file, setFile] = useState(null);
-  const [importData, setImportData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [vendors, setVendors] = useState([]);
+  const [vendorId, setVendorId] = useState('');
 
-  // Sample vendor products for template
-  const sampleProducts = [
-    { productId: 'P001', productName: 'Rice (1kg)', currentPrice: 50, newPrice: '', category: 'Groceries', unit: 'kg' },
-    { productId: 'P002', productName: 'Wheat Flour (1kg)', currentPrice: 40, newPrice: '', category: 'Groceries', unit: 'kg' },
-    { productId: 'P003', productName: 'Sugar (1kg)', currentPrice: 45, newPrice: '', category: 'Groceries', unit: 'kg' },
-    { productId: 'P004', productName: 'Cooking Oil (1L)', currentPrice: 120, newPrice: '', category: 'Groceries', unit: 'litre' },
-    { productId: 'P005', productName: 'Milk (1L)', currentPrice: 60, newPrice: '', category: 'Dairy', unit: 'litre' },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/vendors', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || 'Failed to load vendors');
+        if (!cancelled) setVendors(Array.isArray(data?.vendors) ? data.vendors : []);
+      } catch (e) {
+        if (!cancelled) setResult({ success: false, message: e?.message || 'Failed to load vendors' });
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleFileUpload = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setImportData([]);
       setResult(null);
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const data = new Uint8Array(event.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-          
-          // Validate and format data
-          const formattedData = jsonData.map((row, index) => ({
-            rowNumber: index + 2, // Excel row number (1-indexed, +1 for header)
-            productId: row['Product ID'] || row['productId'] || '',
-            productName: row['Product Name'] || row['productName'] || '',
-            currentPrice: row['Current Price'] || row['currentPrice'] || '',
-            newPrice: row['New Price'] || row['newPrice'] || '',
-            category: row['Category'] || row['category'] || '',
-            unit: row['Unit'] || row['unit'] || '',
-            errors: []
-          }));
-
-          // Validate data
-          formattedData.forEach(item => {
-            if (!item.productId) item.errors.push('Product ID is required');
-            if (!item.newPrice || isNaN(item.newPrice)) item.errors.push('Valid New Price is required');
-            if (item.newPrice && parseFloat(item.newPrice) <= 0) item.errors.push('Price must be greater than 0');
-          });
-
-          setImportData(formattedData);
-        } catch (error) {
-          setResult({ success: false, message: 'Error reading file: ' + error.message });
-        }
-      };
-      reader.readAsArrayBuffer(selectedFile);
     }
   };
 
-  const handleDownloadTemplate = () => {
-    // Create template data
-    const templateData = sampleProducts.map(p => ({
-      'Product ID': p.productId,
-      'Product Name': p.productName,
-      'Current Price': p.currentPrice,
-      'New Price': '',
-      'Category': p.category,
-      'Unit': p.unit
-    }));
-
-    // Create workbook
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Price Update Template');
-
-    // Download
-    XLSX.writeFile(wb, 'price_update_template.xlsx');
+  const handleDownloadTemplate = async () => {
+    if (!vendorId) {
+      setResult({ success: false, message: 'Select a vendor first' });
+      return;
+    }
+    setResult(null);
+    const res = await fetch(`/api/vendor-products/template?vendorId=${encodeURIComponent(vendorId)}`, { cache: 'no-store' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setResult({ success: false, message: data?.error || 'Failed to download template' });
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vendor_price_update_template.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   const handleImport = async () => {
-    if (importData.length === 0) {
-      setResult({ success: false, message: 'Please upload a file first' });
+    if (!vendorId) {
+      setResult({ success: false, message: 'Select a vendor first' });
       return;
     }
-
-    // Check for errors
-    const hasErrors = importData.some(item => item.errors.length > 0);
-    if (hasErrors) {
-      setResult({ success: false, message: 'Please fix errors in the data before importing' });
+    if (!file) {
+      setResult({ success: false, message: 'Please upload a file first' });
       return;
     }
 
@@ -98,29 +70,20 @@ export default function BulkPriceUpdate() {
     setResult(null);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In real implementation, send to API
-      const validUpdates = importData.filter(item => item.newPrice && !isNaN(item.newPrice));
-      
-      setResult({
-        success: true,
-        message: `Successfully updated ${validUpdates.length} product prices!`
-      });
+      const form = new FormData();
+      form.append('file', file);
+      form.append('vendorId', vendorId);
+      const res = await fetch('/api/vendor-products/bulk-price', { method: 'POST', body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Import failed');
 
-      // Clear data after successful import
+      setResult({ success: true, message: `Successfully updated ${data.updated || 0} product prices!` });
       setFile(null);
-      setImportData([]);
     } catch (error) {
       setResult({ success: false, message: 'Error importing prices: ' + error.message });
     } finally {
       setLoading(false);
     }
-  };
-
-  const getErrorCount = () => {
-    return importData.filter(item => item.errors.length > 0).length;
   };
 
   return (
@@ -131,6 +94,21 @@ export default function BulkPriceUpdate() {
           Upload an Excel file to bulk update product prices. Download the template first to ensure correct format.
         </p>
 
+        {/* Vendor selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Select Vendor</label>
+          <select
+            value={vendorId}
+            onChange={(e) => setVendorId(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          >
+            <option value="">-- Select Vendor --</option>
+            {vendors.map(v => (
+              <option key={v.id} value={v.id}>{v.name}</option>
+            ))}
+          </select>
+        </div>
+
         {/* Download Template */}
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center justify-between">
@@ -140,6 +118,7 @@ export default function BulkPriceUpdate() {
             </div>
             <button
               onClick={handleDownloadTemplate}
+              disabled={!vendorId}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
             >
               📥 Download Template
@@ -179,63 +158,6 @@ export default function BulkPriceUpdate() {
           )}
         </div>
 
-        {/* Import Data Preview */}
-        {importData.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">
-                Import Preview ({importData.length} rows)
-              </h3>
-              {getErrorCount() > 0 && (
-                <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                  {getErrorCount()} error(s) found
-                </span>
-              )}
-            </div>
-            <div className="overflow-x-auto border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 sticky top-0">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Row</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Product ID</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Product Name</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Current Price</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">New Price</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {importData.map((item, index) => (
-                    <tr 
-                      key={index} 
-                      className={item.errors.length > 0 ? 'bg-red-50' : 'bg-white'}
-                    >
-                      <td className="px-4 py-2 text-gray-900">{item.rowNumber}</td>
-                      <td className="px-4 py-2 text-gray-900">{item.productId}</td>
-                      <td className="px-4 py-2 text-gray-900">{item.productName}</td>
-                      <td className="px-4 py-2 text-gray-600">₹{item.currentPrice}</td>
-                      <td className="px-4 py-2">
-                        <span className={item.errors.length > 0 ? 'text-red-600' : 'text-green-600 font-medium'}>
-                          ₹{item.newPrice}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        {item.errors.length > 0 ? (
-                          <div className="text-xs text-red-600">
-                            {item.errors.join(', ')}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-green-600 font-medium">✓ Valid</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
         {/* Result Message */}
         {result && (
           <div className={`p-4 rounded-lg mb-6 ${
@@ -249,7 +171,7 @@ export default function BulkPriceUpdate() {
         <div className="flex gap-3">
           <button
             onClick={handleImport}
-            disabled={loading || importData.length === 0 || getErrorCount() > 0}
+            disabled={loading || !file || !vendorId}
             className="gradient-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Importing...' : 'Import Prices'}
@@ -257,7 +179,6 @@ export default function BulkPriceUpdate() {
           <button
             onClick={() => {
               setFile(null);
-              setImportData([]);
               setResult(null);
             }}
             className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"

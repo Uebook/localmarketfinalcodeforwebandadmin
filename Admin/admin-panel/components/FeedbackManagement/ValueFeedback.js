@@ -1,64 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-// Sample feedback data
-const sampleFeedback = [
-  {
-    id: 1,
-    type: 'user',
-    userId: 'user_123',
-    userName: 'Rahul Sharma',
-    category: 'Product Quality',
-    rating: 4,
-    comment: 'Great products, but prices could be more competitive',
-    status: 'pending',
-    createdAt: '2024-12-20T10:30:00Z',
-    location: 'Delhi'
-  },
-  {
-    id: 2,
-    type: 'vendor',
-    vendorId: 'vendor_456',
-    vendorName: 'My Awesome Shop',
-    category: 'Platform Features',
-    rating: 5,
-    comment: 'Love the new bulk upload feature!',
-    status: 'reviewed',
-    createdAt: '2024-12-19T14:20:00Z',
-    location: 'Mumbai'
-  },
-  {
-    id: 3,
-    type: 'user',
-    userId: 'user_789',
-    userName: 'Priya Patel',
-    category: 'Delivery',
-    rating: 3,
-    comment: 'Delivery was delayed by 2 days',
-    status: 'pending',
-    createdAt: '2024-12-18T09:15:00Z',
-    location: 'Bangalore'
-  },
-  {
-    id: 4,
-    type: 'vendor',
-    vendorId: 'vendor_321',
-    vendorName: 'Quick Mart',
-    category: 'Pricing',
-    rating: 4,
-    comment: 'Price update notification system works well',
-    status: 'reviewed',
-    createdAt: '2024-12-17T16:45:00Z',
-    location: 'Hyderabad'
-  }
-];
+import { useEffect, useMemo, useState } from 'react';
 
 export default function ValueFeedback() {
-  const [feedback, setFeedback] = useState(sampleFeedback);
+  const [feedback, setFeedback] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
+
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('q', searchQuery);
+    if (filter === 'pending') params.set('status', 'pending');
+    if (filter === 'users') params.set('type', 'user');
+    if (filter === 'vendors') params.set('type', 'vendor');
+    return params.toString();
+  }, [filter, searchQuery]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await fetch(`/api/feedback${queryString ? `?${queryString}` : ''}`, { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || 'Failed to load feedback');
+        if (!cancelled) setFeedback(Array.isArray(data?.feedback) ? data.feedback : []);
+      } catch (e) {
+        if (!cancelled) setError(e?.message || 'Failed to load feedback');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    const t = setTimeout(load, searchQuery ? 250 : 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [queryString, searchQuery]);
 
   const filteredFeedback = feedback.filter((item) => {
     const matchesFilter = filter === 'all' || 
@@ -73,9 +55,22 @@ export default function ValueFeedback() {
   });
 
   const handleStatusChange = (id, newStatus) => {
-    setFeedback(prev => prev.map(item => 
-      item.id === id ? { ...item, status: newStatus } : item
-    ));
+    // Optimistic UI + persist via API
+    setFeedback(prev => prev.map(item => (item.id === id ? { ...item, status: newStatus } : item)));
+    fetch('/api/feedback', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: newStatus }),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to update feedback');
+      }
+    }).catch((e) => {
+      // revert on failure
+      setFeedback(prev => prev.map(item => (item.id === id ? { ...item, status: 'pending' } : item)));
+      setError(e?.message || 'Failed to update feedback');
+    });
   };
 
   const getRatingStars = (rating) => {
@@ -99,6 +94,13 @@ export default function ValueFeedback() {
         <p className="text-gray-600">Manage feedback from users and vendors</p>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+          <div className="font-semibold">Feedback API error</div>
+          <div className="text-sm mt-1">{error}</div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <div className="flex flex-col md:flex-row gap-4">
@@ -111,7 +113,7 @@ export default function ValueFeedback() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             {['all', 'pending', 'users', 'vendors'].map((filterType) => (
               <button
                 key={filterType}
@@ -125,6 +127,7 @@ export default function ValueFeedback() {
                 {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
               </button>
             ))}
+            {loading && <span className="text-sm text-gray-600 ml-2">Loading…</span>}
           </div>
         </div>
       </div>
@@ -159,6 +162,13 @@ export default function ValueFeedback() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
+              {!loading && filteredFeedback.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-600">
+                    No feedback found.
+                  </td>
+                </tr>
+              )}
               {filteredFeedback.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -171,7 +181,7 @@ export default function ValueFeedback() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
-                        {item.type === 'user' ? item.userName : item.vendorName}
+                        {item.type === 'user' ? (item.userName || 'User') : (item.vendorName || 'Vendor')}
                       </div>
                       <div className="text-xs text-gray-500">{item.location}</div>
                     </div>

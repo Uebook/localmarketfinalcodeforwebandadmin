@@ -1,9 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { INDIAN_LOCATIONS, getStates, getCities, getTowns, getTehsils, getSubTehsils } from '@/constants/locations';
+import { useEffect, useMemo, useState } from 'react';
+import LocationImport from './LocationManagement/LocationImport';
 
 export default function LocationManagement() {
+  const [activeTab, setActiveTab] = useState('browse');
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedTown, setSelectedTown] = useState('');
@@ -15,37 +19,145 @@ export default function LocationManagement() {
     town: '',
     tehsil: '',
     subTehsil: '',
+    circle: '',
   });
 
-  const states = getStates();
-  const cities = selectedState ? getCities(selectedState) : [];
-  const towns = selectedState && selectedCity ? getTowns(selectedState, selectedCity) : [];
-  const tehsils = selectedState && selectedCity && selectedTown ? getTehsils(selectedState, selectedCity, selectedTown) : [];
-  const subTehsils = selectedState && selectedCity && selectedTown && selectedTehsil ? getSubTehsils(selectedState, selectedCity, selectedTown, selectedTehsil) : [];
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await fetch('/api/locations?limit=2000', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || 'Failed to load locations');
+        if (!cancelled) setLocations(Array.isArray(data?.locations) ? data.locations : []);
+      } catch (e) {
+        if (!cancelled) setError(e?.message || 'Failed to load locations');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
-  const handleAddLocation = () => {
-    // In production, this would send to API
-    alert(`Location added: ${formData.state} > ${formData.city} > ${formData.town} > ${formData.tehsil} > ${formData.subTehsil}`);
-    setFormData({ state: '', city: '', town: '', tehsil: '', subTehsil: '' });
-    setShowAddForm(false);
-  };
+  const states = useMemo(() => {
+    return Array.from(new Set(locations.map(l => l.state))).sort();
+  }, [locations]);
 
-  const getLocationCount = () => {
-    let count = 0;
-    Object.keys(INDIAN_LOCATIONS).forEach(state => {
-      Object.keys(INDIAN_LOCATIONS[state].cities).forEach(city => {
-        Object.keys(INDIAN_LOCATIONS[state].cities[city].towns).forEach(town => {
-          Object.keys(INDIAN_LOCATIONS[state].cities[city].towns[town].tehsils).forEach(tehsil => {
-            count += INDIAN_LOCATIONS[state].cities[city].towns[town].tehsils[tehsil].subTehsils.length;
-          });
-        });
+  const cities = useMemo(() => {
+    if (!selectedState) return [];
+    return Array.from(new Set(locations.filter(l => l.state === selectedState).map(l => l.city))).sort();
+  }, [locations, selectedState]);
+
+  const towns = useMemo(() => {
+    if (!selectedState || !selectedCity) return [];
+    return Array.from(new Set(locations.filter(l => l.state === selectedState && l.city === selectedCity).map(l => l.town))).sort();
+  }, [locations, selectedState, selectedCity]);
+
+  const tehsils = useMemo(() => {
+    if (!selectedState || !selectedCity || !selectedTown) return [];
+    return Array.from(new Set(locations.filter(l => l.state === selectedState && l.city === selectedCity && l.town === selectedTown).map(l => l.tehsil))).sort();
+  }, [locations, selectedState, selectedCity, selectedTown]);
+
+  const subTehsils = useMemo(() => {
+    if (!selectedState || !selectedCity || !selectedTown || !selectedTehsil) return [];
+    return Array.from(
+      new Set(
+        locations
+          .filter(l => l.state === selectedState && l.city === selectedCity && l.town === selectedTown && l.tehsil === selectedTehsil)
+          .map(l => l.sub_tehsil)
+      )
+    ).sort();
+  }, [locations, selectedState, selectedCity, selectedTown, selectedTehsil]);
+
+  const handleAddLocation = async () => {
+    try {
+      setResult(null);
+      const res = await fetch('/api/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
-    });
-    return count;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Failed to add location');
+      setLocations(prev => [data.location, ...prev]);
+      setFormData({ state: '', city: '', town: '', tehsil: '', subTehsil: '', circle: '' });
+      setShowAddForm(false);
+      setResult({ success: true, message: 'Location added successfully.' });
+    } catch (e) {
+      setResult({ success: false, message: e?.message || 'Failed to add location' });
+    }
   };
+
+  const [result, setResult] = useState(null);
+
+  const locationCount = locations.length;
+  const cityCount = useMemo(() => new Set(locations.map(l => `${l.state}::${l.city}`)).size, [locations]);
+  const townCount = useMemo(() => new Set(locations.map(l => `${l.state}::${l.city}::${l.town}`)).size, [locations]);
+
+  const reloadLocations = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await fetch('/api/locations?limit=2000', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Failed to load locations');
+      setLocations(Array.isArray(data?.locations) ? data.locations : []);
+    } catch (e) {
+      setError(e?.message || 'Failed to load locations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tabs = [
+    { id: 'browse', label: 'Browse Locations' },
+    { id: 'import', label: 'Import Locations' },
+  ];
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+          <div className="font-semibold">Location API error</div>
+          <div className="text-sm mt-1">{error}</div>
+        </div>
+      )}
+      {result && (
+        <div className={`rounded-lg p-4 ${result.success ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+          {result.message}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="bg-white rounded-lg shadow-md border border-gray-200">
+        <div className="flex border-b border-gray-200">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-6 py-3 font-semibold text-sm transition-colors ${
+                activeTab === tab.id
+                  ? 'text-orange-600 border-b-2 border-orange-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Import Tab */}
+      {activeTab === 'import' && (
+        <LocationImport onImportSuccess={reloadLocations} />
+      )}
+
+      {/* Browse Tab */}
+      {activeTab === 'browse' && (
+        <>
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
@@ -54,25 +166,15 @@ export default function LocationManagement() {
         </div>
         <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
           <div className="text-sm text-gray-600 mb-1">Total Cities</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {Object.values(INDIAN_LOCATIONS).reduce((sum, state) => 
-              sum + Object.keys(state.cities).length, 0
-            )}
-          </div>
+          <div className="text-2xl font-bold text-gray-900">{cityCount}</div>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
           <div className="text-sm text-gray-600 mb-1">Total Towns</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {Object.values(INDIAN_LOCATIONS).reduce((sum, state) => 
-              sum + Object.values(state.cities).reduce((citySum, city) => 
-                citySum + Object.keys(city.towns).length, 0
-              ), 0
-            )}
-          </div>
+          <div className="text-2xl font-bold text-gray-900">{townCount}</div>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
           <div className="text-sm text-gray-600 mb-1">Total Locations</div>
-          <div className="text-2xl font-bold text-gray-900">{getLocationCount()}</div>
+          <div className="text-2xl font-bold text-gray-900">{locationCount}</div>
         </div>
       </div>
 
@@ -92,7 +194,7 @@ export default function LocationManagement() {
         {showAddForm && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="font-semibold text-blue-900 mb-4">Add New Location</h3>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
                 <input
@@ -141,6 +243,16 @@ export default function LocationManagement() {
                   onChange={(e) => setFormData({...formData, subTehsil: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="Enter Sub-Tehsil"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Circle (Optional)</label>
+                <input
+                  type="text"
+                  value={formData.circle}
+                  onChange={(e) => setFormData({...formData, circle: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="e.g., North Circle"
                 />
               </div>
             </div>
@@ -253,6 +365,9 @@ export default function LocationManagement() {
       {/* Location List */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <h2 className="text-xl font-bold text-gray-900 mb-4">All Locations</h2>
+        {loading ? (
+          <div className="text-sm text-gray-600">Loading locations…</div>
+        ) : null}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
@@ -261,49 +376,28 @@ export default function LocationManagement() {
                 <th className="px-4 py-2 text-left font-medium text-gray-700">City</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-700">Town</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-700">Tehsil</th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700">Sub-Tehsils</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-700">Sub-Tehsil</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-700">Circle</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {states.slice(0, 10).map(state => {
-                const stateData = INDIAN_LOCATIONS[state];
-                return Object.keys(stateData.cities).map(city => {
-                  const cityData = stateData.cities[city];
-                  return Object.keys(cityData.towns).map(town => {
-                    const townData = cityData.towns[town];
-                    return Object.keys(townData.tehsils).map(tehsil => {
-                      const subTehsils = townData.tehsils[tehsil].subTehsils;
-                      return (
-                        <tr key={`${state}-${city}-${town}-${tehsil}`} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 text-gray-900">{state}</td>
-                          <td className="px-4 py-2 text-gray-900">{city}</td>
-                          <td className="px-4 py-2 text-gray-900">{town}</td>
-                          <td className="px-4 py-2 text-gray-900">{tehsil}</td>
-                          <td className="px-4 py-2 text-gray-600">
-                            <div className="flex flex-wrap gap-1">
-                              {subTehsils.slice(0, 3).map((st, idx) => (
-                                <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                                  {st}
-                                </span>
-                              ))}
-                              {subTehsils.length > 3 && (
-                                <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                                  +{subTehsils.length - 3} more
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    });
-                  });
-                });
-              })}
+              {locations.slice(0, 500).map((l) => (
+                <tr key={l.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-gray-900">{l.state}</td>
+                  <td className="px-4 py-2 text-gray-900">{l.city}</td>
+                  <td className="px-4 py-2 text-gray-900">{l.town}</td>
+                  <td className="px-4 py-2 text-gray-900">{l.tehsil}</td>
+                  <td className="px-4 py-2 text-gray-900">{l.sub_tehsil}</td>
+                  <td className="px-4 py-2 text-gray-700">{l.circle || '-'}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-gray-500 mt-4">Showing first 10 locations. Use filters above to find specific locations.</p>
+        <p className="text-sm text-gray-500 mt-4">Showing first {Math.min(500, locations.length)} locations.</p>
       </div>
+        </>
+      )}
     </div>
   );
 }

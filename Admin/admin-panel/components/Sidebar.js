@@ -4,6 +4,7 @@ import { COLORS } from '@/constants/colors';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { id: 'users', label: 'User Management', icon: '👥' },
   { id: 'vendors', label: 'Vendor Management', icon: '🏪' },
   { id: 'categories', label: 'Category & Products', icon: '📦' },
   { id: 'price-verification', label: 'Price Verification', icon: '💰' },

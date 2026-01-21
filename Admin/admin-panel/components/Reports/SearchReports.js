@@ -1,17 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-
-const topSearches = [
-  { product: 'Rice', count: 1234, location: 'Delhi', trend: '+15%' },
-  { product: 'Mobile Phone', count: 987, location: 'Mumbai', trend: '+8%' },
-  { product: 'Vegetables', count: 856, location: 'Bangalore', trend: '+22%' },
-  { product: 'Laptop', count: 743, location: 'Delhi', trend: '+5%' },
-  { product: 'Milk', count: 692, location: 'Mumbai', trend: '+18%' },
-];
+import { useState, useEffect } from 'react';
 
 export default function SearchReports() {
   const [filterLocation, setFilterLocation] = useState('all');
+  const [topSearches, setTopSearches] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadSearchReports();
+  }, [filterLocation]);
+
+  const loadSearchReports = async () => {
+    try {
+      setLoading(true);
+      const url = filterLocation !== 'all' 
+        ? `/api/reports/search?location=${filterLocation}`
+        : '/api/reports/search';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setTopSearches(data);
+      }
+    } catch (error) {
+      console.error('Error loading search reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -41,9 +57,20 @@ export default function SearchReports() {
 
       {/* Top Searched Products */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">Highest Searched Products</h2>
+          <button
+            onClick={loadSearchReports}
+            className="text-sm text-orange-600 hover:text-orange-700"
+          >
+            Refresh
+          </button>
         </div>
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">Loading search reports...</div>
+        ) : topSearches.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">No search data found</div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -76,6 +103,7 @@ export default function SearchReports() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );
