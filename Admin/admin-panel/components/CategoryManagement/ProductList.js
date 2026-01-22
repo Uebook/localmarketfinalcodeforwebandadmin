@@ -420,7 +420,7 @@ export default function ProductList() {
                                                             }}
                                                         />
                                                     ) : null}
-                                                    <div 
+                                                    <div
                                                         className={`image-placeholder w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center ${product.image_url ? 'hidden' : ''}`}
                                                     >
                                                         <span className="text-gray-400 text-xs">No Image</span>
