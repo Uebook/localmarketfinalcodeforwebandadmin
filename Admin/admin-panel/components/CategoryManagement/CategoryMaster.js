@@ -117,7 +117,12 @@ export default function CategoryMaster() {
 
   const handleEditCategory = (category) => {
     setEditingCategory({ ...category });
-    setIconPreview(category.icon_url || null);
+    // Set icon preview - handle both URL and base64 data
+    if (category.icon_url) {
+      setIconPreview(category.icon_url);
+    } else {
+      setIconPreview(null);
+    }
   };
 
   const handleIconUpload = (e, isEdit = false) => {

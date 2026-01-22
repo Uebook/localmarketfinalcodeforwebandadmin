@@ -78,6 +78,9 @@ export async function PATCH(req) {
         if (body.category_id !== undefined) {
             updateData.category_id = body.category_id || null;
         }
+        if (body.image_url !== undefined) {
+            updateData.image_url = toStr(body.image_url) || null;
+        }
 
         if (Object.keys(updateData).length === 0) {
             return Response.json({ error: 'No fields to update' }, { status: 400 });

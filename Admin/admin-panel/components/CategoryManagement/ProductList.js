@@ -89,8 +89,8 @@ export default function ProductList() {
             params.set('limit', itemsPerPage.toString());
             params.set('offset', ((currentPage - 1) * itemsPerPage).toString());
 
-            // Use vendor-products/list endpoint instead of master-products
-            const res = await fetch(`/api/vendor-products/list?${params.toString()}`, { cache: 'no-store' });
+            // Load master products for management
+            const res = await fetch(`/api/master-products?${params.toString()}`, { cache: 'no-store' });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(data?.error || 'Failed to load products');
 
@@ -240,15 +240,16 @@ export default function ProductList() {
 
         try {
             setSaving(true);
-            const res = await fetch(`/api/vendor-products?id=${editingProduct.id}`, {
+            const res = await fetch(`/api/master-products?id=${editingProduct.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: editingProduct.name,
-                    price: editingProduct.price ? parseFloat(editingProduct.price) : null,
-                    mrp: editingProduct.mrp ? parseFloat(editingProduct.mrp) : null,
+                    brand: editingProduct.brand || null,
                     uom: editingProduct.uom || null,
+                    default_mrp: editingProduct.default_mrp ? parseFloat(editingProduct.default_mrp) : null,
                     category_id: editingProduct.category_id || null,
+                    image_url: editingProduct.image_url || null,
                 }),
             });
             const data = await res.json().catch(() => ({}));
