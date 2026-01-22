@@ -9,7 +9,9 @@ import { useThemeColors } from '../hooks/useThemeColors';
 const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
-  const displayCategories = categories && categories.length > 0 ? categories : TOP_8_CATEGORIES;
+  const allCategories = categories && categories.length > 0 ? categories : TOP_8_CATEGORIES;
+  // Show only 7 categories + View All button (8 items total)
+  const displayCategories = allCategories.slice(0, 7);
 
   const handleCategoryPress = (category) => {
     if (onCategorySelect) {
@@ -46,7 +48,7 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
             </Text>
           </TouchableOpacity>
         ))}
-        {/* View All button as last item in grid */}
+        {/* View All button as 8th item in grid */}
         {onViewAll && (
           <TouchableOpacity
             style={styles.categoryCard}
