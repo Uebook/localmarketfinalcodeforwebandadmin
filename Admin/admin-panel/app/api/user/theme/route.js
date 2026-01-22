@@ -10,8 +10,13 @@ export async function PATCH(request) {
     const body = await request.json();
     const { userId, phone, email, theme } = body;
 
+    // Clean up values - remove null, undefined, empty strings
+    const cleanUserId = userId && userId.trim() ? userId.trim() : null;
+    const cleanPhone = phone && phone.trim() ? phone.trim() : null;
+    const cleanEmail = email && email.trim() ? email.trim() : null;
+
     // Validate that at least one identifier is provided
-    if (!userId && !phone && !email) {
+    if (!cleanUserId && !cleanPhone && !cleanEmail) {
       return NextResponse.json(
         { error: 'At least one of userId, phone, or email is required' },
         { status: 400 }
@@ -19,35 +24,33 @@ export async function PATCH(request) {
     }
 
     // Validate theme is provided
-    if (!theme) {
+    if (!theme || !theme.trim()) {
       return NextResponse.json(
         { error: 'Theme ID is required' },
         { status: 400 }
       );
     }
 
-    // Build query to find user
+    const themeId = theme.trim();
+
+    // Build query to find user - prioritize userId, then phone, then email
     let userQuery = '/rest/v1/users?select=id';
-    const conditions = [];
     
-    if (userId) {
-      conditions.push(`id=eq.${encodeURIComponent(userId)}`);
-    }
-    if (phone) {
-      conditions.push(`phone=eq.${encodeURIComponent(phone)}`);
-    }
-    if (email) {
-      conditions.push(`email=eq.${encodeURIComponent(email)}`);
+    if (cleanUserId) {
+      userQuery += `&id=eq.${encodeURIComponent(cleanUserId)}`;
+    } else if (cleanPhone) {
+      userQuery += `&phone=eq.${encodeURIComponent(cleanPhone)}`;
+    } else if (cleanEmail) {
+      userQuery += `&email=eq.${encodeURIComponent(cleanEmail)}`;
     }
 
-    if (conditions.length > 0) {
-      userQuery += `&or=(${conditions.join(',')})`;
-    }
+    console.log('Finding user with query:', userQuery);
 
     // Find the user
     const users = await supabaseRestGet(userQuery);
     
     if (!users || (Array.isArray(users) && users.length === 0)) {
+      console.error('User not found with query:', userQuery);
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -58,19 +61,23 @@ export async function PATCH(request) {
     const user = Array.isArray(users) ? users[0] : users;
     const userIdToUpdate = user.id;
 
+    console.log('Updating theme for user:', userIdToUpdate, 'to theme:', themeId);
+
     // Update the user's selected_theme
     const updated = await supabaseRestPatch(
       `/rest/v1/users?id=eq.${encodeURIComponent(userIdToUpdate)}`,
-      { selected_theme: theme }
+      { selected_theme: themeId }
     );
 
     const updatedUser = Array.isArray(updated) && updated[0] ? updated[0] : updated;
+
+    console.log('Theme updated successfully:', updatedUser);
 
     return NextResponse.json({
       success: true,
       user: {
         id: updatedUser.id,
-        selected_theme: updatedUser.selected_theme || theme,
+        selected_theme: updatedUser.selected_theme || themeId,
       },
     }, { status: 200 });
   } catch (error) {
@@ -101,22 +108,15 @@ export async function GET(request) {
       );
     }
 
-    // Build query to find user
+    // Build query to find user - try userId first, then phone, then email
     let userQuery = '/rest/v1/users?select=id,selected_theme';
-    const conditions = [];
     
     if (userId) {
-      conditions.push(`id=eq.${encodeURIComponent(userId)}`);
-    }
-    if (phone) {
-      conditions.push(`phone=eq.${encodeURIComponent(phone)}`);
-    }
-    if (email) {
-      conditions.push(`email=eq.${encodeURIComponent(email)}`);
-    }
-
-    if (conditions.length > 0) {
-      userQuery += `&or=(${conditions.join(',')})`;
+      userQuery += `&id=eq.${encodeURIComponent(userId)}`;
+    } else if (phone) {
+      userQuery += `&phone=eq.${encodeURIComponent(phone)}`;
+    } else if (email) {
+      userQuery += `&email=eq.${encodeURIComponent(email)}`;
     }
 
     // Find the user
