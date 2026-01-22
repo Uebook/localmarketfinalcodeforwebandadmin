@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     marginHorizontal: 16,
     borderRadius: 16,
-    backgroundColor: '#3d2817', // Dark brown card background
+    backgroundColor: 'transparent', // Removed brown background
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },

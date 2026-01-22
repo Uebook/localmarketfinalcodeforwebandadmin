@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   businessCard: {
     width: 288,
-    backgroundColor: '#3d2817', // Dark brown card background
+    backgroundColor: 'transparent', // Removed brown background
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     right: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3d2817', // Dark brown
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Changed from brown to semi-transparent black
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,

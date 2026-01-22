@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RecentSearches = ({ onSearchClick }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -89,12 +90,12 @@ const RecentSearches = ({ onSearchClick }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     paddingVertical: 20,
     marginVertical: 12,
     marginHorizontal: 16,
-    backgroundColor: '#3d2817', // Dark brown/red card background
+    backgroundColor: 'transparent', // Removed brown background
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
