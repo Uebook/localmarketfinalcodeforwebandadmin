@@ -17,6 +17,9 @@ export default function VendorList({ onViewProfile }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingVendor, setEditingVendor] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const imageFileInputRef = useRef(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -155,6 +158,44 @@ export default function VendorList({ onViewProfile }) {
 
   const handleEdit = (vendor) => {
     setEditingVendor({ ...vendor });
+    setImagePreview(vendor.imageUrl || vendor.shopFrontPhotoUrl || null);
+    setImageFile(null);
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setImagePreview(base64String);
+      setEditingVendor({ ...editingVendor, imageUrl: base64String });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageUrlChange = (url) => {
+    setEditingVendor({ ...editingVendor, imageUrl: url });
+    if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))) {
+      setImagePreview(url);
+      setImageFile(null);
+    } else if (!url) {
+      setImagePreview(null);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -179,6 +220,8 @@ export default function VendorList({ onViewProfile }) {
           state: editingVendor.state,
           city: editingVendor.city,
           category: editingVendor.category,
+          imageUrl: editingVendor.imageUrl || null,
+          shopFrontPhotoUrl: editingVendor.imageUrl || editingVendor.shopFrontPhotoUrl || null,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -708,6 +751,57 @@ export default function VendorList({ onViewProfile }) {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   placeholder="Enter category"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Shop Image</label>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      ref={imageFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="vendor-image-upload"
+                    />
+                    <label
+                      htmlFor="vendor-image-upload"
+                      className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition text-sm font-medium"
+                    >
+                      Upload Image
+                    </label>
+                    <span className="text-sm text-gray-500 self-center">or</span>
+                    <input
+                      type="url"
+                      value={editingVendor.imageUrl && !editingVendor.imageUrl.startsWith('data:') ? editingVendor.imageUrl : ''}
+                      onChange={(e) => handleImageUrlChange(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Enter image URL..."
+                    />
+                  </div>
+                  {imagePreview && (
+                    <div className="mt-2">
+                      <img
+                        src={imagePreview}
+                        alt="Vendor preview"
+                        className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingVendor({ ...editingVendor, imageUrl: '' });
+                          setImagePreview(null);
+                          setImageFile(null);
+                          if (imageFileInputRef.current) imageFileInputRef.current.value = '';
+                        }}
+                        className="mt-2 text-sm text-red-600 hover:text-red-800"
+                      >
+                        Remove Image
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Upload an image file or enter an image URL</p>
               </div>
               <div className="flex gap-3 pt-4">
                 <button

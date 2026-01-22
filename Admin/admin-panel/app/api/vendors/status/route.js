@@ -19,7 +19,7 @@ export async function PATCH(req) {
     const kycStatus = toStr(body?.kycStatus);
 
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 });
-    if (!status && !kycStatus && !body?.name && !body?.owner && !body?.contactNumber && !body?.email && !body?.state && !body?.city && !body?.category && body?.pincode === undefined && body?.rating === undefined && body?.reviewCount === undefined) {
+    if (!status && !kycStatus && !body?.name && !body?.owner && !body?.contactNumber && !body?.email && !body?.state && !body?.city && !body?.category && body?.pincode === undefined && body?.rating === undefined && body?.reviewCount === undefined && body?.imageUrl === undefined && body?.image_url === undefined && body?.shopFrontPhotoUrl === undefined && body?.shop_front_photo_url === undefined) {
       return Response.json({ error: 'At least one field to update is required' }, { status: 400 });
     }
 
@@ -48,6 +48,10 @@ export async function PATCH(req) {
     if (body?.review_count !== undefined) patch.review_count = toNum(body.review_count);
     if (body?.address !== undefined) patch.address = toStr(body.address) || null;
     if (body?.landmark !== undefined) patch.landmark = toStr(body.landmark) || null;
+    if (body?.imageUrl !== undefined) patch.image_url = toStr(body.imageUrl) || null;
+    if (body?.image_url !== undefined) patch.image_url = toStr(body.image_url) || null;
+    if (body?.shopFrontPhotoUrl !== undefined) patch.shop_front_photo_url = toStr(body.shopFrontPhotoUrl) || null;
+    if (body?.shop_front_photo_url !== undefined) patch.shop_front_photo_url = toStr(body.shop_front_photo_url) || null;
 
     const updated = await supabaseRestPatch(`/rest/v1/vendors?id=eq.${encodeURIComponent(id)}`, patch);
     return Response.json({ vendor: Array.isArray(updated) ? updated[0] : updated }, { status: 200 });
