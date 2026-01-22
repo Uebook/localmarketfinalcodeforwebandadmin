@@ -251,6 +251,9 @@ export default function VendorList({ onViewProfile }) {
       }
 
       setEditingVendor(null);
+      setImagePreview(null);
+      setImageFile(null);
+      if (imageFileInputRef.current) imageFileInputRef.current.value = '';
       alert('Vendor updated successfully');
     } catch (e) {
       alert(`Failed to update vendor: ${e.message}`);
