@@ -5,7 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { SEARCH_RESULTS, NEARBY_BUSINESSES, FEATURED_BUSINESSES, IT_COMPANIES } from '../constants';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendors, getVendorProducts, getMasterProducts, getCategories } from '../services/api';
 
 const SearchResults = ({
@@ -25,6 +25,7 @@ const SearchResults = ({
     const query = route?.params?.query || propQuery;
     const categoryId = route?.params?.categoryId;
     const isCategorySearch = route?.params?.isCategorySearch || false; // Flag to indicate category-based search
+    const COLORS = useThemeColors();
     // Use savedBusinessIds from props if available, otherwise use savedIds
     const savedIds = savedBusinessIds.length > 0 ? savedBusinessIds : propSavedIds;
     const [sortBy, setSortBy] = useState('default');

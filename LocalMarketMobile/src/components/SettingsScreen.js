@@ -4,12 +4,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+// Import COLORS with safe fallback - SettingsScreen uses themeColors from context, not COLORS directly
+let COLORS = {};
+try {
+  const colorsModule = require('../constants/colors');
+  COLORS = colorsModule.COLORS || colorsModule.default || {};
+} catch (error) {
+  console.error('Error loading COLORS:', error);
+  COLORS = { orange: '#E86A2C', blue: '#4A6CF7', white: '#FFFFFF' };
+}
 import FeedbackForm from './FeedbackForm';
 import { FESTIVAL_THEMES } from '../constants/festivalThemes';
-import { generateUserId } from '../utils/paymentUtils';
-import { getThemes, getUserTheme, updateUserTheme } from '../services/api';
+import { getThemes, getUserTheme, updateUserTheme, getUser, updateUser } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserId, updateUserData as updateStorageUserData } from '../utils/userStorage';
+import { useTheme } from './ThemeProvider';
 
 const SettingsScreen = ({ 
   navigation,
@@ -22,33 +31,76 @@ const SettingsScreen = ({
   onLogout,
   onNavigateToBusiness
 }) => {
+  const { theme, themeColors, setTheme: setThemeContext } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [themes, setThemes] = useState([]);
-  const [selectedTheme, setSelectedTheme] = useState(currentTheme);
+  const [selectedTheme, setSelectedTheme] = useState(theme || currentTheme);
   const [loadingThemes, setLoadingThemes] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [apiProfileData, setApiProfileData] = useState(null);
+  
+  // Use themeColors from context instead of COLORS constant
+  const COLORS = themeColors;
 
   useEffect(() => {
+    loadProfileFromAPI();
+    loadThemes();
+    loadUserTheme();
+  }, []);
+
+  // Sync selected theme when theme changes from context
+  useEffect(() => {
+    setSelectedTheme(theme || 'default');
+  }, [theme]);
+
+  useEffect(() => {
+    // Use API data if available, otherwise use passed profileData
+    const dataToUse = apiProfileData || profileData;
+    
     if (userRole === 'vendor') {
       setFormData({
-        name: profileData?.ownerName || '',
-        mobile: profileData?.contactNumber || '',
-        location: profileData?.address || '',
-        email: profileData?.email || '',
-        photo: profileData?.ownerPhotoUrl || ''
+        name: dataToUse?.ownerName || dataToUse?.name || '',
+        mobile: dataToUse?.contactNumber || dataToUse?.phone || '',
+        location: dataToUse?.address || dataToUse?.location || '',
+        email: dataToUse?.email || '',
+        photo: dataToUse?.ownerPhotoUrl || dataToUse?.profilePhotoUrl || ''
       });
     } else {
       setFormData({
-        name: profileData?.name || '',
-        mobile: profileData?.mobile || '',
-        location: profileData?.location || '',
-        email: profileData?.email || '',
-        photo: profileData?.profilePhotoUrl || ''
+        name: dataToUse?.name || '',
+        mobile: dataToUse?.phone || dataToUse?.mobile || '',
+        location: dataToUse?.location || `${dataToUse?.city || ''}${dataToUse?.state ? `, ${dataToUse.state}` : ''}`.trim(),
+        email: dataToUse?.email || '',
+        photo: dataToUse?.profilePhotoUrl || ''
       });
     }
-    loadThemes();
-    loadUserTheme();
-  }, [profileData, userRole]);
+  }, [apiProfileData, profileData, userRole]);
+
+  const loadProfileFromAPI = async () => {
+    try {
+      setLoadingProfile(true);
+      const userId = await getUserId();
+      
+      if (!userId) {
+        console.log('No user ID found in storage');
+        setLoadingProfile(false);
+        return;
+      }
+
+      const userData = await getUser({ userId });
+      
+      if (userData) {
+        setApiProfileData(userData);
+        // Update AsyncStorage with latest data
+        await updateStorageUserData(userData);
+      }
+    } catch (error) {
+      console.error('Error loading profile from API:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const loadThemes = async () => {
     try {
@@ -127,72 +179,150 @@ const SettingsScreen = ({
 
   const loadUserTheme = async () => {
     try {
-      const userId = await AsyncStorage.getItem('userId');
-      const phone = await AsyncStorage.getItem('userPhone');
-      const email = await AsyncStorage.getItem('userEmail');
-      
-      if (userId || phone || email) {
-        const themeData = await getUserTheme({ userId, phone, email });
-        if (themeData && themeData.theme) {
-          setSelectedTheme(themeData.theme);
-          if (onThemeChange) {
-            onThemeChange(themeData.theme);
-          }
-        }
-      }
+      // Load theme from AsyncStorage to show what user has selected
+      const savedTheme = await AsyncStorage.getItem('selectedFestivalTheme');
+      const themeToShow = savedTheme || theme || currentTheme || 'default';
+      setSelectedTheme(themeToShow);
+      console.log('✅ Loaded theme for Settings display:', themeToShow);
     } catch (error) {
       console.error('Error loading user theme:', error);
+      // Fallback to theme from context
+      setSelectedTheme(theme || currentTheme || 'default');
     }
   };
+  
+  // Sync selected theme when theme changes from context
+  useEffect(() => {
+    setSelectedTheme(theme || 'default');
+  }, [theme]);
 
   const handleThemeSelect = async (themeId) => {
     setSelectedTheme(themeId);
     
-    // Update theme locally
-    if (onThemeChange) {
-      onThemeChange(themeId);
+    // Save theme to AsyncStorage FIRST (for immediate persistence)
+    try {
+      await AsyncStorage.setItem('selectedFestivalTheme', themeId);
+      console.log('✅ Theme saved to AsyncStorage:', themeId);
+    } catch (error) {
+      console.error('Error saving theme to AsyncStorage:', error);
     }
     
-    // Save to API
+    // Update theme in context (this will update all components)
+    setThemeContext(themeId);
+    
+    // Update theme in database (for sync across devices)
     try {
       const userId = await AsyncStorage.getItem('userId');
       const phone = await AsyncStorage.getItem('userPhone');
       const email = await AsyncStorage.getItem('userEmail');
       
       if (userId || phone || email) {
-        await updateUserTheme({
+        const response = await updateUserTheme({
           userId,
           phone,
           email,
-          themeId: themeId,
+          theme: themeId, // Use 'theme' instead of 'themeId' to match API
         });
+        
+        if (response && response.success !== false) {
+          console.log('✅ Theme updated in database:', themeId);
+        } else {
+          console.warn('Theme update response:', response);
+        }
       }
     } catch (error) {
-      console.error('Error updating user theme:', error);
-      // Still allow theme change even if API fails
+      console.error('Error updating user theme in database:', error);
+      // Still allow theme change even if API fails - theme is already saved locally
+    }
+    
+    // Notify parent component if callback provided
+    if (onThemeChange) {
+      onThemeChange(themeId);
     }
   };
 
-  const handleSave = () => {
-    if (userRole === 'vendor') {
-      onUpdateProfile({
-        ...profileData,
-        ownerName: formData.name,
-        contactNumber: formData.mobile,
-        address: formData.location,
-        email: formData.email,
-        ownerPhotoUrl: formData.photo
-      });
-    } else {
-      onUpdateProfile({
-        ...profileData,
-        name: formData.name,
-        mobile: formData.mobile,
-        location: formData.location,
-        email: formData.email,
-        profilePhotoUrl: formData.photo
-      });
+  const handleSave = async () => {
+    try {
+      const userId = await getUserId();
+      
+      if (!userId) {
+        console.error('No user ID found');
+        setIsEditing(false);
+        return;
+      }
+
+      // Prepare update data based on role
+      let updateData = {
+        id: userId,
+      };
+
+      if (userRole === 'vendor') {
+        updateData.full_name = formData.name;
+        updateData.phone = formData.mobile;
+        updateData.email = formData.email;
+        // Note: Address/location might need separate handling for vendors
+      } else {
+        updateData.full_name = formData.name;
+        updateData.phone = formData.mobile;
+        updateData.email = formData.email;
+        
+        // Parse location to extract state and city if possible
+        if (formData.location) {
+          const locationParts = formData.location.split(',').map(s => s.trim());
+          if (locationParts.length >= 2) {
+            updateData.city = locationParts[0];
+            updateData.state = locationParts.slice(1).join(', ');
+          } else if (locationParts.length === 1) {
+            updateData.city = locationParts[0];
+          }
+        }
+      }
+
+      // Update in API
+      const response = await updateUser(updateData);
+      
+      if (response && response.user) {
+        // Update local state
+        setApiProfileData(response.user);
+        
+        // Update AsyncStorage
+        await updateStorageUserData({
+          id: response.user.id,
+          name: response.user.full_name || response.user.name,
+          email: response.user.email,
+          phone: response.user.phone,
+          state: response.user.state,
+          city: response.user.city,
+        });
+
+        // Update parent component if callback provided
+        if (onUpdateProfile) {
+          if (userRole === 'vendor') {
+            onUpdateProfile({
+              ...profileData,
+              ownerName: formData.name,
+              contactNumber: formData.mobile,
+              address: formData.location,
+              email: formData.email,
+              ownerPhotoUrl: formData.photo
+            });
+          } else {
+            onUpdateProfile({
+              ...profileData,
+              name: formData.name,
+              mobile: formData.mobile,
+              location: formData.location,
+              email: formData.email,
+              profilePhotoUrl: formData.photo
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      // Still allow editing to close even if API fails
     }
+    
     setIsEditing(false);
   };
 
@@ -238,6 +368,14 @@ const SettingsScreen = ({
       </SafeAreaView>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {/* Loading Indicator */}
+        {loadingProfile && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.orange} />
+            <Text style={styles.loadingText}>Loading profile...</Text>
+          </View>
+        )}
+
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <LinearGradient
@@ -347,21 +485,6 @@ const SettingsScreen = ({
                 )}
               </View>
             </View>
-
-            {/* User ID Display (for customers) */}
-            {userRole !== 'vendor' && (
-              <View style={styles.infoRow}>
-                <View style={styles.infoIcon}>
-                  <Icon name={getIconName('User')} size={16} color={COLORS.textMuted} />
-                </View>
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>USER ID</Text>
-                  <Text style={styles.infoValue}>
-                    {profileData?.userId || generateUserId({ mobile: formData.mobile || '9876543210' })}
-                  </Text>
-                </View>
-              </View>
-            )}
           </View>
 
           {userRole === 'vendor' && onNavigateToBusiness && (
@@ -900,6 +1023,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.textMuted,
     marginBottom: 12,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    marginBottom: 16,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
   },
 });
 

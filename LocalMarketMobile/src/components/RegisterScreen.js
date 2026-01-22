@@ -16,11 +16,13 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { register } from '../services/api';
 import { getAllStates, getCitiesByState, searchStates, searchCities } from '../constants/indianStatesCities';
+import { saveUserData } from '../utils/userStorage';
 
 const RegisterScreen = ({ onRegister, onBack }) => {
+  const COLORS = useThemeColors();
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -38,6 +40,8 @@ const RegisterScreen = ({ onRegister, onBack }) => {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const [citySearchQuery, setCitySearchQuery] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successUserData, setSuccessUserData] = useState(null);
   
   const allStates = getAllStates();
   const filteredStates = searchStates(stateSearchQuery);
@@ -111,21 +115,16 @@ const RegisterScreen = ({ onRegister, onBack }) => {
 
       const response = await register(registrationData);
 
-      if (response.success) {
-        Alert.alert(
-          'Registration Successful',
-          'Your account has been created successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                if (onRegister) {
-                  onRegister(response.user);
-                }
-              },
-            },
-          ]
-        );
+      if (response.success && response.user) {
+        // Save user data to AsyncStorage
+        try {
+          await saveUserData(response.user, 'customer');
+        } catch (error) {
+          console.error('Error saving user data:', error);
+        }
+        
+        setSuccessUserData(response.user);
+        setShowSuccessModal(true);
       }
     } catch (err) {
       const errorMessage = err.message || 'Registration failed. Please try again.';
@@ -416,6 +415,76 @@ const RegisterScreen = ({ onRegister, onBack }) => {
                 </View>
               }
             />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowSuccessModal(false);
+          if (onRegister && successUserData) {
+            onRegister(successUserData);
+          }
+        }}
+      >
+        <View style={styles.successModalOverlay}>
+          <View style={styles.successModalContent}>
+            {/* Success Icon */}
+            <View style={styles.successIconContainer}>
+              <View style={styles.successIconCircle}>
+                <Icon name="check" size={48} color={COLORS.white} />
+              </View>
+            </View>
+
+            {/* Success Title */}
+            <Text style={styles.successTitle}>Registration Successful!</Text>
+            
+            {/* Success Message */}
+            <Text style={styles.successMessage}>
+              Your account has been created successfully. Welcome to Local Market!
+            </Text>
+
+            {/* User Info (optional) */}
+            {successUserData && (
+              <View style={styles.successUserInfo}>
+                <View style={styles.successUserInfoRow}>
+                  <Icon name={getIconName('User')} size={16} color={COLORS.textMuted} />
+                  <Text style={styles.successUserInfoText}>{successUserData.name}</Text>
+                </View>
+                {successUserData.phone && (
+                  <View style={styles.successUserInfoRow}>
+                    <Icon name={getIconName('Phone')} size={16} color={COLORS.textMuted} />
+                    <Text style={styles.successUserInfoText}>+91 {successUserData.phone}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* OK Button */}
+            <TouchableOpacity
+              style={styles.successButton}
+              onPress={() => {
+                setShowSuccessModal(false);
+                if (onRegister && successUserData) {
+                  onRegister(successUserData);
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['#fb923c', '#ec4899']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.successButtonGradient}
+              >
+                <Text style={styles.successButtonText}>Get Started</Text>
+                <Icon name={getIconName('ArrowRight')} size={18} color={COLORS.white} />
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -748,6 +817,93 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.textPrimary,
     padding: 0,
+  },
+  // Success Modal Styles
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  successModalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  successIconContainer: {
+    marginBottom: 24,
+  },
+  successIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#10b981', // Green color for success
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  successTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  successMessage: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  successUserInfo: {
+    width: '100%',
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  successUserInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  successUserInfoText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  successButton: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  successButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  successButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
   },
 });
 

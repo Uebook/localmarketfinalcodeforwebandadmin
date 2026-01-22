@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 // Import sidebar control from shared utility
 import { setSidebarControl, getSidebarControl } from '../utils/sidebarControl';
@@ -25,6 +25,7 @@ import {
 import { getCategories } from '../services/api';
 
 const HomeScreen = ({ navigation, route }) => {
+  const COLORS = useThemeColors();
   const [locationState, setLocationState] = useState({
     lat: null,
     lng: null,

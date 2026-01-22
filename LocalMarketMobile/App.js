@@ -5,7 +5,45 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { COLORS } from './src/constants/colors';
+import { saveUserData, loadUserData, clearUserData, isUserAuthenticated } from './src/utils/userStorage';
+import { ThemeProvider } from './src/components/ThemeProvider';
+
+// Import COLORS with safe fallback - use require to avoid Metro bundler issues
+let COLORS_SAFE = {};
+try {
+  const colorsModule = require('./src/constants/colors');
+  COLORS_SAFE = colorsModule.COLORS || colorsModule.default || {};
+} catch (error) {
+  console.error('Error loading COLORS in App.js:', error);
+  // Fallback colors if import fails
+  COLORS_SAFE = {
+    orange: '#E86A2C',
+    blue: '#4A6CF7',
+    white: '#FFFFFF',
+    textPrimary: '#0F172A',
+    textMuted: '#9CA3AF',
+    textSecondary: '#475569',
+    textLight: '#CBD5E1',
+    divider: '#E5E7EB',
+    darkBg: '#0B1324',
+    primaryGradient: ['#E86A2C', '#4A6CF7'],
+    homeBackground: ['#7A3B1D', '#2B1A14'],
+    highlightBg: '#FFF4EC',
+    primaryOrange: '#E86A2C',
+    primaryOrangeDark: '#E86A2C',
+    primaryBlue: '#4A6CF7',
+    primaryBlueDark: '#4A6CF7',
+    gradientStart: '#E86A2C',
+    gradientEnd: '#4A6CF7',
+    accentRed: '#DC2626',
+    accentOrangeSoft: '#FFF4EC',
+    textWhite: '#FFFFFF',
+    background: '#FFFFFF',
+    backgroundSoft: '#F8FAFC',
+    danger: '#DC2626',
+    success: '#16A34A',
+  };
+}
 
 // Import screens
 import SplashScreen from './src/components/SplashScreen';
@@ -63,7 +101,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
 
         return {
           tabBarIcon: ({ focused }) => {
-            return <Icon name={iconName} size={22} color={focused ? COLORS.orange : COLORS.textMuted} />;
+            return <Icon name={iconName} size={22} color={focused ? COLORS_SAFE.orange : COLORS_SAFE.textMuted} />;
           },
           tabBarLabel: route.name,
           tabBarLabelStyle: {
@@ -71,8 +109,8 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
             fontWeight: '600',
             marginTop: 2,
           },
-          tabBarActiveTintColor: COLORS.textPrimary,
-          tabBarInactiveTintColor: COLORS.textMuted,
+          tabBarActiveTintColor: COLORS_SAFE.textPrimary,
+          tabBarInactiveTintColor: COLORS_SAFE.textMuted,
           headerShown: false,
           tabBarStyle: styles.tabBar,
           tabBarItemStyle: styles.tabBarItem,
@@ -148,7 +186,7 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
             if (route.name === 'Offers') {
               return <Text style={focused ? styles.percentageIcon : styles.percentageIconInactive}>%</Text>;
             }
-            return <Icon name={iconName} size={22} color={focused ? COLORS.orange : COLORS.textMuted} />;
+            return <Icon name={iconName} size={22} color={focused ? COLORS_SAFE.orange : COLORS_SAFE.textMuted} />;
           },
           tabBarLabel: route.name,
           tabBarLabelStyle: {
@@ -156,8 +194,8 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
             fontWeight: '600',
             marginTop: 2,
           },
-          tabBarActiveTintColor: COLORS.textPrimary,
-          tabBarInactiveTintColor: COLORS.textMuted,
+          tabBarActiveTintColor: COLORS_SAFE.textPrimary,
+          tabBarInactiveTintColor: COLORS_SAFE.textMuted,
           headerShown: false,
           tabBarStyle: styles.tabBar,
           tabBarItemStyle: styles.tabBarItem,
@@ -234,6 +272,7 @@ function App() {
   const [isUserRegistering, setIsUserRegistering] = useState(false);
   const [savedBusinessIds, setSavedBusinessIds] = useState([]);
   const [initialRoute, setInitialRoute] = useState('Home');
+  const [userData, setUserData] = useState(null);
   const navigationRef = useRef(null);
 
   // Set sidebar control for all screens - set immediately
@@ -250,16 +289,50 @@ function App() {
     }
   }, [isAuthenticated]);
 
+  // Load saved user data on app start
   useEffect(() => {
+    const loadSavedUser = async () => {
+      try {
+        const isAuth = await isUserAuthenticated();
+        if (isAuth) {
+          const savedUserData = await loadUserData();
+          if (savedUserData && savedUserData.id) {
+            setUserData(savedUserData);
+            setIsAuthenticated(true);
+            setUserRole(savedUserData.role || 'customer');
+            if (savedUserData.role === 'vendor') {
+              setInitialRoute('Analytics');
+            } else {
+              setInitialRoute('Home');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved user:', error);
+      }
+    };
+
+    loadSavedUser();
+
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = (role, userData = null) => {
+  const handleLogin = async (role, userDataParam = null) => {
     setUserRole(role);
     setIsAuthenticated(true);
+    
+    // Save user data to AsyncStorage
+    if (userDataParam) {
+      try {
+        await saveUserData(userDataParam, role);
+        setUserData(userDataParam);
+      } catch (error) {
+        console.error('Error saving user data:', error);
+      }
+    }
     
     // Set initial route based on role
     if (role === 'vendor') {
@@ -269,13 +342,32 @@ function App() {
     }
   };
 
-  const handleUserRegister = (userData) => {
+  const handleUserRegister = async (userDataParam) => {
     // After user registration, automatically log them in
     setIsUserRegistering(false);
-    handleLogin('customer', userData);
+    
+    // Save user data to AsyncStorage
+    if (userDataParam) {
+      try {
+        await saveUserData(userDataParam, 'customer');
+        setUserData(userDataParam);
+      } catch (error) {
+        console.error('Error saving user data:', error);
+      }
+    }
+    
+    handleLogin('customer', userDataParam);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear user data from AsyncStorage
+    try {
+      await clearUserData();
+      setUserData(null);
+    } catch (error) {
+      console.error('Error clearing user data:', error);
+    }
+    
     setIsAuthenticated(false);
     setUserRole(null);
     setIsSidebarOpen(false);
@@ -351,64 +443,73 @@ function App() {
 
   if (showSplash) {
     return (
-      <SafeAreaProvider>
-        <StatusBar barStyle="light-content" />
-        <SplashScreen />
-      </SafeAreaProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <StatusBar barStyle="light-content" />
+          <SplashScreen />
+        </SafeAreaProvider>
+      </ThemeProvider>
     );
   }
 
   if (isUserRegistering) {
     return (
-      <SafeAreaProvider>
-        <StatusBar barStyle="light-content" />
-        <RegisterScreen
-          onRegister={handleUserRegister}
-          onBack={() => setIsUserRegistering(false)}
-        />
-      </SafeAreaProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <StatusBar barStyle="light-content" />
+          <RegisterScreen
+            onRegister={handleUserRegister}
+            onBack={() => setIsUserRegistering(false)}
+          />
+        </SafeAreaProvider>
+      </ThemeProvider>
     );
   }
 
   if (isRegistering) {
     return (
-      <SafeAreaProvider>
-        <StatusBar barStyle="dark-content" />
-        <VendorRegistration
-          onComplete={handleRegistrationComplete}
-          onCancel={() => setIsRegistering(false)}
-        />
-      </SafeAreaProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <StatusBar barStyle="dark-content" />
+          <VendorRegistration
+            onComplete={handleRegistrationComplete}
+            onCancel={() => setIsRegistering(false)}
+          />
+        </SafeAreaProvider>
+      </ThemeProvider>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <SafeAreaProvider>
-        <StatusBar barStyle="light-content" />
-        <LoginScreen
-          onLogin={handleLogin}
-          vendorActivationStatus={vendorData.activationStatus}
-          onSimulateAdminApproval={() =>
-            setVendorData((prev) => ({ ...prev, activationStatus: 'Active' }))
-          }
-          onRegister={(isVendor) => {
-            if (isVendor) {
-              setIsRegistering(true);
-            } else {
-              setIsUserRegistering(true);
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <StatusBar barStyle="light-content" />
+          <LoginScreen
+            onLogin={handleLogin}
+            vendorActivationStatus={vendorData.activationStatus}
+            onSimulateAdminApproval={() =>
+              setVendorData((prev) => ({ ...prev, activationStatus: 'Active' }))
             }
-          }}
-        />
-      </SafeAreaProvider>
+            onRegister={(isVendor) => {
+              if (isVendor) {
+                setIsRegistering(true);
+              } else {
+                setIsUserRegistering(true);
+              }
+            }}
+          />
+        </SafeAreaProvider>
+      </ThemeProvider>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" />
-      <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <StatusBar barStyle="dark-content" />
+        <NavigationContainer ref={navigationRef}>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
           {userRole === 'vendor' ? (
             <Stack.Screen name="VendorTabs">
               {(props) => (
@@ -500,10 +601,12 @@ function App() {
                 {...props}
                 currentTheme="default"
                 userRole={userRole}
-                profileData={userRole === 'vendor' ? vendorData : { name: 'User', mobile: '', location: '', email: '' }}
+                profileData={userRole === 'vendor' ? vendorData : (userData || { name: 'User', mobile: '', location: '', email: '' })}
                 onUpdateProfile={(data) => {
                   if (userRole === 'vendor') {
                     setVendorData(data);
+                  } else if (userData) {
+                    setUserData({ ...userData, ...data });
                   }
                 }}
                 onLogout={handleLogout}
@@ -560,12 +663,13 @@ function App() {
         userLocation={userRole === 'vendor' ? vendorData.address : 'Delhi, India'}
       />
     </SafeAreaProvider>
+    </ThemeProvider>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS_SAFE.white,
     borderTopWidth: 0,
     height: 65,
     paddingTop: 6,
@@ -589,12 +693,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS_SAFE.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.orange,
-    shadowColor: COLORS.orange,
+    borderColor: COLORS_SAFE.orange,
+    shadowColor: COLORS_SAFE.orange,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -604,18 +708,18 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.orange,
+    backgroundColor: COLORS_SAFE.orange,
     marginTop: 2,
   },
   percentageIcon: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.orange,
+    color: COLORS_SAFE.orange,
   },
   percentageIconInactive: {
     fontSize: 22,
     fontWeight: '600',
-    color: COLORS.textMuted,
+    color: COLORS_SAFE.textMuted,
   },
 });
 

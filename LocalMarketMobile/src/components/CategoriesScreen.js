@@ -4,13 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import CategoryGrid from './CategoryGrid';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { TOP_8_CATEGORIES, ALL_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
 import Icon from 'react-native-vector-icons/Feather';
 import { getCategories } from '../services/api';
 
 const CategoriesScreen = ({ navigation, route }) => {
+  const COLORS = useThemeColors();
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);

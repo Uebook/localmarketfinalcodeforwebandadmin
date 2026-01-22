@@ -4,12 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import EnquiryModal from './EnquiryModal';
 import WriteReview from './WriteReview';
 import { getVendorProducts } from '../services/api';
 
 const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusinessIds }) => {
+    const COLORS = useThemeColors();
     // Handle both 'business' and 'vendor' parameter names
     const business = route.params?.business || route.params?.vendor;
     const [activeTab, setActiveTab] = useState('Overview');

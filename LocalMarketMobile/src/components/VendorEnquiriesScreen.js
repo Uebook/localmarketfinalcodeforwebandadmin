@@ -5,11 +5,12 @@ import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 
 const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
+  const COLORS = useThemeColors();
   const [locationState] = React.useState({
     lat: null,
     lng: null,

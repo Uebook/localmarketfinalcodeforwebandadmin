@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getStates, getCities, getTowns, getTehsils, getSubTehsils, CIRCLES } from '../constants/locations';
 
 const LocationSelector = ({
@@ -13,6 +13,7 @@ const LocationSelector = ({
   initialLocation = {},
   showCircle = false
 }) => {
+  const COLORS = useThemeColors();
   const [location, setLocation] = useState({
     state: initialLocation.state || '',
     city: initialLocation.city || '',

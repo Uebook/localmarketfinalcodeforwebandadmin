@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Modal,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { submitFeedback } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -13,6 +13,7 @@ const FeedbackForm = ({
   userRole = 'user', // 'user' or 'vendor'
   onSubmit 
 }) => {
+  const COLORS = useThemeColors();
   const [formData, setFormData] = useState({
     category: '',
     rating: 0,

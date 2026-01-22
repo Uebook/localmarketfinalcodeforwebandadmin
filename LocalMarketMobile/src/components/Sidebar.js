@@ -4,9 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName = 'Guest User', userLocation = 'Delhi, India' }) => {
+  const COLORS = useThemeColors();
   const [expandedSections, setExpandedSections] = useState({
     'app-menu': true,
     'vendor-controls': true,

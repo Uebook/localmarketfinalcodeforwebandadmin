@@ -1,4 +1,4 @@
-export const COLORS = {
+const COLORS = {
   // Brand
   orange: '#E86A2C',
   blue: '#4A6CF7',
@@ -28,7 +28,7 @@ export const COLORS = {
   danger: '#DC2626',
   warning: '#F59E0B',
   info: '#3B82F6',
-  
+
   // Status Backgrounds
   successBg: '#D1FAE5',
   dangerBg: '#FEE2E2',
@@ -37,4 +37,5 @@ export const COLORS = {
 };
 
 
+export default COLORS;
 

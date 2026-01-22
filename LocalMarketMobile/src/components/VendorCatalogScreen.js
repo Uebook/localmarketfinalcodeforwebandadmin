@@ -5,13 +5,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare } from '../utils/vendorActions';
 
 const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
+  const COLORS = useThemeColors();
   const [locationState] = React.useState({
     lat: null,
     lng: null,

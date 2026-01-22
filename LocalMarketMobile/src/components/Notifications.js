@@ -4,10 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getNotifications } from '../services/api';
 
 const Notifications = ({ navigation, onClose }) => {
+  const COLORS = useThemeColors();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 

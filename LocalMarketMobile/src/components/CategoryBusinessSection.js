@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { getBusinessesByCategory } from '../constants/categoryBusinesses';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendors } from '../services/api';
 
 const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, onViewAll }) => {
+  const COLORS = useThemeColors();
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
 

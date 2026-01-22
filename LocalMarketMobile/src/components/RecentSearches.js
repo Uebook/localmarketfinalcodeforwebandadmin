@@ -3,11 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'rea
 import Icon from 'react-native-vector-icons/Feather';
 import { RECENT_SEARCHES } from '../constants';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getRecentSearches } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RecentSearches = ({ onSearchClick }) => {
+  const COLORS = useThemeColors();
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
 

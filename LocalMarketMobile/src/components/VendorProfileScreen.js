@@ -5,7 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare, handlePreview } from '../utils/vendorActions';
@@ -15,6 +15,7 @@ import { formatLocation } from '../constants/locations';
 import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
 
 const VendorProfileScreen = ({ navigation, vendorData }) => {
+  const COLORS = useThemeColors();
   const [locationState] = useState({
     lat: null,
     lng: null,

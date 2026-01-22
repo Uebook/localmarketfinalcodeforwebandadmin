@@ -4,10 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { PAYMENT_PLANS, PAYMENT_STATUS, getPlanDisplayName } from '../utils/paymentUtils';
 
 const PaymentManagement = ({ navigation, vendorData, onUpdateVendor }) => {
+  const COLORS = useThemeColors();
   const [selectedPlan, setSelectedPlan] = useState(vendorData?.paymentInfo?.subscriptionPlan || PAYMENT_PLANS.MONTHLY);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 

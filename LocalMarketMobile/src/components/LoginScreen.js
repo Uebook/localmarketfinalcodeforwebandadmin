@@ -10,14 +10,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { login } from '../services/api';
+import { saveUserData } from '../utils/userStorage';
 
 const LoginScreen = ({ onLogin, onRegister }) => {
+  const COLORS = useThemeColors();
   const [isLocalPlusMode, setIsLocalPlusMode] = useState(false);
   const [loginMethod, setLoginMethod] = useState('mobile');
   const [mobile, setMobile] = useState('');
@@ -28,6 +31,8 @@ const LoginScreen = ({ onLogin, onRegister }) => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [resendTimer, setResendTimer] = useState(24);
   const [error, setError] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Timer for resend OTP
@@ -80,6 +85,13 @@ const LoginScreen = ({ onLogin, onRegister }) => {
         });
         
         if (response.success && response.user) {
+          // Save user data to AsyncStorage
+          try {
+            await saveUserData(response.user, isLocalPlusMode ? 'vendor' : 'customer');
+          } catch (error) {
+            console.error('Error saving user data:', error);
+          }
+          
           // Login successful
           if (onLogin) {
             onLogin(isLocalPlusMode ? 'vendor' : 'customer', response.user);
@@ -87,8 +99,10 @@ const LoginScreen = ({ onLogin, onRegister }) => {
         }
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
-      Alert.alert('Login Error', err.message || 'Login failed. Please try again.');
+      const errorMsg = err.message || 'Login failed. Please try again.';
+      setError(errorMsg);
+      setErrorMessage(errorMsg);
+      setShowErrorModal(true);
     } finally {
       setIsLoading(false);
     }
@@ -112,14 +126,23 @@ const LoginScreen = ({ onLogin, onRegister }) => {
       });
       
       if (response.success && response.user) {
+        // Save user data to AsyncStorage
+        try {
+          await saveUserData(response.user, isLocalPlusMode ? 'vendor' : 'customer');
+        } catch (error) {
+          console.error('Error saving user data:', error);
+        }
+        
         // Login successful
         if (onLogin) {
           onLogin(isLocalPlusMode ? 'vendor' : 'customer', response.user);
         }
       }
     } catch (err) {
-      setError(err.message || 'Invalid OTP. Please try again.');
-      Alert.alert('Verification Error', err.message || 'Invalid OTP. Please try again.');
+      const errorMsg = err.message || 'Invalid OTP. Please try again.';
+      setError(errorMsg);
+      setErrorMessage(errorMsg);
+      setShowErrorModal(true);
       // Clear OTP on error
       setOtp(['', '', '', '']);
     } finally {
@@ -164,8 +187,10 @@ const LoginScreen = ({ onLogin, onRegister }) => {
         }
       }
     } catch (err) {
-      setError(err.message || 'Failed to resend OTP');
-      Alert.alert('Error', err.message || 'Failed to resend OTP');
+      const errorMsg = err.message || 'Failed to resend OTP';
+      setError(errorMsg);
+      setErrorMessage(errorMsg);
+      setShowErrorModal(true);
     } finally {
       setIsLoading(false);
     }
@@ -548,6 +573,115 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Error Modal */}
+      <Modal
+        visible={showErrorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowErrorModal(false);
+          setError('');
+        }}
+      >
+        <View style={styles.errorModalOverlay}>
+          <View style={styles.errorModalContent}>
+            {/* Error Icon */}
+            <View style={styles.errorIconContainer}>
+              <View style={styles.errorIconCircle}>
+                <Icon name="alert-circle" size={48} color={COLORS.white} />
+              </View>
+            </View>
+
+            {/* Error Title */}
+            <Text style={styles.errorModalTitle}>Login Error</Text>
+            
+            {/* Error Message */}
+            <Text style={styles.errorModalMessage}>
+              {errorMessage || 'An error occurred. Please try again.'}
+            </Text>
+
+            {/* Helpful Suggestions */}
+            {errorMessage.includes('not registered') && (
+              <View style={styles.errorSuggestionBox}>
+                <Icon name={getIconName('Info')} size={16} color="#3b82f6" />
+                <Text style={styles.errorSuggestionText}>
+                  Don't have an account? Register now to get started.
+                </Text>
+              </View>
+            )}
+
+            {errorMessage.includes('Invalid') && errorMessage.includes('OTP') && (
+              <View style={styles.errorSuggestionBox}>
+                <Icon name={getIconName('Info')} size={16} color="#3b82f6" />
+                <Text style={styles.errorSuggestionText}>
+                  Make sure you entered the correct 4-digit OTP. You can request a new one.
+                </Text>
+              </View>
+            )}
+
+            {errorMessage.includes('password') && (
+              <View style={styles.errorSuggestionBox}>
+                <Icon name={getIconName('Info')} size={16} color="#3b82f6" />
+                <Text style={styles.errorSuggestionText}>
+                  Please check your email and password. Make sure caps lock is off.
+                </Text>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.errorButtonContainer}>
+              {errorMessage.includes('not registered') ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.errorButtonSecondary}
+                    onPress={() => {
+                      setShowErrorModal(false);
+                      setError('');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.errorButtonSecondaryText}>Close</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={styles.errorButtonPrimary}
+                    onPress={() => {
+                      setShowErrorModal(false);
+                      setError('');
+                      if (onRegister) {
+                        onRegister(false);
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={['#fb923c', '#ec4899']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.errorButtonGradient}
+                    >
+                      <Text style={styles.errorButtonPrimaryText}>Register</Text>
+                      <Icon name={getIconName('ArrowRight')} size={16} color={COLORS.white} />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.errorButtonSecondary, { width: '100%' }]}
+                  onPress={() => {
+                    setShowErrorModal(false);
+                    setError('');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.errorButtonSecondaryText}>OK</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -857,6 +991,112 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ea580c',
     textDecorationLine: 'underline',
+  },
+  // Error Modal Styles
+  errorModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorModalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  errorIconContainer: {
+    marginBottom: 24,
+  },
+  errorIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#ef4444', // Red color for error
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  errorModalTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  errorModalMessage: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  errorSuggestionBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#eff6ff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    width: '100%',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  errorSuggestionText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1e40af',
+    lineHeight: 20,
+  },
+  errorButtonContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+  },
+  errorButtonSecondary: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 16,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorButtonSecondaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  errorButtonPrimary: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  errorButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  errorButtonPrimaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
   },
   footer: {
     flexDirection: 'row',

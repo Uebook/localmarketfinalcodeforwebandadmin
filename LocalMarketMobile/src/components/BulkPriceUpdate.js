@@ -5,7 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 // import DocumentPicker from 'react-native-document-picker'; // Temporarily disabled due to compatibility issues
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const BulkPriceUpdate = ({ 
   navigation, 
@@ -13,6 +13,7 @@ const BulkPriceUpdate = ({
   vendorProducts = [],
   onUpdatePrices 
 }) => {
+  const COLORS = useThemeColors();
   // Get products from route params or props
   const products = route?.params?.vendorProducts || vendorProducts || [];
   const [file, setFile] = useState(null);

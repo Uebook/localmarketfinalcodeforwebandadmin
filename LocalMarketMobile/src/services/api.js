@@ -20,7 +20,29 @@ async function apiRequest(endpoint, options = {}) {
     };
 
     const response = await fetch(url, config);
-    const data = await response.json();
+    
+    // Check if response has content before parsing JSON
+    const contentType = response.headers.get('content-type');
+    const hasJsonContent = contentType && contentType.includes('application/json');
+    
+    let data;
+    if (hasJsonContent) {
+      const text = await response.text();
+      if (text.trim()) {
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error(`JSON Parse Error [${endpoint}]:`, parseError, 'Response text:', text);
+          throw new Error(`Invalid JSON response: ${parseError.message}`);
+        }
+      } else {
+        // Empty response body
+        data = {};
+      }
+    } else {
+      // Non-JSON response
+      data = {};
+    }
 
     if (!response.ok) {
       throw new Error(data.error || `API Error: ${response.status} ${response.statusText}`);
@@ -179,7 +201,7 @@ export const submitFeedback = async (feedbackData) => {
  * @param {string} identifier.userId - User ID
  * @param {string} identifier.phone - Phone number
  * @param {string} identifier.email - Email
- * @returns {Promise<Object>}
+ * @returns {Promise<Object|null>} User object or null
  */
 export const getUser = async (identifier) => {
   try {
@@ -189,7 +211,21 @@ export const getUser = async (identifier) => {
     if (identifier.email) params.set('email', identifier.email);
     
     if (params.toString()) {
-      return await apiRequest(`/api/users?${params.toString()}&limit=1`);
+      const response = await apiRequest(`/api/users?${params.toString()}&limit=1`);
+      // API returns { users: [...] } format
+      if (response && response.users && Array.isArray(response.users) && response.users.length > 0) {
+        const user = response.users[0];
+        return {
+          id: user.id,
+          name: user.name || user.full_name,
+          email: user.email,
+          phone: user.phone,
+          state: user.state,
+          city: user.city,
+          status: user.status,
+        };
+      }
+      return null;
     }
     return null;
   } catch (error) {
@@ -251,14 +287,29 @@ export const getUserTheme = async (identifier) => {
  * @param {string} data.userId - User ID (optional)
  * @param {string} data.phone - Phone number (optional)
  * @param {string} data.email - Email (optional)
- * @param {string} data.theme - Theme ID
+ * @param {string} data.theme - Theme ID (or data.themeId will be mapped to theme)
  * @returns {Promise<Object>}
  */
 export const updateUserTheme = async (data) => {
   try {
+    // Map themeId to theme if provided (for backward compatibility)
+    const requestData = {
+      userId: data.userId,
+      phone: data.phone,
+      email: data.email,
+      theme: data.theme || data.themeId, // Support both 'theme' and 'themeId'
+    };
+    
+    // Remove undefined values
+    Object.keys(requestData).forEach(key => {
+      if (requestData[key] === undefined) {
+        delete requestData[key];
+      }
+    });
+    
     return await apiRequest('/api/user/theme', {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestData),
     });
   } catch (error) {
     console.error('Error updating user theme:', error);

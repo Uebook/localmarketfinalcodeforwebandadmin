@@ -4,9 +4,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { TOP_8_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
+  const COLORS = useThemeColors();
   const displayCategories = categories && categories.length > 0 ? categories : TOP_8_CATEGORIES;
 
   const handleCategoryPress = (category) => {

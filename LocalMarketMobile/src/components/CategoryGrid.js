@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native
 import Icon from 'react-native-vector-icons/Feather';
 import { ALL_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 // Map categories to solid colors matching the design
 const colorMap = {
@@ -72,6 +72,7 @@ const getCategoryIcon = (iconName) => {
 };
 
 const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
+  const COLORS = useThemeColors();
   const displayCategories = categories && categories.length > 0 ? categories : ALL_CATEGORIES;
 
   const renderCategory = ({ item, index }) => {

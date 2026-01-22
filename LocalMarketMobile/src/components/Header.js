@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const Header = ({ 
   locationState, 
@@ -13,6 +13,8 @@ const Header = ({
   onNotificationClick,
   notificationCount = 2
 }) => {
+  const COLORS = useThemeColors();
+  
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.header}>

@@ -8,9 +8,10 @@ import SearchResults from './SearchResults';
 import RecentSearches from './RecentSearches';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const SearchScreen = ({ navigation, route }) => {
+  const COLORS = useThemeColors();
   const [searchQuery, setSearchQuery] = useState(route?.params?.query || null);
   const [savedIds, setSavedIds] = useState([]);
   const [locationState] = useState({

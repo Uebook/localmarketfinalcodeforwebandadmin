@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getStates, getCities, getTowns, getTehsils, getSubTehsils } from '../constants/locations';
 
 const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {} }) => {
+  const COLORS = useThemeColors();
   const [selectedState, setSelectedState] = useState(initialLocation.state || '');
   const [selectedCity, setSelectedCity] = useState(initialLocation.city || '');
   const [selectedTown, setSelectedTown] = useState(initialLocation.town || '');

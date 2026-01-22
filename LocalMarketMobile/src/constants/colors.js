@@ -1,4 +1,5 @@
-export const COLORS = {
+// Define COLORS object - use CommonJS for Metro bundler compatibility
+const COLORS = {
   // Brand
   orange: '#E86A2C',
   blue: '#4A6CF7',
@@ -38,3 +39,9 @@ export const COLORS = {
   danger: '#DC2626',
   success: '#16A34A',
 };
+
+// Pure CommonJS export - Metro bundler compatible
+// DO NOT mix CommonJS and ES6 exports - Metro bundler has issues with this
+module.exports = COLORS;
+module.exports.COLORS = COLORS;
+module.exports.default = COLORS;

@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const SearchBar = ({ onSearch }) => {
+  const COLORS = useThemeColors();
   const [query, setQuery] = useState('');
 
   const handleSearch = () => {

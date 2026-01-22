@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-import { COLORS } from '../constants/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { launchImageLibrary } from 'react-native-image-picker';
 import LocationPicker from './LocationPicker';
 import { formatLocation } from '../constants/locations';
@@ -13,6 +13,7 @@ import { generateVendorId } from '../utils/paymentUtils';
 const SERVICE_TYPES = ['Carpenter', 'Plumber', 'Electrician', 'Painter', 'Mechanic', 'AC Repair', 'Other'];
 
 const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
+  const COLORS = useThemeColors();
   const [step, setStep] = useState(1);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [formData, setFormData] = useState({
