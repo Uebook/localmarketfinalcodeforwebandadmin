@@ -10,17 +10,9 @@ import SearchBar from './SearchBar';
 import TopCategoriesGrid from './TopCategoriesGrid';
 import NearbySection from './NearbySection';
 import CategoryBusinessSection from './CategoryBusinessSection';
-import { TOP_8_CATEGORIES } from '../constants/categories';
 import HorizontalSection from './HorizontalSection';
 import RecentSearches from './RecentSearches';
 import PromoCarousel from './PromoCarousel';
-import {
-  HOME_SERVICES,
-  EDUCATION_SERVICES,
-  DAILY_ESSENTIALS,
-  HEALTH_FITNESS,
-  BEAUTY_SPA,
-} from '../constants';
 import { getCategories } from '../services/api';
 
 const HomeScreen = ({ navigation, route }) => {
@@ -59,8 +51,8 @@ const HomeScreen = ({ navigation, route }) => {
       }
     } catch (error) {
       console.error('Error loading categories:', error);
-      // Fallback to constants
-      setCategories(TOP_8_CATEGORIES);
+      // No fallback - show empty state if categories fail to load
+      setCategories([]);
     }
   };
 
@@ -135,16 +127,18 @@ const HomeScreen = ({ navigation, route }) => {
       >
         <SearchBar onSearch={handleSearch} navigation={navigation} />
 
-        <TopCategoriesGrid
-          categories={categories.length > 0 ? categories.slice(0, 8) : TOP_8_CATEGORIES}
-          onCategorySelect={handleCategorySelect}
-          onViewAll={handleViewAllCategories}
-        />
+        {categories.length > 0 && (
+          <TopCategoriesGrid
+            categories={categories.slice(0, 8)}
+            onCategorySelect={handleCategorySelect}
+            onViewAll={handleViewAllCategories}
+          />
+        )}
 
         <PromoCarousel />
 
         {/* Category-based Business Sections */}
-        {(categories.length > 0 ? categories : TOP_8_CATEGORIES).slice(0, 4).map((category) => (
+        {categories.length > 0 && categories.slice(0, 4).map((category) => (
           <CategoryBusinessSection
             key={category.id}
             categoryId={category.id}
@@ -172,8 +166,8 @@ const HomeScreen = ({ navigation, route }) => {
 
         <HorizontalSection
           title="Home Services"
-          items={HOME_SERVICES}
           onItemClick={handleCategorySelect}
+          onVendorClick={handleBusinessClick}
           containerClass="bg-black/60"
         />
 
@@ -181,22 +175,22 @@ const HomeScreen = ({ navigation, route }) => {
 
         <HorizontalSection
           title="Education"
-          items={EDUCATION_SERVICES}
           onItemClick={handleCategorySelect}
+          onVendorClick={handleBusinessClick}
           containerClass="bg-black/60"
         />
 
         <HorizontalSection
           title="Daily Essentials"
-          items={DAILY_ESSENTIALS}
           onItemClick={handleCategorySelect}
+          onVendorClick={handleBusinessClick}
           containerClass="bg-black/60"
         />
 
         <HorizontalSection
           title="Health & Fitness"
-          items={HEALTH_FITNESS}
           onItemClick={handleCategorySelect}
+          onVendorClick={handleBusinessClick}
           containerClass="bg-black/60"
         />
 
@@ -204,8 +198,8 @@ const HomeScreen = ({ navigation, route }) => {
 
         <HorizontalSection
           title="Beauty & Spa"
-          items={BEAUTY_SPA}
           onItemClick={handleCategorySelect}
+          onVendorClick={handleBusinessClick}
           containerClass="bg-black/60"
           isCircular={true}
         />

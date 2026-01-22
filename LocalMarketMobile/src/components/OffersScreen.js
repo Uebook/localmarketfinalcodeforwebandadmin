@@ -143,6 +143,7 @@ const OffersScreen = ({ navigation, locationState }) => {
     const businessName = offer.businessName || 'Special Offer';
     const businessId = offer.businessId || offer.id;
     const discountText = offer.discount > 0 ? `${offer.discount}% OFF` : 'Special Offer';
+    const offerTitle = (offer.title || 'Special Offer').toLowerCase();
 
     return (
       <TouchableOpacity
@@ -152,32 +153,43 @@ const OffersScreen = ({ navigation, locationState }) => {
       >
         <View style={styles.offerBlur} />
         <View style={styles.offerContent}>
-          <View style={styles.offerHeader}>
-            <Text style={styles.offerTitle}>{offer.title}</Text>
-            <View style={styles.businessBadge}>
-              <Icon name={getIconName('Store')} size={12} color="#ffffff" />
-              <Text style={styles.businessBadgeText}>{businessName}</Text>
+          {/* Top Right Badge */}
+          <View style={styles.festiveBadge}>
+            <Icon name={getIconName('Gift')} size={12} color="#ffffff" />
+            <Text style={styles.festiveBadgeText}>Festive Offer</Text>
+          </View>
+
+          {/* Top Left Section */}
+          <View style={styles.offerTopSection}>
+            <View style={styles.offerTitleSection}>
+              <Text style={styles.offerTitle}>{offerTitle}</Text>
+              <Text style={styles.offerDescription}>{offer.description || `Get ${offer.discount || 0}% off`}</Text>
             </View>
           </View>
-          <Text style={styles.offerDescription}>{offer.description}</Text>
-          {offer.discount > 0 && (
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>{discountText}</Text>
+
+          {/* Bottom Section with Badges and Button */}
+          <View style={styles.offerBottomSection}>
+            <View style={styles.badgesContainer}>
+              {offer.discount > 0 && (
+                <View style={styles.discountBadge}>
+                  <Text style={styles.discountBadgeText}>{discountText}</Text>
+                </View>
+              )}
+              {offer.code && (
+                <View style={styles.offerCodeContainer}>
+                  <Icon name={getIconName('Tag')} size={14} color="#ffffff" />
+                  <Text style={styles.offerCode}>{offer.code}</Text>
+                </View>
+              )}
             </View>
-          )}
-          {offer.code && (
-            <View style={styles.offerCodeContainer}>
-              <Icon name={getIconName('Tag')} size={16} color="#ffffff" />
-              <Text style={styles.offerCode}>{offer.code}</Text>
-            </View>
-          )}
-          <TouchableOpacity
-            style={styles.redeemButton}
-            onPress={() => handleOfferClick(businessId, offer)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.redeemButtonText}>Redeem Now</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.redeemButton}
+              onPress={() => handleOfferClick(businessId, offer)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.redeemButtonText}>Redeem Now</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -290,7 +302,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   offerCard: {
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     marginBottom: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -299,6 +311,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     elevation: 8,
     overflow: 'hidden',
     position: 'relative',
+    minHeight: 200,
   },
   offerBlur: {
     position: 'absolute',
@@ -312,79 +325,108 @@ const createStyles = (COLORS) => StyleSheet.create({
   offerContent: {
     position: 'relative',
     zIndex: 10,
-  },
-  offerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
-  offerTitle: {
     flex: 1,
-    fontSize: 24,
-    fontWeight: '900',
-    fontStyle: 'italic',
-    color: '#ffffff',
-    marginRight: 8,
+    justifyContent: 'space-between',
+    minHeight: 200,
   },
-  businessBadge: {
+  festiveBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  businessBadgeText: {
+  festiveBadgeText: {
     fontSize: 10,
     fontWeight: '700',
     color: '#ffffff',
   },
+  offerTopSection: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingTop: 8,
+  },
+  offerTitleSection: {
+    marginBottom: 8,
+  },
+  offerTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#ffffff',
+    marginBottom: 4,
+    textTransform: 'lowercase',
+  },
   offerDescription: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
+  },
+  offerBottomSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 'auto',
+  },
+  badgesContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    flex: 1,
+  },
+  discountBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  discountBadgeText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: 16,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: 0.5,
   },
   offerCodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 8,
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderStyle: 'dashed',
-    alignSelf: 'flex-start',
-    marginBottom: 12,
   },
   offerCode: {
     fontSize: 14,
     fontWeight: '700',
     color: '#ffffff',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     fontFamily: 'monospace',
   },
   redeemButton: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
     backgroundColor: COLORS.white,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+    marginLeft: 12,
   },
   redeemButtonText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#9333ea', // Purple color for redeem button text
   },
   footer: {
     alignItems: 'center',
@@ -420,20 +462,6 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginTop: 12,
     fontSize: 14,
     color: COLORS.textMuted,
-  },
-  discountBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  discountText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: 1,
   },
 });
 
