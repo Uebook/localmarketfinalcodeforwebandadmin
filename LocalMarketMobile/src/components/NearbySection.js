@@ -119,10 +119,25 @@ const NearbySection = ({ onBusinessClick, locationState }) => {
                 </View>
 
                 <View style={styles.actionButtons}>
-                  <TouchableOpacity style={styles.viewButton} activeOpacity={0.7}>
+                  <TouchableOpacity 
+                    style={styles.viewButton} 
+                    activeOpacity={0.7}
+                    onPress={() => onBusinessClick && onBusinessClick(business)}
+                  >
                     <Text style={styles.viewButtonText}>View Details</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.callButton} activeOpacity={0.7}>
+                  <TouchableOpacity 
+                    style={styles.callButton} 
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      // Handle call action
+                      const phone = business.contactNumber || business.phone;
+                      if (phone) {
+                        // In a real app, use Linking.openURL(`tel:${phone}`)
+                        console.log('Call:', phone);
+                      }
+                    }}
+                  >
                     <Icon name={getIconName('Phone')} size={18} color="#ffffff" />
                   </TouchableOpacity>
                 </View>
@@ -168,16 +183,16 @@ const styles = StyleSheet.create({
   },
   businessCard: {
     width: 288,
-    backgroundColor: 'transparent', // Removed brown background
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
   imageContainer: {
     height: 160,
@@ -245,12 +260,12 @@ const styles = StyleSheet.create({
   },
   viewButton: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#F1F5F9',
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#E2E8F0',
   },
   viewButtonText: {
     fontSize: 12,
