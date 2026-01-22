@@ -6,6 +6,7 @@ import { getVendors } from '../services/api';
 
 const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, onViewAll }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -113,13 +114,13 @@ const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, on
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     paddingVertical: 16,
     marginVertical: 8,
     marginHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'transparent', // Removed dark background
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
