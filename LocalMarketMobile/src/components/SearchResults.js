@@ -40,7 +40,6 @@ const SearchResults = ({
     const sliderTrackRef = useRef(null);
     const [sliderWidth, setSliderWidth] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         loadSearchData();
