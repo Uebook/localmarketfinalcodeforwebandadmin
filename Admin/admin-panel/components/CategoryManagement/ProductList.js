@@ -36,7 +36,7 @@ export default function ProductList() {
         if (categories.length > 0 || categoryMap.size > 0) {
             loadProducts();
         }
-    }, [searchQuery, selectedCategory, selectedVendor, currentPage]);
+    }, [searchQuery, selectedCategory, currentPage]);
 
     const loadCategories = async () => {
         try {
@@ -85,7 +85,6 @@ export default function ProductList() {
             const params = new URLSearchParams();
             if (searchQuery) params.set('q', searchQuery);
             if (selectedCategory) params.set('categoryId', selectedCategory);
-            if (selectedVendor) params.set('vendorId', selectedVendor);
             params.set('limit', itemsPerPage.toString());
             params.set('offset', ((currentPage - 1) * itemsPerPage).toString());
 
@@ -280,8 +279,8 @@ export default function ProductList() {
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Vendor Products ({products.length})</h2>
-                        <p className="text-sm text-gray-600 mt-1">View and manage all vendor products with prices</p>
+                        <h2 className="text-xl font-bold text-gray-900">Master Products ({products.length})</h2>
+                        <p className="text-sm text-gray-600 mt-1">View and manage all master products</p>
                     </div>
                     <div className="flex gap-2">
                         {products.length > 0 && (
@@ -412,11 +411,10 @@ export default function ProductList() {
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Brand</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">UOM</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">MRP</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Default MRP</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                     </tr>
                                 </thead>
@@ -425,8 +423,22 @@ export default function ProductList() {
                                         <tr key={product.id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4">
                                                 <div className="relative w-16 h-16">
-                                                    {/* Vendor products don't have image_url directly, can be added later */}
-                                                    <div className="image-placeholder w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                                                    {product.image_url ? (
+                                                        <img
+                                                            src={product.image_url}
+                                                            alt={product.name}
+                                                            className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                if (e.target.nextSibling) {
+                                                                    e.target.nextSibling.style.display = 'flex';
+                                                                }
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div 
+                                                        className={`image-placeholder w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center ${product.image_url ? 'hidden' : ''}`}
+                                                    >
                                                         <span className="text-gray-400 text-xs">No Image</span>
                                                     </div>
                                                 </div>
@@ -435,7 +447,7 @@ export default function ProductList() {
                                                 <div className="text-sm font-medium text-gray-900">{product.name}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="text-sm font-medium text-blue-700">{product.vendor_name || '-'}</span>
+                                                <span className="text-sm text-gray-700">{product.brand || '-'}</span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="text-sm text-gray-700">
@@ -446,13 +458,8 @@ export default function ProductList() {
                                                 <span className="text-sm text-gray-700">{product.uom || '-'}</span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="text-sm font-medium text-green-700">
-                                                    {product.price ? `₹${product.price}` : '-'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-sm font-medium text-gray-900">
-                                                    {product.mrp ? `₹${product.mrp}` : '-'}
+                                                <span className="text-sm font-medium text-gray-700">
+                                                    {product.default_mrp ? `₹${product.default_mrp}` : '-'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
