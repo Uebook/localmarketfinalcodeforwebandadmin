@@ -30,6 +30,8 @@ function normalizeVendor(v) {
         address: v.address ?? '',
         landmark: v.landmark ?? '',
         pincode: v.pincode ?? '',
+        imageUrl: v.imageUrl ?? v.image_url ?? v.shopFrontPhotoUrl ?? v.shop_front_photo_url ?? null,
+        shopFrontPhotoUrl: v.shopFrontPhotoUrl ?? v.shop_front_photo_url ?? v.imageUrl ?? v.image_url ?? null,
     };
 }
 

@@ -394,6 +394,9 @@ export default function VendorList({ onViewProfile }) {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Image
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Vendor Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -425,6 +428,28 @@ export default function VendorList({ onViewProfile }) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {vendors.map((vendor) => (
                     <tr key={vendor.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="relative w-16 h-16">
+                          {vendor.imageUrl || vendor.shopFrontPhotoUrl ? (
+                            <img
+                              src={vendor.imageUrl || vendor.shopFrontPhotoUrl}
+                              alt={vendor.name || 'Vendor'}
+                              className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                if (e.target.nextSibling) {
+                                  e.target.nextSibling.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          ) : null}
+                          <div 
+                            className={`image-placeholder w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center ${vendor.imageUrl || vendor.shopFrontPhotoUrl ? 'hidden' : ''}`}
+                          >
+                            <span className="text-gray-400 text-xs">No Image</span>
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{vendor.name || '-'}</div>
                       </td>
