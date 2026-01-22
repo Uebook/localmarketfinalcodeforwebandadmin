@@ -163,7 +163,10 @@ const SearchResults = ({
     // Transform vendors to business format
     const transformVendorToBusiness = (vendor) => {
         // Calculate distance (mock for now, can be enhanced with actual location)
-        const distance = vendor.city ? `${Math.floor(Math.random() * 10) + 1}.0 km` : 'Nearby';
+        // Use a consistent distance based on vendor ID to avoid random changes on re-render
+        const vendorIdNum = parseInt(String(vendor.id).replace(/\D/g, '')) || 0;
+        const distanceValue = (vendorIdNum % 50) + 1; // Range: 1-50 km
+        const distance = vendor.city ? `${distanceValue}.0 km` : 'Nearby';
 
         return {
             id: vendor.id,
@@ -259,13 +262,19 @@ const SearchResults = ({
         }
     };
 
-    const handleSliderMove = (gestureState) => {
+    const handleSliderMove = (evt) => {
         if (sliderWidth === 0) return;
 
-        const { locationX } = gestureState;
+        // Get the touch position relative to the slider track
+        const { locationX } = evt.nativeEvent || evt;
+        if (locationX === undefined) return;
+
         const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
         const newDistance = Math.round(1 + percentage * 49); // Range: 1 to 50 km
-        setMaxDistance(newDistance);
+        
+        if (newDistance !== maxDistance) {
+            setMaxDistance(newDistance);
+        }
     };
 
     const panResponder = useRef(
@@ -273,13 +282,30 @@ const SearchResults = ({
             onStartShouldSetPanResponder: () => true,
             onMoveShouldSetPanResponder: () => true,
             onPanResponderGrant: (evt) => {
-                handleSliderMove(evt.nativeEvent);
+                handleSliderMove(evt);
             },
             onPanResponderMove: (evt) => {
-                handleSliderMove(evt.nativeEvent);
+                handleSliderMove(evt);
+            },
+            onPanResponderRelease: () => {
+                // Optional: Add any cleanup or final actions
             },
         })
     ).current;
+
+    const handleSliderPress = (evt) => {
+        if (sliderWidth === 0) return;
+        
+        const { locationX } = evt.nativeEvent;
+        if (locationX === undefined) return;
+        
+        const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
+        const newDistance = Math.round(1 + percentage * 49);
+        
+        if (newDistance !== maxDistance) {
+            setMaxDistance(newDistance);
+        }
+    };
 
     const renderBusinessCard = ({ item, index }) => {
         const isSaved = savedIds.includes(item.id);
@@ -476,6 +502,14 @@ const SearchResults = ({
                                 }}
                                 {...panResponder.panHandlers}
                             >
+                                <TouchableOpacity
+                                    activeOpacity={1}
+                                    onPress={handleSliderPress}
+                                    style={StyleSheet.absoluteFill}
+                                />
+                                {/* Background track */}
+                                <View style={styles.sliderTrackBackground} />
+                                {/* Filled portion */}
                                 <View
                                     style={[
                                         styles.sliderFill,
@@ -484,6 +518,7 @@ const SearchResults = ({
                                         }
                                     ]}
                                 />
+                                {/* Thumb */}
                                 <View
                                     style={[
                                         styles.sliderThumb,
@@ -734,18 +769,29 @@ const createStyles = (COLORS) => StyleSheet.create({
     },
     sliderTrack: {
         flex: 1,
-        height: 6,
-        backgroundColor: '#E5E7EB', // Light grey
+        height: 40, // Increased height for better touch target
+        backgroundColor: 'transparent',
         borderRadius: 3,
         position: 'relative',
         justifyContent: 'center',
+        overflow: 'visible',
+    },
+    sliderTrackBackground: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        height: 6,
+        backgroundColor: '#E5E7EB', // Light grey background track
+        borderRadius: 3,
+        top: 17, // Center vertically (40/2 - 6/2 = 17)
     },
     sliderFill: {
         position: 'absolute',
         left: 0,
-        height: '100%',
+        height: 6,
         backgroundColor: '#dc2626', // Red
         borderRadius: 3,
+        top: 17, // Center vertically
     },
     sliderThumb: {
         position: 'absolute',
@@ -760,6 +806,7 @@ const createStyles = (COLORS) => StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 3,
         elevation: 3,
+        top: 12, // Center vertically (40/2 - 16/2 = 12)
     },
     resultsHeader: {
         paddingHorizontal: 16,
