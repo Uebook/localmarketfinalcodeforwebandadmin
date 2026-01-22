@@ -20,21 +20,9 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.title}>Top Categories</Text>
-            <Text style={styles.subtitle}>Most frequent search, daily need, guaranteed usage</Text>
-          </View>
-          {onViewAll && (
-            <TouchableOpacity 
-              onPress={onViewAll} 
-              style={styles.viewAllButton}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.viewAllText}>View All</Text>
-              <Icon name={getIconName('ChevronRight')} size={16} color={COLORS.orange} />
-            </TouchableOpacity>
-          )}
+        <View>
+          <Text style={styles.title}>Top Categories</Text>
+          <Text style={styles.subtitle}>Most frequent search, daily need, guaranteed usage</Text>
         </View>
       </View>
       <View style={styles.grid}>
@@ -58,6 +46,21 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
             </Text>
           </TouchableOpacity>
         ))}
+        {/* View All button as last item in grid */}
+        {onViewAll && (
+          <TouchableOpacity
+            style={styles.categoryCard}
+            onPress={onViewAll}
+            activeOpacity={0.7}
+          >
+            <View style={styles.viewAllIconContainer}>
+              <Icon name={getIconName('ChevronRight')} size={24} color={COLORS.orange} />
+            </View>
+            <Text style={styles.viewAllCategoryText} numberOfLines={2}>
+              View All
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -65,16 +68,22 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
 
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    padding: 16,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   header: {
     marginBottom: 16,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
   title: {
     fontSize: 20,
@@ -86,21 +95,26 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 12,
     color: COLORS.textMuted,
   },
-  viewAllButton: {
-    flexDirection: 'row',
+  viewAllIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    borderWidth: 1,
+    justifyContent: 'center',
+    marginBottom: 8,
+    backgroundColor: '#FFF7ED',
+    borderWidth: 2,
     borderColor: COLORS.orange,
+    borderStyle: 'dashed',
   },
-  viewAllText: {
-    fontSize: 12,
-    fontWeight: '700',
+  viewAllCategoryText: {
+    fontSize: 10,
+    fontWeight: '600',
     color: COLORS.orange,
+    textAlign: 'center',
+    lineHeight: 13,
+    maxWidth: '100%',
+    paddingHorizontal: 2,
   },
   grid: {
     flexDirection: 'row',
