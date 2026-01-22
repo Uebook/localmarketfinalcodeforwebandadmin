@@ -80,7 +80,7 @@ export async function PATCH(req) {
     const id = toStr(body?.id);
     const status = toStr(body?.status);
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 });
-    if (!status && !body?.full_name && !body?.email && !body?.phone && !body?.state && !body?.city) {
+    if (!status && !body?.full_name && !body?.email && !body?.phone && !body?.state && !body?.city && !body?.selected_theme && !body?.theme) {
       return Response.json({ error: 'At least one field to update is required' }, { status: 400 });
     }
 
@@ -92,6 +92,8 @@ export async function PATCH(req) {
     if (body?.phone !== undefined) patch.phone = toStr(body.phone);
     if (body?.state !== undefined) patch.state = toStr(body.state) || null;
     if (body?.city !== undefined) patch.city = toStr(body.city) || null;
+    if (body?.selected_theme !== undefined) patch.selected_theme = toStr(body.selected_theme) || null;
+    if (body?.theme !== undefined) patch.selected_theme = toStr(body.theme) || null; // Support 'theme' as alias
 
     const updated = await supabaseRestPatch(`/rest/v1/users?id=eq.${encodeURIComponent(id)}`, patch);
     const user = Array.isArray(updated) && updated[0] ? normalizeUser(updated[0]) : null;
