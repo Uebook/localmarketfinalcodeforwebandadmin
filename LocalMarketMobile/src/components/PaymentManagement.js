@@ -9,6 +9,7 @@ import { PAYMENT_PLANS, PAYMENT_STATUS, getPlanDisplayName } from '../utils/paym
 
 const PaymentManagement = ({ navigation, vendorData, onUpdateVendor }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [selectedPlan, setSelectedPlan] = useState(vendorData?.paymentInfo?.subscriptionPlan || PAYMENT_PLANS.MONTHLY);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -254,7 +255,7 @@ const PaymentManagement = ({ navigation, vendorData, onUpdateVendor }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',

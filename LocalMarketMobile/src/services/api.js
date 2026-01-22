@@ -20,11 +20,11 @@ async function apiRequest(endpoint, options = {}) {
     };
 
     const response = await fetch(url, config);
-    
+
     // Check if response has content before parsing JSON
     const contentType = response.headers.get('content-type');
     const hasJsonContent = contentType && contentType.includes('application/json');
-    
+
     let data;
     if (hasJsonContent) {
       const text = await response.text();
@@ -120,10 +120,10 @@ export const getFestiveOffers = async (filters = {}) => {
   try {
     const params = new URLSearchParams();
     if (filters.status) params.set('status', filters.status);
-    
+
     const queryString = params.toString();
     const response = await apiRequest(`/api/festive-offers${queryString ? `?${queryString}` : ''}`);
-    
+
     // API returns array directly, not wrapped in {offers: []}
     if (Array.isArray(response)) {
       return response;
@@ -167,7 +167,7 @@ export const getLocations = async (filters = {}) => {
     if (filters.state) params.set('state', filters.state);
     if (filters.city) params.set('city', filters.city);
     if (filters.limit) params.set('limit', Math.min(filters.limit, 2000).toString());
-    
+
     const queryString = params.toString();
     return await apiRequest(`/api/locations${queryString ? `?${queryString}` : ''}`);
   } catch (error) {
@@ -209,7 +209,7 @@ export const getUser = async (identifier) => {
     if (identifier.userId) params.set('userId', identifier.userId);
     if (identifier.phone) params.set('phone', identifier.phone);
     if (identifier.email) params.set('email', identifier.email);
-    
+
     if (params.toString()) {
       const response = await apiRequest(`/api/users?${params.toString()}&limit=1`);
       // API returns { users: [...] } format
@@ -269,7 +269,7 @@ export const getUserTheme = async (identifier) => {
     if (identifier.userId) params.set('userId', identifier.userId);
     if (identifier.phone) params.set('phone', identifier.phone);
     if (identifier.email) params.set('email', identifier.email);
-    
+
     if (params.toString()) {
       return await apiRequest(`/api/user/theme?${params.toString()}`);
     }
@@ -299,14 +299,14 @@ export const updateUserTheme = async (data) => {
       email: data.email,
       theme: data.theme || data.themeId, // Support both 'theme' and 'themeId'
     };
-    
+
     // Remove undefined values
     Object.keys(requestData).forEach(key => {
       if (requestData[key] === undefined) {
         delete requestData[key];
       }
     });
-    
+
     return await apiRequest('/api/user/theme', {
       method: 'PATCH',
       body: JSON.stringify(requestData),
@@ -328,6 +328,7 @@ export const updateUserTheme = async (data) => {
  * @param {string} filters.city - Filter by city
  * @param {string} filters.town - Filter by town
  * @param {string} filters.category - Filter by category (if available)
+ * @param {string} filters.categoryId - Filter by category ID (will filter vendors with products in this category)
  * @param {number} filters.page - Page number (default: 1)
  * @param {number} filters.limit - Items per page (default: 20, max: 100)
  * @returns {Promise<{vendors: Array, pagination: Object}>}
@@ -340,9 +341,11 @@ export const getVendors = async (filters = {}) => {
     if (filters.state) params.set('state', filters.state);
     if (filters.city) params.set('city', filters.city);
     if (filters.town) params.set('town', filters.town);
+    if (filters.category) params.set('category', filters.category);
     if (filters.page) params.set('page', filters.page.toString());
     if (filters.limit) params.set('limit', Math.min(filters.limit, 100).toString());
-    
+    // Note: categoryId is handled client-side by filtering vendors with products in that category
+
     const queryString = params.toString();
     return await apiRequest(`/api/vendors${queryString ? `?${queryString}` : ''}`);
   } catch (error) {
@@ -360,12 +363,22 @@ export const getVendors = async (filters = {}) => {
  */
 export const getVendorProducts = async (vendorId) => {
   try {
-    if (!vendorId) {
+    if (!vendorId || vendorId.trim() === '') {
+      console.warn('getVendorProducts: Invalid vendorId provided');
       return { products: [] };
     }
-    return await apiRequest(`/api/vendor-products?vendorId=${encodeURIComponent(vendorId)}`);
+
+    const response = await apiRequest(`/api/vendor-products?vendorId=${encodeURIComponent(vendorId)}`);
+
+    // Ensure we always return an array
+    if (response && Array.isArray(response.products)) {
+      return { products: response.products };
+    }
+
+    return { products: [] };
   } catch (error) {
     console.error('Error getting vendor products:', error);
+    // Return empty array instead of throwing to prevent app crashes
     return { products: [] };
   }
 };
@@ -384,7 +397,7 @@ export const getMasterProducts = async (filters = {}) => {
     if (filters.q) params.set('q', filters.q);
     if (filters.categoryId) params.set('categoryId', filters.categoryId);
     if (filters.limit) params.set('limit', filters.limit.toString());
-    
+
     const queryString = params.toString();
     return await apiRequest(`/api/master-products${queryString ? `?${queryString}` : ''}`);
   } catch (error) {
@@ -411,7 +424,7 @@ export const getVendorProductsList = async (filters = {}) => {
     if (filters.categoryId) params.set('categoryId', filters.categoryId);
     if (filters.limit) params.set('limit', filters.limit.toString());
     if (filters.offset) params.set('offset', filters.offset.toString());
-    
+
     const queryString = params.toString();
     return await apiRequest(`/api/vendor-products/list${queryString ? `?${queryString}` : ''}`);
   } catch (error) {
@@ -481,7 +494,7 @@ export const getSearchReports = async (filters = {}) => {
     const params = new URLSearchParams();
     if (filters.state) params.set('state', filters.state);
     if (filters.city) params.set('city', filters.city);
-    
+
     const queryString = params.toString();
     return await apiRequest(`/api/reports/search${queryString ? `?${queryString}` : ''}`);
   } catch (error) {
@@ -502,11 +515,11 @@ export const getRecentSearches = async (filters = {}) => {
     // Note: This uses search reports API which returns search logs
     // In production, you might want a dedicated endpoint for recent searches
     const reports = await getSearchReports(filters);
-    
+
     // Extract unique search queries and sort by most recent
     const uniqueSearches = [];
     const seenQueries = new Set();
-    
+
     if (Array.isArray(reports)) {
       reports.forEach(report => {
         if (report.product && !seenQueries.has(report.product.toLowerCase())) {
@@ -518,7 +531,7 @@ export const getRecentSearches = async (filters = {}) => {
         }
       });
     }
-    
+
     // Limit results
     const limit = filters.limit || 10;
     return uniqueSearches.slice(0, limit);
@@ -561,7 +574,7 @@ export const getVendorReviews = async (vendorId) => {
 export const submitReview = async (reviewData) => {
   try {
     const { vendorId, userId, userName, rating, comment } = reviewData;
-    
+
     if (!vendorId || !userName || !rating || !comment) {
       throw new Error('Missing required review fields');
     }

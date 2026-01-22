@@ -12,6 +12,7 @@ import { handleShare, handlePreview } from '../utils/vendorActions';
 
 const VendorReviewsScreen = ({ navigation, vendorData }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [locationState] = React.useState({
     lat: null,
     lng: null,
@@ -219,7 +220,7 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',

@@ -14,6 +14,7 @@ const LocationSelector = ({
   showCircle = false
 }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [location, setLocation] = useState({
     state: initialLocation.state || '',
     city: initialLocation.city || '',
@@ -263,7 +264,7 @@ const LocationSelector = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',

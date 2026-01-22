@@ -186,7 +186,7 @@ export default function UserManagement() {
       // Reset dependent filters
       if (key === 'state') {
         newFilters.city = 'All';
-      }
+    }
       return newFilters;
     });
   };
@@ -266,33 +266,33 @@ export default function UserManagement() {
             >
               📤 Import Users
             </button>
-            {users.length > 0 && (
-              <button
-                onClick={async () => {
-                  try {
-                    const params = new URLSearchParams();
-                    if (filterStatus !== 'all') params.set('status', filterStatus === 'Inactive' ? 'Blocked' : filterStatus);
-                    if (searchQuery) params.set('q', searchQuery);
-                    const res = await fetch(`/api/users/export?${params.toString()}`, { cache: 'no-store' });
-                    if (!res.ok) throw new Error('Failed to export');
-                    const blob = await res.blob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `users_export_${new Date().toISOString().split('T')[0]}.xlsx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    URL.revokeObjectURL(url);
-                  } catch (e) {
-                    alert(`Failed to export: ${e.message}`);
-                  }
-                }}
-                className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                📥 Export Users
-              </button>
-            )}
+          {users.length > 0 && (
+            <button
+              onClick={async () => {
+                try {
+                  const params = new URLSearchParams();
+                  if (filterStatus !== 'all') params.set('status', filterStatus === 'Inactive' ? 'Blocked' : filterStatus);
+                  if (searchQuery) params.set('q', searchQuery);
+                  const res = await fetch(`/api/users/export?${params.toString()}`, { cache: 'no-store' });
+                  if (!res.ok) throw new Error('Failed to export');
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `users_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(url);
+                } catch (e) {
+                  alert(`Failed to export: ${e.message}`);
+                }
+              }}
+              className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              📥 Export Users
+            </button>
+          )}
           </div>
         </div>
         
@@ -469,10 +469,10 @@ export default function UserManagement() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       User Name
                     </th>
@@ -497,8 +497,8 @@ export default function UserManagement() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
-                  </tr>
-                </thead>
+              </tr>
+            </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {users.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
@@ -510,18 +510,18 @@ export default function UserManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-700">{user.phone || '-'}</div>
-                    </td>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-700">
                         {[user.city, user.state].filter(Boolean).join(', ') || '-'}
-                      </div>
-                    </td>
+                    </div>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-700">{formatJoined(user.joinedDate)}</div>
-                    </td>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-700">{formatLastActive(user.lastActiveAt)}</div>
-                    </td>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select
                         value={user.status || 'Active'}
@@ -540,25 +540,25 @@ export default function UserManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2">
-                        <button
+                      <button
                           onClick={() => handleEdit(user)}
                           className="text-blue-600 hover:text-blue-900 font-medium"
-                        >
+                      >
                           Edit
-                        </button>
-                        <button
+                      </button>
+                      <button
                           onClick={() => handleViewDetails(user)}
                           className="text-green-600 hover:text-green-900 font-medium"
-                        >
+                      >
                           View
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
           
           {/* Pagination Controls */}
           {pagination.totalPages > 0 && (

@@ -4,6 +4,13 @@ function toStr(v) {
   return typeof v === 'string' ? v.trim() : '';
 }
 
+function toNum(v) {
+  // Convert to number or null (for empty strings)
+  if (v === null || v === undefined || v === '') return null;
+  const num = typeof v === 'string' ? parseFloat(v.trim()) : Number(v);
+  return isNaN(num) ? null : num;
+}
+
 export async function PATCH(req) {
   try {
     const body = await req.json().catch(() => null);
@@ -12,7 +19,7 @@ export async function PATCH(req) {
     const kycStatus = toStr(body?.kycStatus);
 
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 });
-    if (!status && !kycStatus && !body?.name && !body?.owner && !body?.contactNumber && !body?.email && !body?.state && !body?.city && !body?.category) {
+    if (!status && !kycStatus && !body?.name && !body?.owner && !body?.contactNumber && !body?.email && !body?.state && !body?.city && !body?.category && body?.pincode === undefined && body?.rating === undefined && body?.reviewCount === undefined) {
       return Response.json({ error: 'At least one field to update is required' }, { status: 400 });
     }
 
@@ -33,6 +40,14 @@ export async function PATCH(req) {
     if (body?.sub_tehsil !== undefined) patch.sub_tehsil = toStr(body.sub_tehsil) || null;
     if (body?.category !== undefined) patch.category = toStr(body.category) || null;
     if (body?.circle !== undefined) patch.circle = toStr(body.circle) || null;
+    
+    // Handle numeric fields - convert empty strings to null
+    if (body?.pincode !== undefined) patch.pincode = toNum(body.pincode);
+    if (body?.rating !== undefined) patch.rating = toNum(body.rating);
+    if (body?.reviewCount !== undefined) patch.review_count = toNum(body.reviewCount);
+    if (body?.review_count !== undefined) patch.review_count = toNum(body.review_count);
+    if (body?.address !== undefined) patch.address = toStr(body.address) || null;
+    if (body?.landmark !== undefined) patch.landmark = toStr(body.landmark) || null;
 
     const updated = await supabaseRestPatch(`/rest/v1/vendors?id=eq.${encodeURIComponent(id)}`, patch);
     return Response.json({ vendor: Array.isArray(updated) ? updated[0] : updated }, { status: 200 });

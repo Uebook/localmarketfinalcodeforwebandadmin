@@ -7,6 +7,7 @@ import { getStates, getCities, getTowns, getTehsils, getSubTehsils } from '../co
 
 const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {} }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [selectedState, setSelectedState] = useState(initialLocation.state || '');
   const [selectedCity, setSelectedCity] = useState(initialLocation.city || '');
   const [selectedTown, setSelectedTown] = useState(initialLocation.town || '');
@@ -219,7 +220,7 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {} }) =>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

@@ -13,6 +13,7 @@ import { handleShare } from '../utils/vendorActions';
 
 const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [locationState] = React.useState({
     lat: null,
     lng: null,
@@ -650,7 +651,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',

@@ -8,6 +8,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 
 const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName = 'Guest User', userLocation = 'Delhi, India' }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [expandedSections, setExpandedSections] = useState({
     'app-menu': true,
     'vendor-controls': true,
@@ -325,7 +326,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',

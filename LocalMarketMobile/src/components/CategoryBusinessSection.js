@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { getBusinessesByCategory } from '../constants/categoryBusinesses';
+// Static vendor data removed - using database only
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getVendors } from '../services/api';
+import { getVendors, getVendorProducts } from '../services/api';
 
 const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, onViewAll }) => {
   const COLORS = useThemeColors();
@@ -12,17 +12,50 @@ const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, on
 
   useEffect(() => {
     loadVendorsByCategory();
-  }, [categoryName]);
+  }, [categoryId, categoryName]);
 
   const loadVendorsByCategory = async () => {
     try {
       setLoading(true);
-      // Try to fetch vendors by category name
-      const data = await getVendors({
-        status: 'Active',
-        q: categoryName, // Search by category name
-        limit: 10,
-      });
+
+      // Use categoryId if available, otherwise fallback to category name search
+      let vendorsData = { vendors: [] };
+
+      if (categoryId) {
+        // Fetch all active vendors first
+        const allVendorsData = await getVendors({
+          status: 'Active',
+          limit: 100,
+        });
+
+        if (allVendorsData?.vendors && allVendorsData.vendors.length > 0) {
+          // Filter vendors that have products in this category
+          const vendorsWithCategoryProducts = await Promise.all(
+            allVendorsData.vendors.map(async (vendor) => {
+              try {
+                const vendorProductsData = await getVendorProducts(vendor.id);
+                const hasCategoryProducts = vendorProductsData?.products?.some(
+                  product => product.category_id === categoryId || product.category_id === String(categoryId)
+                );
+                return hasCategoryProducts ? vendor : null;
+              } catch (error) {
+                console.error(`Error checking products for vendor ${vendor.id}:`, error);
+                return null;
+              }
+            })
+          );
+          vendorsData.vendors = vendorsWithCategoryProducts.filter(v => v !== null).slice(0, 10);
+        }
+      } else {
+        // Fallback to category name search if no categoryId
+        vendorsData = await getVendors({
+          status: 'Active',
+          q: categoryName,
+          limit: 10,
+        });
+      }
+
+      const data = vendorsData;
 
       if (data && data.vendors && data.vendors.length > 0) {
         // Transform vendors to business format
@@ -38,15 +71,13 @@ const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, on
         }));
         setBusinesses(transformedBusinesses);
       } else {
-        // Fallback to constants
-        const fallbackBusinesses = getBusinessesByCategory(categoryId);
-        setBusinesses(fallbackBusinesses || []);
+        // No fallback - show empty state if no vendors found
+        setBusinesses([]);
       }
     } catch (error) {
       console.error('Error loading vendors by category:', error);
-      // Fallback to constants
-      const fallbackBusinesses = getBusinessesByCategory(categoryId);
-      setBusinesses(fallbackBusinesses || []);
+      // No fallback - show empty state on error
+      setBusinesses([]);
     } finally {
       setLoading(false);
     }
@@ -120,9 +151,14 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: 'transparent', // Removed dark background
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',

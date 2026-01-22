@@ -14,6 +14,7 @@ const FeedbackForm = ({
   onSubmit 
 }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [formData, setFormData] = useState({
     category: '',
     rating: 0,
@@ -239,7 +240,7 @@ const FeedbackForm = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',

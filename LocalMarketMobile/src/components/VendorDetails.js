@@ -10,6 +10,7 @@ import WriteReview from './WriteReview';
 import MapView from './MapView';
 import { getVendorProducts, getVendorReviews, submitReview } from '../services/api';
 import { getUserId } from '../utils/userStorage';
+import { saveVendor, removeSavedVendor, isVendorSaved } from '../utils/savedVendors';
 
 const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusinessIds }) => {
     const COLORS = useThemeColors();
@@ -31,8 +32,18 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
         if (business?.id) {
             loadVendorProducts();
             loadReviews();
+            checkIfSaved();
         }
     }, [business?.id]);
+
+    const checkIfSaved = async () => {
+        try {
+            const saved = await isVendorSaved(business.id);
+            setIsSaved(saved);
+        } catch (error) {
+            console.error('Error checking if vendor is saved:', error);
+        }
+    };
 
     const loadVendorProducts = async () => {
         if (!business?.id) return;
@@ -88,15 +99,33 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
 
     const tabs = ['Overview', 'Products/Services', 'Reviews', 'Quick Info'];
 
-    const handleSave = () => {
-        const newSavedState = !isSaved;
-        setIsSaved(newSavedState);
-        if (setSavedBusinessIds) {
-            setSavedBusinessIds(prev =>
-                prev.includes(business.id)
-                    ? prev.filter(id => id !== business.id)
-                    : [...prev, business.id]
-            );
+    const handleSave = async () => {
+        try {
+            const newSavedState = !isSaved;
+            setIsSaved(newSavedState);
+
+            if (newSavedState) {
+                // Save vendor to AsyncStorage
+                await saveVendor(displayBusiness);
+                console.log('Vendor saved to AsyncStorage:', displayBusiness.id);
+            } else {
+                // Remove vendor from AsyncStorage
+                await removeSavedVendor(displayBusiness.id);
+                console.log('Vendor removed from AsyncStorage:', displayBusiness.id);
+            }
+
+            // Update parent component state if callback provided
+            if (setSavedBusinessIds) {
+                setSavedBusinessIds(prev =>
+                    prev.includes(business.id)
+                        ? prev.filter(id => id !== business.id)
+                        : [...prev, business.id]
+                );
+            }
+        } catch (error) {
+            console.error('Error saving/removing vendor:', error);
+            // Revert state on error
+            setIsSaved(!newSavedState);
         }
     };
 
@@ -125,7 +154,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
 
     const loadReviews = async () => {
         if (!business?.id) return;
-        
+
         try {
             setLoadingReviews(true);
             const response = await getVendorReviews(business.id);
@@ -152,7 +181,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
     const handleReviewSubmit = async (reviewData) => {
         try {
             const userId = await getUserId();
-            
+
             // Submit review to API
             await submitReview({
                 vendorId: business.id,

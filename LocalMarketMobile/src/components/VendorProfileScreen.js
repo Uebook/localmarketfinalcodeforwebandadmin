@@ -16,6 +16,7 @@ import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
 
 const VendorProfileScreen = ({ navigation, vendorData }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [locationState] = useState({
     lat: null,
     lng: null,
@@ -358,7 +359,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',

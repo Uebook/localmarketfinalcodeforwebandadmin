@@ -14,6 +14,7 @@ const BulkPriceUpdate = ({
   onUpdatePrices 
 }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   // Get products from route params or props
   const products = route?.params?.vendorProducts || vendorProducts || [];
   const [file, setFile] = useState(null);
@@ -319,7 +320,7 @@ const BulkPriceUpdate = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',

@@ -64,11 +64,12 @@ const HomeScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleCategorySelect = (categoryName) => {
+  const handleCategorySelect = (categoryName, categoryId) => {
     // Navigate to search results with category as query - show vendors only
     if (navigation) {
-      navigation.navigate('SearchResults', { 
+      navigation.navigate('SearchResults', {
         query: categoryName,
+        categoryId: categoryId, // Pass category ID for filtering
         isCategorySearch: true // Flag to show only vendors
       });
     }
@@ -82,8 +83,9 @@ const HomeScreen = ({ navigation, route }) => {
   };
 
   const handleSearch = (query) => {
-    if (navigation) {
-      navigation.navigate('Search', { query });
+    if (navigation && query) {
+      // Navigate directly to SearchResults
+      navigation.navigate('SearchResults', { query });
     }
   };
 
@@ -119,7 +121,7 @@ const HomeScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       {/* White Background */}
       <View style={styles.whiteBackground} />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -131,9 +133,9 @@ const HomeScreen = ({ navigation, route }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <SearchBar onSearch={handleSearch} />
-        
-        <TopCategoriesGrid 
+        <SearchBar onSearch={handleSearch} navigation={navigation} />
+
+        <TopCategoriesGrid
           categories={categories.length > 0 ? categories.slice(0, 8) : TOP_8_CATEGORIES}
           onCategorySelect={handleCategorySelect}
           onViewAll={handleViewAllCategories}
@@ -208,7 +210,7 @@ const HomeScreen = ({ navigation, route }) => {
           isCircular={true}
         />
       </ScrollView>
-      </View>
+    </View>
   );
 };
 
@@ -219,7 +221,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   whiteBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
   },
   scrollView: {
     flex: 1,

@@ -3,8 +3,6 @@ import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import SearchBar from './SearchBar';
-import SearchHeader from './SearchHeader';
-import SearchResults from './SearchResults';
 import RecentSearches from './RecentSearches';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
@@ -12,6 +10,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 
 const SearchScreen = ({ navigation, route }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [searchQuery, setSearchQuery] = useState(route?.params?.query || null);
   const [savedIds, setSavedIds] = useState([]);
   const [locationState] = useState({
@@ -23,7 +22,10 @@ const SearchScreen = ({ navigation, route }) => {
   });
 
   const handleSearch = (query) => {
-    setSearchQuery(query);
+    if (query && query.trim()) {
+      // Navigate to SearchResults instead of rendering it as child
+      navigation.navigate('SearchResults', { query: query.trim() });
+    }
   };
 
   const handleBack = () => {
@@ -38,7 +40,7 @@ const SearchScreen = ({ navigation, route }) => {
   };
 
   const toggleSave = (id) => {
-    setSavedIds(prev => 
+    setSavedIds(prev =>
       prev.includes(id) ? prev.filter(savedId => savedId !== id) : [...prev, id]
     );
   };
@@ -66,20 +68,8 @@ const SearchScreen = ({ navigation, route }) => {
     }
   };
 
-  if (searchQuery) {
-    return (
-      <View style={styles.container}>
-        <SearchHeader query={searchQuery} onBack={handleBack} />
-        <SearchResults
-          query={searchQuery}
-          onBusinessClick={handleBusinessClick}
-          savedIds={savedIds}
-          onToggleSave={toggleSave}
-          locationState={locationState}
-        />
-      </View>
-    );
-  }
+  // Remove the conditional rendering - SearchResults is now a separate screen
+  // This prevents double header issue
 
   return (
     <View style={styles.container}>
@@ -90,7 +80,7 @@ const SearchScreen = ({ navigation, route }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -98,13 +88,13 @@ const SearchScreen = ({ navigation, route }) => {
         onNotificationClick={handleNotificationClick}
       />
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <SearchBar onSearch={handleSearch} />
-        
+        <SearchBar onSearch={handleSearch} navigation={navigation} />
+
         <RecentSearches />
 
         {/* Empty State */}
@@ -122,7 +112,7 @@ const SearchScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.darkBg,

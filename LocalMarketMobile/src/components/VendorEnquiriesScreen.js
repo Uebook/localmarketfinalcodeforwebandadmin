@@ -11,6 +11,7 @@ import { getSidebarControl } from '../utils/sidebarControl';
 
 const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [locationState] = React.useState({
     lat: null,
     lng: null,
@@ -289,7 +290,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',

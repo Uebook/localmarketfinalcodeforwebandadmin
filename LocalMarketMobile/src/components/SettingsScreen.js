@@ -20,11 +20,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserId, updateUserData as updateStorageUserData } from '../utils/userStorage';
 import { useTheme } from './ThemeProvider';
 
-const SettingsScreen = ({ 
+const SettingsScreen = ({
   navigation,
-  currentTheme = 'default', 
-  onThemeChange, 
-  onBack, 
+  currentTheme = 'default',
+  onThemeChange,
+  onBack,
   userRole,
   profileData,
   onUpdateProfile,
@@ -39,7 +39,7 @@ const SettingsScreen = ({
   const [loadingThemes, setLoadingThemes] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [apiProfileData, setApiProfileData] = useState(null);
-  
+
   // Use themeColors from context instead of COLORS constant
   const COLORS = themeColors;
   const styles = createStyles(COLORS);
@@ -58,7 +58,7 @@ const SettingsScreen = ({
   useEffect(() => {
     // Use API data if available, otherwise use passed profileData
     const dataToUse = apiProfileData || profileData;
-    
+
     if (userRole === 'vendor') {
       setFormData({
         name: dataToUse?.ownerName || dataToUse?.name || '',
@@ -82,7 +82,7 @@ const SettingsScreen = ({
     try {
       setLoadingProfile(true);
       const userId = await getUserId();
-      
+
       if (!userId) {
         console.log('No user ID found in storage');
         setLoadingProfile(false);
@@ -90,7 +90,7 @@ const SettingsScreen = ({
       }
 
       const userData = await getUser({ userId });
-      
+
       if (userData) {
         setApiProfileData(userData);
         // Update AsyncStorage with latest data
@@ -107,10 +107,10 @@ const SettingsScreen = ({
     try {
       setLoadingThemes(true);
       const apiThemes = await getThemes();
-      
+
       // Transform API themes to app format
       const transformedThemes = [];
-      
+
       // Add default theme first
       transformedThemes.push({
         id: 'default',
@@ -121,7 +121,7 @@ const SettingsScreen = ({
         secondaryColor: COLORS.blue,
         gradient: [COLORS.orange, COLORS.blue],
       });
-      
+
       // Add API themes
       if (Array.isArray(apiThemes)) {
         apiThemes.forEach(theme => {
@@ -149,7 +149,7 @@ const SettingsScreen = ({
           });
         });
       }
-      
+
       setThemes(transformedThemes);
     } catch (error) {
       console.error('Error loading themes:', error);
@@ -191,7 +191,7 @@ const SettingsScreen = ({
       setSelectedTheme(theme || currentTheme || 'default');
     }
   };
-  
+
   // Sync selected theme when theme changes from context
   useEffect(() => {
     setSelectedTheme(theme || 'default');
@@ -199,7 +199,7 @@ const SettingsScreen = ({
 
   const handleThemeSelect = async (themeId) => {
     setSelectedTheme(themeId);
-    
+
     // Save theme to AsyncStorage FIRST (for immediate persistence)
     try {
       await AsyncStorage.setItem('selectedFestivalTheme', themeId);
@@ -207,16 +207,16 @@ const SettingsScreen = ({
     } catch (error) {
       console.error('Error saving theme to AsyncStorage:', error);
     }
-    
+
     // Update theme in context (this will update all components)
     setThemeContext(themeId);
-    
+
     // Update theme in database (for sync across devices)
     try {
       const userId = await AsyncStorage.getItem('userId');
       const phone = await AsyncStorage.getItem('userPhone');
       const email = await AsyncStorage.getItem('userEmail');
-      
+
       if (userId || phone || email) {
         const response = await updateUserTheme({
           userId,
@@ -224,7 +224,7 @@ const SettingsScreen = ({
           email,
           theme: themeId, // Use 'theme' instead of 'themeId' to match API
         });
-        
+
         if (response && response.success !== false) {
           console.log('✅ Theme updated in database:', themeId);
         } else {
@@ -235,7 +235,7 @@ const SettingsScreen = ({
       console.error('Error updating user theme in database:', error);
       // Still allow theme change even if API fails - theme is already saved locally
     }
-    
+
     // Notify parent component if callback provided
     if (onThemeChange) {
       onThemeChange(themeId);
@@ -245,7 +245,7 @@ const SettingsScreen = ({
   const handleSave = async () => {
     try {
       const userId = await getUserId();
-      
+
       if (!userId) {
         console.error('No user ID found');
         setIsEditing(false);
@@ -266,7 +266,7 @@ const SettingsScreen = ({
         updateData.full_name = formData.name;
         updateData.phone = formData.mobile;
         updateData.email = formData.email;
-        
+
         // Parse location to extract state and city if possible
         if (formData.location) {
           const locationParts = formData.location.split(',').map(s => s.trim());
@@ -281,11 +281,11 @@ const SettingsScreen = ({
 
       // Update in API
       const response = await updateUser(updateData);
-      
+
       if (response && response.user) {
         // Update local state
         setApiProfileData(response.user);
-        
+
         // Update AsyncStorage
         await updateStorageUserData({
           id: response.user.id,
@@ -323,7 +323,7 @@ const SettingsScreen = ({
       console.error('Error saving profile:', error);
       // Still allow editing to close even if API fails
     }
-    
+
     setIsEditing(false);
   };
 
@@ -400,16 +400,16 @@ const SettingsScreen = ({
               )}
             </View>
           </LinearGradient>
-          
+
           <View style={styles.profileInfo}>
             {!isEditing ? (
               <>
                 <Text style={styles.profileName}>{formData.name || 'User'}</Text>
                 <View style={styles.roleBadge}>
-                  <Icon 
-                    name={userRole === 'vendor' ? getIconName('Store') : getIconName('User')} 
-                    size={12} 
-                    color="#6b7280" 
+                  <Icon
+                    name={userRole === 'vendor' ? getIconName('Store') : getIconName('User')}
+                    size={12}
+                    color="#6b7280"
                   />
                   <Text style={styles.roleText}>
                     {userRole === 'vendor' ? 'Local+ Account' : 'Customer Account'}
@@ -420,7 +420,7 @@ const SettingsScreen = ({
               <TextInput
                 style={styles.nameInput}
                 value={formData.name || ''}
-                onChangeText={(text) => setFormData({...formData, name: text})}
+                onChangeText={(text) => setFormData({ ...formData, name: text })}
                 placeholder="Enter Name"
                 placeholderTextColor="#9ca3af"
               />
@@ -439,7 +439,7 @@ const SettingsScreen = ({
                   <TextInput
                     style={styles.infoInput}
                     value={formData.mobile || ''}
-                    onChangeText={(text) => setFormData({...formData, mobile: text})}
+                    onChangeText={(text) => setFormData({ ...formData, mobile: text })}
                     keyboardType="phone-pad"
                   />
                 ) : (
@@ -458,7 +458,7 @@ const SettingsScreen = ({
                   <TextInput
                     style={styles.infoInput}
                     value={formData.email || ''}
-                    onChangeText={(text) => setFormData({...formData, email: text})}
+                    onChangeText={(text) => setFormData({ ...formData, email: text })}
                     keyboardType="email-address"
                     placeholder="Add Email"
                     placeholderTextColor={COLORS.textMuted}
@@ -479,7 +479,7 @@ const SettingsScreen = ({
                   <TextInput
                     style={styles.infoInput}
                     value={formData.location || ''}
-                    onChangeText={(text) => setFormData({...formData, location: text})}
+                    onChangeText={(text) => setFormData({ ...formData, location: text })}
                   />
                 ) : (
                   <Text style={styles.infoValue}>{formData.location || 'Connaught Place, Delhi'}</Text>
@@ -489,7 +489,7 @@ const SettingsScreen = ({
           </View>
 
           {userRole === 'vendor' && onNavigateToBusiness && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.businessButton}
               onPress={onNavigateToBusiness}
               activeOpacity={0.7}
@@ -526,7 +526,7 @@ const SettingsScreen = ({
             <Icon name={getIconName('Palette')} size={20} color={COLORS.textMuted} />
             <Text style={styles.themeTitle}>Festival Themes</Text>
           </View>
-          
+
           {loadingThemes ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={COLORS.orange} />
@@ -544,29 +544,29 @@ const SettingsScreen = ({
                   ]}
                   activeOpacity={0.7}
                 >
-                <View style={styles.themeItemContent}>
-                  {theme.gradient ? (
-                    <LinearGradient
-                      colors={theme.gradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.themeColorCircle}
-                    />
-                  ) : (
-                    <View style={[styles.themeColorCircle, { backgroundColor: theme.color }]} />
-                  )}
-                  <View style={styles.themeTextContainer}>
-                    <Text style={[
-                      styles.themeName,
-                      currentTheme === theme.id && styles.themeNameActive
-                    ]}>
-                      {theme.icon} {theme.name}
-                    </Text>
-                    {theme.description && (
-                      <Text style={styles.themeDescription}>{theme.description}</Text>
+                  <View style={styles.themeItemContent}>
+                    {theme.gradient ? (
+                      <LinearGradient
+                        colors={theme.gradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.themeColorCircle}
+                      />
+                    ) : (
+                      <View style={[styles.themeColorCircle, { backgroundColor: theme.color }]} />
                     )}
+                    <View style={styles.themeTextContainer}>
+                      <Text style={[
+                        styles.themeName,
+                        currentTheme === theme.id && styles.themeNameActive
+                      ]}>
+                        {theme.icon} {theme.name}
+                      </Text>
+                      {theme.description && (
+                        <Text style={styles.themeDescription}>{theme.description}</Text>
+                      )}
+                    </View>
                   </View>
-                </View>
                   {selectedTheme === theme.id && (
                     <View style={styles.checkCircle}>
                       <Icon name={getIconName('Check')} size={12} color={COLORS.textPrimary} />
@@ -579,7 +579,7 @@ const SettingsScreen = ({
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.logoutButton}
           onPress={onLogout}
           activeOpacity={0.7}

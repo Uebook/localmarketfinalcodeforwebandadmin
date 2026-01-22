@@ -21,6 +21,7 @@ import { saveUserData } from '../utils/userStorage';
 
 const LoginScreen = ({ onLogin, onRegister }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [isLocalPlusMode, setIsLocalPlusMode] = useState(false);
   const [loginMethod, setLoginMethod] = useState('mobile');
   const [mobile, setMobile] = useState('');
@@ -686,7 +687,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
   },

@@ -12,24 +12,44 @@ export async function GET(req) {
 
         if (id) {
             // Get single product by ID
-            const query = new URLSearchParams();
-            query.set('select', 'id,name,price,mrp,uom,category_id,vendor_id,updated_at');
-            query.set('id', `eq.${id}`);
-            const rows = await supabaseRestGet(`/rest/v1/vendor_products?${query.toString()}`);
-            return Response.json({ product: Array.isArray(rows) && rows.length > 0 ? rows[0] : null }, { status: 200 });
+            try {
+                const query = new URLSearchParams();
+                query.set('select', 'id,name,price,mrp,uom,category_id,vendor_id,updated_at');
+                query.set('id', `eq.${id}`);
+                const rows = await supabaseRestGet(`/rest/v1/vendor_products?${query.toString()}`);
+                return Response.json({ product: Array.isArray(rows) && rows.length > 0 ? rows[0] : null }, { status: 200 });
+            } catch (error) {
+                console.error('Error fetching product by ID:', error);
+                return Response.json({ product: null }, { status: 200 });
+            }
         }
 
-        if (!vendorId) return Response.json({ error: 'vendorId is required' }, { status: 400 });
+        if (!vendorId) {
+            return Response.json({ error: 'vendorId is required' }, { status: 400 });
+        }
 
-        const query = new URLSearchParams();
-        query.set('select', 'id,name,price,mrp,uom,category_id,updated_at');
-        query.set('vendor_id', `eq.${vendorId}`);
-        query.set('order', 'name.asc');
+        // Validate vendorId format
+        if (vendorId.trim() === '') {
+            return Response.json({ error: 'vendorId cannot be empty' }, { status: 400 });
+        }
 
-        const rows = await supabaseRestGet(`/rest/v1/vendor_products?${query.toString()}`);
-        return Response.json({ products: Array.isArray(rows) ? rows : [] }, { status: 200 });
+        try {
+            const query = new URLSearchParams();
+            query.set('select', 'id,name,price,mrp,uom,category_id,updated_at');
+            query.set('vendor_id', `eq.${encodeURIComponent(vendorId)}`);
+            query.set('order', 'name.asc');
+
+            const rows = await supabaseRestGet(`/rest/v1/vendor_products?${query.toString()}`);
+            return Response.json({ products: Array.isArray(rows) ? rows : [] }, { status: 200 });
+        } catch (error) {
+            console.error('Error fetching vendor products:', error);
+            console.error('VendorId:', vendorId);
+            // Return empty array instead of error to prevent app crashes
+            return Response.json({ products: [] }, { status: 200 });
+        }
     } catch (e) {
-        return Response.json({ error: e?.message || 'Failed to load vendor products' }, { status: 500 });
+        console.error('Unexpected error in vendor-products GET:', e);
+        return Response.json({ error: e?.message || 'Failed to load vendor products', products: [] }, { status: 500 });
     }
 }
 

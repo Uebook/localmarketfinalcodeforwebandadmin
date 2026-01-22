@@ -1,15 +1,16 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList, Image } from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { NEARBY_BUSINESSES, FEATURED_BUSINESSES, SEARCH_RESULTS, INITIAL_VENDOR_DATA } from '../constants';
+import { getSavedVendors, removeSavedVendor } from '../utils/savedVendors';
 
 const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [locationState] = useState({
     lat: null,
     lng: null,
@@ -17,20 +18,50 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
     loading: false,
     error: null,
   });
+  const [savedItems, setSavedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Combine all businesses
-  const allBusinesses = useMemo(() => {
-    const combined = [...NEARBY_BUSINESSES, ...FEATURED_BUSINESSES, ...SEARCH_RESULTS];
-    // Deduplicate by ID
-    return Array.from(new Map(combined.map(item => [item.id, item])).values());
+  // Load saved vendors from AsyncStorage
+  useEffect(() => {
+    loadSavedVendors();
   }, []);
 
-  // Filter saved businesses
-  const savedItems = useMemo(() => {
-    const saved = allBusinesses.filter(b => savedIds.includes(b.id));
-    // Remove duplicates
-    return Array.from(new Map(saved.map(item => [item.id, item])).values());
-  }, [savedIds, allBusinesses]);
+  // Reload when savedIds change (from parent)
+  useEffect(() => {
+    if (savedIds && savedIds.length > 0) {
+      loadSavedVendors();
+    }
+  }, [savedIds]);
+
+  const loadSavedVendors = async () => {
+    try {
+      setLoading(true);
+      const saved = await getSavedVendors();
+      setSavedItems(saved || []);
+    } catch (error) {
+      console.error('Error loading saved vendors:', error);
+      setSavedItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleSave = async (vendorId) => {
+    try {
+      // Remove from AsyncStorage
+      await removeSavedVendor(vendorId);
+
+      // Update local state
+      setSavedItems(prev => prev.filter(item => item.id !== vendorId));
+
+      // Notify parent component if callback provided
+      if (onToggleSave) {
+        onToggleSave(vendorId);
+      }
+    } catch (error) {
+      console.error('Error removing saved vendor:', error);
+    }
+  };
 
   const handleBusinessClick = (business) => {
     if (navigation) {
@@ -72,15 +103,15 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
         <View style={styles.businessHeader}>
           <Text style={styles.businessName} numberOfLines={1}>{item.name}</Text>
           <TouchableOpacity
-            onPress={() => onToggleSave && onToggleSave(item.id)}
+            onPress={() => handleToggleSave(item.id)}
             activeOpacity={0.7}
             style={styles.heartButton}
           >
             <Icon
-              name={savedIds.includes(item.id) ? 'heart' : 'heart'}
+              name="heart"
               size={20}
-              color={savedIds.includes(item.id) ? COLORS.orange : COLORS.textMuted}
-              fill={savedIds.includes(item.id) ? COLORS.orange : 'none'}
+              color={COLORS.orange}
+              fill={COLORS.orange}
             />
           </TouchableOpacity>
         </View>
@@ -111,6 +142,29 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <LinearGradient
+          colors={COLORS.primaryGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.gradientBackground}
+        />
+        <Header
+          locationState={locationState}
+          onMenuClick={handleMenuClick}
+          onProfileClick={handleProfileClick}
+          onNotificationClick={handleNotificationClick}
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.orange} />
+          <Text style={styles.loadingText}>Loading saved items...</Text>
+        </View>
+      </View>
+    );
+  }
+
   if (savedItems.length === 0) {
     return (
       <View style={styles.container}>
@@ -121,7 +175,7 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
           end={{ x: 1, y: 0 }}
           style={styles.gradientBackground}
         />
-        
+
         <Header
           locationState={locationState}
           onMenuClick={handleMenuClick}
@@ -160,7 +214,7 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -171,15 +225,17 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
       <FlatList
         data={savedItems}
         renderItem={renderBusinessCard}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id || item.id.toString()}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshing={loading}
+        onRefresh={loadSavedVendors}
       />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.darkBg,
@@ -343,6 +399,17 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     maxWidth: 280,
     lineHeight: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#FFFFFF',
   },
   exploreButton: {
     backgroundColor: COLORS.orange,

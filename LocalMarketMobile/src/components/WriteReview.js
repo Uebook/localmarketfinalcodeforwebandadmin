@@ -103,7 +103,7 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
       statusBarTranslucent
     >
       <View style={styles.modalOverlay}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backdrop}
           activeOpacity={1}
           onPress={handleClose}
@@ -118,96 +118,96 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
             <View style={styles.placeholder} />
           </View>
 
-          <ScrollView 
-            style={styles.content} 
+          <ScrollView
+            style={styles.content}
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}
           >
-              {/* Vendor Info */}
-              {vendorName && (
-                <View style={styles.vendorInfo}>
-                  <Text style={styles.vendorLabel}>Reviewing</Text>
-                  <Text style={styles.vendorName}>{vendorName}</Text>
-                </View>
+            {/* Vendor Info */}
+            {vendorName && (
+              <View style={styles.vendorInfo}>
+                <Text style={styles.vendorLabel}>Reviewing</Text>
+                <Text style={styles.vendorName}>{vendorName}</Text>
+              </View>
+            )}
+
+            {/* Rating Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your Rating</Text>
+              <View style={styles.starContainer}>
+                {[1, 2, 3, 4, 5].map((star, index) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => handleStarPress(index)}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={getIconName('Star')}
+                      size={40}
+                      color={index < rating ? '#fbbf24' : '#E5E7EB'}
+                      style={styles.star}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {rating > 0 && (
+                <Text style={styles.ratingText}>
+                  {rating === 1 && 'Poor'}
+                  {rating === 2 && 'Fair'}
+                  {rating === 3 && 'Good'}
+                  {rating === 4 && 'Very Good'}
+                  {rating === 5 && 'Excellent'}
+                </Text>
               )}
+            </View>
 
-              {/* Rating Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Your Rating</Text>
-                <View style={styles.starContainer}>
-                  {[1, 2, 3, 4, 5].map((star, index) => (
-                    <TouchableOpacity
-                      key={star}
-                      onPress={() => handleStarPress(index)}
-                      activeOpacity={0.7}
-                    >
-                      <Icon
-                        name={getIconName('Star')}
-                        size={40}
-                        color={index < rating ? '#fbbf24' : '#E5E7EB'}
-                        style={styles.star}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                {rating > 0 && (
-                  <Text style={styles.ratingText}>
-                    {rating === 1 && 'Poor'}
-                    {rating === 2 && 'Fair'}
-                    {rating === 3 && 'Good'}
-                    {rating === 4 && 'Very Good'}
-                    {rating === 5 && 'Excellent'}
-                  </Text>
-                )}
+            {/* Name Display (from login, not editable) */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your Name</Text>
+              <View style={styles.nameDisplay}>
+                <Text style={styles.nameText}>{userName || 'Loading...'}</Text>
+                <Icon name={getIconName('User')} size={16} color={COLORS.textMuted} />
               </View>
+              {!userName && (
+                <Text style={styles.nameHint}>Name will be loaded from your account</Text>
+              )}
+            </View>
 
-              {/* Name Display (from login, not editable) */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Your Name</Text>
-                <View style={styles.nameDisplay}>
-                  <Text style={styles.nameText}>{userName || 'Loading...'}</Text>
-                  <Icon name={getIconName('User')} size={16} color={COLORS.textMuted} />
-                </View>
-                {!userName && (
-                  <Text style={styles.nameHint}>Name will be loaded from your account</Text>
-                )}
-              </View>
+            {/* Comment Input */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your Review</Text>
+              <TextInput
+                style={styles.textArea}
+                placeholder="Share your experience with this vendor..."
+                placeholderTextColor={COLORS.textMuted}
+                value={comment}
+                onChangeText={setComment}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+              />
+              <Text style={styles.charCount}>{comment.length}/500</Text>
+            </View>
 
-              {/* Comment Input */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Your Review</Text>
-                <TextInput
-                  style={styles.textArea}
-                  placeholder="Share your experience with this vendor..."
-                  placeholderTextColor={COLORS.textMuted}
-                  value={comment}
-                  onChangeText={setComment}
-                  multiline
-                  numberOfLines={6}
-                  textAlignVertical="top"
-                />
-                <Text style={styles.charCount}>{comment.length}/500</Text>
-              </View>
-
-              {/* Submit Button */}
-              <TouchableOpacity
-                style={[styles.submitButton, (!rating || !comment.trim() || !userName.trim() || loading) && styles.submitButtonDisabled]}
-                onPress={handleSubmit}
-                disabled={!rating || !comment.trim() || !userName.trim() || loading}
-                activeOpacity={0.8}
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={[styles.submitButton, (!rating || !comment.trim() || !userName.trim() || loading) && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={!rating || !comment.trim() || !userName.trim() || loading}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={COLORS.primaryGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.submitGradient}
               >
-                <LinearGradient
-                  colors={COLORS.primaryGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.submitGradient}
-                >
-                  <Text style={styles.submitButtonText}>
-                    {loading ? 'Submitting...' : 'Submit Review'}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </ScrollView>
+                <Text style={styles.submitButtonText}>
+                  {loading ? 'Submitting...' : 'Submit Review'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </View>
     </Modal>

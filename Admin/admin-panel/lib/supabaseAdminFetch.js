@@ -42,8 +42,28 @@ export async function supabaseRestGet(pathWithQuery) {
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`Supabase REST error (${res.status}): ${text || res.statusText}`);
+    let errorText = '';
+    try {
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const json = await res.json().catch(() => null);
+        errorText = json ? JSON.stringify(json) : '';
+      } else {
+        errorText = await res.text().catch(() => '');
+      }
+    } catch (e) {
+      errorText = res.statusText || 'Unknown error';
+    }
+    
+    // Log more details for debugging
+    console.error(`Supabase REST error (${res.status}):`, {
+      url: pathWithQuery,
+      status: res.status,
+      statusText: res.statusText,
+      error: errorText,
+    });
+    
+    throw new Error(`Supabase REST error (${res.status}): ${errorText || res.statusText}`);
   }
 
   return await res.json();

@@ -9,6 +9,7 @@ import { getNotifications } from '../services/api';
 
 const Notifications = ({ navigation, onClose }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -213,7 +214,7 @@ const Notifications = ({ navigation, onClose }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',

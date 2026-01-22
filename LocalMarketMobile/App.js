@@ -7,6 +7,7 @@ import { StatusBar, View, StyleSheet, Text, TouchableOpacity } from 'react-nativ
 import Icon from 'react-native-vector-icons/Feather';
 import { saveUserData, loadUserData, clearUserData, isUserAuthenticated } from './src/utils/userStorage';
 import { ThemeProvider } from './src/components/ThemeProvider';
+import { getSavedVendorIds } from './src/utils/savedVendors';
 
 // Import COLORS with safe fallback - use require to avoid Metro bundler issues
 let COLORS_SAFE = {};
@@ -116,7 +117,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
           tabBarItemStyle: styles.tabBarItem,
           tabBarButton: (props) => {
             const { children, onPress } = props;
-            
+
             return (
               <TouchableOpacity
                 {...props}
@@ -201,7 +202,7 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
           tabBarItemStyle: styles.tabBarItem,
           tabBarButton: (props) => {
             const { children, onPress } = props;
-            
+
             return (
               <TouchableOpacity
                 {...props}
@@ -241,7 +242,7 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
         {(props) => (
           <OffersScreen
             {...props}
-            locationState={locationState || { city: 'Delhi, India' }}
+            locationState={{ city: 'Delhi, India', lat: null, lng: null, loading: false, error: null }}
           />
         )}
       </Tab.Screen>
@@ -289,10 +290,15 @@ function App() {
     }
   }, [isAuthenticated]);
 
-  // Load saved user data on app start
+  // Load saved user data and saved vendors on app start
   useEffect(() => {
-    const loadSavedUser = async () => {
+    const loadSavedData = async () => {
       try {
+        // Load saved vendors
+        const savedIds = await getSavedVendorIds();
+        setSavedBusinessIds(savedIds);
+
+        // Load saved user data
         const isAuth = await isUserAuthenticated();
         if (isAuth) {
           const savedUserData = await loadUserData();
@@ -308,11 +314,11 @@ function App() {
           }
         }
       } catch (error) {
-        console.error('Error loading saved user:', error);
+        console.error('Error loading saved data:', error);
       }
     };
 
-    loadSavedUser();
+    loadSavedData();
 
     const timer = setTimeout(() => {
       setShowSplash(false);
@@ -323,7 +329,7 @@ function App() {
   const handleLogin = async (role, userDataParam = null) => {
     setUserRole(role);
     setIsAuthenticated(true);
-    
+
     // Save user data to AsyncStorage
     if (userDataParam) {
       try {
@@ -333,7 +339,7 @@ function App() {
         console.error('Error saving user data:', error);
       }
     }
-    
+
     // Set initial route based on role
     if (role === 'vendor') {
       setInitialRoute('Analytics');
@@ -345,7 +351,7 @@ function App() {
   const handleUserRegister = async (userDataParam) => {
     // After user registration, automatically log them in
     setIsUserRegistering(false);
-    
+
     // Save user data to AsyncStorage
     if (userDataParam) {
       try {
@@ -355,7 +361,7 @@ function App() {
         console.error('Error saving user data:', error);
       }
     }
-    
+
     handleLogin('customer', userDataParam);
   };
 
@@ -367,7 +373,7 @@ function App() {
     } catch (error) {
       console.error('Error clearing user data:', error);
     }
-    
+
     setIsAuthenticated(false);
     setUserRole(null);
     setIsSidebarOpen(false);
@@ -377,32 +383,32 @@ function App() {
   const handleSidebarNavigation = (tab) => {
     console.log('Sidebar navigation:', tab, 'User role:', userRole);
     setIsSidebarOpen(false);
-    
+
     if (tab === 'logout') {
       handleLogout();
       return;
     }
-    
+
     if (tab === 'register-business') {
       setIsRegistering(true);
       return;
     }
-    
+
     if (tab === 'settings') {
       navigationRef.current?.navigate('Settings');
       return;
     }
-    
+
     if (tab === 'help') {
       navigationRef.current?.navigate('HelpSupport');
       return;
     }
-    
+
     if (tab === 'terms') {
       navigationRef.current?.navigate('TermsPrivacy');
       return;
     }
-    
+
     if (userRole === 'vendor') {
       // Vendor navigation
       if (tab === 'business-analytics') {
@@ -421,15 +427,15 @@ function App() {
     } else {
       // Customer navigation - navigate to nested tab navigator
       if (tab === 'home') {
-        navigationRef.current?.navigate('MainTabs', { 
+        navigationRef.current?.navigate('MainTabs', {
           screen: 'Home',
         });
       } else if (tab === 'saved') {
-        navigationRef.current?.navigate('MainTabs', { 
+        navigationRef.current?.navigate('MainTabs', {
           screen: 'Saved',
         });
       } else if (tab === 'categories') {
-        navigationRef.current?.navigate('MainTabs', { 
+        navigationRef.current?.navigate('MainTabs', {
           screen: 'Categories',
         });
       }
@@ -510,159 +516,159 @@ function App() {
         <StatusBar barStyle="dark-content" />
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {userRole === 'vendor' ? (
-            <Stack.Screen name="VendorTabs">
+            {userRole === 'vendor' ? (
+              <Stack.Screen name="VendorTabs">
+                {(props) => (
+                  <VendorTabs
+                    {...props}
+                    vendorData={vendorData}
+                    setVendorData={setVendorData}
+                    initialRouteName={initialRoute}
+                  />
+                )}
+              </Stack.Screen>
+            ) : (
+              <Stack.Screen name="MainTabs">
+                {(props) => (
+                  <MainTabs
+                    {...props}
+                    userRole={userRole}
+                    vendorData={vendorData}
+                    setVendorData={setVendorData}
+                    savedBusinessIds={savedBusinessIds}
+                    setSavedBusinessIds={setSavedBusinessIds}
+                    initialRouteName={initialRoute}
+                  />
+                )}
+              </Stack.Screen>
+            )}
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="SearchResults">
               {(props) => (
-                <VendorTabs
+                <SearchResults
                   {...props}
-                  vendorData={vendorData}
-                  setVendorData={setVendorData}
-                  initialRouteName={initialRoute}
+                  savedBusinessIds={savedBusinessIds}
+                  setSavedBusinessIds={setSavedBusinessIds}
                 />
               )}
             </Stack.Screen>
-          ) : (
-            <Stack.Screen name="MainTabs">
+            <Stack.Screen name="VendorDetails">
+              {(props) => {
+                const business = props.route.params?.business || props.route.params?.vendor;
+                return (
+                  <VendorDetails
+                    {...props}
+                    savedBusinessIds={savedBusinessIds}
+                    setSavedBusinessIds={setSavedBusinessIds}
+                  />
+                );
+              }}
+            </Stack.Screen>
+            <Stack.Screen name="VendorOffers">
               {(props) => (
-                <MainTabs
+                <VendorOffersScreen
                   {...props}
+                  vendorData={vendorData}
+                  setVendorData={setVendorData}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="BulkPriceUpdate">
+              {(props) => (
+                <BulkPriceUpdate
+                  {...props}
+                  route={{
+                    ...props.route,
+                    params: {
+                      ...props.route?.params,
+                      vendorProducts: vendorData?.products || [],
+                    }
+                  }}
+                  vendorProducts={vendorData?.products || []}
+                  onUpdatePrices={() => {
+                    // In production, this would refresh vendor data from backend
+                    console.log('Prices updated');
+                  }}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="PaymentManagement">
+              {(props) => (
+                <PaymentManagement
+                  {...props}
+                  vendorData={vendorData}
+                  onUpdateVendor={setVendorData}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="Settings">
+              {(props) => (
+                <SettingsScreen
+                  {...props}
+                  currentTheme="default"
                   userRole={userRole}
-                  vendorData={vendorData}
-                  setVendorData={setVendorData}
-                  savedBusinessIds={savedBusinessIds}
-                  setSavedBusinessIds={setSavedBusinessIds}
-                  initialRouteName={initialRoute}
+                  profileData={userRole === 'vendor' ? vendorData : (userData || { name: 'User', mobile: '', location: '', email: '' })}
+                  onUpdateProfile={(data) => {
+                    if (userRole === 'vendor') {
+                      setVendorData(data);
+                    } else if (userData) {
+                      setUserData({ ...userData, ...data });
+                    }
+                  }}
+                  onLogout={handleLogout}
                 />
               )}
             </Stack.Screen>
-          )}
-          <Stack.Screen name="Search" component={SearchScreen} />
-          <Stack.Screen name="SearchResults">
-            {(props) => (
-              <SearchResults
-                {...props}
-                savedBusinessIds={savedBusinessIds}
-                setSavedBusinessIds={setSavedBusinessIds}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="VendorDetails">
-            {(props) => {
-              const business = props.route.params?.business || props.route.params?.vendor;
-              return (
-                <VendorDetails
+            <Stack.Screen name="HelpSupport" component={HelpSupport} />
+            <Stack.Screen name="TermsPrivacy" component={TermsPrivacy} />
+            <Stack.Screen name="Notifications">
+              {(props) => (
+                <Notifications
                   {...props}
-                  savedBusinessIds={savedBusinessIds}
-                  setSavedBusinessIds={setSavedBusinessIds}
+                  onClose={() => navigationRef.current?.goBack()}
                 />
-              );
-            }}
-          </Stack.Screen>
-          <Stack.Screen name="VendorOffers">
-            {(props) => (
-              <VendorOffersScreen
-                {...props}
-                vendorData={vendorData}
-                setVendorData={setVendorData}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="BulkPriceUpdate">
-            {(props) => (
-              <BulkPriceUpdate
-                {...props}
-                route={{
-                  ...props.route,
-                  params: {
-                    ...props.route?.params,
-                    vendorProducts: vendorData?.products || [],
-                  }
-                }}
-                vendorProducts={vendorData?.products || []}
-                onUpdatePrices={() => {
-                  // In production, this would refresh vendor data from backend
-                  console.log('Prices updated');
-                }}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="PaymentManagement">
-            {(props) => (
-              <PaymentManagement
-                {...props}
-                vendorData={vendorData}
-                onUpdateVendor={setVendorData}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="Settings">
-            {(props) => (
-              <SettingsScreen
-                {...props}
-                currentTheme="default"
-                userRole={userRole}
-                profileData={userRole === 'vendor' ? vendorData : (userData || { name: 'User', mobile: '', location: '', email: '' })}
-                onUpdateProfile={(data) => {
-                  if (userRole === 'vendor') {
-                    setVendorData(data);
-                  } else if (userData) {
-                    setUserData({ ...userData, ...data });
-                  }
-                }}
-                onLogout={handleLogout}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="HelpSupport" component={HelpSupport} />
-          <Stack.Screen name="TermsPrivacy" component={TermsPrivacy} />
-          <Stack.Screen name="Notifications">
-            {(props) => (
-              <Notifications
-                {...props}
-                onClose={() => navigationRef.current?.goBack()}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
-          <Stack.Screen name="VendorRegistration">
-            {(props) => (
-              <VendorRegistration
-                {...props}
-                onComplete={handleRegistrationComplete}
-                onCancel={() => setIsRegistering(false)}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="ServiceProviderRegistration">
-            {(props) => (
-              <ServiceProviderRegistration
-                {...props}
-                onComplete={handleRegistrationComplete}
-                onCancel={() => setIsRegistering(false)}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="VendorDashboard">
-            {(props) => (
-              <VendorDashboard
-                {...props}
-                vendor={vendorData}
-                onUpdateVendor={setVendorData}
-                isVendor={userRole === 'vendor'}
-              />
-            )}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onNavigate={handleSidebarNavigation}
-        userRole={userRole}
-        userName={userRole === 'vendor' ? vendorData.name : 'User'}
-        userLocation={userRole === 'vendor' ? vendorData.address : 'Delhi, India'}
-      />
-    </SafeAreaProvider>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+            <Stack.Screen name="VendorRegistration">
+              {(props) => (
+                <VendorRegistration
+                  {...props}
+                  onComplete={handleRegistrationComplete}
+                  onCancel={() => setIsRegistering(false)}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="ServiceProviderRegistration">
+              {(props) => (
+                <ServiceProviderRegistration
+                  {...props}
+                  onComplete={handleRegistrationComplete}
+                  onCancel={() => setIsRegistering(false)}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="VendorDashboard">
+              {(props) => (
+                <VendorDashboard
+                  {...props}
+                  vendor={vendorData}
+                  onUpdateVendor={setVendorData}
+                  isVendor={userRole === 'vendor'}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onNavigate={handleSidebarNavigation}
+          userRole={userRole}
+          userName={userRole === 'vendor' ? vendorData.name : 'User'}
+          userLocation={userRole === 'vendor' ? vendorData.address : 'Delhi, India'}
+        />
+      </SafeAreaProvider>
     </ThemeProvider>
   );
 }

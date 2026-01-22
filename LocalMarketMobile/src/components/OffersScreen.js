@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { getFestiveOffers, getVendors } from '../services/api';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const OffersScreen = ({ navigation, locationState }) => {
+  const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,24 +20,24 @@ const OffersScreen = ({ navigation, locationState }) => {
   const loadAllOffers = async () => {
     try {
       setLoading(true);
-      
+
       // Load festive offers from database
       const festiveOffersData = await getFestiveOffers({ status: 'active' });
-      
+
       // Transform and filter festive offers
       const now = new Date();
       const activeFestiveOffers = festiveOffersData
         .filter(offer => {
           // Check status
           if (offer.status !== 'active') return false;
-          
+
           // Check date range
           const startDate = offer.start_date ? new Date(offer.start_date) : null;
           const endDate = offer.end_date ? new Date(offer.end_date) : null;
-          
+
           if (startDate && now < startDate) return false;
           if (endDate && now > endDate) return false;
-          
+
           return true;
         })
         .map(offer => ({
@@ -57,7 +61,7 @@ const OffersScreen = ({ navigation, locationState }) => {
       // If offers are vendor-specific, fetch vendor details
       const vendorSpecificOffers = activeFestiveOffers.filter(o => o.target === 'specific' && o.vendorIds);
       let vendorsMap = {};
-      
+
       if (vendorSpecificOffers.length > 0) {
         try {
           // Fetch all vendors to get names
@@ -116,7 +120,7 @@ const OffersScreen = ({ navigation, locationState }) => {
         console.error('Error fetching vendor for offer:', error);
       }
     }
-    
+
     // For festive offers or if vendor not found, just show offer details
     if (navigation) {
       // Could navigate to offer details page or show modal
@@ -139,7 +143,7 @@ const OffersScreen = ({ navigation, locationState }) => {
     const businessName = offer.businessName || 'Special Offer';
     const businessId = offer.businessId || offer.id;
     const discountText = offer.discount > 0 ? `${offer.discount}% OFF` : 'Special Offer';
-    
+
     return (
       <TouchableOpacity
         style={[styles.offerCard, { backgroundColor: getOfferColor(offer.color) }]}
@@ -167,7 +171,7 @@ const OffersScreen = ({ navigation, locationState }) => {
               <Text style={styles.offerCode}>{offer.code}</Text>
             </View>
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.redeemButton}
             onPress={() => handleOfferClick(businessId, offer)}
             activeOpacity={0.8}
@@ -181,24 +185,34 @@ const OffersScreen = ({ navigation, locationState }) => {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <View style={styles.headerContent}>
-          <Icon name={getIconName('Gift')} size={24} color="#dc2626" />
-          <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Festive Offers for You</Text>
-            <Text style={styles.headerSubtitle}>Curated offers from local vendors nearby</Text>
+      {/* Gradient Background */}
+      <LinearGradient
+        colors={COLORS.primaryGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.gradientBackground}
+      />
+
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Icon name={getIconName('Gift')} size={24} color={COLORS.white} />
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Festive Offers for You</Text>
+              <Text style={styles.headerSubtitle}>Curated offers from local vendors nearby</Text>
+            </View>
           </View>
         </View>
       </SafeAreaView>
 
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ea580c" />
+            <ActivityIndicator size="large" color={COLORS.orange} />
             <Text style={styles.loadingText}>Loading offers...</Text>
           </View>
         ) : offers.length > 0 ? (
@@ -216,7 +230,7 @@ const OffersScreen = ({ navigation, locationState }) => {
           </>
         ) : (
           <View style={styles.emptyState}>
-            <Icon name={getIconName('Gift')} size={64} color="#9ca3af" />
+            <Icon name={getIconName('Gift')} size={64} color={COLORS.textMuted} />
             <Text style={styles.emptyTitle}>No Active Offers</Text>
             <Text style={styles.emptyText}>No active offers found. Check back later for new deals!</Text>
           </View>
@@ -226,27 +240,30 @@ const OffersScreen = ({ navigation, locationState }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+  },
+  safeArea: {
+    backgroundColor: 'transparent',
   },
   header: {
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    height: 80,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    padding: 16,
-    paddingTop: 8,
   },
   headerText: {
     flex: 1,
@@ -254,11 +271,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1e293b',
+    color: COLORS.white,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#6b7280',
+    color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 2,
   },
   scrollView: {
@@ -354,7 +371,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 16,
     right: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -367,7 +384,7 @@ const styles = StyleSheet.create({
   redeemButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#1e293b',
+    color: COLORS.textPrimary,
   },
   footer: {
     alignItems: 'center',
@@ -375,7 +392,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: COLORS.textMuted,
   },
   emptyState: {
     flex: 1,
@@ -386,13 +403,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1e293b',
+    color: COLORS.textPrimary,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: COLORS.textMuted,
   },
   loadingContainer: {
     padding: 40,
@@ -402,7 +419,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6b7280',
+    color: COLORS.textMuted,
   },
   discountBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',

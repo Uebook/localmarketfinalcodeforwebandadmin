@@ -48,9 +48,14 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     marginHorizontal: 16,
     borderRadius: 16,
-    backgroundColor: 'transparent', // Removed brown background
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   header: {
     paddingHorizontal: 20,
@@ -79,12 +84,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
   circularImageContainer: {
     borderRadius: 48, // Make it circular

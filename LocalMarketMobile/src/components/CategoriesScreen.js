@@ -12,6 +12,7 @@ import { getCategories } from '../services/api';
 
 const CategoriesScreen = ({ navigation, route }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -223,7 +224,7 @@ const CategoriesScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.white,

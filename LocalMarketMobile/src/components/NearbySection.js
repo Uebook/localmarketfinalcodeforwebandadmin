@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { NEARBY_BUSINESSES } from '../constants';
+// Static vendor data removed - using database only
 import { getIconName } from '../utils/iconMapping';
 import { getVendors } from '../services/api';
 
@@ -48,13 +48,13 @@ const NearbySection = ({ onBusinessClick, locationState }) => {
         }));
         setBusinesses(transformedBusinesses);
       } else {
-        // Fallback to constants
-        setBusinesses(NEARBY_BUSINESSES);
+        // No fallback - show empty state if no vendors found
+        setBusinesses([]);
       }
     } catch (error) {
       console.error('Error loading nearby vendors:', error);
-      // Fallback to constants
-      setBusinesses(NEARBY_BUSINESSES);
+      // No fallback - show empty state on error
+      setBusinesses([]);
     } finally {
       setLoading(false);
     }
@@ -119,15 +119,15 @@ const NearbySection = ({ onBusinessClick, locationState }) => {
                 </View>
 
                 <View style={styles.actionButtons}>
-                  <TouchableOpacity 
-                    style={styles.viewButton} 
+                  <TouchableOpacity
+                    style={styles.viewButton}
                     activeOpacity={0.7}
                     onPress={() => onBusinessClick && onBusinessClick(business)}
                   >
                     <Text style={styles.viewButtonText}>View Details</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.callButton} 
+                  <TouchableOpacity
+                    style={styles.callButton}
                     activeOpacity={0.7}
                     onPress={() => {
                       // Handle call action

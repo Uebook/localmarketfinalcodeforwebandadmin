@@ -23,6 +23,7 @@ import { saveUserData } from '../utils/userStorage';
 
 const RegisterScreen = ({ onRegister, onBack }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -579,7 +580,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
   },

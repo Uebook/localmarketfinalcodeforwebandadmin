@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
-import { SEARCH_RESULTS, NEARBY_BUSINESSES, FEATURED_BUSINESSES, IT_COMPANIES } from '../constants';
+// Static vendor data removed - using database only
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getVendors, getVendorProducts, getMasterProducts, getCategories } from '../services/api';
+import { getVendors, getVendorProducts, getCategories } from '../services/api';
 
 const SearchResults = ({
     navigation,
@@ -26,6 +26,7 @@ const SearchResults = ({
     const categoryId = route?.params?.categoryId;
     const isCategorySearch = route?.params?.isCategorySearch || false; // Flag to indicate category-based search
     const COLORS = useThemeColors();
+    const styles = createStyles(COLORS);
     // Use savedBusinessIds from props if available, otherwise use savedIds
     const savedIds = savedBusinessIds.length > 0 ? savedBusinessIds : propSavedIds;
     const [sortBy, setSortBy] = useState('default');
@@ -34,7 +35,6 @@ const SearchResults = ({
     const [filterVerified, setFilterVerified] = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
     const [vendors, setVendors] = useState([]);
-    const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const sliderTrackRef = useRef(null);
     const [sliderWidth, setSliderWidth] = useState(0);
@@ -83,6 +83,11 @@ const SearchResults = ({
                 limit: 100,
             };
 
+            // If categoryId is provided, use it to filter vendors
+            if (categoryId) {
+                vendorFilters.categoryId = categoryId;
+            }
+
             // If query is provided, search by name, owner, or category
             if (query) {
                 vendorFilters.q = query;
@@ -99,48 +104,28 @@ const SearchResults = ({
             }
 
             const vendorsData = await getVendors(vendorFilters);
-            const fetchedVendors = vendorsData?.vendors || [];
+            let fetchedVendors = vendorsData?.vendors || [];
 
-            // Only fetch products if NOT a category search (category search should show vendors only)
-            let fetchedProducts = [];
-            if (!isCategorySearch && query && query.length > 2) {
-                try {
-                    // If we found matching categories, fetch products for each category
-                    if (matchedCategoryIds.length > 0) {
-                        const allProducts = [];
-                        // Fetch products for each matched category
-                        for (const categoryId of matchedCategoryIds) {
-                            try {
-                                const productsData = await getMasterProducts({
-                                    categoryId: categoryId,
-                                    limit: 50,
-                                });
-                                if (productsData?.products) {
-                                    allProducts.push(...productsData.products);
-                                }
-                            } catch (error) {
-                                console.error(`Error fetching products for category ${categoryId}:`, error);
-                            }
+            // If categoryId is provided, filter vendors that have products in this category
+            if (categoryId && fetchedVendors.length > 0) {
+                const vendorsWithCategoryProducts = await Promise.all(
+                    fetchedVendors.map(async (vendor) => {
+                        try {
+                            const vendorProductsData = await getVendorProducts(vendor.id);
+                            const hasCategoryProducts = vendorProductsData?.products?.some(
+                                product => product.category_id === categoryId || product.category_id === String(categoryId)
+                            );
+                            return hasCategoryProducts ? vendor : null;
+                        } catch (error) {
+                            console.error(`Error checking products for vendor ${vendor.id}:`, error);
+                            return null;
                         }
-                        // Remove duplicates by product ID
-                        const uniqueProducts = Array.from(
-                            new Map(allProducts.map(p => [p.id, p])).values()
-                        );
-                        fetchedProducts = uniqueProducts;
-                    } else {
-                        // If no category match, search by product name
-                        const productsData = await getMasterProducts({
-                            q: query,
-                            limit: 50,
-                        });
-                        fetchedProducts = productsData?.products || [];
-                    }
-
-                    console.log(`Fetched ${fetchedProducts.length} products for query: "${query}"`);
-                } catch (error) {
-                    console.error('Error fetching products:', error);
-                }
+                    })
+                );
+                fetchedVendors = vendorsWithCategoryProducts.filter(v => v !== null);
             }
+
+            // Products are no longer fetched - only showing vendors
 
             // Fetch vendor products for each vendor to match against
             const vendorsWithProducts = await Promise.all(
@@ -162,12 +147,11 @@ const SearchResults = ({
             );
 
             setVendors(vendorsWithProducts);
-            setProducts(fetchedProducts);
+            setProducts([]); // No products - vendors only
         } catch (error) {
             console.error('Error loading search data:', error);
-            // Fallback to constants
-            const allBusinesses = [...SEARCH_RESULTS, ...NEARBY_BUSINESSES, ...FEATURED_BUSINESSES, ...IT_COMPANIES];
-            setVendors(Array.from(new Map(allBusinesses.map(item => [item.id, item])).values()));
+            // No fallback - show empty state if no vendors found
+            setVendors([]);
         } finally {
             setLoading(false);
         }
@@ -199,12 +183,8 @@ const SearchResults = ({
     };
 
     const allBusinesses = useMemo(() => {
-        // Use database vendors if available, otherwise fallback to constants
-        if (vendors.length > 0) {
-            return vendors.map(transformVendorToBusiness);
-        }
-        const combined = [...SEARCH_RESULTS, ...NEARBY_BUSINESSES, ...FEATURED_BUSINESSES, ...IT_COMPANIES];
-        return Array.from(new Map(combined.map(item => [item.id, item])).values());
+        // Use database vendors only - no static fallback
+        return vendors.map(transformVendorToBusiness);
     }, [vendors]);
 
     const baseResults = propResults || allBusinesses;
@@ -230,19 +210,13 @@ const SearchResults = ({
                 // Also check if category name is in the query (e.g., "Groceries" in "Groceries / General Store")
                 const categoryInQuery = itemCategory && lowerQuery.includes(itemCategory.split(' ')[0]);
 
-                // Check vendor products
+                // Check vendor products (vendors that sell products matching the query)
                 const matchesVendorProducts = item.products && Array.isArray(item.products) && item.products.some(p => {
                     const productName = (p.name || '').toLowerCase();
                     return queryWords.some(word => productName.includes(word));
                 });
 
-                // Check if query matches any master product names (for product searches)
-                const matchesMasterProducts = products.some(mp => {
-                    const productName = (mp.name || '').toLowerCase();
-                    return queryWords.some(word => productName.includes(word));
-                }) && itemCategory; // If master product matches, show vendors in that category
-
-                return matchesName || matchesCategory || categoryInQuery || matchesVendorProducts || matchesMasterProducts;
+                return matchesName || matchesCategory || categoryInQuery || matchesVendorProducts;
             });
         }
 
@@ -266,7 +240,7 @@ const SearchResults = ({
         }
 
         return results;
-    }, [baseResults, sortBy, filterTopRated, filterVerified, maxDistance, query, propResults, products]);
+    }, [baseResults, sortBy, filterTopRated, filterVerified, maxDistance, query, propResults]);
 
     const handleBusinessClick = (business) => {
         if (onBusinessClick) {
@@ -531,7 +505,7 @@ const SearchResults = ({
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={COLORS.orange} />
                     <Text style={styles.loadingText}>
-                        {isCategorySearch ? 'Loading vendors...' : 'Searching vendors and products...'}
+                        Searching vendors...
                     </Text>
                 </View>
             ) : filteredResults.length > 0 ? (
@@ -540,59 +514,6 @@ const SearchResults = ({
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Products Section - Only show if NOT a category search */}
-                    {!isCategorySearch && products.length > 0 && (
-                        <View style={styles.sectionContainer}>
-                            <View style={styles.sectionHeader}>
-                                <Text style={styles.sectionTitle}>Products ({products.length})</Text>
-                            </View>
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.productsScroll}
-                            >
-                                {products.map((product) => (
-                                    <TouchableOpacity
-                                        key={product.id}
-                                        style={styles.productCard}
-                                        onPress={() => {
-                                            // Find vendors that have this product
-                                            const vendorsWithProduct = filteredResults.filter(v =>
-                                                v.products && v.products.some(p => p.name === product.name)
-                                            );
-                                            if (navigation && vendorsWithProduct.length > 0) {
-                                                navigation.navigate('ProductDetails', {
-                                                    product: {
-                                                        ...product,
-                                                        imageUrl: product.image_url || 'https://via.placeholder.com/200',
-                                                        price: product.default_mrp || 0,
-                                                    },
-                                                    business: vendorsWithProduct[0]
-                                                });
-                                            }
-                                        }}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Image
-                                            source={{ uri: product.image_url || 'https://via.placeholder.com/200' }}
-                                            style={styles.productImage}
-                                            resizeMode="cover"
-                                        />
-                                        <View style={styles.productInfo}>
-                                            <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
-                                            {product.brand && (
-                                                <Text style={styles.productBrand} numberOfLines={1}>{product.brand}</Text>
-                                            )}
-                                            {product.default_mrp && (
-                                                <Text style={styles.productPrice}>₹{product.default_mrp}</Text>
-                                            )}
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
-                    )}
-
                     {/* Vendors Section */}
                     <View style={styles.sectionContainer}>
                         <View style={styles.sectionHeader}>
@@ -615,12 +536,12 @@ const SearchResults = ({
                         <View style={styles.emptyIcon}>
                             <Icon name={getIconName('Search')} size={48} color={COLORS.textMuted} />
                         </View>
-                        <Text style={styles.emptyTitle}>No matches found</Text>
+                        <Text style={styles.emptyTitle}>No vendors found</Text>
                         <Text style={styles.emptyText}>
                             {isCategorySearch
                                 ? `No vendors found for "${query}" category. Try another category or check back later.`
                                 : query
-                                    ? `No vendors or products found for "${query}"`
+                                    ? `No vendors found for "${query}". Try increasing the distance or changing filters.`
                                     : 'Try increasing the distance or changing filters.'}
                         </Text>
                         <TouchableOpacity
@@ -642,7 +563,7 @@ const SearchResults = ({
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: COLORS.white,

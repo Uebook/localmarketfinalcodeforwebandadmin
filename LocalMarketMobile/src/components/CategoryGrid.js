@@ -73,6 +73,7 @@ const getCategoryIcon = (iconName) => {
 
 const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const displayCategories = categories && categories.length > 0 ? categories : ALL_CATEGORIES;
 
   const renderCategory = ({ item, index }) => {
@@ -112,7 +113,7 @@ const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     paddingVertical: 8,
   },

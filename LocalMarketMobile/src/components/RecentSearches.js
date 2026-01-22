@@ -95,10 +95,15 @@ const createStyles = (COLORS) => StyleSheet.create({
     paddingVertical: 20,
     marginVertical: 12,
     marginHorizontal: 16,
-    backgroundColor: 'transparent', // Removed brown background
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
@@ -124,15 +129,15 @@ const createStyles = (COLORS) => StyleSheet.create({
   tag: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#F1F5F9',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#E2E8F0',
   },
   tagText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.textLight,
+    color: COLORS.textSecondary,
   },
   loadingContainer: {
     padding: 20,

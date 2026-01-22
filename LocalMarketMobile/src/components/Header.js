@@ -14,7 +14,7 @@ const Header = ({
   notificationCount = 2
 }) => {
   const COLORS = useThemeColors();
-  
+  const styles = createStyles(COLORS);
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.header}>
@@ -80,7 +80,7 @@ const Header = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   safeArea: {
     backgroundColor: 'transparent',
   },

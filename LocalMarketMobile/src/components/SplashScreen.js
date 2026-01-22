@@ -9,6 +9,7 @@ const { width, height } = Dimensions.get('window');
 
 const SplashScreen = () => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [progress, setProgress] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -142,7 +143,7 @@ const SplashScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

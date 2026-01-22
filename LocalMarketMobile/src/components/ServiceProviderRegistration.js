@@ -14,6 +14,7 @@ const SERVICE_TYPES = ['Carpenter', 'Plumber', 'Electrician', 'Painter', 'Mechan
 
 const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [step, setStep] = useState(1);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [formData, setFormData] = useState({
@@ -354,7 +355,7 @@ const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',

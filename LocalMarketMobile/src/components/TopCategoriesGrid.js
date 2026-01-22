@@ -15,7 +15,8 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
 
   const handleCategoryPress = (category) => {
     if (onCategorySelect) {
-      onCategorySelect(category.name);
+      // Pass category object so we can get both name and id
+      onCategorySelect(category.name, category.id);
     }
   };
 
