@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0F172A', // Dark text for white background
     marginBottom: 16,
     paddingHorizontal: 4,
   },
@@ -159,19 +159,25 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 24,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Semi-transparent dark overlay for text readability
   },
   bannerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#ffffff', // White text on dark overlay
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   bannerSubtitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#f1f5f9',
+    color: '#f1f5f9', // Light text on dark overlay
     marginBottom: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   ctaButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
