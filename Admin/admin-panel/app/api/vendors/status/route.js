@@ -1,7 +1,10 @@
 import { supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
-  return typeof v === 'string' ? v.trim() : '';
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string') return v.trim();
+  // Convert numbers and other types to string
+  return String(v).trim();
 }
 
 function toNum(v) {

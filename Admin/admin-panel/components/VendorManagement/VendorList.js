@@ -228,16 +228,32 @@ export default function VendorList({ onViewProfile }) {
 
       // Only add fields that have values or are explicitly set
       if (editingVendor.owner !== undefined) {
-        updatePayload.owner = editingVendor.owner?.trim() || null;
-        updatePayload.owner_name = editingVendor.owner?.trim() || null;
+        const ownerVal = typeof editingVendor.owner === 'string' ? editingVendor.owner.trim() : String(editingVendor.owner || '').trim();
+        updatePayload.owner = ownerVal || null;
+        updatePayload.owner_name = ownerVal || null;
       }
       if (editingVendor.status !== undefined) updatePayload.status = editingVendor.status || 'Pending';
       if (editingVendor.kycStatus !== undefined) updatePayload.kycStatus = editingVendor.kycStatus || 'Pending';
-      if (editingVendor.contactNumber !== undefined) updatePayload.contactNumber = editingVendor.contactNumber?.trim() || null;
-      if (editingVendor.email !== undefined) updatePayload.email = editingVendor.email?.trim() || null;
-      if (editingVendor.state !== undefined) updatePayload.state = editingVendor.state?.trim() || null;
-      if (editingVendor.city !== undefined) updatePayload.city = editingVendor.city?.trim() || null;
-      if (editingVendor.category !== undefined) updatePayload.category = editingVendor.category?.trim() || null;
+      if (editingVendor.contactNumber !== undefined) {
+        const contactVal = typeof editingVendor.contactNumber === 'string' ? editingVendor.contactNumber.trim() : String(editingVendor.contactNumber || '').trim();
+        updatePayload.contactNumber = contactVal || null;
+      }
+      if (editingVendor.email !== undefined) {
+        const emailVal = typeof editingVendor.email === 'string' ? editingVendor.email.trim() : String(editingVendor.email || '').trim();
+        updatePayload.email = emailVal || null;
+      }
+      if (editingVendor.state !== undefined) {
+        const stateVal = typeof editingVendor.state === 'string' ? editingVendor.state.trim() : String(editingVendor.state || '').trim();
+        updatePayload.state = stateVal || null;
+      }
+      if (editingVendor.city !== undefined) {
+        const cityVal = typeof editingVendor.city === 'string' ? editingVendor.city.trim() : String(editingVendor.city || '').trim();
+        updatePayload.city = cityVal || null;
+      }
+      if (editingVendor.category !== undefined) {
+        const categoryVal = typeof editingVendor.category === 'string' ? editingVendor.category.trim() : String(editingVendor.category || '').trim();
+        updatePayload.category = categoryVal || null;
+      }
       if (editingVendor.imageUrl !== undefined) updatePayload.imageUrl = editingVendor.imageUrl || null;
       if (editingVendor.shopFrontPhotoUrl !== undefined) {
         updatePayload.shopFrontPhotoUrl = editingVendor.imageUrl || editingVendor.shopFrontPhotoUrl || null;
