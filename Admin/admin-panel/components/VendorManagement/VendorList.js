@@ -205,40 +205,23 @@ export default function VendorList({ onViewProfile }) {
     }
 
     try {
-      // Prepare update payload - only include defined fields and convert empty strings to null for numeric fields
+      // Prepare update payload - only include fields that are in the edit form
+      // Don't include numeric fields unless they're explicitly being updated
       const updatePayload = {
         id: editingVendor.id,
         name: editingVendor.name,
+        owner: editingVendor.owner || null,
+        owner_name: editingVendor.owner || null,
+        status: editingVendor.status || 'Pending',
+        kycStatus: editingVendor.kycStatus || 'Pending',
+        contactNumber: editingVendor.contactNumber || null,
+        email: editingVendor.email || null,
+        state: editingVendor.state || null,
+        city: editingVendor.city || null,
+        category: editingVendor.category || null,
+        imageUrl: editingVendor.imageUrl || null,
+        shopFrontPhotoUrl: editingVendor.imageUrl || editingVendor.shopFrontPhotoUrl || null,
       };
-
-      // Only include fields that are actually set (not undefined)
-      if (editingVendor.owner !== undefined) updatePayload.owner = editingVendor.owner || null;
-      if (editingVendor.status !== undefined) updatePayload.status = editingVendor.status;
-      if (editingVendor.kycStatus !== undefined) updatePayload.kycStatus = editingVendor.kycStatus;
-      if (editingVendor.contactNumber !== undefined) updatePayload.contactNumber = editingVendor.contactNumber || null;
-      if (editingVendor.email !== undefined) updatePayload.email = editingVendor.email || null;
-      if (editingVendor.state !== undefined) updatePayload.state = editingVendor.state || null;
-      if (editingVendor.city !== undefined) updatePayload.city = editingVendor.city || null;
-      if (editingVendor.category !== undefined) updatePayload.category = editingVendor.category || null;
-      if (editingVendor.imageUrl !== undefined) updatePayload.imageUrl = editingVendor.imageUrl || null;
-      if (editingVendor.shopFrontPhotoUrl !== undefined) updatePayload.shopFrontPhotoUrl = editingVendor.shopFrontPhotoUrl || null;
-
-      // Handle numeric fields - convert empty strings to null or don't send if not changed
-      if (editingVendor.pincode !== undefined && editingVendor.pincode !== '') {
-        updatePayload.pincode = editingVendor.pincode;
-      } else if (editingVendor.pincode === '') {
-        updatePayload.pincode = null;
-      }
-      if (editingVendor.rating !== undefined && editingVendor.rating !== '') {
-        updatePayload.rating = editingVendor.rating;
-      } else if (editingVendor.rating === '') {
-        updatePayload.rating = null;
-      }
-      if (editingVendor.reviewCount !== undefined && editingVendor.reviewCount !== '') {
-        updatePayload.reviewCount = editingVendor.reviewCount;
-      } else if (editingVendor.reviewCount === '') {
-        updatePayload.reviewCount = null;
-      }
 
       const res = await fetch('/api/vendors/status', {
         method: 'PATCH',
