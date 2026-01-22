@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, PanResponder, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, PanResponder, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -34,10 +34,13 @@ const SearchResults = ({
     const [filterTopRated, setFilterTopRated] = useState(false);
     const [filterVerified, setFilterVerified] = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
+    const [showSortMenu, setShowSortMenu] = useState(false);
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const sliderTrackRef = useRef(null);
     const [sliderWidth, setSliderWidth] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         loadSearchData();
@@ -263,15 +266,23 @@ const SearchResults = ({
     };
 
     const handleSliderMove = (evt) => {
+        if (sliderWidth === 0 || !sliderTrackRef.current) return;
+
+        sliderTrackRef.current.measure((x, y, width, height, pageX, pageY) => {
+            const touchX = evt.nativeEvent.pageX - pageX;
+            const percentage = Math.max(0, Math.min(1, touchX / width));
+            const newDistance = Math.round(1 + percentage * 49); // Range: 1 to 50 km
+
+            if (newDistance !== maxDistance) {
+                setMaxDistance(newDistance);
+            }
+        });
+    };
+
+    const handleSliderMoveFromLocation = (locationX) => {
         if (sliderWidth === 0) return;
-
-        // Get the touch position relative to the slider track
-        const { locationX } = evt.nativeEvent || evt;
-        if (locationX === undefined) return;
-
         const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
-        const newDistance = Math.round(1 + percentage * 49); // Range: 1 to 50 km
-        
+        const newDistance = Math.round(1 + percentage * 49);
         if (newDistance !== maxDistance) {
             setMaxDistance(newDistance);
         }
@@ -282,30 +293,47 @@ const SearchResults = ({
             onStartShouldSetPanResponder: () => true,
             onMoveShouldSetPanResponder: () => true,
             onPanResponderGrant: (evt) => {
-                handleSliderMove(evt);
+                setIsDragging(true);
+                if (sliderTrackRef.current) {
+                    sliderTrackRef.current.measure((x, y, width, height, pageX, pageY) => {
+                        const touchX = evt.nativeEvent.pageX - pageX;
+                        handleSliderMoveFromLocation(touchX);
+                    });
+                }
             },
             onPanResponderMove: (evt) => {
-                handleSliderMove(evt);
+                if (sliderTrackRef.current) {
+                    sliderTrackRef.current.measure((x, y, width, height, pageX, pageY) => {
+                        const touchX = evt.nativeEvent.pageX - pageX;
+                        handleSliderMoveFromLocation(touchX);
+                    });
+                }
             },
             onPanResponderRelease: () => {
-                // Optional: Add any cleanup or final actions
+                setIsDragging(false);
             },
         })
     ).current;
 
     const handleSliderPress = (evt) => {
-        if (sliderWidth === 0) return;
-        
-        const { locationX } = evt.nativeEvent;
-        if (locationX === undefined) return;
-        
-        const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
-        const newDistance = Math.round(1 + percentage * 49);
-        
-        if (newDistance !== maxDistance) {
-            setMaxDistance(newDistance);
-        }
+        if (sliderWidth === 0 || !sliderTrackRef.current) return;
+
+        sliderTrackRef.current.measure((x, y, width, height, pageX, pageY) => {
+            const touchX = evt.nativeEvent.pageX - pageX;
+            const percentage = Math.max(0, Math.min(1, touchX / width));
+            const newDistance = Math.round(1 + percentage * 49);
+
+            if (newDistance !== maxDistance) {
+                setMaxDistance(newDistance);
+            }
+        });
     };
+
+    const sortOptions = [
+        { value: 'default', label: 'Default' },
+        { value: 'rating', label: 'Rating (High to Low)' },
+        { value: 'distance', label: 'Distance (Near to Far)' },
+    ];
 
     const renderBusinessCard = ({ item, index }) => {
         const isSaved = savedIds.includes(item.id);
@@ -433,12 +461,12 @@ const SearchResults = ({
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.filterButton, sortBy === 'rating' && styles.filterButtonActive]}
-                        onPress={() => setSortBy(sortBy === 'rating' ? 'default' : 'rating')}
+                        style={[styles.filterButton, sortBy !== 'default' && styles.filterButtonActive]}
+                        onPress={() => setShowSortMenu(true)}
                         activeOpacity={0.7}
                     >
-                        <Text style={[styles.filterButtonText, sortBy === 'rating' && styles.filterButtonTextActive]}>
-                            Sort by
+                        <Text style={[styles.filterButtonText, sortBy !== 'default' && styles.filterButtonTextActive]}>
+                            Sort by {sortBy !== 'default' ? `(${sortOptions.find(o => o.value === sortBy)?.label.split(' ')[0]})` : ''}
                         </Text>
                     </TouchableOpacity>
 
@@ -500,13 +528,7 @@ const SearchResults = ({
                                     const { width } = event.nativeEvent.layout;
                                     setSliderWidth(width);
                                 }}
-                                {...panResponder.panHandlers}
                             >
-                                <TouchableOpacity
-                                    activeOpacity={1}
-                                    onPress={handleSliderPress}
-                                    style={StyleSheet.absoluteFill}
-                                />
                                 {/* Background track */}
                                 <View style={styles.sliderTrackBackground} />
                                 {/* Filled portion */}
@@ -518,7 +540,13 @@ const SearchResults = ({
                                         }
                                     ]}
                                 />
-                                {/* Thumb */}
+                                {/* Touchable area for tap */}
+                                <TouchableOpacity
+                                    activeOpacity={1}
+                                    onPress={handleSliderPress}
+                                    style={StyleSheet.absoluteFill}
+                                />
+                                {/* Thumb - draggable */}
                                 <View
                                     style={[
                                         styles.sliderThumb,
@@ -527,12 +555,63 @@ const SearchResults = ({
                                             marginLeft: -8, // Half of thumb width (16/2)
                                         }
                                     ]}
+                                    {...panResponder.panHandlers}
                                 />
                             </View>
                             <Text style={styles.sliderLabel}>50 km</Text>
                         </View>
                     </View>
                 )}
+
+                {/* Sort By Menu Modal */}
+                <Modal
+                    visible={showSortMenu}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setShowSortMenu(false)}
+                >
+                    <TouchableOpacity
+                        style={styles.modalOverlay}
+                        activeOpacity={1}
+                        onPress={() => setShowSortMenu(false)}
+                    >
+                        <View style={styles.sortMenuContainer}>
+                            <View style={styles.sortMenuHeader}>
+                                <Text style={styles.sortMenuTitle}>Sort By</Text>
+                                <TouchableOpacity
+                                    onPress={() => setShowSortMenu(false)}
+                                    style={styles.closeButton}
+                                >
+                                    <Icon name={getIconName('X')} size={20} color={COLORS.textPrimary} />
+                                </TouchableOpacity>
+                            </View>
+                            {sortOptions.map((option) => (
+                                <TouchableOpacity
+                                    key={option.value}
+                                    style={[
+                                        styles.sortOption,
+                                        sortBy === option.value && styles.sortOptionActive
+                                    ]}
+                                    onPress={() => {
+                                        setSortBy(option.value);
+                                        setShowSortMenu(false);
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[
+                                        styles.sortOptionText,
+                                        sortBy === option.value && styles.sortOptionTextActive
+                                    ]}>
+                                        {option.label}
+                                    </Text>
+                                    {sortBy === option.value && (
+                                        <Icon name={getIconName('Check')} size={18} color={COLORS.orange} />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
             </View>
 
             {loading ? (
@@ -1071,6 +1150,62 @@ const createStyles = (COLORS) => StyleSheet.create({
     },
     productPrice: {
         fontSize: 16,
+        fontWeight: '700',
+        color: COLORS.orange,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sortMenuContainer: {
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        padding: 16,
+        width: '80%',
+        maxWidth: 300,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    sortMenuHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.divider,
+    },
+    sortMenuTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: COLORS.textPrimary,
+    },
+    closeButton: {
+        padding: 4,
+    },
+    sortOption: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 8,
+        borderRadius: 8,
+        marginBottom: 4,
+    },
+    sortOptionActive: {
+        backgroundColor: COLORS.highlightBg,
+    },
+    sortOptionText: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: COLORS.textPrimary,
+    },
+    sortOptionTextActive: {
         fontWeight: '700',
         color: COLORS.orange,
     },
