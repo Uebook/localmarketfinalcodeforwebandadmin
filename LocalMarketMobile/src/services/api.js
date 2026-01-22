@@ -369,6 +369,53 @@ export const getVendorProductsList = async (filters = {}) => {
   }
 };
 
+// ==================== AUTH API ====================
+
+/**
+ * Login user
+ * @param {Object} credentials
+ * @param {string} credentials.method - 'email' or 'sms'
+ * @param {string} credentials.email - Email (required for email method)
+ * @param {string} credentials.phone - Phone number (required for sms method)
+ * @param {string} credentials.password - Password (required for email method)
+ * @param {string} credentials.otp - OTP (required for sms verification)
+ * @returns {Promise<{success: boolean, user?: Object, message?: string, otp?: string}>}
+ */
+export const login = async (credentials) => {
+  try {
+    return await apiRequest('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Register new user
+ * @param {Object} userData
+ * @param {string} userData.full_name - Full name
+ * @param {string} userData.email - Email (optional)
+ * @param {string} userData.phone - Phone number
+ * @param {string} userData.password - Password (required if email provided)
+ * @param {string} userData.state - State (optional)
+ * @param {string} userData.city - City (optional)
+ * @returns {Promise<{success: boolean, user: Object, message: string}>}
+ */
+export const register = async (userData) => {
+  try {
+    return await apiRequest('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
+  }
+};
+
 // ==================== SEARCH API ====================
 
 /**
@@ -449,4 +496,6 @@ export default {
   getMasterProducts,
   getSearchReports,
   getRecentSearches,
+  login,
+  register,
 };

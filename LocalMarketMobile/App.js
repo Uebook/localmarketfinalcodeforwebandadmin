@@ -10,6 +10,7 @@ import { COLORS } from './src/constants/colors';
 // Import screens
 import SplashScreen from './src/components/SplashScreen';
 import LoginScreen from './src/components/LoginScreen';
+import RegisterScreen from './src/components/RegisterScreen';
 import HomeScreen from './src/components/HomeScreen';
 import SearchScreen from './src/components/SearchScreen';
 import SearchResults from './src/components/SearchResults';
@@ -230,6 +231,7 @@ function App() {
   const [vendorData, setVendorData] = useState(INITIAL_VENDOR_DATA);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isUserRegistering, setIsUserRegistering] = useState(false);
   const [savedBusinessIds, setSavedBusinessIds] = useState([]);
   const [initialRoute, setInitialRoute] = useState('Home');
   const navigationRef = useRef(null);
@@ -255,7 +257,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = (role) => {
+  const handleLogin = (role, userData = null) => {
     setUserRole(role);
     setIsAuthenticated(true);
     
@@ -265,6 +267,12 @@ function App() {
     } else {
       setInitialRoute('Home');
     }
+  };
+
+  const handleUserRegister = (userData) => {
+    // After user registration, automatically log them in
+    setIsUserRegistering(false);
+    handleLogin('customer', userData);
   };
 
   const handleLogout = () => {
@@ -350,6 +358,18 @@ function App() {
     );
   }
 
+  if (isUserRegistering) {
+    return (
+      <SafeAreaProvider>
+        <StatusBar barStyle="light-content" />
+        <RegisterScreen
+          onRegister={handleUserRegister}
+          onBack={() => setIsUserRegistering(false)}
+        />
+      </SafeAreaProvider>
+    );
+  }
+
   if (isRegistering) {
     return (
       <SafeAreaProvider>
@@ -372,7 +392,13 @@ function App() {
           onSimulateAdminApproval={() =>
             setVendorData((prev) => ({ ...prev, activationStatus: 'Active' }))
           }
-          onRegister={() => setIsRegistering(true)}
+          onRegister={(isVendor) => {
+            if (isVendor) {
+              setIsRegistering(true);
+            } else {
+              setIsUserRegistering(true);
+            }
+          }}
         />
       </SafeAreaProvider>
     );

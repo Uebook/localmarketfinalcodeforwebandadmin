@@ -9,20 +9,25 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { COLORS } from '../constants/colors';
+import { login } from '../services/api';
 
 const LoginScreen = ({ onLogin, onRegister }) => {
   const [isLocalPlusMode, setIsLocalPlusMode] = useState(false);
   const [loginMethod, setLoginMethod] = useState('mobile');
   const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '']);
   const [resendTimer, setResendTimer] = useState(24);
+  const [error, setError] = useState('');
   const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Timer for resend OTP
@@ -35,38 +40,135 @@ const LoginScreen = ({ onLogin, onRegister }) => {
     }
   }, [showOtpScreen, resendTimer]);
 
-  const handleGetOtp = () => {
-    if (mobile.length < 10) return;
+  const handleGetOtp = async () => {
+    if (loginMethod === 'mobile' && mobile.length < 10) {
+      setError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+    
     setIsLoading(true);
-    setTimeout(() => {
+    setError('');
+    
+    try {
+      if (loginMethod === 'mobile') {
+        // Request OTP for SMS login
+        const response = await login({
+          method: 'sms',
+          phone: `+91${mobile}`,
+        });
+        
+        if (response.success) {
+          setShowOtpScreen(true);
+          setResendTimer(24);
+          // In development, show OTP (remove in production)
+          if (response.otp) {
+            Alert.alert('OTP Sent', `Your OTP is: ${response.otp}`, [{ text: 'OK' }]);
+          }
+        }
+      } else {
+        // Email login - verify password directly
+        if (!email || !password) {
+          setError('Please enter email and password');
+          setIsLoading(false);
+          return;
+        }
+        
+        const response = await login({
+          method: 'email',
+          email: email.toLowerCase(),
+          password: password,
+        });
+        
+        if (response.success && response.user) {
+          // Login successful
+          if (onLogin) {
+            onLogin(isLocalPlusMode ? 'vendor' : 'customer', response.user);
+          }
+        }
+      }
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+      Alert.alert('Login Error', err.message || 'Login failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      setShowOtpScreen(true);
-      setResendTimer(24);
-    }, 1500);
+    }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     const otpString = otp.join('');
-    if (otpString.length !== 4) return;
+    if (otpString.length !== 4) {
+      setError('Please enter 4-digit OTP');
+      return;
+    }
+    
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (onLogin) {
-        onLogin(isLocalPlusMode ? 'vendor' : 'customer');
+    setError('');
+    
+    try {
+      const response = await login({
+        method: 'sms',
+        phone: `+91${mobile}`,
+        otp: otpString,
+      });
+      
+      if (response.success && response.user) {
+        // Login successful
+        if (onLogin) {
+          onLogin(isLocalPlusMode ? 'vendor' : 'customer', response.user);
+        }
       }
-    }, 1500);
+    } catch (err) {
+      setError(err.message || 'Invalid OTP. Please try again.');
+      Alert.alert('Verification Error', err.message || 'Invalid OTP. Please try again.');
+      // Clear OTP on error
+      setOtp(['', '', '', '']);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditNumber = () => {
     setShowOtpScreen(false);
     setOtp(['', '', '', '']);
     setResendTimer(24);
+    setError('');
+  };
+  
+  const handleMethodChange = (method) => {
+    setLoginMethod(method);
+    setError('');
+    setShowOtpScreen(false);
+    setOtp(['', '', '', '']);
+    setMobile('');
+    setEmail('');
+    setPassword('');
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     if (resendTimer > 0) return;
-    setResendTimer(24);
-    // In real app, resend OTP API call would go here
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await login({
+        method: 'sms',
+        phone: `+91${mobile}`,
+      });
+      
+      if (response.success) {
+        setResendTimer(24);
+        // In development, show OTP (remove in production)
+        if (response.otp) {
+          Alert.alert('OTP Resent', `Your OTP is: ${response.otp}`, [{ text: 'OK' }]);
+        }
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP');
+      Alert.alert('Error', err.message || 'Failed to resend OTP');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleOtpChange = (index, value) => {
@@ -217,7 +319,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
               <View style={styles.methodSelector}>
                 <TouchableOpacity
                   style={[styles.methodTab, loginMethod === 'mobile' && styles.methodTabActive]}
-                  onPress={() => setLoginMethod('mobile')}
+                  onPress={() => handleMethodChange('mobile')}
                   activeOpacity={0.7}
                 >
                   {loginMethod === 'mobile' ? (
@@ -234,7 +336,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.methodTab, loginMethod === 'email' && styles.methodTabActive]}
-                  onPress={() => setLoginMethod('email')}
+                  onPress={() => handleMethodChange('email')}
                   activeOpacity={0.7}
                 >
                   {loginMethod === 'email' ? (
@@ -250,6 +352,13 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                   )}
                 </TouchableOpacity>
               </View>
+              
+              {/* Error message */}
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
 
               {/* Mobile number input */}
               {loginMethod === 'mobile' && (
@@ -273,30 +382,61 @@ const LoginScreen = ({ onLogin, onRegister }) => {
 
               {/* Email input (if email method is selected) */}
               {loginMethod === 'email' && (
-                <View style={styles.inputSection}>
-                  <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
-                  <View style={[styles.inputWrapper, isLocalPlusMode && styles.inputWrapperLocalPlus]}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter your email"
-                      placeholderTextColor={COLORS.textMuted}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                    />
-                    <Icon name={getIconName('Mail')} size={18} color={isLocalPlusMode ? COLORS.textMuted : COLORS.orange} />
+                <>
+                  <View style={styles.inputSection}>
+                    <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+                    <View style={[styles.inputWrapper, isLocalPlusMode && styles.inputWrapperLocalPlus]}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter your email"
+                        placeholderTextColor={COLORS.textMuted}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        value={email}
+                        onChangeText={(text) => {
+                          setEmail(text);
+                          setError('');
+                        }}
+                      />
+                      <Icon name={getIconName('Mail')} size={18} color={isLocalPlusMode ? COLORS.textMuted : COLORS.orange} />
+                    </View>
                   </View>
-                </View>
+                  <View style={styles.inputSection}>
+                    <Text style={styles.inputLabel}>PASSWORD</Text>
+                    <View style={[styles.inputWrapper, isLocalPlusMode && styles.inputWrapperLocalPlus]}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter your password"
+                        placeholderTextColor={COLORS.textMuted}
+                        secureTextEntry
+                        value={password}
+                        onChangeText={(text) => {
+                          setPassword(text);
+                          setError('');
+                        }}
+                      />
+                      <Icon name={getIconName('Lock')} size={18} color={isLocalPlusMode ? COLORS.textMuted : COLORS.orange} />
+                    </View>
+                  </View>
+                </>
               )}
 
-              {/* Get OTP button with gradient or dark grey for Local+ */}
+              {/* Get OTP / Login button with gradient or dark grey for Local+ */}
               <TouchableOpacity
                 style={[
                   styles.otpButton,
-                  (isLoading || (loginMethod === 'mobile' && mobile.length < 10)) && styles.otpButtonDisabled,
+                  (isLoading || 
+                    (loginMethod === 'mobile' && mobile.length < 10) ||
+                    (loginMethod === 'email' && (!email || !password))
+                  ) && styles.otpButtonDisabled,
                   isLocalPlusMode && styles.otpButtonLocalPlus
                 ]}
                 onPress={handleGetOtp}
-                disabled={isLoading || (loginMethod === 'mobile' && mobile.length < 10)}
+                disabled={
+                  isLoading || 
+                  (loginMethod === 'mobile' && mobile.length < 10) ||
+                  (loginMethod === 'email' && (!email || !password))
+                }
                 activeOpacity={0.8}
               >
                 {isLocalPlusMode ? (
@@ -305,7 +445,9 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                       <ActivityIndicator color={COLORS.white} size="small" style={styles.buttonContent} />
                     ) : (
                       <View style={styles.buttonContent}>
-                        <Text style={styles.otpButtonText}>Get OTP</Text>
+                        <Text style={styles.otpButtonText}>
+                          {loginMethod === 'email' ? 'Login' : 'Get OTP'}
+                        </Text>
                         <Icon name={getIconName('ArrowRight')} size={18} color={COLORS.white} />
                       </View>
                     )}
@@ -321,7 +463,9 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                       <ActivityIndicator color={COLORS.white} size="small" style={styles.buttonContent} />
                     ) : (
                       <View style={styles.buttonContent}>
-                        <Text style={styles.otpButtonText}>Get OTP</Text>
+                        <Text style={styles.otpButtonText}>
+                          {loginMethod === 'email' ? 'Login' : 'Get OTP'}
+                        </Text>
                         <Icon name={getIconName('ArrowRight')} size={18} color={COLORS.white} />
                       </View>
                     )}
@@ -344,6 +488,21 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                 <Text style={styles.googleButtonText}>Google</Text>
               </TouchableOpacity>
 
+              {/* Register link for regular users */}
+              {!isLocalPlusMode && (
+                <View style={styles.registerLinkSection}>
+                  <Text style={styles.registerLinkText}>
+                    Don't have an account?{' '}
+                    <TouchableOpacity
+                      onPress={() => onRegister && onRegister(false)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.registerLinkBold}>Register Now</Text>
+                    </TouchableOpacity>
+                  </Text>
+                </View>
+              )}
+
               {/* Partners section */}
               <View style={styles.partnersSection}>
                 <View style={styles.dividerLine} />
@@ -354,7 +513,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                     <Text style={styles.localPlusButtonText}>Login to Local+</Text>
                   </TouchableOpacity>
                   {onRegister && (
-                    <TouchableOpacity style={styles.registerButton} onPress={onRegister} activeOpacity={0.7}>
+                    <TouchableOpacity style={styles.registerButton} onPress={() => onRegister(true)} activeOpacity={0.7}>
                       <Icon name={getIconName('Store')} size={20} color={COLORS.orange} />
                       <Text style={styles.registerButtonText}>Register as Local+</Text>
                     </TouchableOpacity>
@@ -787,6 +946,36 @@ const styles = StyleSheet.create({
   },
   resendTextDisabled: {
     color: '#94a3b8',
+  },
+  errorContainer: {
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  registerLinkSection: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  registerLinkText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  registerLinkBold: {
+    fontWeight: '700',
+    color: COLORS.orange,
+    textDecorationLine: 'underline',
   },
 });
 
