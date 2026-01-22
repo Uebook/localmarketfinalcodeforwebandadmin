@@ -8,6 +8,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 
 const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const displayCategories = categories && categories.length > 0 ? categories : TOP_8_CATEGORIES;
 
   const handleCategoryPress = (category) => {
@@ -62,7 +63,7 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     paddingVertical: 16,
     paddingHorizontal: 16,
@@ -78,12 +79,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: COLORS.textMuted,
   },
   viewAllButton: {
     flexDirection: 'row',
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 10,
     fontWeight: '600',
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     textAlign: 'center',
     lineHeight: 13,
     maxWidth: '100%',

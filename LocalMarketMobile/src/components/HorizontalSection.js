@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#ffffff',
+    color: '#0F172A', // Dark text for white background
     textTransform: 'uppercase',
     letterSpacing: 2,
     opacity: 0.9,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#f1f5f9',
+    color: '#0F172A', // Dark text for white background
     textAlign: 'center',
     lineHeight: 16,
   },

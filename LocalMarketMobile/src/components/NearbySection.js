@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0F172A', // Dark text for white background
   },
   seeAllButton: {
     flexDirection: 'row',
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#ffffff', // Keep white for rating badge (dark background)
     marginLeft: 4,
   },
   cardContent: {
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   businessName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0F172A', // Dark text for white background
     marginBottom: 4,
   },
   businessCategory: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   distanceText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0F172A', // Dark text for white background
     marginLeft: 4,
   },
   actionButtons: {
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   viewButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0F172A', // Dark text for white background
   },
   callButton: {
     width: 40,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#ffffff',
+    color: '#475569', // Dark text for white background
     opacity: 0.7,
   },
   emptyContainer: {
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#ffffff',
+    color: '#475569', // Dark text for white background
     opacity: 0.7,
   },
 });

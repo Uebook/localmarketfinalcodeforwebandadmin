@@ -110,7 +110,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.textPrimary, // Dark text for white background
     textTransform: 'uppercase',
     letterSpacing: 2,
     opacity: 0.9,

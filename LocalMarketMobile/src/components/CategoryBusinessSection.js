@@ -23,7 +23,7 @@ const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, on
         q: categoryName, // Search by category name
         limit: 10,
       });
-      
+
       if (data && data.vendors && data.vendors.length > 0) {
         // Transform vendors to business format
         const transformedBusinesses = data.vendors.map(vendor => ({
@@ -79,9 +79,9 @@ const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, on
           </TouchableOpacity>
         )}
       </View>
-      
-      <ScrollView 
-        horizontal 
+
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -92,8 +92,8 @@ const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, on
             onPress={() => onBusinessClick && onBusinessClick(business)}
             activeOpacity={0.7}
           >
-            <Image 
-              source={{ uri: business.imageUrl }} 
+            <Image
+              source={{ uri: business.imageUrl }}
               style={styles.businessImage}
               resizeMode="cover"
             />
@@ -134,7 +134,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.textPrimary, // Dark text for white background
   },
   viewAllText: {
     fontSize: 12,

@@ -26,6 +26,7 @@ import { getCategories } from '../services/api';
 
 const HomeScreen = ({ navigation, route }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [locationState, setLocationState] = useState({
     lat: null,
     lng: null,
@@ -117,13 +118,8 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient Background */}
-      <LinearGradient
-        colors={COLORS.homeBackground}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.gradientBackground}
-      />
+      {/* White Background */}
+      <View style={styles.whiteBackground} />
       
       <Header
         locationState={locationState}
@@ -217,13 +213,14 @@ const HomeScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
   },
-  gradientBackground: {
+  whiteBackground: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
   },
   scrollView: {
     flex: 1,
