@@ -11,6 +11,7 @@ import { getVendorProducts } from '../services/api';
 
 const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusinessIds }) => {
     const COLORS = useThemeColors();
+    const styles = createStyles(COLORS);
     // Handle both 'business' and 'vendor' parameter names
     const business = route.params?.business || route.params?.vendor;
     const [activeTab, setActiveTab] = useState('Overview');
@@ -129,25 +130,35 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
 
     return (
         <View style={styles.container}>
-            <SafeAreaView edges={['top']} style={styles.header}>
-                <View style={styles.headerContent}>
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        style={styles.backButton}
-                        activeOpacity={0.7}
-                    >
-                        <Icon name={getIconName('ArrowLeft')} size={24} color="#1e293b" />
-                    </TouchableOpacity>
-                    <View style={styles.headerActions}>
-                        <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
-                            <Icon name={getIconName('Search')} size={20} color="#1e293b" />
+            <SafeAreaView edges={['top']} style={styles.safeArea}>
+                <View style={styles.header}>
+                    {/* Gradient Background */}
+                    <LinearGradient
+                        colors={COLORS.primaryGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.gradientBackground}
+                    />
+                    {/* Header Content */}
+                    <View style={styles.headerContent}>
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            style={styles.backButton}
+                            activeOpacity={0.7}
+                        >
+                            <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.white} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
-                            <Icon name={getIconName('Share2')} size={20} color="#1e293b" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
-                            <Icon name={getIconName('MoreVertical')} size={20} color="#1e293b" />
-                        </TouchableOpacity>
+                        <View style={styles.headerActions}>
+                            <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
+                                <Icon name={getIconName('Search')} size={20} color={COLORS.white} />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
+                                <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
+                                <Icon name={getIconName('MoreVertical')} size={20} color={COLORS.white} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </SafeAreaView>
@@ -545,20 +556,21 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f9fafb',
     },
+    safeArea: {
+        backgroundColor: 'transparent',
+    },
     header: {
-        backgroundColor: '#ffffff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        height: 64,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    gradientBackground: {
+        ...StyleSheet.absoluteFillObject,
     },
     headerContent: {
         height: 64,
@@ -566,13 +578,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
+        position: 'relative',
+        zIndex: 1,
     },
     backButton: {
         padding: 8,
     },
     headerActions: {
         flexDirection: 'row',
-        gap: 8,
+        gap: 12,
     },
     headerButton: {
         padding: 8,
