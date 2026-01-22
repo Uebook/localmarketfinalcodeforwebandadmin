@@ -157,7 +157,21 @@ export default function VendorList({ onViewProfile }) {
   };
 
   const handleEdit = (vendor) => {
-    setEditingVendor({ ...vendor });
+    // Only copy fields that are in the edit form, exclude numeric fields that might have empty strings
+    setEditingVendor({
+      id: vendor.id,
+      name: vendor.name || '',
+      owner: vendor.owner || '',
+      status: vendor.status || 'Pending',
+      kycStatus: vendor.kycStatus || 'Pending',
+      contactNumber: vendor.contactNumber || '',
+      email: vendor.email || '',
+      state: vendor.state || '',
+      city: vendor.city || '',
+      category: vendor.category || '',
+      imageUrl: vendor.imageUrl || vendor.shopFrontPhotoUrl || null,
+      shopFrontPhotoUrl: vendor.shopFrontPhotoUrl || vendor.imageUrl || null,
+    });
     setImagePreview(vendor.imageUrl || vendor.shopFrontPhotoUrl || null);
     setImageFile(null);
   };
@@ -206,22 +220,28 @@ export default function VendorList({ onViewProfile }) {
 
     try {
       // Prepare update payload - only include fields that are in the edit form
-      // Don't include numeric fields unless they're explicitly being updated
+      // Convert empty strings to null to avoid sending them
       const updatePayload = {
         id: editingVendor.id,
-        name: editingVendor.name,
-        owner: editingVendor.owner || null,
-        owner_name: editingVendor.owner || null,
-        status: editingVendor.status || 'Pending',
-        kycStatus: editingVendor.kycStatus || 'Pending',
-        contactNumber: editingVendor.contactNumber || null,
-        email: editingVendor.email || null,
-        state: editingVendor.state || null,
-        city: editingVendor.city || null,
-        category: editingVendor.category || null,
-        imageUrl: editingVendor.imageUrl || null,
-        shopFrontPhotoUrl: editingVendor.imageUrl || editingVendor.shopFrontPhotoUrl || null,
+        name: editingVendor.name?.trim() || '',
       };
+
+      // Only add fields that have values or are explicitly set
+      if (editingVendor.owner !== undefined) {
+        updatePayload.owner = editingVendor.owner?.trim() || null;
+        updatePayload.owner_name = editingVendor.owner?.trim() || null;
+      }
+      if (editingVendor.status !== undefined) updatePayload.status = editingVendor.status || 'Pending';
+      if (editingVendor.kycStatus !== undefined) updatePayload.kycStatus = editingVendor.kycStatus || 'Pending';
+      if (editingVendor.contactNumber !== undefined) updatePayload.contactNumber = editingVendor.contactNumber?.trim() || null;
+      if (editingVendor.email !== undefined) updatePayload.email = editingVendor.email?.trim() || null;
+      if (editingVendor.state !== undefined) updatePayload.state = editingVendor.state?.trim() || null;
+      if (editingVendor.city !== undefined) updatePayload.city = editingVendor.city?.trim() || null;
+      if (editingVendor.category !== undefined) updatePayload.category = editingVendor.category?.trim() || null;
+      if (editingVendor.imageUrl !== undefined) updatePayload.imageUrl = editingVendor.imageUrl || null;
+      if (editingVendor.shopFrontPhotoUrl !== undefined) {
+        updatePayload.shopFrontPhotoUrl = editingVendor.imageUrl || editingVendor.shopFrontPhotoUrl || null;
+      }
 
       const res = await fetch('/api/vendors/status', {
         method: 'PATCH',

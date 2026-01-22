@@ -27,31 +27,96 @@ export async function PATCH(req) {
     if (status) patch.status = status;
     if (kycStatus) patch.kyc_status = kycStatus;
     if (body?.name !== undefined) patch.name = toStr(body.name);
-    if (body?.owner !== undefined) patch.owner = toStr(body.owner);
-    if (body?.owner_name !== undefined) patch.owner_name = toStr(body.owner_name);
-    if (body?.contactNumber !== undefined) patch.contact_number = toStr(body.contactNumber);
-    if (body?.contact_number !== undefined) patch.contact_number = toStr(body.contact_number);
-    if (body?.email !== undefined) patch.email = toStr(body.email) || null;
-    if (body?.state !== undefined) patch.state = toStr(body.state) || null;
-    if (body?.city !== undefined) patch.city = toStr(body.city) || null;
-    if (body?.town !== undefined) patch.town = toStr(body.town) || null;
-    if (body?.tehsil !== undefined) patch.tehsil = toStr(body.tehsil) || null;
-    if (body?.subTehsil !== undefined) patch.sub_tehsil = toStr(body.subTehsil) || null;
-    if (body?.sub_tehsil !== undefined) patch.sub_tehsil = toStr(body.sub_tehsil) || null;
-    if (body?.category !== undefined) patch.category = toStr(body.category) || null;
-    if (body?.circle !== undefined) patch.circle = toStr(body.circle) || null;
+    if (body?.owner !== undefined) {
+      const ownerVal = toStr(body.owner);
+      patch.owner = ownerVal || null;
+      patch.owner_name = ownerVal || null;
+    }
+    if (body?.owner_name !== undefined) {
+      const ownerVal = toStr(body.owner_name);
+      patch.owner_name = ownerVal || null;
+    }
+    if (body?.contactNumber !== undefined) {
+      const contactVal = toStr(body.contactNumber);
+      patch.contact_number = contactVal || null;
+    }
+    if (body?.contact_number !== undefined) {
+      const contactVal = toStr(body.contact_number);
+      patch.contact_number = contactVal || null;
+    }
+    if (body?.email !== undefined) {
+      const emailVal = toStr(body.email);
+      patch.email = emailVal || null;
+    }
+    if (body?.state !== undefined) {
+      const stateVal = toStr(body.state);
+      patch.state = stateVal || null;
+    }
+    if (body?.city !== undefined) {
+      const cityVal = toStr(body.city);
+      patch.city = cityVal || null;
+    }
+    if (body?.town !== undefined) {
+      const townVal = toStr(body.town);
+      patch.town = townVal || null;
+    }
+    if (body?.tehsil !== undefined) {
+      const tehsilVal = toStr(body.tehsil);
+      patch.tehsil = tehsilVal || null;
+    }
+    if (body?.subTehsil !== undefined) {
+      patch.sub_tehsil = toStr(body.subTehsil) || null;
+    }
+    if (body?.sub_tehsil !== undefined) {
+      patch.sub_tehsil = toStr(body.sub_tehsil) || null;
+    }
+    if (body?.category !== undefined) {
+      const categoryVal = toStr(body.category);
+      patch.category = categoryVal || null;
+    }
+    if (body?.circle !== undefined) {
+      const circleVal = toStr(body.circle);
+      patch.circle = circleVal || null;
+    }
     
-    // Handle numeric fields - convert empty strings to null
-    if (body?.pincode !== undefined) patch.pincode = toNum(body.pincode);
-    if (body?.rating !== undefined) patch.rating = toNum(body.rating);
-    if (body?.reviewCount !== undefined) patch.review_count = toNum(body.reviewCount);
-    if (body?.review_count !== undefined) patch.review_count = toNum(body.review_count);
-    if (body?.address !== undefined) patch.address = toStr(body.address) || null;
-    if (body?.landmark !== undefined) patch.landmark = toStr(body.landmark) || null;
-    if (body?.imageUrl !== undefined) patch.image_url = toStr(body.imageUrl) || null;
-    if (body?.image_url !== undefined) patch.image_url = toStr(body.image_url) || null;
-    if (body?.shopFrontPhotoUrl !== undefined) patch.shop_front_photo_url = toStr(body.shopFrontPhotoUrl) || null;
-    if (body?.shop_front_photo_url !== undefined) patch.shop_front_photo_url = toStr(body.shop_front_photo_url) || null;
+    // Handle numeric fields - convert empty strings to null (only if explicitly provided)
+    // Don't include these fields if they're not in the request body
+    if (body?.pincode !== undefined) {
+      patch.pincode = toNum(body.pincode);
+    }
+    if (body?.rating !== undefined) {
+      patch.rating = toNum(body.rating);
+    }
+    if (body?.reviewCount !== undefined) {
+      patch.review_count = toNum(body.reviewCount);
+    }
+    if (body?.review_count !== undefined) {
+      patch.review_count = toNum(body.review_count);
+    }
+    if (body?.address !== undefined) {
+      const addressVal = toStr(body.address);
+      patch.address = addressVal || null;
+    }
+    if (body?.landmark !== undefined) {
+      const landmarkVal = toStr(body.landmark);
+      patch.landmark = landmarkVal || null;
+    }
+    if (body?.imageUrl !== undefined) {
+      const imageVal = toStr(body.imageUrl);
+      patch.image_url = imageVal || null;
+    }
+    if (body?.image_url !== undefined) {
+      const imageVal = toStr(body.image_url);
+      patch.image_url = imageVal || null;
+    }
+    if (body?.shopFrontPhotoUrl !== undefined) {
+      const shopPhotoVal = toStr(body.shopFrontPhotoUrl);
+      patch.shop_front_photo_url = shopPhotoVal || null;
+    }
+    if (body?.shop_front_photo_url !== undefined) {
+      const shopPhotoVal = toStr(body.shop_front_photo_url);
+      patch.shop_front_photo_url = shopPhotoVal || null;
+    }
 
     const updated = await supabaseRestPatch(`/rest/v1/vendors?id=eq.${encodeURIComponent(id)}`, patch);
     return Response.json({ vendor: Array.isArray(updated) ? updated[0] : updated }, { status: 200 });
