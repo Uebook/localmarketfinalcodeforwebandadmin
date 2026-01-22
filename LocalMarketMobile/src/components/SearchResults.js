@@ -147,7 +147,6 @@ const SearchResults = ({
             );
 
             setVendors(vendorsWithProducts);
-            setProducts([]); // No products - vendors only
         } catch (error) {
             console.error('Error loading search data:', error);
             // No fallback - show empty state if no vendors found
