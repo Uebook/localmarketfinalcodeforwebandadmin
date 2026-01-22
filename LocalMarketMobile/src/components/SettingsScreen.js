@@ -42,6 +42,7 @@ const SettingsScreen = ({
   
   // Use themeColors from context instead of COLORS constant
   const COLORS = themeColors;
+  const styles = createStyles(COLORS);
 
   useEffect(() => {
     loadProfileFromAPI();
@@ -619,7 +620,7 @@ const SettingsScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6', // Light gray background
