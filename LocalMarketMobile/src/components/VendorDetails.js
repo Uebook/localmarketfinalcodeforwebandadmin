@@ -7,7 +7,9 @@ import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 import EnquiryModal from './EnquiryModal';
 import WriteReview from './WriteReview';
-import { getVendorProducts } from '../services/api';
+import MapView from './MapView';
+import { getVendorProducts, getVendorReviews, submitReview } from '../services/api';
+import { getUserId } from '../utils/userStorage';
 
 const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusinessIds }) => {
     const COLORS = useThemeColors();
@@ -21,21 +23,24 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
     const [vendorProducts, setVendorProducts] = useState([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [businessWithProducts, setBusinessWithProducts] = useState(business);
+    const [reviews, setReviews] = useState(business?.reviews || []);
+    const [loadingReviews, setLoadingReviews] = useState(false);
 
     useEffect(() => {
         // Load vendor products when component mounts or business changes
         if (business?.id) {
             loadVendorProducts();
+            loadReviews();
         }
     }, [business?.id]);
 
     const loadVendorProducts = async () => {
         if (!business?.id) return;
-        
+
         try {
             setLoadingProducts(true);
             const data = await getVendorProducts(business.id);
-            
+
             if (data?.products && Array.isArray(data.products)) {
                 // Transform vendor products to match the expected format
                 const transformedProducts = data.products.map(product => ({
@@ -48,7 +53,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                     imageUrl: product.image_url || product.imageUrl || 'https://via.placeholder.com/200',
                     category_id: product.category_id,
                 }));
-                
+
                 setVendorProducts(transformedProducts);
                 // Update business object with products
                 setBusinessWithProducts({
@@ -118,14 +123,61 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
         Alert.alert('Copied', 'Address copied to clipboard');
     };
 
-    const handleReviewSubmit = (reviewData) => {
-        Alert.alert(
-            'Review Submitted',
-            `Thank you for your ${reviewData.rating}-star review! Your feedback helps other customers make better decisions.`,
-            [{ text: 'OK' }]
-        );
-        // In a real app, this would send the review to the backend
-        console.log('Review submitted for business:', business.name, reviewData);
+    const loadReviews = async () => {
+        if (!business?.id) return;
+        
+        try {
+            setLoadingReviews(true);
+            const response = await getVendorReviews(business.id);
+            if (response && response.reviews) {
+                // Transform API reviews to match component format
+                const transformedReviews = response.reviews.map(review => ({
+                    id: review.id,
+                    userName: review.user_name || review.userName || 'Anonymous',
+                    rating: review.rating,
+                    comment: review.comment,
+                    date: review.created_at ? new Date(review.created_at).toLocaleDateString() : new Date().toLocaleDateString(),
+                    reply: review.reply || null,
+                }));
+                setReviews(transformedReviews);
+            }
+        } catch (error) {
+            console.error('Error loading reviews:', error);
+            // Keep existing reviews if API fails
+        } finally {
+            setLoadingReviews(false);
+        }
+    };
+
+    const handleReviewSubmit = async (reviewData) => {
+        try {
+            const userId = await getUserId();
+            
+            // Submit review to API
+            await submitReview({
+                vendorId: business.id,
+                userId: userId,
+                userName: reviewData.userName,
+                rating: reviewData.rating,
+                comment: reviewData.comment,
+            });
+
+            // Reload reviews to show the new one
+            await loadReviews();
+
+            Alert.alert(
+                'Review Submitted',
+                `Thank you for your ${reviewData.rating}-star review! Your feedback helps other customers make better decisions.`,
+                [{ text: 'OK' }]
+            );
+        } catch (error) {
+            Alert.alert(
+                'Error',
+                'Failed to submit review. Please try again.',
+                [{ text: 'OK' }]
+            );
+            console.error('Error submitting review:', error);
+        }
     };
 
     return (
@@ -343,9 +395,9 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                                         <TouchableOpacity
                                             key={product.id}
                                             style={styles.productCard}
-                                            onPress={() => navigation?.navigate('ProductDetails', { 
-                                                product, 
-                                                business: displayBusiness 
+                                            onPress={() => navigation?.navigate('ProductDetails', {
+                                                product,
+                                                business: displayBusiness
                                             })}
                                             activeOpacity={0.7}
                                         >
@@ -402,13 +454,18 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                             <View style={styles.reviewsHeader}>
                                 <Text style={styles.sectionTitle}>User Reviews</Text>
                                 <Text style={styles.reviewsCount}>
-                                    {business.reviews?.length || 0} reviews
+                                    {reviews?.length || 0} reviews
                                 </Text>
                             </View>
 
-                            {business.reviews && business.reviews.length > 0 ? (
+                            {loadingReviews ? (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="small" color={COLORS.orange} />
+                                    <Text style={styles.loadingText}>Loading reviews...</Text>
+                                </View>
+                            ) : reviews && reviews.length > 0 ? (
                                 <View style={styles.reviewsList}>
-                                    {business.reviews.map((review) => (
+                                    {reviews.map((review) => (
                                         <View key={review.id} style={styles.reviewCard}>
                                             <View style={styles.reviewHeader}>
                                                 <View style={styles.reviewUser}>
@@ -456,7 +513,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                             ) : (
                                 <View style={styles.emptyState}>
                                     <Text style={styles.emptyText}>No reviews yet.</Text>
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         activeOpacity={0.7}
                                         onPress={() => setShowWriteReview(true)}
                                     >
@@ -469,6 +526,14 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
 
                     {activeTab === 'Quick Info' && (
                         <View style={styles.quickInfoContent}>
+                            {/* Map View */}
+                            <MapView
+                                address={displayBusiness.address}
+                                latitude={displayBusiness.latitude || displayBusiness.lat}
+                                longitude={displayBusiness.longitude || displayBusiness.lng}
+                                businessName={displayBusiness.name}
+                            />
+
                             <View style={styles.infoGrid}>
                                 <View style={styles.infoCard}>
                                     <Text style={styles.infoLabel}>Payment Modes</Text>
@@ -551,6 +616,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                 onClose={() => setShowWriteReview(false)}
                 onSubmit={handleReviewSubmit}
                 vendorName={business.name}
+                vendorId={business.id}
             />
         </View>
     );

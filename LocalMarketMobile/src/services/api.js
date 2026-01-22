@@ -528,6 +528,60 @@ export const getRecentSearches = async (filters = {}) => {
   }
 };
 
+// ==================== REVIEWS API ====================
+
+/**
+ * Get reviews for a vendor
+ * @param {string} vendorId - Vendor ID
+ * @returns {Promise<{reviews: Array}>}
+ */
+export const getVendorReviews = async (vendorId) => {
+  try {
+    if (!vendorId) {
+      return { reviews: [] };
+    }
+    const response = await apiRequest(`/api/reviews?vendorId=${encodeURIComponent(vendorId)}`);
+    return response;
+  } catch (error) {
+    console.error('Error getting vendor reviews:', error);
+    return { reviews: [] };
+  }
+};
+
+/**
+ * Submit a review for a vendor
+ * @param {Object} reviewData
+ * @param {string} reviewData.vendorId - Vendor ID
+ * @param {string} reviewData.userId - User ID (optional)
+ * @param {string} reviewData.userName - User name
+ * @param {number} reviewData.rating - Rating (1-5)
+ * @param {string} reviewData.comment - Review comment
+ * @returns {Promise<Object>}
+ */
+export const submitReview = async (reviewData) => {
+  try {
+    const { vendorId, userId, userName, rating, comment } = reviewData;
+    
+    if (!vendorId || !userName || !rating || !comment) {
+      throw new Error('Missing required review fields');
+    }
+
+    return await apiRequest('/api/reviews', {
+      method: 'POST',
+      body: JSON.stringify({
+        vendorId,
+        userId,
+        userName,
+        rating,
+        comment,
+      }),
+    });
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    throw error;
+  }
+};
+
 export default {
   getCategories,
   getThemes,
@@ -547,6 +601,8 @@ export default {
   getMasterProducts,
   getSearchReports,
   getRecentSearches,
+  getVendorReviews,
+  submitReview,
   login,
   register,
 };

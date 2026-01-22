@@ -1,21 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { loadUserData } from '../utils/userStorage';
 
-const WriteReview = ({ visible, onClose, onSubmit, vendorName }) => {
+const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [userName, setUserName] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Load user name from AsyncStorage when modal opens
+  useEffect(() => {
+    if (visible) {
+      loadUserName();
+    }
+  }, [visible]);
+
+  const loadUserName = async () => {
+    try {
+      const userData = await loadUserData();
+      if (userData && userData.name) {
+        setUserName(userData.name);
+      } else {
+        // Fallback to individual field
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        const name = await AsyncStorage.getItem('userName');
+        if (name) {
+          setUserName(name);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user name:', error);
+    }
+  };
 
   const handleStarPress = (starIndex) => {
     setRating(starIndex + 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       Alert.alert('Rating Required', 'Please select a rating before submitting.');
       return;
@@ -29,18 +57,32 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName }) => {
       return;
     }
 
-    onSubmit({
-      rating,
-      comment: comment.trim(),
-      userName: userName.trim(),
-      date: new Date().toISOString(),
-    });
+    setLoading(true);
+    try {
+      const reviewData = {
+        rating,
+        comment: comment.trim(),
+        userName: userName.trim(),
+        date: new Date().toISOString(),
+        vendorId: vendorId, // Include vendorId for API call
+      };
 
-    // Reset form
-    setRating(0);
-    setComment('');
-    setUserName('');
-    onClose();
+      // Call onSubmit callback (parent component will handle API call)
+      if (onSubmit) {
+        await onSubmit(reviewData);
+      }
+
+      // Reset form
+      setRating(0);
+      setComment('');
+      // Keep userName as it's from login
+      onClose();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit review. Please try again.');
+      console.error('Error submitting review:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -119,16 +161,16 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName }) => {
                 )}
               </View>
 
-              {/* Name Input */}
+              {/* Name Display (from login, not editable) */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Your Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your name"
-                  placeholderTextColor={COLORS.textMuted}
-                  value={userName}
-                  onChangeText={setUserName}
-                />
+                <View style={styles.nameDisplay}>
+                  <Text style={styles.nameText}>{userName || 'Loading...'}</Text>
+                  <Icon name={getIconName('User')} size={16} color={COLORS.textMuted} />
+                </View>
+                {!userName && (
+                  <Text style={styles.nameHint}>Name will be loaded from your account</Text>
+                )}
               </View>
 
               {/* Comment Input */}
@@ -149,9 +191,9 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName }) => {
 
               {/* Submit Button */}
               <TouchableOpacity
-                style={[styles.submitButton, (!rating || !comment.trim() || !userName.trim()) && styles.submitButtonDisabled]}
+                style={[styles.submitButton, (!rating || !comment.trim() || !userName.trim() || loading) && styles.submitButtonDisabled]}
                 onPress={handleSubmit}
-                disabled={!rating || !comment.trim() || !userName.trim()}
+                disabled={!rating || !comment.trim() || !userName.trim() || loading}
                 activeOpacity={0.8}
               >
                 <LinearGradient
@@ -160,7 +202,9 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName }) => {
                   end={{ x: 1, y: 0 }}
                   style={styles.submitGradient}
                 >
-                  <Text style={styles.submitButtonText}>Submit Review</Text>
+                  <Text style={styles.submitButtonText}>
+                    {loading ? 'Submitting...' : 'Submit Review'}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
             </ScrollView>
@@ -170,7 +214,7 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -267,6 +311,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.orange,
     textAlign: 'center',
+  },
+  nameDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.backgroundSoft || '#F8FAFC',
+  },
+  nameText: {
+    fontSize: 16,
+    color: COLORS.textPrimary,
+    fontWeight: '500',
+    flex: 1,
+  },
+  nameHint: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 4,
+    fontStyle: 'italic',
   },
   input: {
     borderWidth: 1,
