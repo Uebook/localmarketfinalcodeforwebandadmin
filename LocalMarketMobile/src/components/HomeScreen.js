@@ -14,6 +14,7 @@ import HorizontalSection from './HorizontalSection';
 import RecentSearches from './RecentSearches';
 import PromoCarousel from './PromoCarousel';
 import { getCategories } from '../services/api';
+import DraggableAIButton from './DraggableAIButton';
 
 const HomeScreen = ({ navigation, route }) => {
   const COLORS = useThemeColors();
@@ -204,6 +205,7 @@ const HomeScreen = ({ navigation, route }) => {
           isCircular={true}
         />
       </ScrollView>
+      <DraggableAIButton onPress={() => navigation.navigate('AIServiceFlow')} />
     </View>
   );
 };

@@ -74,6 +74,7 @@ import OffersScreen from './src/components/OffersScreen';
 import SavedScreen from './src/components/SavedScreen';
 import CategoriesScreen from './src/components/CategoriesScreen';
 import ProductDetailsScreen from './src/components/ProductDetailsScreen';
+import AIServiceFlow from './src/components/AIServiceFlow';
 import { INITIAL_VENDOR_DATA } from './src/constants';
 import { setVendorSidebarControl } from './src/utils/vendorSidebarControl';
 import { setSidebarControl } from './src/utils/sidebarControl';
@@ -552,6 +553,7 @@ function App() {
                 />
               )}
             </Stack.Screen>
+            <Stack.Screen name="AIServiceFlow" component={AIServiceFlow} options={{ headerShown: false }} />
             <Stack.Screen name="VendorDetails">
               {(props) => {
                 const business = props.route.params?.business || props.route.params?.vendor;

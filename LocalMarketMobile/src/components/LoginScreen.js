@@ -19,6 +19,8 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { login } from '../services/api';
 import { saveUserData } from '../utils/userStorage';
 
+import PermissionRequestScreen from './PermissionRequestScreen';
+
 const LoginScreen = ({ onLogin, onRegister }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
@@ -34,6 +36,11 @@ const LoginScreen = ({ onLogin, onRegister }) => {
   const [error, setError] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Permission handling
+  const [showPermissions, setShowPermissions] = useState(false);
+  const [pendingLoginData, setPendingLoginData] = useState(null);
+
   const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Timer for resend OTP
@@ -51,10 +58,10 @@ const LoginScreen = ({ onLogin, onRegister }) => {
       setError('Please enter a valid 10-digit mobile number');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       if (loginMethod === 'mobile') {
         // Request OTP for SMS login
@@ -62,7 +69,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           method: 'sms',
           phone: `+91${mobile}`,
         });
-        
+
         if (response.success) {
           setShowOtpScreen(true);
           setResendTimer(24);
@@ -78,13 +85,13 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           setIsLoading(false);
           return;
         }
-        
+
         const response = await login({
           method: 'email',
           email: email.toLowerCase(),
           password: password,
         });
-        
+
         if (response.success && response.user) {
           // Save user data to AsyncStorage
           try {
@@ -92,11 +99,13 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           } catch (error) {
             console.error('Error saving user data:', error);
           }
-          
-          // Login successful
-          if (onLogin) {
-            onLogin(isLocalPlusMode ? 'vendor' : 'customer', response.user);
-          }
+
+          // Show permissions before completing login
+          setPendingLoginData({
+            role: isLocalPlusMode ? 'vendor' : 'customer',
+            user: response.user
+          });
+          setShowPermissions(true);
         }
       }
     } catch (err) {
@@ -115,17 +124,17 @@ const LoginScreen = ({ onLogin, onRegister }) => {
       setError('Please enter 4-digit OTP');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await login({
         method: 'sms',
         phone: `+91${mobile}`,
         otp: otpString,
       });
-      
+
       if (response.success && response.user) {
         // Save user data to AsyncStorage
         try {
@@ -133,11 +142,13 @@ const LoginScreen = ({ onLogin, onRegister }) => {
         } catch (error) {
           console.error('Error saving user data:', error);
         }
-        
-        // Login successful
-        if (onLogin) {
-          onLogin(isLocalPlusMode ? 'vendor' : 'customer', response.user);
-        }
+
+        // Show permissions before completing login
+        setPendingLoginData({
+          role: isLocalPlusMode ? 'vendor' : 'customer',
+          user: response.user
+        });
+        setShowPermissions(true);
       }
     } catch (err) {
       const errorMsg = err.message || 'Invalid OTP. Please try again.';
@@ -157,7 +168,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
     setResendTimer(24);
     setError('');
   };
-  
+
   const handleMethodChange = (method) => {
     setLoginMethod(method);
     setError('');
@@ -170,16 +181,16 @@ const LoginScreen = ({ onLogin, onRegister }) => {
 
   const handleResendOtp = async () => {
     if (resendTimer > 0) return;
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await login({
         method: 'sms',
         phone: `+91${mobile}`,
       });
-      
+
       if (response.success) {
         setResendTimer(24);
         // In development, show OTP (remove in production)
@@ -222,9 +233,12 @@ const LoginScreen = ({ onLogin, onRegister }) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      if (onLogin) {
-        onLogin(isLocalPlusMode ? 'vendor' : 'customer');
-      }
+      // Simulate successful Google login
+      setPendingLoginData({
+        role: isLocalPlusMode ? 'vendor' : 'customer',
+        user: null // In real app, would get user data from Google
+      });
+      setShowPermissions(true);
     }, 1500);
   };
 
@@ -378,7 +392,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                   )}
                 </TouchableOpacity>
               </View>
-              
+
               {/* Error message */}
               {error ? (
                 <View style={styles.errorContainer}>
@@ -451,7 +465,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
               <TouchableOpacity
                 style={[
                   styles.otpButton,
-                  (isLoading || 
+                  (isLoading ||
                     (loginMethod === 'mobile' && mobile.length < 10) ||
                     (loginMethod === 'email' && (!email || !password))
                   ) && styles.otpButtonDisabled,
@@ -459,7 +473,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                 ]}
                 onPress={handleGetOtp}
                 disabled={
-                  isLoading || 
+                  isLoading ||
                   (loginMethod === 'mobile' && mobile.length < 10) ||
                   (loginMethod === 'email' && (!email || !password))
                 }
@@ -596,7 +610,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
 
             {/* Error Title */}
             <Text style={styles.errorModalTitle}>Login Error</Text>
-            
+
             {/* Error Message */}
             <Text style={styles.errorModalMessage}>
               {errorMessage || 'An error occurred. Please try again.'}
@@ -644,7 +658,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                   >
                     <Text style={styles.errorButtonSecondaryText}>Close</Text>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity
                     style={styles.errorButtonPrimary}
                     onPress={() => {
@@ -683,7 +697,18 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           </View>
         </View>
       </Modal>
-    </KeyboardAvoidingView>
+
+
+      <PermissionRequestScreen
+        visible={showPermissions}
+        onComplete={() => {
+          setShowPermissions(false);
+          if (onLogin && pendingLoginData) {
+            onLogin(pendingLoginData.role, pendingLoginData.user);
+          }
+        }}
+      />
+    </KeyboardAvoidingView >
   );
 };
 
