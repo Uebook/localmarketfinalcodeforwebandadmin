@@ -1,4 +1,4 @@
-import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v : '';
@@ -104,6 +104,14 @@ export async function GET(req) {
             }
         }, { status: 200 });
     } catch (e) {
+        console.error('Vendors Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({
+                vendors: [],
+                pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+                warning: 'offline_mode'
+            }, { status: 200 });
+        }
         return Response.json(
             { error: e?.message || 'Failed to load vendors' },
             { status: 500 }

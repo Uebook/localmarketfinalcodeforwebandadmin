@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
   return typeof v === 'string' ? v.trim() : '';
@@ -21,6 +21,10 @@ export async function GET(req) {
     const rows = await supabaseRestGet(`/rest/v1/notifications?${query.toString()}`);
     return Response.json({ notifications: Array.isArray(rows) ? rows : [] }, { status: 200 });
   } catch (e) {
+    console.error('Notifications GET Error:', e);
+    if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+      return Response.json({ notifications: [], warning: 'offline_mode' }, { status: 200 });
+    }
     return Response.json({ error: e?.message || 'Failed to load notifications' }, { status: 500 });
   }
 }
@@ -40,6 +44,10 @@ export async function POST(req) {
     ]);
     return Response.json({ notification: Array.isArray(inserted) ? inserted[0] : inserted }, { status: 200 });
   } catch (e) {
+    console.error('Notifications POST Error:', e);
+    if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+      return Response.json({ notification: null, warning: 'Sync failed: Database unreachable' });
+    }
     return Response.json({ error: e?.message || 'Failed to create notification' }, { status: 500 });
   }
 }

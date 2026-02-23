@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
 
 // GET /api/analytics/circle - Get circle analytics data
 export async function GET(request) {
@@ -367,6 +367,17 @@ export async function GET(request) {
         });
     } catch (error) {
         console.error('Error fetching circle analytics:', error);
+        if (error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'))) {
+            return NextResponse.json({
+                circles: [],
+                useCircles: true,
+                groupingKey: 'circle',
+                categoryDemandData: [],
+                circleUserLimits: [],
+                userEngagement: [],
+                warning: 'offline_mode'
+            }, { status: 200 });
+        }
         return NextResponse.json({
             error: error.message,
             circles: [],

@@ -1,4 +1,4 @@
-import { supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
   if (v === null || v === undefined) return '';

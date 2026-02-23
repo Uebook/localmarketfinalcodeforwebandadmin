@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllThemes, getThemeCSS } from '@/lib/themeUtils';
+import { getAllThemes, getThemeCSS } from '../lib/themeUtils';
 
 export default function ThemeProvider({ children }) {
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -25,7 +25,9 @@ export default function ThemeProvider({ children }) {
           }
         }
       } catch (error) {
-        console.error('Error loading active theme from database:', error);
+        if (!error.message?.includes('fetch failed') && !error.message?.includes('ENOTFOUND')) {
+          console.error('Error loading active theme from database:', error);
+        }
         // Fallback to localStorage
       }
 

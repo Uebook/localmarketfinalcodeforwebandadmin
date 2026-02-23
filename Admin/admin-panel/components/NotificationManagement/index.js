@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import SendNotificationForm from './NotificationManagement/SendNotificationForm';
-import NotificationHistory from './NotificationManagement/NotificationHistory';
-import AutoNotificationSettings from './AutoNotifications/AutoNotificationSettings';
+import SendNotificationForm from './SendNotificationForm';
+import NotificationHistory from './NotificationHistory';
+import AutoNotificationSettings from '../AutoNotifications/AutoNotificationSettings';
 
 export default function NotificationManagement() {
   const [activeTab, setActiveTab] = useState('send');
@@ -23,11 +23,10 @@ export default function NotificationManagement() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors ${
-                activeTab === tab.id
+              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === tab.id
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               {tab.label}
             </button>

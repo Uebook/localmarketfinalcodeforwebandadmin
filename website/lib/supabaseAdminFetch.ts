@@ -95,3 +95,29 @@ export async function supabaseRestUpsert(path: string, data: any[]) {
 
   return await res.json();
 }
+
+// Plain INSERT (no upsert conflict resolution)
+export async function supabaseRestInsert(path: string, data: Record<string, any> | any[]) {
+  assertSupabaseEnv();
+  const key = getKey();
+  const url = `${SUPABASE_URL}${path}`;
+  const body = Array.isArray(data) ? data : [data];
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      apikey: key!,
+      Authorization: `Bearer ${key!}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Supabase REST error (${res.status}): ${text || res.statusText}`);
+  }
+
+  return await res.json();
+}

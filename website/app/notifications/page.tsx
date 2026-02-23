@@ -17,14 +17,14 @@ export default function NotificationsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header
         locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}
       />
-      
+
       <div className="p-6">
         <div className="flex items-center gap-3 mb-6">
           <Bell className="text-orange-500" size={32} />
@@ -35,9 +35,8 @@ export default function NotificationsPage() {
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`p-4 bg-white rounded-lg shadow-sm ${
-                !notification.read ? 'border-l-4 border-orange-500' : ''
-              }`}
+              className={`p-4 bg-white rounded-lg shadow-sm ${!notification.read ? 'border-l-4 border-orange-500' : ''
+                }`}
             >
               <h3 className="font-semibold mb-1 text-gray-900">{notification.title}</h3>
               <p className="text-gray-900 text-sm mb-2">{notification.message}</p>

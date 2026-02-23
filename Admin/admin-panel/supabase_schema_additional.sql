@@ -169,6 +169,24 @@ ALTER TABLE public.e_auctions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.search_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vendor_activity_logs ENABLE ROW LEVEL SECURITY;
 
+-- E-Auction Bids (Participants)
+CREATE TABLE IF NOT EXISTS public.e_auction_bids (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  auction_id UUID REFERENCES public.e_auctions(id) ON DELETE CASCADE,
+  bidder_name TEXT NOT NULL,
+  bidder_phone TEXT,
+  bidder_email TEXT,
+  bid_amount NUMERIC(10,2),
+  message TEXT,
+  status TEXT DEFAULT 'pending', -- 'pending', 'winner', 'rejected'
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_e_auction_bids_auction_id ON public.e_auction_bids(auction_id);
+CREATE INDEX IF NOT EXISTS idx_e_auction_bids_status ON public.e_auction_bids(status);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.e_auction_bids ENABLE ROW LEVEL SECURITY;
+
 -- RLS Policies (allow service role to access everything)
--- Note: In production, you should create proper policies based on admin roles
--- For now, we'll rely on service role key which bypasses RLS
+-- Policies for public.e_auctions were already defined above.

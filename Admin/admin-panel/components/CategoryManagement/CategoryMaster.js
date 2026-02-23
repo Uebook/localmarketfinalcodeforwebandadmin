@@ -25,12 +25,18 @@ export default function CategoryMaster() {
       setError('');
       const res = await fetch('/api/categories', { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to load categories');
-      const cats = Array.isArray(data?.categories) ? data.categories : [];
-      // Mark top 8 by priority (lowest numbers)
-      const sorted = [...cats].sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
-      const topIds = new Set(sorted.slice(0, 8).map(c => c.id));
-      setCategories(cats.map(c => ({ ...c, isTop8: topIds.has(c.id), subCategories: c.subCategories || [] })));
+      if (!res.ok) {
+        setError(data?.error || 'Failed to load categories');
+      } else {
+        if (data.warning === 'offline_mode') {
+          setError('Viewing offline data: Database unreachable');
+        }
+        const cats = Array.isArray(data?.categories) ? data.categories : [];
+        // Mark top 8 by priority (lowest numbers)
+        const sorted = [...cats].sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
+        const topIds = new Set(sorted.slice(0, 8).map(c => c.id));
+        setCategories(cats.map(c => ({ ...c, isTop8: topIds.has(c.id), subCategories: c.subCategories || [] })));
+      }
     } catch (e) {
       setError(e?.message || 'Failed to load categories');
     } finally {
@@ -174,10 +180,15 @@ export default function CategoryMaster() {
         }),
       });
       const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || 'Failed to update category');
+        return;
+      }
 
-      if (!res.ok) throw new Error(data?.error || 'Failed to update category');
-
-      // Reload categories
+      if (data.warning) {
+        alert('Action pending: ' + data.warning);
+        return;
+      }
       await loadCategories();
       setEditingCategory(null);
       setIconPreview(null);
@@ -198,10 +209,15 @@ export default function CategoryMaster() {
       setDeletingId(categoryId);
       const res = await fetch(`/api/categories?id=${categoryId}`, { method: 'DELETE' });
       const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || 'Failed to delete category');
+        return;
+      }
 
-      if (!res.ok) throw new Error(data?.error || 'Failed to delete category');
-
-      // Reload categories
+      if (data.warning) {
+        alert('Action pending: ' + data.warning);
+        return;
+      }
       await loadCategories();
       alert('Category deleted successfully');
     } catch (e) {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
 
 // GET /api/reports/dashboard - Get operational dashboard metrics
 export async function GET() {
@@ -355,6 +355,21 @@ export async function GET() {
         return NextResponse.json(response);
     } catch (error) {
         console.error('Error fetching dashboard metrics:', error);
+        if (error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'))) {
+            return NextResponse.json({
+                totalVendors: 0,
+                activeVendors: 0,
+                pendingApprovals: 0,
+                totalCategories: 0,
+                totalMasterProducts: 0,
+                totalProducts: 0,
+                flaggedProducts: 0,
+                dailySearches: 0,
+                totalUsers: 0,
+                searchTrends: [],
+                warning: 'offline_mode'
+            });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

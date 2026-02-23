@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
 
 // GET /api/payment-fees/vendors - Get vendor billing status
 export async function GET(request) {
@@ -43,7 +43,7 @@ export async function PATCH(request) {
       await supabaseRestPatch(`/rest/v1/vendor_billing?id=eq.${billing[0].id}`, updates);
     } else {
       // Create new billing record
-      const { supabaseRestInsert } = await import('@/lib/supabaseAdminFetch');
+      const { supabaseRestInsert } = await import('../../../../lib/supabaseAdminFetch');
       await supabaseRestInsert('/rest/v1/vendor_billing', {
         vendor_id,
         plan: plan || 'monthly',

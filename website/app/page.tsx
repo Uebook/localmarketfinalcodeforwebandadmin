@@ -7,8 +7,8 @@ import Sidebar from '@/components/Sidebar';
 import BusinessCard from '@/components/BusinessCard';
 import CategoryCard from '@/components/CategoryCard';
 import PromoCarousel from '@/components/PromoCarousel';
-import { Search } from 'lucide-react';
-import { NEARBY_BUSINESSES, FEATURED_BUSINESSES, HOME_SERVICES, EDUCATION_SERVICES, DAILY_ESSENTIALS, HEALTH_FITNESS, BEAUTY_SPA, RECENT_SEARCHES } from '@/lib/data';
+import { Search, MapPin, TrendingUp, Star, ShieldCheck, Zap, Gavel, Ticket } from 'lucide-react';
+import { NEARBY_BUSINESSES, FEATURED_BUSINESSES, HOME_SERVICES, RECENT_SEARCHES } from '@/lib/data';
 import { TOP_8_CATEGORIES } from '@/lib/categories';
 import Image from 'next/image';
 
@@ -25,15 +25,50 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    setTimeout(() => {
-      setLocationState({
-        lat: 28.6139,
-        lng: 77.2090,
-        city: 'Connaught Place, Delhi',
-        loading: false,
-        error: null,
-      });
-    }, 1500);
+    if (!navigator.geolocation) {
+      setLocationState({ lat: null, lng: null, city: 'Delhi, India', loading: false, error: 'Geolocation not supported' });
+      return;
+    }
+
+    setLocationState(prev => ({ ...prev, loading: true, error: null }));
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude: lat, longitude: lng } = position.coords;
+        try {
+          // Reverse geocode using OpenStreetMap Nominatim (free, no key required)
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          const data = await res.json();
+          const addr = data.address || {};
+          const city =
+            addr.suburb ||
+            addr.neighbourhood ||
+            addr.city_district ||
+            addr.quarter ||
+            addr.city ||
+            addr.town ||
+            addr.village ||
+            addr.county ||
+            'Your Area';
+          const state = addr.state || '';
+          const displayCity = state ? `${city}, ${state}` : city;
+
+          setLocationState({ lat, lng, city: displayCity, loading: false, error: null });
+        } catch {
+          // Geocoding failed, show coordinates-based fallback
+          setLocationState({ lat, lng, city: 'Your Location', loading: false, error: null });
+        }
+      },
+      (err) => {
+        // User denied or error — fall back gracefully
+        const msg = err.code === 1 ? 'Location access denied' : 'Could not detect location';
+        setLocationState({ lat: null, lng: null, city: 'Delhi, India', loading: false, error: msg });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -48,66 +83,94 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header
         locationState={locationState}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}
       />
-      
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-orange-500 to-blue-500 text-white py-16">
+      <section className="relative pt-12 pb-24 overflow-hidden">
+        {/* Abstract Background Decoration */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl -z-10">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-secondary/10 blur-[100px] rounded-full" />
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Discover Local Businesses Near You
+          <div className="text-center mb-12 flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 reveal">
+              <TrendingUp size={16} className="text-primary" />
+              <span className="text-xs font-black text-slate-600 uppercase tracking-widest">The #1 Local Directory</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter reveal" style={{ animationDelay: '0.1s' }}>
+              Find Anything <span className="text-gradient">Local.</span>
             </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Find the best products, services, and deals from trusted local businesses in your area
+            <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed reveal" style={{ animationDelay: '0.2s' }}>
+              Instantly connect with the best rated businesses, services and exclusive offers in your neighborhood.
             </p>
           </div>
-          
+
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
-            <div className="flex gap-2 bg-white rounded-xl p-2 shadow-lg">
-              <div className="flex-1 flex items-center gap-3 px-4">
-                <Search className="text-gray-400" size={20} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for services, products, or businesses..."
-                  className="flex-1 py-3 outline-none text-gray-900 placeholder-gray-400"
-                />
+          <div className="max-w-3xl mx-auto reveal" style={{ animationDelay: '0.3s' }}>
+            <form onSubmit={handleSearch} className="relative group">
+              <div className="flex gap-2 bg-white rounded-[2.5rem] p-2 shadow-2xl shadow-slate-200 border border-slate-100 group-focus-within:border-primary/30 transition-all duration-500">
+                <div className="flex-1 flex items-center gap-4 px-6">
+                  <Search className="text-slate-400 group-focus-within:text-primary transition-colors" size={24} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="What are you looking for today?"
+                    className="flex-1 py-4 outline-none text-slate-900 font-bold placeholder-slate-400 bg-transparent text-lg"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-10 py-4 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-xl active:scale-95"
+                >
+                  Search
+                </button>
               </div>
-              <button
-                type="submit"
-                className="px-8 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+
+              {/* Quick Tags */}
+              <div className="flex flex-wrap justify-center gap-2 mt-6">
+                {RECENT_SEARCHES.slice(0, 5).map((search, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleCategorySelect(search)}
+                    className="px-4 py-1.5 bg-white border border-slate-100 rounded-full text-xs font-bold text-slate-500 hover:text-primary hover:border-primary transition-all shadow-sm"
+                  >
+                    #{search}
+                  </button>
+                ))}
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Top Categories Section */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+        {/* Top Categories Area */}
+        <section className="mb-24">
+          <div className="flex items-end justify-between mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Top Categories</h2>
-              <p className="text-gray-600">Most frequent search, daily need, guaranteed usage</p>
+              <div className="flex items-center gap-2 mb-2">
+                <Zap size={18} className="text-primary" />
+                <span className="text-xs font-black text-primary uppercase tracking-widest">Fast Access</span>
+              </div>
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight">Top Categories</h2>
             </div>
             <button
               onClick={() => router.push('/categories')}
-              className="text-orange-500 font-semibold hover:text-orange-600 transition-colors"
+              className="text-primary font-black text-sm uppercase tracking-widest hover:translate-x-2 transition-transform pb-2"
             >
               View All →
             </button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
             {TOP_8_CATEGORIES.map((category) => (
               <CategoryCard
                 key={category.id}
@@ -118,89 +181,139 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Promo Banner/Carousel */}
-        <section className="mb-16">
+        {/* Hero Promo Section */}
+        <section className="mb-24 reveal">
           <PromoCarousel />
         </section>
 
-        {/* Featured Businesses */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Featured Businesses</h2>
+        {/* Featured Businesses Section */}
+        <section className="mb-24">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Star size={18} className="text-yellow-500" />
+                <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Handpicked</span>
+              </div>
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight">Featured Excellence</h2>
+            </div>
             <button
               onClick={() => router.push('/search')}
-              className="text-orange-500 font-semibold hover:text-orange-600 transition-colors"
+              className="text-primary font-black text-sm uppercase tracking-widest hover:translate-x-2 transition-transform pb-2"
             >
-              View All →
+              Explore All →
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {FEATURED_BUSINESSES.map((business) => (
               <BusinessCard key={business.id} business={business} />
             ))}
           </div>
         </section>
 
-        {/* Nearby Businesses */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Nearby Businesses</h2>
-            <button
-              onClick={() => router.push('/search')}
-              className="text-orange-500 font-semibold hover:text-orange-600 transition-colors"
-            >
-              View All →
-            </button>
+        {/* E-Auction & Draws Teaser Section */}
+        <section className="mb-24 grid grid-cols-1 md:grid-cols-2 gap-8 reveal">
+          <div
+            onClick={() => router.push('/eauction')}
+            className="relative group h-64 rounded-[3rem] overflow-hidden cursor-pointer shadow-xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800" />
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Gavel size={120} strokeWidth={1} className="text-white" />
+            </div>
+            <div className="relative h-full p-10 flex flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/20 rounded-full mb-4">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black text-primary uppercase tracking-widest">Live Now</span>
+                </div>
+                <h3 className="text-3xl font-black text-white mb-2 leading-tight">Hyper-Local<br />E-Auctions</h3>
+                <p className="text-slate-400 font-medium text-sm max-w-[240px]">Bid on exclusive inventory from verified local businesses.</p>
+              </div>
+              <div className="flex items-center gap-2 text-primary font-black text-sm uppercase tracking-widest">
+                Start Bidding <TrendingUp size={16} />
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {NEARBY_BUSINESSES.slice(0, 4).map((business) => (
-              <BusinessCard key={business.id} business={business} />
-            ))}
+
+          <div
+            onClick={() => router.push('/draws')}
+            className="relative group h-64 rounded-[3rem] overflow-hidden cursor-pointer shadow-xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary" />
+            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity">
+              <Ticket size={120} strokeWidth={1} className="text-white" />
+            </div>
+            <div className="relative h-full p-10 flex flex-col justify-between text-white">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full mb-4">
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest">Lucky Draws</span>
+                </div>
+                <h3 className="text-3xl font-black mb-2 leading-tight">Daily Online<br />Lucky Draws</h3>
+                <p className="text-white/80 font-medium text-sm max-w-[240px]">Join local circles and win amazing prizes every single day.</p>
+              </div>
+              <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest">
+                Try Your Luck →
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Metrics Section */}
+        <section className="mb-24 py-16 bg-white rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-wrap justify-around items-center gap-12 px-12 reveal">
+          <div className="flex flex-col items-center text-center max-w-[200px]">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+              <ShieldCheck size={32} className="text-blue-600" />
+            </div>
+            <h4 className="font-black text-xl text-slate-900 mb-1">100% Verified</h4>
+            <p className="text-sm font-bold text-slate-500">Every business is manually checked.</p>
+          </div>
+          <div className="w-px h-24 bg-slate-100 hidden md:block" />
+          <div className="flex flex-col items-center text-center max-w-[200px]">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+              <Star size={32} className="text-yellow-500" strokeWidth={3} />
+            </div>
+            <h4 className="font-black text-xl text-slate-900 mb-1">Top Rated</h4>
+            <p className="text-sm font-bold text-slate-500">Only the best services make the cut.</p>
+          </div>
+          <div className="w-px h-24 bg-slate-100 hidden md:block" />
+          <div className="flex flex-col items-center text-center max-w-[200px]">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+              <MapPin size={32} className="text-primary" />
+            </div>
+            <h4 className="font-black text-xl text-slate-900 mb-1">Hyper Local</h4>
+            <p className="text-sm font-bold text-slate-500">Connecting you to your neighbors.</p>
           </div>
         </section>
 
         {/* Services Sections */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Popular Services</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {HOME_SERVICES.map((service) => (
+        <section className="mb-24">
+          <div className="mb-10">
+            <span className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 block">Quick Help</span>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">Popular Services</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            {HOME_SERVICES.map((service, i) => (
               <button
                 key={service.id}
                 onClick={() => handleCategorySelect(service.name)}
-                className="group relative h-48 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                className="group relative h-64 rounded-[2rem] overflow-hidden shadow-lg transition-all duration-500 hover:-translate-y-2 reveal"
+                style={{ animationDelay: `${i * 0.1}s` }}
               >
                 <Image
                   src={service.imageUrl}
                   alt={service.name}
                   fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  className="object-cover group-hover:scale-110 transition-transform duration-1000"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-white font-bold text-lg">{service.name}</h3>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-left">
+                  <h3 className="text-white font-black text-xl tracking-wide">{service.name}</h3>
+                  <span className="text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">Book Now →</span>
                 </div>
               </button>
             ))}
           </div>
         </section>
-
-        {/* Recent Searches */}
-        {RECENT_SEARCHES.length > 0 && (
-          <section className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Recent Searches</h2>
-            <div className="flex flex-wrap gap-3">
-              {RECENT_SEARCHES.map((search, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleCategorySelect(search)}
-                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 hover:border-orange-500 hover:text-orange-500 transition-colors"
-                >
-                  {search}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
 
       <Sidebar
@@ -209,9 +322,7 @@ export default function HomePage() {
         onNavigate={(tab) => {
           setIsSidebarOpen(false);
           if (tab === 'logout') router.push('/login');
-          else if (tab === 'register-business') {
-            router.push('/vendor/register');
-          }
+          else if (tab === 'register-business') router.push('/vendor/register');
           else if (tab === 'settings') router.push('/settings');
           else if (tab === 'help') router.push('/help');
           else if (tab === 'home') router.push('/');

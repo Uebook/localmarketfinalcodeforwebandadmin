@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getThemeCSS } from '@/lib/themeUtils';
+import { getThemeCSS } from '../../lib/themeUtils';
 
 export default function ThemeManagement() {
   const [selectedTheme, setSelectedTheme] = useState('diwali');
@@ -51,7 +51,7 @@ export default function ThemeManagement() {
 
       // If no themes from database, use default themes from constants
       if (themes.length === 0) {
-        const { FESTIVAL_THEMES } = await import('@/constants/festivalThemes');
+        const { FESTIVAL_THEMES } = await import('../../constants/festivalThemes');
         const defaultThemes = Object.entries(FESTIVAL_THEMES).map(([id, theme]) => ({
           id,
           name: theme.name,
@@ -111,10 +111,12 @@ export default function ThemeManagement() {
         applyTheme(allThemesList[0].id, themesObj);
       }
     } catch (error) {
-      console.error('Error loading themes:', error);
+      if (!error.message?.includes('fetch failed')) {
+        console.error('Error loading themes:', error);
+      }
       // Try to load default themes as fallback
       try {
-        const { FESTIVAL_THEMES } = await import('@/constants/festivalThemes');
+        const { FESTIVAL_THEMES } = await import('../../constants/festivalThemes');
         const defaultThemes = Object.entries(FESTIVAL_THEMES).map(([id, theme]) => ({
           id,
           name: theme.name,
@@ -207,10 +209,19 @@ export default function ThemeManagement() {
           console.log(`Theme "${themeId}" set as default for all users`);
         } else {
           const errorData = await res.json().catch(() => ({}));
-          console.error('Error setting active theme:', errorData.error || 'Unknown error');
+          const errorMsg = errorData.error || 'Unknown error';
+          if (errorMsg.includes('fetch failed') || errorMsg.includes('ENOTFOUND')) {
+            console.warn('Sync failed: Database unreachable. Theme saved locally.');
+          } else {
+            console.error('Error setting active theme:', errorMsg);
+          }
         }
       } catch (error) {
-        console.error('Error setting active theme:', error);
+        if (error.message?.includes('fetch failed')) {
+          console.warn('Sync failed: Network error. Theme saved locally.');
+        } else {
+          console.error('Error setting active theme:', error);
+        }
         // Even if DB fails, localStorage is saved, so theme persists
       }
     }
@@ -236,8 +247,12 @@ export default function ThemeManagement() {
       setPreviewMode(false);
       alert(`Theme "${allThemes[selectedTheme]?.name || selectedTheme}" has been set as the default theme for all users!`);
     } catch (error) {
-      console.error('Error saving theme:', error);
-      alert(`Error: ${error.message || 'Failed to save theme. Please try again.'}`);
+      if (error.message?.includes('fetch failed')) {
+        console.warn('Save failed: Database unreachable. Theme saved locally.');
+      } else {
+        console.error('Error saving theme:', error);
+        alert(`Error: ${error.message || 'Failed to save theme. Please try again.'}`);
+      }
     }
   };
 
@@ -493,7 +508,7 @@ export default function ThemeManagement() {
                     }}
                     className={`w-full px-4 py-2 rounded-lg font-medium transition ${selectedTheme === theme.id
                       ? 'gradient-primary text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
                       }`}
                   >
                     {selectedTheme === theme.id ? 'Selected' : 'Select Theme'}
@@ -532,7 +547,7 @@ export default function ThemeManagement() {
                               e.stopPropagation();
                               handleEditTheme(theme);
                             }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 text-blue-600 hover:bg-gray-100 rounded-lg transition"
                             title="Edit Theme"
                           >
                             <span>✏️</span>
@@ -542,7 +557,7 @@ export default function ThemeManagement() {
                               e.stopPropagation();
                               handleDeleteTheme(theme.id);
                             }}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="p-2 text-red-600 hover:bg-gray-100 rounded-lg transition"
                             title="Delete Theme"
                           >
                             <span>🗑️</span>
@@ -578,7 +593,7 @@ export default function ThemeManagement() {
                         }}
                         className={`w-full px-4 py-2 rounded-lg font-medium transition ${selectedTheme === theme.id
                           ? 'gradient-primary text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
                           }`}
                       >
                         {selectedTheme === theme.id ? 'Selected' : 'Select Theme'}

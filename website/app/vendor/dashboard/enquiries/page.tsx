@@ -1,101 +1,128 @@
 'use client';
 
-import VendorDashboardLayout from '@/components/VendorDashboardLayout';
-import { INITIAL_VENDOR_DATA } from '@/lib/constants';
-import { MessageSquare, Phone, Mail, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLayout';
+import { MessageSquare, Phone, Mail, Clock, CheckCircle, Loader2 } from 'lucide-react';
 
-export default function VendorEnquiriesPage() {
-  const vendor = INITIAL_VENDOR_DATA;
+function EnquiriesContent() {
+  const { enquiries, loading } = useVendor();
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'read':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'replied':
-        return 'bg-green-100 text-green-700 border-green-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+    switch (status?.toLowerCase()) {
+      case 'new': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'read': return 'bg-slate-50 text-slate-600 border-slate-200';
+      case 'replied': return 'bg-green-50 text-green-700 border-green-200';
+      default: return 'bg-slate-50 text-slate-600 border-slate-200';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'new':
-        return <div className="w-2 h-2 bg-blue-500 rounded-full" />;
-      case 'replied':
-        return <CheckCircle size={16} className="text-green-600" />;
-      default:
-        return null;
-    }
-  };
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center">
+        <Loader2 className="animate-spin" size={24} style={{ color: 'var(--primary)' }} />
+      </div>
+    );
+  }
 
   return (
-    <VendorDashboardLayout>
-      <div className="p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Enquiries</h1>
-            <p className="text-gray-900 mt-1">Manage customer enquiries and messages</p>
-          </div>
+    <div className="p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Enquiries</h1>
+          <p className="text-slate-400 text-sm mt-0.5">{enquiries.length} total customer messages</p>
         </div>
-
-        {vendor.enquiries && vendor.enquiries.length > 0 ? (
-          <div className="space-y-4">
-            {vendor.enquiries.map((enquiry) => (
-              <div key={enquiry.id} className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-bold text-lg text-gray-900">{enquiry.senderName}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(enquiry.status)} flex items-center gap-1.5`}>
-                        {getStatusIcon(enquiry.status)}
-                        <span className="capitalize">{enquiry.status}</span>
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-900">
-                      <div className="flex items-center gap-1.5">
-                        <Phone size={16} />
-                        <span>{enquiry.senderMobile}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock size={16} />
-                        <span>{enquiry.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <p className="text-gray-700">{enquiry.message}</p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">
-                    <MessageSquare size={16} />
-                    <span>Reply</span>
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors">
-                    <Phone size={16} />
-                    <span>Call</span>
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
-                    <Mail size={16} />
-                    <span>Email</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-            <MessageSquare className="text-gray-300 mx-auto mb-4" size={48} />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No Enquiries Yet</h3>
-            <p className="text-gray-900">Customer enquiries will appear here</p>
-          </div>
+        {enquiries.filter(e => (e.status === 'new' || !e.status)).length > 0 && (
+          <span className="px-3 py-1 text-xs font-bold rounded-full text-white" style={{ background: 'var(--primary)' }}>
+            {enquiries.filter(e => (e.status === 'new' || !e.status)).length} New
+          </span>
         )}
       </div>
+
+      {enquiries.length > 0 ? (
+        <div className="space-y-3">
+          {enquiries.map((enquiry: any) => {
+            const isNew = !enquiry.status || enquiry.status === 'new';
+            const isExpanded = expanded === enquiry.id;
+            const name = enquiry.customer_name ?? enquiry.name ?? enquiry.senderName ?? 'Customer';
+            const phone = enquiry.customer_phone ?? enquiry.phone ?? enquiry.senderMobile ?? '';
+            const message = enquiry.message ?? enquiry.service ?? '';
+            const status = enquiry.status ?? 'new';
+            const date = enquiry.created_at
+              ? new Date(enquiry.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+              : enquiry.date ?? '';
+
+            return (
+              <div
+                key={enquiry.id}
+                className={`bg-white rounded-2xl border transition-all ${isNew ? 'border-blue-100 shadow-sm' : 'border-slate-100'}`}
+              >
+                <button
+                  className="w-full text-left p-4 sm:p-5"
+                  onClick={() => setExpanded(isExpanded ? null : enquiry.id)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
+                        <MessageSquare size={16} className="text-purple-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-slate-900 text-sm">{name}</p>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${getStatusColor(status)}`}>
+                            {status}
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-xs mt-0.5 truncate">{message}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-slate-300 flex-shrink-0">{date}</span>
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="px-4 sm:px-5 pb-4 border-t border-slate-50">
+                    <p className="text-slate-700 text-sm leading-relaxed py-3">{message}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {phone && (
+                        <a
+                          href={`tel:${phone}`}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-80"
+                          style={{ background: 'var(--primary)' }}
+                        >
+                          <Phone size={13} /> Call {phone}
+                        </a>
+                      )}
+                      <a
+                        href={`https://wa.me/91${phone}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-green-500 text-white hover:opacity-80 transition-opacity"
+                      >
+                        <MessageSquare size={13} /> WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+          <MessageSquare className="text-slate-200 mx-auto mb-4" size={48} />
+          <h3 className="text-lg font-bold text-slate-900 mb-1">No Enquiries Yet</h3>
+          <p className="text-slate-400 text-sm">Customer enquiries will appear here</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function VendorEnquiriesPage() {
+  return (
+    <VendorDashboardLayout>
+      <EnquiriesContent />
     </VendorDashboardLayout>
   );
 }

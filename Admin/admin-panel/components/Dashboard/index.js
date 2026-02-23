@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import UserManagement from './Dashboard/UserManagement';
-import SendNotification from './SendNotification';
-import ValueFeedback from './FeedbackManagement/ValueFeedback';
+import UserManagement from './UserManagement';
+import SendNotification from '../SendNotification';
+import ValueFeedback from '../FeedbackManagement/ValueFeedback';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard({ onNavigate }) {

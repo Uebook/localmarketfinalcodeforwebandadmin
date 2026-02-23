@@ -1,4 +1,4 @@
-import { supabaseRestGet, assertSupabaseEnv } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, assertSupabaseEnv } from '../../../lib/supabaseAdminFetch';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
@@ -44,7 +44,12 @@ export async function GET(req) {
     const feedback = Array.isArray(rows) ? rows.map(normalizeFeedback) : [];
     return Response.json({ feedback }, { status: 200 });
   } catch (e) {
-    return Response.json({ error: e?.message || 'Failed to load feedback' }, { status: 500 });
+    const errorMessage = e?.message || 'Failed to load feedback';
+    console.error('Error loading feedback:', errorMessage);
+    if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+      return Response.json({ feedback: [], warning: 'offline_mode' }, { status: 200 });
+    }
+    return Response.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -79,7 +84,12 @@ export async function PATCH(req) {
     const updated = Array.isArray(rows) && rows[0] ? normalizeFeedback(rows[0]) : null;
     return Response.json({ feedback: updated }, { status: 200 });
   } catch (e) {
-    return Response.json({ error: e?.message || 'Failed to update feedback' }, { status: 500 });
+    const errorMessage = e?.message || 'Failed to update feedback';
+    console.error('Error updating feedback:', errorMessage);
+    if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+      return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+    }
+    return Response.json({ error: errorMessage }, { status: 500 });
   }
 }
 

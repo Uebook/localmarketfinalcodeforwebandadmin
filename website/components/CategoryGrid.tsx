@@ -6,76 +6,99 @@ import { ALL_CATEGORIES, TOP_8_CATEGORIES } from '@/lib/categories';
 interface CategoryGridProps {
   onCategorySelect: (categoryName: string) => void;
   variant?: 'light' | 'dark';
+  showAll?: boolean;
 }
 
 const iconMap: Record<string, any> = {
-  ShoppingBag,
-  Smartphone,
-  Shirt,
-  Pill,
-  Zap,
-  Home,
-  FileText: Headphones, // Fallback
-  Tool: Trophy, // Fallback
-  Apple,
-  Droplet,
-  Gift,
-  Camera,
-  Music,
-  Activity,
-  Gamepad,
-  Car,
-  Bike,
-  Circle: Square, // Fallback
-  Palette,
-  Square,
-  Layers,
-  Bed,
-  Image,
-  Sun,
-  Utensils,
-  Box,
-  Star,
-  Package,
-  Heart,
-  Leaf,
-  Eye,
-  Monitor,
-  Drumstick: Gift, // Fallback
-  Fish: Droplet, // Fallback
-  Sparkles: Star, // Fallback
-  Wind: Activity, // Fallback
-  Gem: Star, // Fallback
-  Footprints: Activity, // Fallback
-  Toy: Gift, // Fallback
-  Briefcase: Box, // Fallback
-  Clock: Activity, // Fallback
+  ShoppingBag, Smartphone, Shirt, Pill, Zap, Home,
+  FileText: Headphones,
+  Tool: Trophy,
+  Apple, Droplet, Gift, Camera, Music, Activity, Gamepad, Car, Bike,
+  Circle: Square,
+  Palette, Square, Layers, Bed, Image, Sun, Utensils, Box, Star, Package, Heart, Leaf, Eye, Monitor,
+  Drumstick: Gift,
+  Fish: Droplet,
+  Sparkles: Star,
+  Wind: Activity,
+  Gem: Star,
+  Footprints: Activity,
+  Toy: Gift,
+  Briefcase: Box,
+  Clock: Activity,
 };
 
-export default function CategoryGrid({ onCategorySelect, variant = 'light', showAll = false }: CategoryGridProps & { showAll?: boolean }) {
-  const isDark = variant === 'dark';
+// Subtle colored icon backgrounds per category index
+const iconColors = [
+  { bg: 'bg-orange-50', text: 'text-orange-500' },
+  { bg: 'bg-blue-50', text: 'text-blue-500' },
+  { bg: 'bg-green-50', text: 'text-green-600' },
+  { bg: 'bg-purple-50', text: 'text-purple-500' },
+  { bg: 'bg-rose-50', text: 'text-rose-500' },
+  { bg: 'bg-amber-50', text: 'text-amber-500' },
+  { bg: 'bg-teal-50', text: 'text-teal-600' },
+  { bg: 'bg-indigo-50', text: 'text-indigo-500' },
+];
+
+export default function CategoryGrid({ onCategorySelect, variant = 'light', showAll = false }: CategoryGridProps) {
   const categoriesToShow = showAll ? ALL_CATEGORIES : TOP_8_CATEGORIES;
+  const isDark = variant === 'dark';
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 sm:gap-8">
-      {categoriesToShow.map((category) => {
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
+      {categoriesToShow.map((category, i) => {
         const Icon = iconMap[category.iconName] || ShoppingBag;
+        const color = iconColors[i % iconColors.length];
+
+        if (isDark) {
+          // Dark variant for use on colored backgrounds
+          return (
+            <button
+              key={category.id}
+              onClick={() => onCategorySelect(category.name)}
+              className="group relative flex flex-col items-center justify-center gap-4 p-6 rounded-3xl transition-all duration-400 hover:-translate-y-1 min-h-[170px] overflow-hidden reveal bg-white/10 border border-white/20 hover:bg-white/20 backdrop-blur-sm"
+              style={{ animationDelay: `${i * 0.04}s` }}
+            >
+              <div className="relative p-4 rounded-2xl bg-white/20 text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <Icon size={32} strokeWidth={1.5} />
+              </div>
+              <span className="text-sm font-bold text-white text-center line-clamp-2 leading-tight">
+                {category.name}
+              </span>
+            </button>
+          );
+        }
+
+        // Light variant — premium white card
         return (
           <button
             key={category.id}
             onClick={() => onCategorySelect(category.name)}
-            className={`flex flex-col items-center justify-center gap-4 sm:gap-5 p-6 sm:p-8 md:p-10 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl min-h-[180px] sm:min-h-[200px] md:min-h-[220px] ${
-              isDark 
-                ? 'bg-black/40 backdrop-blur-md border-2 border-white/20 hover:bg-black/50' 
-                : 'bg-white/10 backdrop-blur-md border-2 border-white/20 hover:bg-white/20'
-            }`}
+            className="group relative flex flex-col items-center justify-center gap-4 p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl min-h-[160px] overflow-hidden reveal bg-white border border-slate-100 shadow-sm"
+            style={{ animationDelay: `${i * 0.04}s` }}
           >
-            <div className={`p-4 sm:p-5 md:p-6 rounded-2xl ${isDark ? 'bg-white/10' : 'bg-white/20'}`}>
-              <Icon className={isDark ? 'text-white' : 'text-white'} size={48} />
+            {/* Subtle hover gradient overlay */}
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+              style={{ background: 'linear-gradient(135deg, var(--primary)08, var(--secondary)06)' }}
+            />
+
+            {/* Icon */}
+            <div className={`relative z-10 p-4 rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${color.bg} ${color.text}`}>
+              <Icon size={30} strokeWidth={1.5} />
             </div>
-            <span className={`text-base sm:text-lg md:text-xl font-bold text-center line-clamp-2 break-words px-2 ${isDark ? 'text-white' : 'text-white'}`}>
-              {category.name}
-            </span>
+
+            {/* Label */}
+            <div className="relative z-10 text-center">
+              <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 line-clamp-2 leading-tight transition-colors">
+                {category.name}
+              </span>
+            </div>
+
+            {/* Bottom accent line */}
+            <div
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 group-hover:w-10 rounded-full transition-all duration-400"
+              style={{ background: 'var(--primary)' }}
+            />
           </button>
         );
       })}

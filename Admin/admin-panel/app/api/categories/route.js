@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';
@@ -32,6 +32,10 @@ export async function GET(req) {
 
         return Response.json({ categories }, { status: 200 });
     } catch (e) {
+        console.error('Categories GET Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ categories: [], warning: 'offline_mode' }, { status: 200 });
+        }
         return Response.json({ error: e?.message || 'Failed to load categories' }, { status: 500 });
     }
 }
@@ -88,6 +92,10 @@ export async function POST(req) {
 
         return Response.json({ error: 'Invalid request. Provide name or categories array.' }, { status: 400 });
     } catch (e) {
+        console.error('Categories POST Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+        }
         return Response.json({ error: e?.message || 'Failed to create category' }, { status: 500 });
     }
 }
@@ -126,6 +134,10 @@ export async function PATCH(req) {
         const result = await supabaseRestPatch(`/rest/v1/categories?id=eq.${id}`, updateData);
         return Response.json({ success: true, category: result[0] || result }, { status: 200 });
     } catch (e) {
+        console.error('Categories PATCH Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+        }
         return Response.json({ error: e?.message || 'Failed to update category' }, { status: 500 });
     }
 }
@@ -164,6 +176,10 @@ export async function DELETE(req) {
 
         return Response.json({ success: true, message: 'Category deleted successfully' }, { status: 200 });
     } catch (e) {
+        console.error('Categories DELETE Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+        }
         return Response.json({ error: e?.message || 'Failed to delete category' }, { status: 500 });
     }
 }

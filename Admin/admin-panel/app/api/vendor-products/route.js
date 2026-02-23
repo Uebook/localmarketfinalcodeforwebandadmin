@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v : '';
@@ -49,6 +49,9 @@ export async function GET(req) {
         }
     } catch (e) {
         console.error('Unexpected error in vendor-products GET:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ products: [], warning: 'offline_mode' }, { status: 200 });
+        }
         return Response.json({ error: e?.message || 'Failed to load vendor products', products: [] }, { status: 500 });
     }
 }
@@ -91,6 +94,10 @@ export async function PATCH(req) {
         const result = await supabaseRestPatch(`/rest/v1/vendor_products?id=eq.${id}`, updateData);
         return Response.json({ success: true, product: result[0] || result }, { status: 200 });
     } catch (e) {
+        console.error('Vendor Products PATCH Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+        }
         return Response.json({ error: e?.message || 'Failed to update vendor product' }, { status: 500 });
     }
 }

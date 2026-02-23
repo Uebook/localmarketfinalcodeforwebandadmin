@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import SearchReports from './Reports/SearchReports';
-import VendorActivityReports from './Reports/VendorActivityReports';
-import OperationalDashboard from './Reports/OperationalDashboard';
+import SearchReports from './SearchReports';
+import VendorActivityReports from './VendorActivityReports';
+import OperationalDashboard from './OperationalDashboard';
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -23,11 +23,10 @@ export default function Reports() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors ${
-                activeTab === tab.id
+              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === tab.id
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               {tab.label}
             </button>

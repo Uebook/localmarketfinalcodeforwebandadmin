@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
   return typeof v === 'string' ? v.trim() : '';
@@ -59,8 +59,8 @@ export async function GET(req) {
 
     const rows = await supabaseRestGet(`/rest/v1/users?${dataQuery.toString()}`);
     const users = Array.isArray(rows) ? rows.map(normalizeUser) : [];
-    
-    return Response.json({ 
+
+    return Response.json({
       users,
       pagination: {
         page,
@@ -70,6 +70,14 @@ export async function GET(req) {
       }
     }, { status: 200 });
   } catch (e) {
+    console.error('Users GET Error:', e);
+    if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+      return Response.json({
+        users: [],
+        pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+        warning: 'offline_mode'
+      }, { status: 200 });
+    }
     return Response.json({ error: e?.message || 'Failed to load users' }, { status: 500 });
   }
 }
@@ -99,6 +107,10 @@ export async function PATCH(req) {
     const user = Array.isArray(updated) && updated[0] ? normalizeUser(updated[0]) : null;
     return Response.json({ user }, { status: 200 });
   } catch (e) {
+    console.error('User PATCH Error:', e);
+    if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+      return Response.json({ user: null, warning: 'Sync failed: Database unreachable' });
+    }
     return Response.json({ error: e?.message || 'Failed to update user' }, { status: 500 });
   }
 }

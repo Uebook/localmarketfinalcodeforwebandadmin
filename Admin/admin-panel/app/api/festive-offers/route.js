@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
 
 // GET /api/festive-offers - Get all offers
 export async function GET(request) {

@@ -1,35 +1,65 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { NEARBY_BUSINESSES } from '@/lib/data';
-import { Tag, Copy, Store, ArrowRight } from 'lucide-react';
+import { Tag, Copy, Store, ArrowRight, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function OffersPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [offers, setOffers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Get all offers from businesses
-  const allOffers = NEARBY_BUSINESSES.flatMap((business) =>
-    business.offers.map((offer) => ({ ...offer, business }))
-  );
+  useEffect(() => {
+    async function fetchOffers() {
+      try {
+        setIsLoading(true);
+        const res = await fetch('/api/festive-offers');
+        if (res.ok) {
+          const data = await res.json();
+          // Transform festive offers to match the UI format
+          const transformedOffers = data.map((offer: any) => {
+            // Find a business if vendor_ids is present
+            let business = null;
+            if (offer.vendor_ids && offer.vendor_ids.length > 0) {
+              business = NEARBY_BUSINESSES.find(b => b.id === offer.vendor_ids[0]);
+            }
+
+            return {
+              id: offer.id,
+              title: offer.title,
+              description: offer.description,
+              code: offer.discount_percent ? `${offer.discount_percent}% OFF` : 'FESTIVE',
+              color: 'bg-gradient-primary', // Use theme gradient
+              business: business || {
+                name: 'Local Market',
+                imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80'
+              }
+            };
+          });
+          setOffers(transformedOffers);
+        }
+      } catch (error) {
+        console.error('Error fetching offers:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchOffers();
+  }, []);
 
   const getOfferColor = (color: string) => {
-    if (!color) return 'bg-blue-500';
-    if (color.includes('purple')) return 'bg-purple-500';
-    if (color.includes('blue')) return 'bg-blue-500';
-    if (color.includes('red')) return 'bg-red-500';
-    if (color.includes('green')) return 'bg-green-500';
-    if (color.includes('orange')) return 'bg-orange-500';
-    return 'bg-blue-500';
+    return 'bg-gradient-primary'; // Force theme gradient for all
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header
         locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
@@ -40,19 +70,24 @@ export default function OffersPage() {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-1 h-6 bg-orange-500 rounded" />
+            <div className="w-1 h-6 bg-primary rounded" />
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Offers & Deals</h1>
           </div>
           <p className="text-gray-900 ml-3">Curated offers from local vendors nearby</p>
         </div>
 
-        {/* Grid View */}
-        {allOffers.length > 0 ? (
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+            <p className="text-gray-600 font-medium">Fetching best deals for you...</p>
+          </div>
+        ) : offers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {allOffers.map((offer) => (
+            {offers.map((offer) => (
               <Link
                 key={offer.id}
-                href={`/vendor/${offer.business.id}`}
+                href={offer.business?.id ? `/vendor/${offer.business.id}` : '#'}
                 className="group"
               >
                 <div className={`${getOfferColor(offer.color)} rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col`}>

@@ -16,8 +16,11 @@ export default function VendorApproval({ onViewProfile }) {
         setError('');
         const res = await fetch('/api/vendors/pending', { cache: 'no-store' });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.error || 'Failed to load pending vendors');
-        if (!cancelled) setPendingVendors(Array.isArray(data?.vendors) ? data.vendors : []);
+        if (!res.ok) {
+          setError(data?.error || 'Failed to load pending vendors');
+        } else if (!cancelled) {
+          setPendingVendors(Array.isArray(data?.vendors) ? data.vendors : []);
+        }
       } catch (e) {
         if (!cancelled) setError(e?.message || 'Failed to load pending vendors');
       } finally {
@@ -35,7 +38,10 @@ export default function VendorApproval({ onViewProfile }) {
       body: JSON.stringify({ id: vendorId, ...patch }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || 'Failed to update vendor');
+    if (!res.ok) {
+      alert(data?.error || 'Failed to update vendor');
+      return null;
+    }
     return data.vendor;
   };
 

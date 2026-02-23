@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { sendNotification, sendNotificationToTopic } from '@/lib/firebaseAdmin';
+import { sendNotification, sendNotificationToTopic } from '../lib/firebaseAdmin';
 
 export default function SendNotification() {
   const [formData, setFormData] = useState({
@@ -54,7 +54,7 @@ export default function SendNotification() {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Send Notification</h2>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -146,9 +146,8 @@ export default function SendNotification() {
         )}
 
         {result && (
-          <div className={`p-3 rounded-lg ${
-            result.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-          }`}>
+          <div className={`p-3 rounded-lg ${result.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            }`}>
             {result.message}
           </div>
         )}

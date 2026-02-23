@@ -62,14 +62,13 @@ export default function PriceVerification() {
           auto_alert_enabled: autoAlertEnabled,
         }),
       });
-      
+
       const data = await res.json().catch(() => ({}));
-      
+
       if (res.ok) {
         alert('Settings saved successfully!');
       } else {
-        const errorMsg = data?.error || 'Failed to save settings';
-        throw new Error(errorMsg);
+        alert(data?.error || 'Failed to save settings');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -99,7 +98,8 @@ export default function PriceVerification() {
         await loadFlags();
         alert(`Action "${action}" completed successfully`);
       } else {
-        throw new Error('Failed to update flag');
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.error || 'Failed to update flag');
       }
     } catch (error) {
       console.error('Error performing action:', error);
@@ -185,64 +185,64 @@ export default function PriceVerification() {
         ) : flaggedProducts.length === 0 ? (
           <div className="p-8 text-center text-gray-500">No flagged products found</div>
         ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Old Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">New Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Market Avg</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Flag Reason</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {flaggedProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{product.productName}</div>
-                    <div className="text-xs text-gray-500">{product.flaggedDate}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{product.vendorName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{product.oldPrice}</td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-red-600">{product.newPrice}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{product.marketAverage}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                      {product.flagReason}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => handleAction(product.id, 'warn')}
-                        className="text-yellow-600 hover:text-yellow-900 text-xs font-medium"
-                      >
-                        Warn Vendor
-                      </button>
-                      <button
-                        onClick={() => handleAction(product.id, 'hide')}
-                        className="text-orange-600 hover:text-orange-900 text-xs font-medium"
-                      >
-                        Hide Product
-                      </button>
-                      <button
-                        onClick={() => handleAction(product.id, 'block')}
-                        className="text-red-600 hover:text-red-900 text-xs font-medium"
-                      >
-                        Block Vendor
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Old Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">New Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Market Avg</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Flag Reason</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {flaggedProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{product.productName}</div>
+                      <div className="text-xs text-gray-500">{product.flaggedDate}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{product.vendorName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{product.oldPrice}</td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-red-600">{product.newPrice}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{product.marketAverage}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        {product.flagReason}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => handleAction(product.id, 'warn')}
+                          className="text-yellow-600 hover:text-yellow-900 text-xs font-medium"
+                        >
+                          Warn Vendor
+                        </button>
+                        <button
+                          onClick={() => handleAction(product.id, 'hide')}
+                          className="text-orange-600 hover:text-orange-900 text-xs font-medium"
+                        >
+                          Hide Product
+                        </button>
+                        <button
+                          onClick={() => handleAction(product.id, 'block')}
+                          className="text-red-600 hover:text-red-900 text-xs font-medium"
+                        >
+                          Block Vendor
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

@@ -27,8 +27,14 @@ export default function ValueFeedback() {
         setError('');
         const res = await fetch(`/api/feedback${queryString ? `?${queryString}` : ''}`, { cache: 'no-store' });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.error || 'Failed to load feedback');
-        if (!cancelled) setFeedback(Array.isArray(data?.feedback) ? data.feedback : []);
+        if (!res.ok) {
+          setError(data?.error || 'Failed to load feedback');
+        } else if (!cancelled) {
+          if (data.warning === 'offline_mode') {
+            setError('Viewing offline data: Database unreachable');
+          }
+          setFeedback(Array.isArray(data?.feedback) ? data.feedback : []);
+        }
       } catch (e) {
         if (!cancelled) setError(e?.message || 'Failed to load feedback');
       } finally {
@@ -43,14 +49,14 @@ export default function ValueFeedback() {
   }, [queryString, searchQuery]);
 
   const filteredFeedback = feedback.filter((item) => {
-    const matchesFilter = filter === 'all' || 
+    const matchesFilter = filter === 'all' ||
       (filter === 'pending' && item.status === 'pending') ||
       (filter === 'users' && item.type === 'user') ||
       (filter === 'vendors' && item.type === 'vendor');
-    
+
     const matchesSearch = item.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.type === 'user' ? item.userName : item.vendorName).toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return matchesFilter && matchesSearch;
   });
 
@@ -64,10 +70,19 @@ export default function ValueFeedback() {
     }).then(async (res) => {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || 'Failed to update feedback');
+        setError(data?.error || 'Failed to update feedback');
+        // Revert on failure
+        setFeedback(prev => prev.map(item => (item.id === id ? { ...item, status: 'pending' } : item)));
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (data.warning) {
+          alert('Action pending: ' + data.warning);
+          // Don't revert, since it's "saved" in offline mode logic (theoretically)
+          // or just show the alert
+        }
       }
     }).catch((e) => {
-      // revert on failure
+      // Revert on failure
       setFeedback(prev => prev.map(item => (item.id === id ? { ...item, status: 'pending' } : item)));
       setError(e?.message || 'Failed to update feedback');
     });
@@ -118,11 +133,10 @@ export default function ValueFeedback() {
               <button
                 key={filterType}
                 onClick={() => setFilter(filterType)}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
-                  filter === filterType
+                className={`px-4 py-2 rounded-lg font-medium transition ${filter === filterType
                     ? 'gradient-primary text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
               </button>
@@ -172,9 +186,8 @@ export default function ValueFeedback() {
               {filteredFeedback.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      item.type === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.type === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                      }`}>
                       {item.type === 'user' ? '👤 User' : '🏪 Vendor'}
                     </span>
                   </td>

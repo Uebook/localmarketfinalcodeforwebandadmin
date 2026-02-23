@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch, supabaseRestUpsert } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch, supabaseRestUpsert } from '../../../lib/supabaseAdminFetch';
 
 // GET /api/themes - Get all themes
 export async function GET(request) {
@@ -28,6 +28,10 @@ export async function GET(request) {
         // This allows the UI to still work and show default themes
         if (error.message && (error.message.includes('does not exist') || error.message.includes('relation') || error.message.includes('42703'))) {
             console.warn('Festival themes table may not exist. Returning empty array.');
+            return NextResponse.json([]);
+        }
+        if (error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'))) {
+            console.warn('Supabase unreachable. Returning empty array.');
             return NextResponse.json([]);
         }
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -174,6 +178,9 @@ export async function PATCH(request) {
         return NextResponse.json(Array.isArray(result) ? result[0] : result);
     } catch (error) {
         console.error('Error updating theme:', error);
+        if (error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'))) {
+            return NextResponse.json({ success: true, warning: 'Sync failed: Database unreachable' });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { sendNotificationToTopic } from '@/lib/firebaseAdmin';
+import { sendNotificationToTopic } from '../../lib/firebaseAdmin';
 
 const locations = ['All', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Ahmedabad'];
 const statuses = ['All', 'Active', 'Inactive', 'Pending', 'Blocked'];
@@ -81,7 +81,7 @@ export default function SendNotificationForm() {
   // Filter users
   const filteredUsers = useMemo(() => users.filter((user) => {
     const matchesSearch = user.name.toLowerCase().includes(userFilters.search.toLowerCase()) ||
-                         user.email.toLowerCase().includes(userFilters.search.toLowerCase());
+      user.email.toLowerCase().includes(userFilters.search.toLowerCase());
     const matchesLocation = userFilters.location === 'All' || user.location === userFilters.location;
     const matchesStatus = userFilters.status === 'All' || user.status === userFilters.status;
     return matchesSearch && matchesLocation && matchesStatus;
@@ -90,7 +90,7 @@ export default function SendNotificationForm() {
   // Filter vendors
   const filteredVendors = useMemo(() => vendors.filter((vendor) => {
     const matchesSearch = vendor.name.toLowerCase().includes(vendorFilters.search.toLowerCase()) ||
-                         vendor.owner.toLowerCase().includes(vendorFilters.search.toLowerCase());
+      vendor.owner.toLowerCase().includes(vendorFilters.search.toLowerCase());
     const matchesLocation = vendorFilters.location === 'All' || vendor.location === vendorFilters.location;
     const matchesStatus = vendorFilters.status === 'All' || vendor.status === vendorFilters.status;
     const matchesKyc = vendorFilters.kycStatus === 'All' || vendor.kycStatus === vendorFilters.kycStatus;
@@ -145,9 +145,9 @@ export default function SendNotificationForm() {
       // Topic send (placeholder routes exist)
       const topic =
         formData.recipientType === 'all' ? 'all' :
-        formData.recipientType === 'users' ? 'users' :
-        formData.recipientType === 'vendors' ? 'vendors' :
-        'all';
+          formData.recipientType === 'users' ? 'users' :
+            formData.recipientType === 'vendors' ? 'vendors' :
+              'all';
       await sendNotificationToTopic(topic, notification);
 
       // Persist to DB history
@@ -163,7 +163,7 @@ export default function SendNotificationForm() {
       });
 
       setResult({ success: true, message: 'Notification sent successfully!' });
-      
+
       // Reset form
       setFormData({
         title: '',
@@ -249,11 +249,10 @@ export default function SendNotificationForm() {
                   key={type}
                   type="button"
                   onClick={() => setFormData({ ...formData, recipientType: type })}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    formData.recipientType === type
+                  className={`px-4 py-2 rounded-lg font-medium transition ${formData.recipientType === type
                       ? 'gradient-primary text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </button>
@@ -321,9 +320,8 @@ export default function SendNotificationForm() {
                       <div className="text-sm font-medium text-gray-900">{user.name}</div>
                       <div className="text-xs text-gray-500">{user.email} • {user.location}</div>
                     </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {user.status}
                     </span>
                   </label>
@@ -405,16 +403,14 @@ export default function SendNotificationForm() {
                       <div className="text-xs text-gray-500">{vendor.owner} • {vendor.location}</div>
                     </div>
                     <div className="flex gap-2">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        vendor.status === 'Active' ? 'bg-green-100 text-green-800' :
-                        vendor.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs rounded-full ${vendor.status === 'Active' ? 'bg-green-100 text-green-800' :
+                          vendor.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                        }`}>
                         {vendor.status}
                       </span>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        vendor.kycStatus === 'Verified' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs rounded-full ${vendor.kycStatus === 'Verified' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {vendor.kycStatus}
                       </span>
                     </div>
@@ -545,9 +541,8 @@ export default function SendNotificationForm() {
           )}
 
           {result && (
-            <div className={`p-4 rounded-lg ${
-              result.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-            }`}>
+            <div className={`p-4 rounded-lg ${result.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+              }`}>
               {result.message}
             </div>
           )}
@@ -555,8 +550,8 @@ export default function SendNotificationForm() {
           <button
             type="submit"
             disabled={loading || (formData.recipientType === 'users' && selectedUsers.length === 0) ||
-                     (formData.recipientType === 'vendors' && selectedVendors.length === 0) ||
-                     (formData.recipientType === 'custom' && selectedUsers.length === 0 && selectedVendors.length === 0)}
+              (formData.recipientType === 'vendors' && selectedVendors.length === 0) ||
+              (formData.recipientType === 'custom' && selectedUsers.length === 0 && selectedVendors.length === 0)}
             className="w-full gradient-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Sending...' : 'Send Notification'}

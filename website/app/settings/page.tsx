@@ -16,41 +16,41 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const menuItems = [
-    { 
-      icon: User, 
-      label: 'Profile', 
+    {
+      icon: User,
+      label: 'Profile',
       description: 'Manage your personal information',
       href: '/settings/profile',
       color: 'text-blue-600',
       onClick: () => router.push('/settings/profile')
     },
-    { 
-      icon: Bell, 
-      label: 'Notifications', 
+    {
+      icon: Bell,
+      label: 'Notifications',
       description: 'Control notification preferences',
       href: '/settings/notifications',
       color: 'text-orange-600',
       onClick: () => router.push('/settings/notifications')
     },
-    { 
-      icon: MessageCircle, 
-      label: 'Give Feedback', 
+    {
+      icon: MessageCircle,
+      label: 'Give Feedback',
       description: 'Share your thoughts and suggestions',
       href: '#',
       color: 'text-green-600',
       onClick: () => setShowFeedback(true)
     },
-    { 
-      icon: Palette, 
-      label: 'Festival Themes', 
+    {
+      icon: Palette,
+      label: 'Festival Themes',
       description: 'Choose your favorite festival theme',
       href: '#',
       color: 'text-purple-600',
       onClick: () => setShowThemes(true)
     },
-    { 
-      icon: HelpCircle, 
-      label: 'Help & Support', 
+    {
+      icon: HelpCircle,
+      label: 'Help & Support',
       description: 'Get help and contact support',
       href: '/help',
       color: 'text-purple-600',
@@ -65,14 +65,14 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header
         locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}
       />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Page Header */}
         <div className="mb-6 sm:mb-8">
@@ -88,7 +88,7 @@ export default function SettingsPage() {
               <button
                 key={item.label}
                 onClick={item.onClick}
-                className="w-full flex items-center gap-4 p-4 sm:p-6 hover:bg-gray-50 transition-colors group"
+                className="w-full flex items-center gap-4 p-4 sm:p-6 hover:bg-orange-50 transition-colors group"
               >
                 <div className={`w-12 h-12 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0`}>
                   <Icon className={item.color} size={24} />
@@ -251,11 +251,10 @@ function ThemeSelectorModal({ onClose }: { onClose: () => void }) {
               key={theme.id}
               onClick={() => handleThemeSelect(theme.id)}
               disabled={loading}
-              className={`p-4 rounded-lg border-2 transition ${
-                selectedTheme === theme.id
-                  ? 'border-orange-500 bg-orange-50'
-                  : 'border-gray-200 hover:border-orange-300'
-              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`p-4 rounded-lg border-2 transition ${selectedTheme === theme.id
+                ? 'border-orange-500 bg-orange-50'
+                : 'border-gray-200 hover:border-orange-300'
+                } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <div className="flex items-center gap-3 mb-2">
                 <div

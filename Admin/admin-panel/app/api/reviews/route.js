@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert } from '../../../lib/supabaseAdminFetch';
 
 /**
  * GET /api/reviews - Get reviews for a vendor

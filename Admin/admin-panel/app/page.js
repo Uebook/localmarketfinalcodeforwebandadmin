@@ -1,22 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Dashboard from '@/components/Dashboard';
-import UserManagement from '@/components/Dashboard/UserManagement';
-import VendorManagement from '@/components/VendorManagement';
-import CategoryManagement from '@/components/CategoryManagement';
-import PriceVerification from '@/components/PriceVerification';
-import Reports from '@/components/Reports';
-import NotificationManagement from '@/components/NotificationManagement';
-import LocationManagement from '@/components/LocationManagement';
-import PaymentFeesManagement from '@/components/PaymentFeesManagement';
-import FestiveOffersManagement from '@/components/FestiveOffersManagement';
-import BannerManagement from '@/components/BannerManagement';
-import EAuctionManagement from '@/components/EAuctionManagement';
-import CircleAnalytics from '@/components/Analytics/CircleAnalytics';
-import Settings from '@/components/Settings';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
+import Dashboard from '../components/Dashboard';
+import UserManagement from '../components/Dashboard/UserManagement';
+import VendorManagement from '../components/VendorManagement';
+import CategoryManagement from '../components/CategoryManagement';
+import PriceVerification from '../components/PriceVerification';
+import Reports from '../components/Reports';
+import NotificationManagement from '../components/NotificationManagement';
+import LocationManagement from '../components/LocationManagement';
+import PaymentFeesManagement from '../components/PaymentFeesManagement';
+import FestiveOffersManagement from '../components/FestiveOffersManagement';
+import BannerManagement from '../components/BannerManagement';
+import EAuctionManagement from '../components/EAuctionManagement';
+import CircleAnalytics from '../components/Analytics/CircleAnalytics';
+import Settings from '../components/Settings';
 
 export default function AdminPanel() {
   // Public access - no authentication required
@@ -111,7 +111,7 @@ export default function AdminPanel() {
   // }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-white">
       {/* Full Width Header */}
       <Header currentPage={getPageTitle()} />
 

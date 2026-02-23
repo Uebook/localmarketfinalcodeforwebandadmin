@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';
@@ -43,6 +43,9 @@ export async function GET(req) {
         }
 
         console.error('Error loading locations:', errorMessage);
+        if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+            return Response.json({ locations: [], warning: 'offline_mode' }, { status: 200 });
+        }
         return Response.json({
             error: errorMessage,
             hint: 'If the locations table does not exist, run: sql/create_locations_table.sql'
@@ -79,6 +82,10 @@ export async function POST(req) {
         // Provide helpful error message if table doesn't exist
         if (errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorMessage.includes('PGRST205')) {
             errorMessage = 'The locations table does not exist in Supabase. Please run the SQL script: sql/create_locations_table.sql';
+        }
+
+        if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
         }
 
         return Response.json({ error: errorMessage }, { status: 500 });

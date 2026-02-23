@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestUpsert } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestUpsert } from '../../../../lib/supabaseAdminFetch';
 
 // GET /api/payment-fees/config - Get configuration
 export async function GET() {
@@ -14,14 +14,16 @@ export async function GET() {
       auto_block_enabled: true,
     });
   } catch (error) {
-    console.error('Error fetching payment fees config (table might not exist):', error.message);
-    // Return default config if table doesn't exist
+    console.error('Error fetching payment fees config:', error.message);
+    const isOffline = error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'));
+    // Return default config if table doesn't exist or offline
     return NextResponse.json({
       monthly_fee: 999,
       six_monthly_fee: 4999,
       yearly_fee: 8999,
       grace_period_days: 7,
       auto_block_enabled: true,
+      ...(isOffline && { warning: 'offline_mode' })
     });
   }
 }
@@ -37,7 +39,7 @@ export async function PATCH(request) {
       grace_period_days,
       auto_block_enabled,
     } = body;
-    
+
     const config = {
       id: 'default',
       ...(monthly_fee !== undefined && { monthly_fee: parseFloat(monthly_fee) }),
@@ -46,7 +48,7 @@ export async function PATCH(request) {
       ...(grace_period_days !== undefined && { grace_period_days: parseInt(grace_period_days) }),
       ...(auto_block_enabled !== undefined && { auto_block_enabled: Boolean(auto_block_enabled) }),
     };
-    
+
     // Try to upsert, but handle case where table might not exist
     let result;
     try {
@@ -59,7 +61,7 @@ export async function PATCH(request) {
       console.error('Upsert failed, trying insert:', upsertError.message);
       // If upsert fails, try insert
       try {
-        const { supabaseRestInsert } = await import('@/lib/supabaseAdminFetch');
+        const { supabaseRestInsert } = await import('../../../../lib/supabaseAdminFetch');
         result = await supabaseRestInsert('/rest/v1/payment_fees_config', [config]);
         const finalResult = Array.isArray(result) ? result[0] : result;
         return NextResponse.json(finalResult || config);
@@ -73,8 +75,11 @@ export async function PATCH(request) {
     }
   } catch (error) {
     console.error('Error updating payment fees config:', error);
-    return NextResponse.json({ 
-      error: error.message || 'Failed to save configuration. The payment_fees_config table might not exist in Supabase.' 
+    if (error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'))) {
+      return NextResponse.json({ success: false, warning: 'Sync failed: Database unreachable' });
+    }
+    return NextResponse.json({
+      error: error.message || 'Failed to save configuration. The payment_fees_config table might not exist in Supabase.'
     }, { status: 500 });
   }
 }

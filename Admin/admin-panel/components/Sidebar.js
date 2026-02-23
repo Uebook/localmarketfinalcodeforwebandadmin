@@ -1,6 +1,6 @@
 'use client';
 
-import { COLORS } from '@/constants/colors';
+import { COLORS } from '../constants/colors';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -21,7 +21,7 @@ const menuItems = [
 
 export default function Sidebar({ activeSection, setActiveSection, onLogout }) {
   return (
-    <div className="w-64 bg-white shadow-lg h-full flex flex-col overflow-hidden">
+    <div className="w-64 bg-white border-r border-gray-100 h-full flex flex-col overflow-hidden">
       {/* Menu Items */}
       <nav className="flex-1 p-4 space-y-2 pt-6 overflow-y-auto">
         {menuItems.map((item) => (
@@ -29,8 +29,8 @@ export default function Sidebar({ activeSection, setActiveSection, onLogout }) {
             key={item.id}
             onClick={() => setActiveSection(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeSection === item.id
-                ? 'gradient-primary text-white shadow-md'
-                : 'text-gray-700 hover:bg-gray-100'
+              ? 'gradient-primary text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
               }`}
           >
             <span className="text-xl">{item.icon}</span>

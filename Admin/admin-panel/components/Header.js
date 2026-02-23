@@ -4,13 +4,13 @@ import NotificationBell from './NotificationBell';
 
 export default function Header({ currentPage, currentSubPage }) {
   return (
-    <div 
-      className="w-full p-6 text-white header-gradient"
+    <div
+      className="w-full p-6 bg-white border-b-2 transition-all"
       style={{
-        background: 'var(--theme-header-gradient, linear-gradient(to right, #E86A2C, #4A6CF7))'
+        borderColor: 'var(--theme-primary, #E86A2C)'
       }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between text-slate-900">
         <div>
           <h1 className="text-3xl font-bold mb-1">LOCAL</h1>
           <p className="text-base opacity-90">Admin Panel</p>

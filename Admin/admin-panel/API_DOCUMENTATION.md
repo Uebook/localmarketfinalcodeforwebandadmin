@@ -1263,3 +1263,94 @@ const getActiveTheme = async () => {
 For API issues or questions, please refer to the admin panel codebase or contact the development team.
 
 **Last Updated**: January 2024
+
+---
+
+## AI Services API
+
+### Start AI Session
+
+**Endpoint**: `POST /api/ai/start`
+
+**Request Body**:
+```json
+{
+  "userId": "uuid",
+  "location": {
+    "lat": 12.3456,
+    "lng": 78.9012
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "message": "Hi! How can I help you today?",
+  "nextStep": "intent",
+  "question": "What service are you looking for?",
+  "options": [
+    { "label": "Home Services", "value": "home_services" },
+    { "label": "Food", "value": "food" }
+  ]
+}
+```
+
+### Process Answer
+
+**Endpoint**: `POST /api/ai/process-answer`
+
+**Request Body**:
+```json
+{
+  "step": "intent",
+  "answer": "Plumber",
+  "context": {
+    "intent": "plumber"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "nextStep": "details",
+  "message": "Got it. Tell me more.",
+  "question": "What specifically needs fixing?",
+  "updatedContext": {
+    "intent": "plumber",
+    "details": "leaking tap"
+  }
+}
+```
+
+### Get Recommendations
+
+**Endpoint**: `POST /api/ai/recommendations`
+
+**Request Body**:
+```json
+{
+  "context": {
+    "intent": "plumber",
+    "details": "leaking tap",
+    "urgency": "now"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "vendors": [
+    {
+      "id": "v1",
+      "name": "Ace Plumbing",
+      "rating": 4.8,
+      "distance": "1.2 km",
+      "isTopMatch": true,
+      "explanation": "Best rated availability"
+    }
+  ]
+}
+```

@@ -1,319 +1,194 @@
 'use client';
 
-import { useState } from 'react';
-import VendorDashboardLayout from '@/components/VendorDashboardLayout';
-import { INITIAL_VENDOR_DATA } from '@/lib/constants';
-import { Edit, MapPin, Phone, Mail, Clock, Calendar, Award, Save, X } from 'lucide-react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLayout';
+import { Edit, MapPin, Phone, Mail, CheckCircle, XCircle, AlertCircle, Save, X, Loader2, Store } from 'lucide-react';
 
-export default function VendorProfilePage() {
-  const [vendor, setVendor] = useState(INITIAL_VENDOR_DATA);
+function ProfileContent() {
+  const { vendor, profile, refresh, loading } = useVendor();
+  const displayVendor = profile || vendor;
   const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState(vendor);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [form, setForm] = useState<any>({});
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditedData(vendor);
+  useEffect(() => {
+    if (displayVendor) {
+      setForm({
+        name: displayVendor.name ?? '',
+        owner_name: displayVendor.ownerName ?? '',
+        category: displayVendor.category ?? '',
+        email: displayVendor.email ?? '',
+        contact_number: displayVendor.phone ?? '',
+        address: displayVendor.address ?? '',
+        city: displayVendor.city ?? '',
+        pincode: displayVendor.pincode ?? '',
+        about: displayVendor.about ?? '',
+      });
+    }
+  }, [displayVendor]);
+
+  const handleSave = async () => {
+    if (!displayVendor?.id) return;
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch('/api/vendor/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: displayVendor.id, ...form }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to save');
+      } else {
+        setSuccess('Profile updated!');
+        setIsEditing(false);
+        refresh();
+        // Update localStorage session
+        const session = JSON.parse(localStorage.getItem('localmarket_vendor') || '{}');
+        localStorage.setItem('localmarket_vendor', JSON.stringify({ ...session, ...form, ownerName: form.owner_name }));
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch {
+      setError('Network error');
+    }
+    setSaving(false);
   };
 
-  const handleSave = () => {
-    setVendor(editedData);
-    setIsEditing(false);
-    // In a real app, you would save to backend here
-    alert('Profile updated successfully!');
-  };
+  if (loading) {
+    return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin" size={24} style={{ color: 'var(--primary)' }} /></div>;
+  }
+  if (!displayVendor) return null;
 
-  const handleCancel = () => {
-    setEditedData(vendor);
-    setIsEditing(false);
-  };
+  const kycStatus = displayVendor.kycStatus ?? 'Pending';
+  const activationStatus = displayVendor.status ?? 'Pending';
 
-  const handleChange = (field: string, value: string) => {
-    setEditedData(prev => ({ ...prev, [field]: value }));
-  };
+  const Field = ({ label, field, type = 'text' }: { label: string; field: string; type?: string }) => (
+    <div>
+      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">{label}</label>
+      {isEditing ? (
+        <input
+          type={type}
+          value={form[field] ?? ''}
+          onChange={e => setForm((p: any) => ({ ...p, [field]: e.target.value }))}
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:border-slate-400"
+        />
+      ) : (
+        <p className="text-sm text-slate-800 font-medium">{form[field] || <span className="text-slate-300">—</span>}</p>
+      )}
+    </div>
+  );
 
   return (
-    <VendorDashboardLayout>
-      <div className="p-4 sm:p-6">
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden flex-shrink-0">
-              <Image
-                src={editedData.imageUrl}
-                alt={editedData.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="flex-1">
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  className="text-2xl sm:text-3xl font-bold mb-2 w-full px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                />
-              ) : (
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-900">{vendor.name}</h1>
-              )}
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedData.category}
-                  onChange={(e) => handleChange('category', e.target.value)}
-                  className="text-gray-900 w-full px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-              ) : (
-                <p className="text-gray-900">{vendor.category}</p>
-              )}
-            </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleSave}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
-                  >
-                    <Save size={20} />
-                    <span>Save</span>
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-colors"
-                  >
-                    <X size={20} />
-                    <span>Cancel</span>
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleEdit}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-                >
-                  <Edit size={20} />
-                  <span>Edit Profile</span>
-                </button>
-              )}
-            </div>
+    <div className="p-4 sm:p-6 space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Business Profile</h1>
+          <p className="text-slate-400 text-sm mt-0.5">Your public listing information</p>
+        </div>
+        {!isEditing ? (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity"
+            style={{ background: 'var(--primary)' }}
+          >
+            <Edit size={14} /> Edit Profile
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setIsEditing(false); setError(''); }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <X size={14} /> Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--primary)' }}
+            >
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              Save
+            </button>
           </div>
+        )}
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="text-gray-400 mt-1 flex-shrink-0" size={20} />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900 mb-1">Address</p>
-                  {isEditing ? (
-                    <>
-                      <input
-                        type="text"
-                        value={editedData.address || ''}
-                        onChange={(e) => handleChange('address', e.target.value)}
-                        placeholder="Address"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 mb-2"
-                      />
-                      <input
-                        type="text"
-                        value={editedData.landmark || ''}
-                        onChange={(e) => handleChange('landmark', e.target.value)}
-                        placeholder="Landmark"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 mb-2"
-                      />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="text"
-                          value={editedData.city || ''}
-                          onChange={(e) => handleChange('city', e.target.value)}
-                          placeholder="City"
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                        />
-                        <input
-                          type="text"
-                          value={editedData.pincode || ''}
-                          onChange={(e) => handleChange('pincode', e.target.value)}
-                          placeholder="Pincode"
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-gray-900">{vendor.address}</p>
-                      {vendor.landmark && (
-                        <p className="text-gray-900 text-sm">Near {vendor.landmark}</p>
-                      )}
-                      {vendor.city && (
-                        <p className="text-gray-900">{vendor.city}, {vendor.pincode}</p>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
+      {error && <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
+      {success && <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">{success}</div>}
 
-              <div className="flex items-start gap-3">
-                <Phone className="text-gray-400 mt-1 flex-shrink-0" size={20} />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900 mb-1">Contact</p>
-                  {isEditing ? (
-                    <>
-                      <input
-                        type="tel"
-                        value={editedData.contactNumber || ''}
-                        onChange={(e) => handleChange('contactNumber', e.target.value)}
-                        placeholder="Contact Number"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 mb-2"
-                      />
-                      <input
-                        type="tel"
-                        value={editedData.alternateMobile || ''}
-                        onChange={(e) => handleChange('alternateMobile', e.target.value)}
-                        placeholder="Alternate Mobile"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 mb-2"
-                      />
-                      <input
-                        type="email"
-                        value={editedData.email || ''}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        placeholder="Email"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-gray-900">{vendor.contactNumber}</p>
-                      {vendor.alternateMobile && (
-                        <p className="text-gray-900 text-sm">Alt: {vendor.alternateMobile}</p>
-                      )}
-                      {vendor.email && (
-                        <a href={`mailto:${vendor.email}`} className="text-orange-500 hover:text-orange-600 text-sm">
-                          {vendor.email}
-                        </a>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Clock className="text-gray-400 mt-1 flex-shrink-0" size={20} />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900 mb-1">Timings</p>
-                  {isEditing ? (
-                    <>
-                      <input
-                        type="text"
-                        value={editedData.openTime || ''}
-                        onChange={(e) => handleChange('openTime', e.target.value)}
-                        placeholder="e.g., 9:00 AM - 9:00 PM"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 mb-2"
-                      />
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <input
-                          type="time"
-                          value={editedData.openingTime || ''}
-                          onChange={(e) => handleChange('openingTime', e.target.value)}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                        />
-                        <input
-                          type="time"
-                          value={editedData.closingTime || ''}
-                          onChange={(e) => handleChange('closingTime', e.target.value)}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                        />
-                      </div>
-                      <input
-                        type="text"
-                        value={editedData.weeklyOff || ''}
-                        onChange={(e) => handleChange('weeklyOff', e.target.value)}
-                        placeholder="Weekly Off (e.g., Sunday)"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-gray-900">{vendor.openTime || 'Open Now'}</p>
-                      {vendor.openingTime && vendor.closingTime && (
-                        <p className="text-gray-900 text-sm">
-                          {vendor.openingTime} - {vendor.closingTime}
-                        </p>
-                      )}
-                      {vendor.weeklyOff && (
-                        <p className="text-gray-900 text-sm">Weekly Off: {vendor.weeklyOff}</p>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {vendor.yearsInBusiness && (
-                <div className="flex items-start gap-3">
-                  <Calendar className="text-gray-400 mt-1 flex-shrink-0" size={20} />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900 mb-1">Years in Business</p>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editedData.yearsInBusiness || ''}
-                        onChange={(e) => handleChange('yearsInBusiness', e.target.value)}
-                        placeholder="Years in Business"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                      />
-                    ) : (
-                      <p className="text-gray-900">{vendor.yearsInBusiness}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-start gap-3">
-                <Award className="text-gray-400 mt-1 flex-shrink-0" size={20} />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900 mb-1">Category</p>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editedData.category || ''}
-                      onChange={(e) => handleChange('category', e.target.value)}
-                      placeholder="Category"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                    />
-                  ) : (
-                    <>
-                      <p className="text-gray-900">{vendor.category}</p>
-                      {vendor.secondaryCategories && vendor.secondaryCategories.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {vendor.secondaryCategories.map((cat, index) => (
-                            <span key={index} className="px-2 py-1 bg-gray-100 text-gray-900 rounded text-xs">
-                              {cat}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+      {/* Business Identity */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-5">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white" style={{ background: 'var(--primary)' }}>
+            <Store size={22} />
+          </div>
+          <div>
+            <p className="font-black text-slate-900">{displayVendor.name}</p>
+            <p className="text-xs text-slate-400">{displayVendor.category}</p>
           </div>
         </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">About</h2>
-          {isEditing ? (
-            <textarea
-              value={editedData.about || ''}
-              onChange={(e) => handleChange('about', e.target.value)}
-              placeholder="Write about your business..."
-              rows={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-gray-900"
-            />
-          ) : (
-            <p className="text-gray-900 leading-relaxed">{vendor.about}</p>
-          )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Business Name" field="name" />
+          <Field label="Owner Name" field="owner_name" />
+          <Field label="Category" field="category" />
+          {isEditing && <Field label="About / Description" field="about" />}
         </div>
       </div>
+
+      {/* Contact */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-5">
+        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Phone size={16} /> Contact Details</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Mobile Number" field="contact_number" />
+          <Field label="Email Address" field="email" type="email" />
+        </div>
+      </div>
+
+      {/* Address */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-5">
+        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><MapPin size={16} /> Location</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2"><Field label="Full Address" field="address" /></div>
+          <Field label="City" field="city" />
+          <Field label="Pincode" field="pincode" />
+        </div>
+      </div>
+
+      {/* Account Status */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-5">
+        <h3 className="font-bold text-slate-900 mb-4">Account Status</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            { label: 'KYC Status', value: kycStatus, isGreen: kycStatus === 'Approved', isRed: kycStatus === 'Rejected' },
+            { label: 'Activation', value: activationStatus, isGreen: activationStatus === 'Active' },
+          ].map(({ label, value, isGreen, isRed }) => (
+            <div key={label}>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">{label}</p>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${isRed ? 'bg-red-50 text-red-700' : isGreen ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+                }`}>
+                {isRed ? <XCircle size={12} /> : isGreen ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+        {displayVendor.id && (
+          <p className="text-xs text-slate-300 mt-3 font-mono">Vendor ID: {String(displayVendor.id).toUpperCase()}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function VendorProfilePage() {
+  return (
+    <VendorDashboardLayout>
+      <ProfileContent />
     </VendorDashboardLayout>
   );
 }

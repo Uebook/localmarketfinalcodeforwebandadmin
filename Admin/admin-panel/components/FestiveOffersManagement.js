@@ -125,7 +125,8 @@ export default function FestiveOffersManagement() {
       if (res.ok) {
         await loadOffers();
       } else {
-        throw new Error('Failed to update offer');
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.error || 'Failed to update offer');
       }
     } catch (error) {
       console.error('Error updating offer:', error);

@@ -61,12 +61,12 @@ export default function CategoryCard({ category, onSelect }: CategoryCardProps) 
   return (
     <button
       onClick={() => onSelect(category.name)}
-      className="flex flex-col items-center gap-3 p-4 sm:p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group w-full"
+      className="flex flex-col items-center gap-4 p-5 bg-white rounded-2xl shadow-sm border border-slate-50 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group w-full active:scale-95"
     >
-      <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-blue-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-        <Icon className="text-orange-500" size={28} />
+      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
+        <Icon className="text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all duration-300" size={32} />
       </div>
-      <span className="font-semibold text-gray-900 text-xs sm:text-sm text-center line-clamp-2 break-words px-1 w-full min-h-[2.5rem] flex items-center justify-center">
+      <span className="font-black text-slate-800 text-xs sm:text-xs uppercase tracking-widest text-center line-clamp-2 w-full px-1">
         {category.name}
       </span>
     </button>

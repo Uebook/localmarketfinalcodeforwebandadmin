@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import ThemeManagement from './Settings/ThemeManagement';
-import GeneralSettings from './Settings/GeneralSettings';
+import ThemeManagement from './ThemeManagement';
+import GeneralSettings from './GeneralSettings';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('general');
@@ -27,11 +27,10 @@ export default function Settings() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 ${
-                activeTab === tab.id
+              className={`pb-4 px-1 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               <span>{tab.icon}</span>
               <span>{tab.label}</span>

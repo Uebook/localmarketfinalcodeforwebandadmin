@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Home, Grid, Bookmark, Briefcase, HelpCircle, Settings, LogOut, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Home, Grid, Bookmark, Briefcase, HelpCircle, Settings, LogOut, User, ChevronDown, ChevronUp, Gavel, Ticket } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -29,18 +29,18 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
   return (
     <>
       {/* Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
       />
-      
+
       {/* Sidebar */}
       <div className="fixed left-0 top-0 h-full w-80 bg-white z-50 shadow-2xl overflow-y-auto">
         <div className="p-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Menu</h2>
-            <button 
+            <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
           </div>
 
           {/* User Profile */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-[#E86A2C] to-[#4A6CF7] rounded-lg text-white">
+          <div className="mb-6 p-4 bg-gradient-primary rounded-lg text-white">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 <User size={24} />
@@ -59,7 +59,7 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
                 <p className="text-sm text-white/80">{userLocation}</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => { onNavigate('settings'); onClose(); }}
               className="w-full py-2 bg-white/20 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
             >
@@ -82,17 +82,25 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
                   </button>
                   {expandedSections['app-menu'] && (
                     <div className="ml-4 mt-2 space-y-1">
-                      <button onClick={() => { onNavigate('home'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-gray-50 rounded-lg">
+                      <button onClick={() => { onNavigate('home'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-orange-50 rounded-lg">
                         <Home size={20} />
                         <span>Home</span>
                       </button>
-                      <button onClick={() => { onNavigate('categories'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-gray-50 rounded-lg">
+                      <button onClick={() => { onNavigate('categories'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
                         <Grid size={20} />
                         <span>Categories</span>
                       </button>
-                      <button onClick={() => { onNavigate('saved'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-gray-50 rounded-lg">
+                      <button onClick={() => { onNavigate('saved'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
                         <Bookmark size={20} />
                         <span>Saved Items</span>
+                      </button>
+                      <button onClick={() => { onNavigate('eauction'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
+                        <Gavel size={20} />
+                        <span>E-Auction</span>
+                      </button>
+                      <button onClick={() => { onNavigate('draws'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
+                        <Ticket size={20} />
+                        <span>Online Draws</span>
                       </button>
                     </div>
                   )}
@@ -111,12 +119,12 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
                   </button>
                   {expandedSections['partners-menu'] && (
                     <div className="ml-4 mt-2 space-y-1">
-                      <button 
-                        onClick={() => { 
-                          onNavigate('register-business'); 
-                          onClose(); 
-                        }} 
-                        className="w-full flex items-center gap-3 p-2 text-orange-600 hover:bg-orange-50 rounded-lg font-medium"
+                      <button
+                        onClick={() => {
+                          onNavigate('register-business');
+                          onClose();
+                        }}
+                        className="w-full flex items-center gap-3 p-2 text-primary hover:bg-primary/10 rounded-lg font-medium"
                       >
                         <Briefcase size={20} />
                         <span>Partner with us</span>

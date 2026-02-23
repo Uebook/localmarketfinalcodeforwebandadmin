@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { requestNotificationPermission, onMessageListener } from '@/lib/firebase';
+import { requestNotificationPermission, onMessageListener } from '../lib/firebase';
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);

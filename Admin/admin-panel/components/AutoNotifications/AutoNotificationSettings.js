@@ -84,7 +84,7 @@ export default function AutoNotificationSettings() {
           },
         }),
       });
-      
+
       if (response.ok) {
         alert('Test notification sent successfully!');
       } else {
@@ -219,7 +219,7 @@ export default function AutoNotificationSettings() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-gray-700">Last Run</p>
                 <p className="text-xs text-gray-500">{lastRun.priceUpdate}</p>
@@ -279,7 +279,7 @@ export default function AutoNotificationSettings() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-gray-700">Last Run</p>
                 <p className="text-xs text-gray-500">{lastRun.idleVendors}</p>
@@ -339,7 +339,7 @@ export default function AutoNotificationSettings() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-gray-700">Last Run</p>
                 <p className="text-xs text-gray-500">{lastRun.idleUsers}</p>

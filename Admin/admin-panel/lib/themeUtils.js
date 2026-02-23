@@ -1,5 +1,5 @@
 // Theme utility functions
-import { FESTIVAL_THEMES } from '@/constants/festivalThemes';
+import { FESTIVAL_THEMES } from '../constants/festivalThemes';
 
 // Get all themes (default + custom)
 export const getAllThemes = () => {
@@ -49,13 +49,13 @@ export const getThemeCSS = (themeId) => {
   const allThemes = getAllThemes();
   const theme = allThemes[themeId];
   if (!theme) return '';
-  
+
   return `
     :root {
       --theme-primary: ${theme.colors.primary};
       --theme-secondary: ${theme.colors.secondary};
       --theme-accent: ${theme.colors.accent};
-      --theme-background: ${theme.colors.background};
+      --theme-background: #ffffff;
       --theme-text: ${theme.colors.text};
       --theme-header-gradient: linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary});
     }

@@ -595,6 +595,44 @@ export const submitReview = async (reviewData) => {
   }
 };
 
+// ==================== AI API ====================
+
+/**
+ * Start a new AI session
+ * @param {Object} data - Session data (userId, location, etc.)
+ * @returns {Promise<Object>}
+ */
+export const startAISession = async (data) => {
+  return await apiRequest('/api/ai/start', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Process user answer
+ * @param {Object} data - Answer data (step, answer, context)
+ * @returns {Promise<Object>}
+ */
+export const processAIAnswer = async (data) => {
+  return await apiRequest('/api/ai/process-answer', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Get AI recommendations
+ * @param {Object} context - Final context
+ * @returns {Promise<Object>}
+ */
+export const getAIRecommendations = async (context) => {
+  return await apiRequest('/api/ai/recommendations', {
+    method: 'POST',
+    body: JSON.stringify(context),
+  });
+};
+
 export default {
   getCategories,
   getThemes,
@@ -617,5 +655,9 @@ export default {
   getVendorReviews,
   submitReview,
   login,
+  login,
   register,
+  startAISession,
+  processAIAnswer,
+  getAIRecommendations,
 };

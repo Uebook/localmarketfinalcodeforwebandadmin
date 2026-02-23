@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { getStates, getCities, getTowns, getTehsils, getSubTehsils } from '@/constants/locations';
+import { getStates, getCities, getTowns, getTehsils, getSubTehsils } from '../../constants/locations';
 
 const statusColors = {
   Active: 'bg-green-100 text-green-800',
@@ -73,8 +73,12 @@ export default function VendorList({ onViewProfile }) {
           cache: 'no-store',
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.error || 'Failed to load vendors');
-        if (!cancelled) {
+        if (!res.ok) {
+          setError(data?.error || 'Failed to load vendors');
+        } else if (!cancelled) {
+          if (data.warning === 'offline_mode') {
+            setError('Viewing offline data: Database unreachable');
+          }
           setVendors(Array.isArray(data?.vendors) ? data.vendors : []);
           if (data.pagination) {
             setPagination(data.pagination);
@@ -143,7 +147,15 @@ export default function VendorList({ onViewProfile }) {
         body: JSON.stringify({ id: vendorId, status: newStatus }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to update status');
+      if (!res.ok) {
+        alert(data?.error || 'Failed to update status');
+        return;
+      }
+
+      if (data.warning) {
+        alert('Action pending: ' + data.warning);
+        return;
+      }
 
       // Update local state
       setVendors(prev => prev.map(v =>
@@ -265,7 +277,15 @@ export default function VendorList({ onViewProfile }) {
         body: JSON.stringify(updatePayload),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to update vendor');
+      if (!res.ok) {
+        alert(data?.error || 'Failed to update vendor');
+        return;
+      }
+
+      if (data.warning) {
+        alert('Action pending: ' + data.warning);
+        return;
+      }
 
       // Reload vendors with current pagination
       const reloadParams = new URLSearchParams();
@@ -327,7 +347,11 @@ export default function VendorList({ onViewProfile }) {
                   if (locationFilters.state !== 'All') params.set('state', locationFilters.state);
                   if (locationFilters.city !== 'All') params.set('city', locationFilters.city);
                   const res = await fetch(`/api/vendors/export?${params.toString()}`, { cache: 'no-store' });
-                  if (!res.ok) throw new Error('Failed to export');
+                  if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    alert(errorData.error || 'Failed to export');
+                    return;
+                  }
                   const blob = await res.blob();
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
@@ -529,7 +553,7 @@ export default function VendorList({ onViewProfile }) {
                               }}
                             />
                           ) : null}
-                          <div 
+                          <div
                             className={`image-placeholder w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center ${vendor.imageUrl || vendor.shopFrontPhotoUrl ? 'hidden' : ''}`}
                           >
                             <span className="text-gray-400 text-xs">No Image</span>

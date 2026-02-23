@@ -28,10 +28,11 @@ export default function BannerManagement() {
       try {
         setLoading(true);
         setError('');
-        const res = await fetch('/api/banners', { cache: 'no-store' });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.error || 'Failed to load banners');
-        if (!cancelled) setBanners(Array.isArray(data?.banners) ? data.banners : []);
+        if (!res.ok) {
+          setError(data?.error || 'Failed to load banners');
+        } else if (!cancelled) {
+          setBanners(Array.isArray(data?.banners) ? data.banners : []);
+        }
       } catch (e) {
         if (!cancelled) setError(e?.message || 'Failed to load banners');
       } finally {
@@ -91,7 +92,18 @@ export default function BannerManagement() {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to create banner');
+      if (!res.ok) {
+        setError(data?.error || 'Failed to create banner');
+        return;
+      }
+
+      if (data.warning) {
+        alert('Saved locally: ' + data.warning);
+        setShowForm(false);
+        setFormData({ title: '', imageUrl: '', startDate: '', endDate: '', targetCircle: '', link: '' });
+        setImagePreview(null);
+        return;
+      }
 
       // Reload banners to get the latest
       const reloadRes = await fetch('/api/banners', { cache: 'no-store' });
@@ -185,7 +197,15 @@ export default function BannerManagement() {
         body: JSON.stringify({ id: banner.id, active: !banner.active }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to update banner');
+      if (!res.ok) {
+        setError(data?.error || 'Failed to update banner');
+        return;
+      }
+
+      if (data.warning) {
+        alert('Action pending: ' + data.warning);
+        return;
+      }
       setBanners(prev => prev.map(b => (b.id === banner.id ? data.banner : b)));
     } catch (e) {
       setError(e?.message || 'Failed to update banner');
@@ -302,7 +322,7 @@ export default function BannerManagement() {
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="max-h-48 w-full object-cover rounded-lg border border-gray-300"
+                      className="max-h-48 w-full object-cover rounded-lg border border-gray-200 bg-white"
                       onError={() => {
                         setError('Failed to load image. Please check the URL or upload a file.');
                         setImagePreview(null);
@@ -341,7 +361,7 @@ export default function BannerManagement() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {banners.map((banner) => (
           <div key={banner.id} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-            <div className="h-48 bg-gray-100 relative overflow-hidden">
+            <div className="h-48 bg-white relative overflow-hidden border-b border-gray-100">
               {banner.image_url ? (
                 <img
                   src={banner.image_url}
@@ -385,8 +405,8 @@ export default function BannerManagement() {
                 <button
                   onClick={() => toggleActive(banner)}
                   className={`flex-1 px-3 py-1 text-white text-xs rounded ${banner.active
-                      ? 'bg-orange-600 hover:bg-orange-700'
-                      : 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-orange-600 hover:bg-orange-700'
+                    : 'bg-green-600 hover:bg-green-700'
                     }`}
                 >
                   {banner.active ? 'Deactivate' : 'Activate'}

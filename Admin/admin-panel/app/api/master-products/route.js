@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';
@@ -30,6 +30,10 @@ export async function GET(req) {
 
         return Response.json({ products, total: products.length }, { status: 200 });
     } catch (e) {
+        console.error('Master Products GET Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ products: [], total: 0, warning: 'offline_mode' }, { status: 200 });
+        }
         return Response.json({ error: e?.message || 'Failed to load products' }, { status: 500 });
     }
 }
@@ -115,6 +119,10 @@ export async function DELETE(req) {
             return Response.json({ error: 'Product ID or deleteAll parameter required' }, { status: 400 });
         }
     } catch (e) {
+        console.error('Master Products DELETE Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+        }
         return Response.json({ error: e?.message || 'Failed to delete products' }, { status: 500 });
     }
 }
@@ -153,6 +161,10 @@ export async function PATCH(req) {
         const result = await supabaseRestPatch(`/rest/v1/master_products?id=eq.${id}`, updateData);
         return Response.json({ success: true, product: result[0] || result }, { status: 200 });
     } catch (e) {
+        console.error('Master Products PATCH Error:', e);
+        if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
+            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+        }
         return Response.json({ error: e?.message || 'Failed to update product' }, { status: 500 });
     }
 }

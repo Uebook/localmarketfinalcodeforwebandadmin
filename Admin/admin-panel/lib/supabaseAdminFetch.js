@@ -54,7 +54,7 @@ export async function supabaseRestGet(pathWithQuery) {
     } catch (e) {
       errorText = res.statusText || 'Unknown error';
     }
-    
+
     // Log more details for debugging
     console.error(`Supabase REST error (${res.status}):`, {
       url: pathWithQuery,
@@ -62,7 +62,7 @@ export async function supabaseRestGet(pathWithQuery) {
       statusText: res.statusText,
       error: errorText,
     });
-    
+
     throw new Error(`Supabase REST error (${res.status}): ${errorText || res.statusText}`);
   }
 
@@ -113,5 +113,9 @@ export async function supabaseRestUpsert(pathWithQuery, rows) {
 
 export async function supabaseRestPatch(pathWithQuery, patchBody) {
   return await supabaseRestWrite('PATCH', pathWithQuery, patchBody, { Prefer: 'return=representation' });
+}
+
+export async function supabaseRestDelete(pathWithQuery) {
+  return await supabaseRestWrite('DELETE', pathWithQuery, undefined);
 }
 

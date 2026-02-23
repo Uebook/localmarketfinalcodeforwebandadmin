@@ -1,39 +1,57 @@
 'use client';
 
-import { Search, Mic } from 'lucide-react';
+import { Search, Mic, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  initialValue?: string;
+  placeholder?: string;
 }
 
-export default function SearchBar({ onSearch }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+export default function SearchBar({ onSearch, initialValue = '', placeholder = "Search for services, products..." }: SearchBarProps) {
+  const [query, setQuery] = useState(initialValue);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      onSearch(query.trim());
-    }
+    onSearch(query.trim());
+  };
+
+  const handleClear = () => {
+    setQuery('');
+    onSearch('');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="relative">
-      <div className="flex items-center bg-white/10 backdrop-blur-md rounded-xl px-4 py-3 border border-white/20">
-        <Search className="text-white/80 mr-3" size={20} />
+    <form onSubmit={handleSubmit} className="relative w-full group">
+      <div className="relative flex items-center">
+        <div className="absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors">
+          <Search size={20} />
+        </div>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for services, products..."
-          className="flex-1 bg-transparent text-white placeholder-white/60 outline-none"
+          placeholder={placeholder}
+          className="w-full pl-12 pr-12 py-3.5 bg-white border border-slate-100 rounded-2xl outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 shadow-sm transition-all text-sm font-bold text-slate-900 placeholder-slate-400"
         />
-        <button
-          type="button"
-          className="ml-3 p-2 hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <Mic className="text-white/80" size={20} />
-        </button>
+        <div className="absolute right-3 flex items-center gap-1">
+          {query && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          )}
+          <button
+            type="button"
+            className="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-slate-50 rounded-xl"
+          >
+            <Mic size={20} />
+          </button>
+        </div>
       </div>
     </form>
   );

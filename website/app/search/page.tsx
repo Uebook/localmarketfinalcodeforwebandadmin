@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar';
 import SearchBar from '@/components/SearchBar';
 import BusinessCard from '@/components/BusinessCard';
 import { SEARCH_RESULTS } from '@/lib/data';
+import { Search, MapPin, SlidersHorizontal, ArrowLeft } from 'lucide-react';
 
 function SearchContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,29 +20,20 @@ function SearchContent() {
     const query = searchParams.get('q') || '';
     setSearchQuery(query);
     if (query) {
-      // Improved search logic matching mobile app
       const lowerQuery = query.toLowerCase();
-      // Split query into words for better matching
       const queryWords = lowerQuery.split(/[\s\/]+/).filter(w => w.length > 0);
-      
+
       const filtered = SEARCH_RESULTS.filter((item) => {
         const itemName = item.name.toLowerCase();
         const itemCategory = item.category.toLowerCase();
-        
-        // Check if any query word matches name or category
         const matchesName = queryWords.some(word => itemName.includes(word));
-        const matchesCategory = queryWords.some(word => itemCategory.includes(word)) || 
-                               itemCategory.includes(lowerQuery) || 
-                               lowerQuery.includes(itemCategory);
-        
-        // Also check if category name is in the query (e.g., "Groceries" in "Groceries / General Store")
+        const matchesCategory = queryWords.some(word => itemCategory.includes(word)) ||
+          itemCategory.includes(lowerQuery) ||
+          lowerQuery.includes(itemCategory);
         const categoryInQuery = itemCategory && lowerQuery.includes(itemCategory.split(' ')[0]);
-        
-        // Check products
-        const matchesProducts = item.products && item.products.some((p: any) => 
+        const matchesProducts = item.products && item.products.some((p: any) =>
           queryWords.some(word => p.name.toLowerCase().includes(word))
         );
-        
         return matchesName || matchesCategory || categoryInQuery || matchesProducts;
       });
       setResults(filtered);
@@ -59,54 +51,73 @@ function SearchContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header
         locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Search Bar */}
-        <div className="mb-6">
-          <SearchBar onSearch={handleSearch} />
+
+      {/* Background Decor */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-secondary/10 blur-[100px] rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-primary/10 blur-[80px] rounded-full" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Header Area */}
+        <div className="mb-10 reveal">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <button
+                onClick={() => router.back()}
+                className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors mb-4"
+              >
+                <ArrowLeft size={14} /> Back
+              </button>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-2">
+                {searchQuery ? `Results for "${searchQuery}"` : 'Browse Everything'}
+              </h1>
+              <p className="text-slate-500 font-bold">
+                Showing {results.length} verified {results.length === 1 ? 'business' : 'businesses'} matching your search.
+              </p>
+            </div>
+
+            <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 md:w-80">
+                <SearchBar onSearch={handleSearch} />
+              </div>
+              <button className="px-6 py-3 bg-white border border-slate-100 rounded-2xl flex items-center justify-center gap-2 text-sm font-black text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
+                <SlidersHorizontal size={18} />
+                Filters
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Results Header */}
-        {searchQuery && (
-          <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Search Results
-            </h2>
-            <p className="text-gray-900">
-              Found {results.length} {results.length === 1 ? 'result' : 'results'} for &quot;{searchQuery}&quot;
-            </p>
-          </div>
-        )}
-
-        {/* Grid View */}
+        {/* Results Grid */}
         {results.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {results.map((business) => (
-              <BusinessCard
-                key={business.id}
-                business={business}
-                onClick={() => handleBusinessClick(business.id)}
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 reveal" style={{ animationDelay: '0.2s' }}>
+            {results.map((business, i) => (
+              <div key={business.id} className="reveal" style={{ animationDelay: `${i * 0.05 + 0.3}s` }}>
+                <BusinessCard
+                  business={business}
+                  onClick={() => handleBusinessClick(business.id)}
+                />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="text-gray-400" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <div className="bg-white rounded-[3rem] p-20 text-center shadow-xl shadow-slate-200/50 border border-slate-50 reveal" style={{ animationDelay: '0.2s' }}>
+            <div className="w-24 h-24 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-8">
+              <Search className="text-slate-300" size={48} />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No Results Found</h3>
-            <p className="text-gray-900 mb-6">
-              {searchQuery 
-                ? `We couldn't find any results for "${searchQuery}". Try a different search term.`
-                : 'Start searching to find local businesses near you.'
+            <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">No Matches Found</h3>
+            <p className="text-slate-500 font-medium mb-10 max-w-md mx-auto leading-relaxed">
+              {searchQuery
+                ? `We couldn't find any results for "${searchQuery}". Maybe try a different keyword or browse categories?`
+                : 'Start searching to find the best local businesses near you.'
               }
             </p>
             {searchQuery && (
@@ -115,14 +126,15 @@ function SearchContent() {
                   setSearchQuery('');
                   router.push('/search');
                 }}
-                className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary transition-all shadow-xl"
               >
-                Clear Search
+                Clear Search & Try Again
               </button>
             )}
           </div>
         )}
       </div>
+
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -141,8 +153,11 @@ function SearchContent() {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-900">Loading...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
+          <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Searching...</span>
+        </div>
       </div>
     }>
       <SearchContent />

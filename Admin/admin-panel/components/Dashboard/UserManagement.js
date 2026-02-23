@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { getStates, getCities } from '@/constants/locations';
+import { getStates, getCities } from '../../constants/locations';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -51,8 +51,12 @@ export default function UserManagement() {
         setError('');
         const res = await fetch(`/api/users${queryString ? `?${queryString}` : ''}`, { cache: 'no-store' });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.error || 'Failed to load users');
-        if (!cancelled) {
+        if (!res.ok) {
+          setError(data?.error || 'Failed to load users');
+        } else if (!cancelled) {
+          if (data.warning === 'offline_mode') {
+            setError('Viewing offline data: Database unreachable');
+          }
           setUsers(Array.isArray(data?.users) ? data.users : []);
           if (data.pagination) {
             setPagination(data.pagination);
@@ -111,10 +115,18 @@ export default function UserManagement() {
         body: JSON.stringify({ id: userId, status: newStatus }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to update status');
+      if (!res.ok) {
+        alert(data?.error || 'Failed to update status');
+        return;
+      }
+
+      if (data.warning) {
+        alert('Action pending: ' + data.warning);
+        return;
+      }
 
       // Update local state
-      setUsers(prev => prev.map(u => 
+      setUsers(prev => prev.map(u =>
         u.id === userId ? { ...u, status: newStatus } : u
       ));
     } catch (e) {
@@ -149,7 +161,15 @@ export default function UserManagement() {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Failed to update user');
+      if (!res.ok) {
+        alert(data?.error || 'Failed to update user');
+        return;
+      }
+
+      if (data.warning) {
+        alert('Action pending: ' + data.warning);
+        return;
+      }
 
       // Reload users with current pagination
       const reloadParams = new URLSearchParams();
@@ -161,7 +181,7 @@ export default function UserManagement() {
       if (locationFilters.city && locationFilters.city !== 'All') reloadParams.set('city', locationFilters.city);
       reloadParams.set('page', String(pagination.page));
       reloadParams.set('limit', String(pagination.limit));
-      
+
       const loadRes = await fetch(`/api/users?${reloadParams.toString()}`, { cache: 'no-store' });
       const loadData = await loadRes.json().catch(() => ({}));
       if (loadRes.ok) {
@@ -186,7 +206,7 @@ export default function UserManagement() {
       // Reset dependent filters
       if (key === 'state') {
         newFilters.city = 'All';
-    }
+      }
       return newFilters;
     });
   };
@@ -215,9 +235,8 @@ export default function UserManagement() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedUser.name}</h2>
               <p className="text-gray-600">{selectedUser.email}</p>
             </div>
-            <span className={`px-4 py-2 text-sm font-semibold rounded-full ${
-              selectedUser.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-            }`}>
+            <span className={`px-4 py-2 text-sm font-semibold rounded-full ${selectedUser.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              }`}>
               {selectedUser.status}
             </span>
           </div>
@@ -266,36 +285,40 @@ export default function UserManagement() {
             >
               📤 Import Users
             </button>
-          {users.length > 0 && (
-            <button
-              onClick={async () => {
-                try {
-                  const params = new URLSearchParams();
-                  if (filterStatus !== 'all') params.set('status', filterStatus === 'Inactive' ? 'Blocked' : filterStatus);
-                  if (searchQuery) params.set('q', searchQuery);
-                  const res = await fetch(`/api/users/export?${params.toString()}`, { cache: 'no-store' });
-                  if (!res.ok) throw new Error('Failed to export');
-                  const blob = await res.blob();
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `users_export_${new Date().toISOString().split('T')[0]}.xlsx`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  URL.revokeObjectURL(url);
-                } catch (e) {
-                  alert(`Failed to export: ${e.message}`);
-                }
-              }}
-              className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            >
-              📥 Export Users
-            </button>
-          )}
+            {users.length > 0 && (
+              <button
+                onClick={async () => {
+                  try {
+                    const params = new URLSearchParams();
+                    if (filterStatus !== 'all') params.set('status', filterStatus === 'Inactive' ? 'Blocked' : filterStatus);
+                    if (searchQuery) params.set('q', searchQuery);
+                    const res = await fetch(`/api/users/export?${params.toString()}`, { cache: 'no-store' });
+                    if (!res.ok) {
+                      const errorData = await res.json().catch(() => ({}));
+                      alert(errorData.error || 'Failed to export');
+                      return;
+                    }
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `users_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                  } catch (e) {
+                    alert(`Failed to export: ${e.message}`);
+                  }
+                }}
+                className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              >
+                📥 Export Users
+              </button>
+            )}
           </div>
         </div>
-        
+
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
@@ -312,11 +335,10 @@ export default function UserManagement() {
               <button
                 key={status}
                 onClick={() => setFilterStatus(status === 'all' ? 'all' : status)}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
-                  filterStatus === (status === 'all' ? 'all' : status)
-                    ? 'gradient-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === (status === 'all' ? 'all' : status)
+                  ? 'gradient-primary text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {status}
               </button>
@@ -430,11 +452,10 @@ export default function UserManagement() {
           </div>
 
           {importResult && (
-            <div className={`mt-6 p-4 rounded-lg ${
-              importResult.success 
-                ? 'bg-green-50 border border-green-200 text-green-800' 
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}>
+            <div className={`mt-6 p-4 rounded-lg ${importResult.success
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+              }`}>
               <div className="font-semibold mb-2">
                 {importResult.success ? '✅ Success' : '❌ Error'}
               </div>
@@ -464,15 +485,15 @@ export default function UserManagement() {
         ) : users.length === 0 ? (
           <div className="p-6 text-center text-gray-600">
             {searchQuery || filterStatus !== 'all' || locationFilters.state !== 'All' || locationFilters.city !== 'All'
-              ? 'No users found matching your filters.' 
+              ? 'No users found matching your filters.'
               : 'No users found.'}
           </div>
         ) : (
           <>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       User Name
                     </th>
@@ -497,151 +518,149 @@ export default function UserManagement() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
-              </tr>
-            </thead>
+                  </tr>
+                </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{user.name || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{user.email || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{user.phone || '-'}</div>
-                  </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">
-                        {[user.city, user.state].filter(Boolean).join(', ') || '-'}
-                    </div>
-                  </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{formatJoined(user.joinedDate)}</div>
-                  </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{formatLastActive(user.lastActiveAt)}</div>
-                  </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={user.status || 'Active'}
-                        onChange={(e) => handleStatusChange(user.id, e.target.value)}
-                        disabled={updatingStatus === user.id}
-                        className={`text-xs font-semibold rounded-full px-2 py-1 border-0 cursor-pointer ${
-                          user.status === 'Active' ? 'bg-green-100 text-green-800' :
-                          user.status === 'Blocked' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        } ${updatingStatus === user.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        <option value="Active">Active</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Blocked">Blocked</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
-                      <button
-                          onClick={() => handleEdit(user)}
-                          className="text-blue-600 hover:text-blue-900 font-medium"
-                      >
-                          Edit
-                      </button>
-                      <button
-                          onClick={() => handleViewDetails(user)}
-                          className="text-green-600 hover:text-green-900 font-medium"
-                      >
-                          View
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-          
-          {/* Pagination Controls */}
-          {pagination.totalPages > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-700">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
-                </span>
-                <select
-                  value={pagination.limit}
-                  onChange={(e) => handleLimitChange(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                >
-                  <option value="10">10 per page</option>
-                  <option value="20">20 per page</option>
-                  <option value="50">50 per page</option>
-                  <option value="100">100 per page</option>
-                </select>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handlePageChange(1)}
-                  disabled={pagination.page === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
-                >
-                  First
-                </button>
-                <button
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page === 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
-                >
-                  Previous
-                </button>
-                
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (pagination.totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (pagination.page <= 3) {
-                      pageNum = i + 1;
-                    } else if (pagination.page >= pagination.totalPages - 2) {
-                      pageNum = pagination.totalPages - 4 + i;
-                    } else {
-                      pageNum = pagination.page - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-1 text-sm border rounded-lg transition ${
-                          pagination.page === pageNum
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{user.name || '-'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{user.email || '-'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{user.phone || '-'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">
+                          {[user.city, user.state].filter(Boolean).join(', ') || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{formatJoined(user.joinedDate)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{formatLastActive(user.lastActiveAt)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select
+                          value={user.status || 'Active'}
+                          onChange={(e) => handleStatusChange(user.id, e.target.value)}
+                          disabled={updatingStatus === user.id}
+                          className={`text-xs font-semibold rounded-full px-2 py-1 border-0 cursor-pointer ${user.status === 'Active' ? 'bg-green-100 text-green-800' :
+                            user.status === 'Blocked' ? 'bg-red-100 text-red-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            } ${updatingStatus === user.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Blocked">Blocked</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className="text-blue-600 hover:text-blue-900 font-medium"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleViewDetails(user)}
+                            className="text-green-600 hover:text-green-900 font-medium"
+                          >
+                            View
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {pagination.totalPages > 0 && (
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-700">
+                    Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
+                  </span>
+                  <select
+                    value={pagination.limit}
+                    onChange={(e) => handleLimitChange(e.target.value)}
+                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="10">10 per page</option>
+                    <option value="20">20 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    disabled={pagination.page === 1}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                  >
+                    First
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={pagination.page === 1}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (pagination.totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (pagination.page <= 3) {
+                        pageNum = i + 1;
+                      } else if (pagination.page >= pagination.totalPages - 2) {
+                        pageNum = pagination.totalPages - 4 + i;
+                      } else {
+                        pageNum = pagination.page - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-3 py-1 text-sm border rounded-lg transition ${pagination.page === pageNum
                             ? 'bg-orange-500 text-white border-orange-500'
                             : 'border-gray-300 hover:bg-gray-100'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+                            }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={pagination.page >= pagination.totalPages}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                  >
+                    Next
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(pagination.totalPages)}
+                    disabled={pagination.page >= pagination.totalPages}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                  >
+                    Last
+                  </button>
                 </div>
-                
-                <button
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page >= pagination.totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
-                >
-                  Next
-                </button>
-                <button
-                  onClick={() => handlePageChange(pagination.totalPages)}
-                  disabled={pagination.page >= pagination.totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
-                >
-                  Last
-                </button>
               </div>
-            </div>
-          )}
-        </>
+            )}
+          </>
         )}
       </div>
 

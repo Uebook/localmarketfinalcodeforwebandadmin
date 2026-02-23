@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
   return typeof v === 'string' ? v.trim() : '';
@@ -12,7 +12,12 @@ export async function GET() {
     const rows = await supabaseRestGet(`/rest/v1/banners?${query.toString()}`);
     return Response.json({ banners: Array.isArray(rows) ? rows : [] }, { status: 200 });
   } catch (e) {
-    return Response.json({ error: e?.message || 'Failed to load banners' }, { status: 500 });
+    const errorMessage = e?.message || 'Failed to load banners';
+    console.error('Error loading banners:', errorMessage);
+    if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+      return Response.json({ banners: [], warning: 'offline_mode' }, { status: 200 });
+    }
+    return Response.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -34,7 +39,12 @@ export async function POST(req) {
     ]);
     return Response.json({ banner: Array.isArray(inserted) ? inserted[0] : inserted }, { status: 200 });
   } catch (e) {
-    return Response.json({ error: e?.message || 'Failed to create banner' }, { status: 500 });
+    const errorMessage = e?.message || 'Failed to create banner';
+    console.error('Error creating banner:', errorMessage);
+    if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+      return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+    }
+    return Response.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -56,7 +66,12 @@ export async function PATCH(req) {
     const updated = await supabaseRestPatch(`/rest/v1/banners?id=eq.${encodeURIComponent(id)}`, patch);
     return Response.json({ banner: Array.isArray(updated) ? updated[0] : updated }, { status: 200 });
   } catch (e) {
-    return Response.json({ error: e?.message || 'Failed to update banner' }, { status: 500 });
+    const errorMessage = e?.message || 'Failed to update banner';
+    console.error('Error updating banner:', errorMessage);
+    if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+      return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
+    }
+    return Response.json({ error: errorMessage }, { status: 500 });
   }
 }
 

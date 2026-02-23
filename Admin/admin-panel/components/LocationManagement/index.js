@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import LocationImport from './LocationManagement/LocationImport';
+import LocationImport from './LocationImport';
 
 export default function LocationManagement() {
   const [activeTab, setActiveTab] = useState('browse');
@@ -139,8 +139,8 @@ export default function LocationManagement() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-6 py-3 font-semibold text-sm transition-colors ${activeTab === tab.id
-                  ? 'text-orange-600 border-b-2 border-orange-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                ? 'text-orange-600 border-b-2 border-orange-600'
+                : 'text-gray-600 hover:text-gray-900'
                 }`}
             >
               {tab.label}

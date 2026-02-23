@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
 
 // GET /api/reports/search - Get search reports
 export async function GET(request) {

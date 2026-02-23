@@ -82,9 +82,9 @@ export default function PaymentFeesManagement() {
           auto_block_enabled: feesConfig.autoBlockEnabled,
         }),
       });
-      
+
       const data = await res.json().catch(() => ({}));
-      
+
       if (res.ok) {
         alert('Configuration saved successfully!');
       } else {
@@ -118,7 +118,8 @@ export default function PaymentFeesManagement() {
         await loadVendors();
         alert('Vendor blocked successfully');
       } else {
-        throw new Error('Failed to block vendor');
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.error || 'Failed to block vendor');
       }
     } catch (error) {
       console.error('Error blocking vendor:', error);
@@ -149,7 +150,8 @@ export default function PaymentFeesManagement() {
         await loadVendors();
         alert('Vendor activated successfully');
       } else {
-        throw new Error('Failed to activate vendor');
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.error || 'Failed to activate vendor');
       }
     } catch (error) {
       console.error('Error activating vendor:', error);
@@ -256,57 +258,57 @@ export default function PaymentFeesManagement() {
         ) : vendors.length === 0 ? (
           <div className="text-center py-8 text-gray-500">No vendor billing records found</div>
         ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Vendor ID</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Vendor Name</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Plan</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Due Date</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Amount</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendors.map((vendor) => (
-                <tr key={vendor.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm text-gray-900 font-mono">{vendor.vendorId}</td>
-                  <td className="py-3 px-4 text-sm text-gray-900">{vendor.name}</td>
-                  <td className="py-3 px-4 text-sm text-gray-700 capitalize">{vendor.plan}</td>
-                  <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(vendor.status)}`}>
-                      {vendor.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-700">{vendor.dueDate}</td>
-                  <td className="py-3 px-4 text-sm text-gray-900 font-semibold">₹{vendor.amount.toLocaleString()}</td>
-                  <td className="py-3 px-4">
-                    <div className="flex gap-2">
-                      {vendor.status === 'overdue' && (
-                        <button
-                          onClick={() => handleBlockVendor(vendor.id)}
-                          className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                        >
-                          Block
-                        </button>
-                      )}
-                      {vendor.status === 'blocked' && (
-                        <button
-                          onClick={() => handleActivateVendor(vendor.id)}
-                          className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-                        >
-                          Activate
-                        </button>
-                      )}
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Vendor ID</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Vendor Name</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Plan</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Due Date</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Amount</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {vendors.map((vendor) => (
+                  <tr key={vendor.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm text-gray-900 font-mono">{vendor.vendorId}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{vendor.name}</td>
+                    <td className="py-3 px-4 text-sm text-gray-700 capitalize">{vendor.plan}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(vendor.status)}`}>
+                        {vendor.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-700">{vendor.dueDate}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900 font-semibold">₹{vendor.amount.toLocaleString()}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2">
+                        {vendor.status === 'overdue' && (
+                          <button
+                            onClick={() => handleBlockVendor(vendor.id)}
+                            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                          >
+                            Block
+                          </button>
+                        )}
+                        {vendor.status === 'blocked' && (
+                          <button
+                            onClick={() => handleActivateVendor(vendor.id)}
+                            className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                          >
+                            Activate
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

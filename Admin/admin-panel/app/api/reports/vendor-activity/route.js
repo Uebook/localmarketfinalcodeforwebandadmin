@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
 
 // GET /api/reports/vendor-activity - Get vendor activity reports
 export async function GET(request) {

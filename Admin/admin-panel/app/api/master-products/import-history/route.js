@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert } from '../../../../lib/supabaseAdminFetch';
 
 // GET - Fetch import history
 export async function GET(req) {

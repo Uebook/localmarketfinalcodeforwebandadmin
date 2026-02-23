@@ -14,7 +14,7 @@ export default function SavedPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header
         locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
@@ -25,7 +25,7 @@ export default function SavedPage() {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-1 h-6 bg-orange-500 rounded" />
+            <div className="w-1 h-6 bg-primary rounded" />
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Saved Items</h1>
           </div>
           <p className="text-gray-900 ml-3">
@@ -54,7 +54,7 @@ export default function SavedPage() {
             <p className="text-gray-900 mb-6">Start saving businesses you like!</p>
             <button
               onClick={() => router.push('/')}
-              className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+              className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:opacity-90 transition-colors"
             >
               Explore Businesses
             </button>

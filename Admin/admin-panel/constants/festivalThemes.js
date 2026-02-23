@@ -7,7 +7,7 @@ export const FESTIVAL_THEMES = {
       primary: '#FF6B35',
       secondary: '#F7931E',
       accent: '#FFD700',
-      background: '#FFF8E1',
+      background: '#FFFBF0',
       text: '#1A1A1A'
     },
     icon: '🪔',
@@ -20,7 +20,7 @@ export const FESTIVAL_THEMES = {
       primary: '#FF1744',
       secondary: '#E91E63',
       accent: '#9C27B0',
-      background: '#FFF3E0',
+      background: '#FFF5F9',
       text: '#1A1A1A'
     },
     icon: '🎨',
@@ -33,7 +33,7 @@ export const FESTIVAL_THEMES = {
       primary: '#2E7D32',
       secondary: '#4CAF50',
       accent: '#8BC34A',
-      background: '#E8F5E9',
+      background: '#F0FDF4',
       text: '#1A1A1A'
     },
     icon: '🌙',
@@ -46,7 +46,7 @@ export const FESTIVAL_THEMES = {
       primary: '#C62828',
       secondary: '#2E7D32',
       accent: '#FFD700',
-      background: '#FFF8E1',
+      background: '#FEF2F2',
       text: '#1A1A1A'
     },
     icon: '🎄',
@@ -59,7 +59,7 @@ export const FESTIVAL_THEMES = {
       primary: '#1976D2',
       secondary: '#42A5F5',
       accent: '#FFD700',
-      background: '#E3F2FD',
+      background: '#F0F9FF',
       text: '#1A1A1A'
     },
     icon: '🎊',
@@ -70,7 +70,7 @@ export const FESTIVAL_THEMES = {
 export const getThemeCSS = (themeId) => {
   const theme = FESTIVAL_THEMES[themeId];
   if (!theme) return '';
-  
+
   return `
     :root {
       --theme-primary: ${theme.colors.primary};
