@@ -90,7 +90,7 @@ function CatalogContent() {
             const price = product.price ?? product.selling_price ?? product.rate;
             const mrp = product.mrp ?? product.original_price;
             const image = product.image_url ?? product.imageUrl ?? product.photo_url;
-            const inStock = product.is_active ?? product.in_stock ?? product.inStock ?? product.stock_qty > 0 ?? true;
+            const inStock = product.is_active ?? product.in_stock ?? product.inStock ?? (product.stock_qty > 0);
             const qty = product.stock_qty ?? product.stockQty ?? product.quantity;
             const cat = product.category_name ?? product.category ?? product.type ?? '';
 
