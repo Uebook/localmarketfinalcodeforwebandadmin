@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import EnquiryModal from '@/components/EnquiryModal';
+import { isVendorSaved, saveVendor, removeSavedVendor } from '@/lib/savedVendors';
 
 export default function VendorDetailsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,6 +27,13 @@ export default function VendorDetailsPage() {
 
   const params = useParams();
   const router = useRouter();
+
+  // Check save status on mount
+  useEffect(() => {
+    if (params.id) {
+      setIsSaved(isVendorSaved(params.id as string));
+    }
+  }, [params.id]);
 
   // Check auth on mount
   useEffect(() => {
@@ -225,7 +233,15 @@ export default function VendorDetailsPage() {
                 {/* Top actions */}
                 <div className="absolute top-4 right-4 flex gap-2">
                   <button
-                    onClick={() => setIsSaved(!isSaved)}
+                    onClick={() => {
+                      if (isSaved) {
+                        removeSavedVendor(business.id);
+                        setIsSaved(false);
+                      } else {
+                        saveVendor(business);
+                        setIsSaved(true);
+                      }
+                    }}
                     className={`p-3 rounded-2xl backdrop-blur-md border transition-all ${isSaved ? 'bg-red-500 border-red-500 text-white' : 'bg-white/20 border-white/30 text-white hover:bg-white/30'
                       }`}
                   >

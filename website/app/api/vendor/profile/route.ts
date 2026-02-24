@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
                 imageUrl: v.image_url ?? v.shop_front_photo_url ?? null,
                 about: v.about ?? v.description ?? '',
                 openTime: v.open_time ?? '',
-                isVerified: v.is_verified ?? (v.kyc_status === 'Approved') ?? false,
+                isVerified: v.is_verified ?? (v.kyc_status === 'Approved'),
                 createdAt: v.created_at ?? '',
                 profileViews: v.profile_views ?? 0,
                 searchAppearances: v.search_appearances ?? 0,

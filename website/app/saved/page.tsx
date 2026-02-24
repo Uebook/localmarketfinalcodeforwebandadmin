@@ -1,18 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import BusinessCard from '@/components/BusinessCard';
-import { NEARBY_BUSINESSES, FEATURED_BUSINESSES } from '@/lib/data';
 import { Heart } from 'lucide-react';
+import { getSavedVendors, removeSavedVendor, SavedVendor } from '@/lib/savedVendors';
 
 export default function SavedPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [savedBusinesses] = useState([...NEARBY_BUSINESSES.slice(0, 2), ...FEATURED_BUSINESSES]);
+  const [savedBusinesses, setSavedBusinesses] = useState<SavedVendor[]>([]);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    setSavedBusinesses(getSavedVendors());
+    setMounted(true);
+  }, []);
+
+  const handleRemove = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeSavedVendor(id);
+    setSavedBusinesses(getSavedVendors());
+  };
+
+  if (!mounted) return null; // Wait for hydration
   return (
     <div className="min-h-screen bg-white">
       <Header
@@ -38,11 +52,14 @@ export default function SavedPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {savedBusinesses.map((business) => (
               <div key={business.id} className="relative">
-                <BusinessCard business={business} />
+                <BusinessCard business={business as any} />
                 <div className="absolute top-3 right-3 z-10">
-                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <button
+                    onClick={(e) => handleRemove(business.id, e)}
+                    className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-slate-50 transition-colors"
+                  >
                     <Heart className="text-red-500 fill-red-500" size={20} />
-                  </div>
+                  </button>
                 </div>
               </div>
             ))}
