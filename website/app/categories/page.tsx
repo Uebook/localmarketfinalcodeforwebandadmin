@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
@@ -18,7 +18,15 @@ export default function CategoriesPage() {
     loading: false,
     error: null,
   });
+  const [categories, setCategories] = useState<any[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data.categories || []))
+      .catch(err => console.error('Failed to fetch categories:', err));
+  }, []);
 
   const handleCategorySelect = (categoryName: string) => {
     router.push(`/search?q=${encodeURIComponent(categoryName)}`);
@@ -56,7 +64,7 @@ export default function CategoriesPage() {
                 {showAll ? 'All Categories' : 'Top Categories'}
               </h1>
               <p className="text-slate-500 text-sm mt-0.5">
-                {showAll ? `Browse all ${ALL_CATEGORIES.length} categories` : 'Most popular categories near you'}
+                {showAll ? `Browse all ${categories.length || ALL_CATEGORIES.length} categories` : 'Most popular categories near you'}
               </p>
             </div>
           </div>
@@ -68,6 +76,7 @@ export default function CategoriesPage() {
           onCategorySelect={handleCategorySelect}
           variant="light"
           showAll={showAll}
+          categories={categories}
         />
 
         {/* View All / Show Less toggle */}
@@ -79,7 +88,7 @@ export default function CategoriesPage() {
             {showAll ? (
               <><ChevronUp size={18} /> Show Less</>
             ) : (
-              <><ChevronDown size={18} /> View All {ALL_CATEGORIES.length} Categories</>
+              <><ChevronDown size={18} /> View All {categories.length || ALL_CATEGORIES.length} Categories</>
             )}
           </button>
         </div>

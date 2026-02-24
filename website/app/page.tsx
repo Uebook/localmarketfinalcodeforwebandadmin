@@ -22,7 +22,15 @@ export default function HomePage() {
     loading: true,
     error: null as string | null,
   });
+  const [categories, setCategories] = useState<any[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data.categories || []))
+      .catch(err => console.error('Failed to fetch categories:', err));
+  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -71,9 +79,24 @@ export default function HomePage() {
     );
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      // Track search
+      try {
+        fetch('/api/search/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: searchQuery.trim(),
+            city: locationState.city,
+            userId: JSON.parse(localStorage.getItem('localmarket_user') || '{}').id
+          })
+        });
+      } catch (err) {
+        console.warn('Failed to track search:', err);
+      }
+
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -171,7 +194,14 @@ export default function HomePage() {
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
-            {TOP_8_CATEGORIES.map((category) => (
+            {categories.slice(0, 8).map((category: any, i: number) => (
+              <CategoryCard
+                key={category.id}
+                category={category}
+                onSelect={handleCategorySelect}
+              />
+            ))}
+            {categories.length === 0 && TOP_8_CATEGORIES.map((category: any) => (
               <CategoryCard
                 key={category.id}
                 category={category}

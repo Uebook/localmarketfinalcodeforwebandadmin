@@ -1,11 +1,12 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLayout';
 import {
   Activity, Package, MessageSquare, Star, TrendingUp, TrendingDown,
   Users, Eye, ShoppingCart, DollarSign, BarChart3, Target, AlertCircle,
-  CheckCircle, ArrowUpRight, ArrowDownRight, Clock
+  CheckCircle, ArrowUpRight, ArrowDownRight, Clock, Search
 } from 'lucide-react';
 
 function AnalyticsContent() {
@@ -259,6 +260,8 @@ function AnalyticsContent() {
         </div>
       </div>
 
+      <TrendingNearlySection city={displayVendor.city || 'Noida'} />
+
       {/* Auto Recommendations */}
       <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
         <div className="flex items-center justify-between mb-6">
@@ -310,6 +313,68 @@ function AnalyticsContent() {
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+interface TrendingItem {
+  query: string;
+  count: number;
+}
+
+function TrendingNearlySection({ city }: { city: string }) {
+  const [trending, setTrending] = useState<TrendingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchTrending() {
+      try {
+        const res = await fetch(`/api/vendor/analytics/trending?city=${encodeURIComponent(city)}`);
+        const data = await res.json();
+        setTrending(data.trending || []);
+      } catch (err) {
+        console.error('Failed to fetch trending:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (city) fetchTrending();
+  }, [city]);
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Trending nearly in your area</h2>
+          <p className="text-sm text-gray-500 font-medium">What customers are searching for in {city}</p>
+        </div>
+        <TrendingUp className="text-orange-500" size={24} />
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin" />
+        </div>
+      ) : trending.length > 0 ? (
+        <div className="flex flex-wrap gap-3">
+          {trending.map((item, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl hover:border-orange-200 hover:bg-orange-50 transition-all cursor-default group"
+            >
+              <Search size={14} className="text-slate-400 group-hover:text-orange-500" />
+              <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">{item.query}</span>
+              <span className="text-xs font-black text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-md">
+                {item.count}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <p className="text-sm text-slate-500 font-medium italic">No trending data available for this area yet.</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin, Star, Clock, CheckCircle } from 'lucide-react';
+import { MapPin, Star, Clock, CheckCircle, Package } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -23,13 +23,19 @@ interface BusinessCardProps {
 export default function BusinessCard({ business, onClick }: BusinessCardProps) {
   const CardContent = (
     <div className="premium-card rounded-2xl overflow-hidden group h-full flex flex-col bg-white">
-      <div className="relative w-full h-48 sm:h-52 overflow-hidden">
-        <Image
-          src={business.imageUrl}
-          alt={business.name}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform duration-700"
-        />
+      <div className="relative w-full h-48 sm:h-52 overflow-hidden bg-slate-100">
+        {(business.imageUrl || (business as any).image_url || (business as any).shop_front_photo_url) ? (
+          <Image
+            src={business.imageUrl || (business as any).image_url || (business as any).shop_front_photo_url}
+            alt={business.name}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-slate-300">
+            <Package size={48} />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
         {business.isVerified && (
           <div className="absolute top-3 right-3 bg-blue-600/90 backdrop-blur-sm text-white p-1.5 rounded-xl shadow-lg">

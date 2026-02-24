@@ -4,25 +4,33 @@ import { useState } from 'react';
 import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLayout';
 import { Plus, Edit, Trash2, Search, Package, Loader2, IndianRupee } from 'lucide-react';
 import Image from 'next/image';
+import AddProductModal from '@/components/AddProductModal';
 
 function CatalogContent() {
   const { products, vendor, loading, refresh } = useVendor();
   const [searchQuery, setSearchQuery] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
 
   const filteredProducts = products.filter((p: any) => {
     const name = p.name ?? p.product_name ?? '';
-    const cat = p.category ?? p.type ?? '';
+    const cat = p.category_name ?? p.category ?? p.type ?? '';
     return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cat.toLowerCase().includes(searchQuery.toLowerCase());
   });
+
+  const handleEdit = (product: any) => {
+    setEditingProduct(product);
+    setIsAddModalOpen(true);
+  };
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Delete this product?')) return;
     setDeleting(productId);
     try {
-      await fetch(`/api/vendor/products/${productId}`, { method: 'DELETE' });
-      refresh();
+      const res = await fetch(`/api/vendor/products/${productId}`, { method: 'DELETE' });
+      if (res.ok) refresh();
     } catch { }
     setDeleting(null);
   };
@@ -40,13 +48,27 @@ function CatalogContent() {
           <p className="text-slate-400 text-sm mt-0.5">{products.length} products listed</p>
         </div>
         <button
-          onClick={() => { /* open add modal */ }}
+          onClick={() => {
+            setEditingProduct(null);
+            setIsAddModalOpen(true);
+          }}
           className="flex items-center gap-2 px-4 py-2.5 text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
           style={{ background: 'var(--primary)' }}
         >
           <Plus size={16} /> Add Product
         </button>
       </div>
+
+      <AddProductModal
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingProduct(null);
+        }}
+        onSuccess={() => refresh()}
+        vendorId={vendor?.id || ''}
+        product={editingProduct}
+      />
 
       {/* Search */}
       <div className="relative mb-5">
@@ -68,9 +90,9 @@ function CatalogContent() {
             const price = product.price ?? product.selling_price ?? product.rate;
             const mrp = product.mrp ?? product.original_price;
             const image = product.image_url ?? product.imageUrl ?? product.photo_url;
-            const inStock = product.in_stock ?? product.inStock ?? product.stock_qty > 0 ?? true;
+            const inStock = product.is_active ?? product.in_stock ?? product.inStock ?? product.stock_qty > 0 ?? true;
             const qty = product.stock_qty ?? product.stockQty ?? product.quantity;
-            const cat = product.category ?? product.type ?? '';
+            const cat = product.category_name ?? product.category ?? product.type ?? '';
 
             return (
               <div key={product.id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-md transition-shadow group">
@@ -106,7 +128,10 @@ function CatalogContent() {
                     {qty != null && <span className="text-xs text-slate-400">Qty: {qty}</span>}
                   </div>
                   <div className="flex gap-2">
-                    <button className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-bold text-slate-600 transition-colors">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-bold text-slate-600 transition-colors"
+                    >
                       <Edit size={12} /> Edit
                     </button>
                     <button
@@ -133,6 +158,7 @@ function CatalogContent() {
           </p>
           {!searchQuery && (
             <button
+              onClick={() => setIsAddModalOpen(true)}
               className="px-5 py-2.5 text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
               style={{ background: 'var(--primary)' }}
             >

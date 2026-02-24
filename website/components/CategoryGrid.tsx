@@ -7,6 +7,7 @@ interface CategoryGridProps {
   onCategorySelect: (categoryName: string) => void;
   variant?: 'light' | 'dark';
   showAll?: boolean;
+  categories?: any[];
 }
 
 const iconMap: Record<string, any> = {
@@ -39,13 +40,15 @@ const iconColors = [
   { bg: 'bg-indigo-50', text: 'text-indigo-500' },
 ];
 
-export default function CategoryGrid({ onCategorySelect, variant = 'light', showAll = false }: CategoryGridProps) {
-  const categoriesToShow = showAll ? ALL_CATEGORIES : TOP_8_CATEGORIES;
+export default function CategoryGrid({ onCategorySelect, variant = 'light', showAll = false, categories }: CategoryGridProps) {
+  const categoriesToShow = categories
+    ? (showAll ? categories : categories.slice(0, 8))
+    : (showAll ? ALL_CATEGORIES : TOP_8_CATEGORIES);
   const isDark = variant === 'dark';
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
-      {categoriesToShow.map((category, i) => {
+      {categoriesToShow.map((category: any, i: number) => {
         const Icon = iconMap[category.iconName] || ShoppingBag;
         const color = iconColors[i % iconColors.length];
 

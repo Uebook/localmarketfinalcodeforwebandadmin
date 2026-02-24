@@ -640,4 +640,14 @@ export const SEARCH_RESULTS = [
   { id: 'e1', name: 'Tech World', category: 'Electronics', rating: 4.6, reviewCount: 340, distance: '1.5 km', imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=800&q=80', isVerified: true, address: 'Nehru Place' },
   { id: 'c1', name: 'Fashion Hub', category: 'Clothing', rating: 4.5, reviewCount: 250, distance: '1.0 km', imageUrl: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=800&q=80', isVerified: true, address: 'Sarojini Nagar' },
 ];
-
+// Consolidated list for search
+export const ALL_SEARCH_RESULTS = [
+  ...SEARCH_RESULTS,
+  ...NEARBY_BUSINESSES,
+  ...FEATURED_BUSINESSES,
+].reduce((acc: any[], curr: any) => {
+  if (!acc.find(item => item.id === curr.id)) {
+    acc.push(curr);
+  }
+  return acc;
+}, []);

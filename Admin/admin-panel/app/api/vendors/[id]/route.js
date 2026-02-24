@@ -8,7 +8,7 @@ export async function GET(req, { params }) {
     try {
         const [vendors, products, enquiries, reviews] = await Promise.all([
             supabaseRestGet(`/rest/v1/vendors?id=eq.${id}&select=*&limit=1`),
-            supabaseRestGet(`/rest/v1/products?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
+            supabaseRestGet(`/rest/v1/vendor_products?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
             supabaseRestGet(`/rest/v1/enquiries?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
             supabaseRestGet(`/rest/v1/reviews?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
         ]);

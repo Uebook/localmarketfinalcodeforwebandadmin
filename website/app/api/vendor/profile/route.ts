@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
         const [vendors, products, enquiries, reviews] = await Promise.all([
             supabaseRestGet(`/rest/v1/vendors?id=eq.${id}&select=*&limit=1`),
-            supabaseRestGet(`/rest/v1/products?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
+            supabaseRestGet(`/rest/v1/vendor_products?vendor_id=eq.${id}&select=*,categories(name)&order=created_at.desc`).catch(() => []),
             supabaseRestGet(`/rest/v1/enquiries?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
             supabaseRestGet(`/rest/v1/reviews?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
         ]);
@@ -46,7 +46,10 @@ export async function GET(request: NextRequest) {
                 profileViews: v.profile_views ?? 0,
                 searchAppearances: v.search_appearances ?? 0,
             },
-            products: Array.isArray(products) ? products : [],
+            products: Array.isArray(products) ? products.map((p: any) => ({
+                ...p,
+                category_name: p.categories?.name || p.category_name || ''
+            })) : [],
             enquiries: Array.isArray(enquiries) ? enquiries : [],
             reviews: Array.isArray(reviews) ? reviews : [],
         });
