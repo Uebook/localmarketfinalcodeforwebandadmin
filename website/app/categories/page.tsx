@@ -37,9 +37,11 @@ export default function CategoriesPage() {
     }
   }, []);
   const [categories, setCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    setLoadingCategories(true);
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
@@ -52,6 +54,9 @@ export default function CategoriesPage() {
       .catch(err => {
         console.error('Failed to fetch categories:', err);
         setCategories(ALL_CATEGORIES);
+      })
+      .finally(() => {
+        setLoadingCategories(false);
       });
   }, []);
 
@@ -90,7 +95,11 @@ export default function CategoriesPage() {
                 {showAll ? 'All Categories' : 'Top Categories'}
               </h1>
               <p className="text-slate-500 text-sm mt-0.5">
-                {showAll ? `Browse all ${categories.length || ALL_CATEGORIES.length} categories` : 'Most popular categories near you'}
+                {loadingCategories
+                  ? 'Loading categories...'
+                  : showAll
+                    ? `Browse all ${categories.length} categories`
+                    : 'Most popular categories near you'}
               </p>
             </div>
           </div>
@@ -109,12 +118,13 @@ export default function CategoriesPage() {
         <div className="mt-10 text-center">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-primary text-white font-bold rounded-2xl shadow-md hover:opacity-90 transition-all active:scale-95"
+            className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-primary text-white font-bold rounded-2xl shadow-md hover:opacity-90 transition-all active:scale-95 disabled:opacity-50"
+            disabled={loadingCategories}
           >
             {showAll ? (
               <><ChevronUp size={18} /> Show Less</>
             ) : (
-              <><ChevronDown size={18} /> View All {categories.length || 58} Categories</>
+              <><ChevronDown size={18} /> View All {loadingCategories ? '' : categories.length} Categories</>
             )}
           </button>
         </div>
