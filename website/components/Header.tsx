@@ -1,9 +1,10 @@
 'use client';
 
-import { Menu, MapPin, ChevronDown, Bell, User, ShoppingBag, LayoutDashboard, LogOut } from 'lucide-react';
+import { Menu, MapPin, ChevronDown, Bell, User, ShoppingBag, LayoutDashboard, LogOut, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocation } from '@/lib/hooks';
 
 interface HeaderProps {
   locationState?: {
@@ -25,15 +26,18 @@ interface UserSession {
 }
 
 export default function Header({
-  locationState = { loading: false, error: null, city: 'Delhi, India' },
+  locationState: propLocation,
   onMenuClick,
   onNotificationClick,
   notificationCount = 2
 }: HeaderProps) {
+  const { location: savedLocation, detectLocation } = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [locDropdownOpen, setLocDropdownOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const locRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,12 +46,21 @@ export default function Header({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Load session
+  // Load session and saved location
   useEffect(() => {
-    const raw = localStorage.getItem('localmarket_user');
-    if (raw) {
-      try { setUser(JSON.parse(raw)); } catch { /* ignore */ }
+    const rawUser = localStorage.getItem('localmarket_user');
+    if (rawUser) {
+      try { setUser(JSON.parse(rawUser)); } catch { /* ignore */ }
     }
+
+    const savedLoc = localStorage.getItem('localmarket_location');
+    if (savedLoc) {
+      try {
+        const parsed = JSON.parse(savedLoc);
+        // We already handled this with useLocation hook above
+      } catch { /* ignore */ }
+    }
+
     // Listen for storage changes (login/logout from other tabs)
     const onStorage = () => {
       const u = localStorage.getItem('localmarket_user');
@@ -62,11 +75,24 @@ export default function Header({
     };
   }, []);
 
+  // Log active location for debugging
+  useEffect(() => {
+    if (savedLocation.city && !savedLocation.loading) {
+      console.log('--- Site Location Active ---');
+      console.log('City:', savedLocation.city);
+      console.log('Coords:', savedLocation.lat, savedLocation.lng);
+      console.log('---------------------------');
+    }
+  }, [savedLocation]);
+
   // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
+      }
+      if (locRef.current && !locRef.current.contains(e.target as Node)) {
+        setLocDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -107,12 +133,69 @@ export default function Header({
               <span className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-primary transition-colors">LOCAL</span>
             </Link>
 
-            <div className="hidden md:flex items-center gap-2 p-2 bg-white hover:bg-slate-50 border border-slate-100 rounded-xl cursor-not-allowed transition-colors">
-              <MapPin className="text-primary" size={16} />
-              <span className="text-xs font-bold text-slate-600">
-                {locationState.loading ? 'Detecting...' : locationState.error ? 'Select Location' : locationState.city || 'Delhi, India'}
-              </span>
-              <ChevronDown className="text-slate-400" size={14} />
+            <div className="relative" ref={locRef}>
+              <button
+                onClick={() => detectLocation()}
+                disabled={savedLocation.loading}
+                className={`hidden md:flex items-center gap-2 p-2 bg-white hover:bg-slate-50 border border-slate-100 rounded-xl transition-all shadow-sm group/loc ${savedLocation.loading ? 'cursor-wait bg-slate-50' : 'cursor-pointer active:scale-95'}`}
+                title="Click to detect current location"
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${savedLocation.loading ? 'bg-primary/10' : 'bg-slate-50 group-hover/loc:bg-primary/5'}`}>
+                  <MapPin className={`text-primary transition-all ${savedLocation.loading ? 'animate-bounce' : 'group-hover/loc:scale-110'}`} size={18} />
+                </div>
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                    {savedLocation.loading ? 'Searching...' : 'Your Location'}
+                  </span>
+                  <span className="text-xs font-bold text-slate-600 truncate max-w-[300px]">
+                    {propLocation
+                      ? (propLocation.loading ? 'Detecting...' : propLocation.error ? 'Select Location' : propLocation.city || 'Delhi, India')
+                      : (savedLocation.loading ? 'Detecting...' : savedLocation.error ? 'Select Location' : savedLocation.city || 'Delhi, India')
+                    }
+                  </span>
+                </div>
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLocDropdownOpen(!locDropdownOpen);
+                  }}
+                  className={`ml-1 p-1 rounded-md bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all ${locDropdownOpen ? 'text-primary bg-primary/5' : ''}`}
+                >
+                  <ChevronDown className={`transition-transform duration-300 ${savedLocation.loading ? 'animate-spin' : ''} ${locDropdownOpen ? 'rotate-180' : ''}`} size={14} />
+                </div>
+              </button>
+
+              {/* Location Dropdown */}
+              {locDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 py-4 px-5 z-50 animate-in fade-in zoom-in duration-200 origin-top-left">
+                  <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-50">
+                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <MapPin className="text-primary" size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900">Current Location</h4>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Detected Address</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-xl p-4 mb-4">
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed italic">
+                      "{(propLocation?.city || savedLocation.city) || 'No location detected yet'}"
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      detectLocation();
+                      setLocDropdownOpen(false);
+                    }}
+                    className="w-full py-3 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Zap size={14} />
+                    Re-detect Location
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -122,8 +205,8 @@ export default function Header({
               { label: 'Home', href: '/' },
               { label: 'Categories', href: '/categories' },
               { label: 'Offers', href: '/offers' },
-              { label: 'E-Auction', href: '/eauction' },
-              { label: 'Draws', href: '/draws' },
+              // { label: 'E-Auction', href: '/eauction' },
+              // { label: 'Draws', href: '/draws' },
               { label: 'Saved', href: '/saved' },
             ].map((link) => (
               <Link

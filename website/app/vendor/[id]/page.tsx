@@ -198,7 +198,6 @@ export default function VendorDetailsPage() {
       {/* Page content (always rendered but blurred when not logged in) */}
       <div className={!isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}>
         <Header
-          locationState={{ loading: false, error: null, city: business.city || 'Local Area' }}
           onMenuClick={() => setIsSidebarOpen(true)}
           onProfileClick={() => router.push('/settings')}
           onNotificationClick={() => router.push('/notifications')}

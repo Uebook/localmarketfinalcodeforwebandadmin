@@ -11,18 +11,14 @@ import { Search, MapPin, TrendingUp, Star, ShieldCheck, Zap, Gavel, Ticket } fro
 import { NEARBY_BUSINESSES, FEATURED_BUSINESSES, HOME_SERVICES, RECENT_SEARCHES } from '@/lib/data';
 import { TOP_8_CATEGORIES } from '@/lib/categories';
 import Image from 'next/image';
+import { useLocation } from '@/lib/hooks';
 
 export default function HomePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [locationState, setLocationState] = useState({
-    lat: null as number | null,
-    lng: null as number | null,
-    city: '',
-    loading: true,
-    error: null as string | null,
-  });
+  const { location: locationState, detectLocation } = useLocation();
   const [categories, setCategories] = useState<any[]>([]);
+  const [isLocationLoaded, setIsLocationLoaded] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,51 +29,14 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocationState({ lat: null, lng: null, city: 'Delhi, India', loading: false, error: 'Geolocation not supported' });
-      return;
+    // On mount, if no location is saved, detect it.
+    // Otherwise the hook handles loading from localStorage.
+    const saved = localStorage.getItem('localmarket_location');
+    if (!saved) {
+      detectLocation();
     }
-
-    setLocationState(prev => ({ ...prev, loading: true, error: null }));
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude: lat, longitude: lng } = position.coords;
-        try {
-          // Reverse geocode using OpenStreetMap Nominatim (free, no key required)
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
-            { headers: { 'Accept-Language': 'en' } }
-          );
-          const data = await res.json();
-          const addr = data.address || {};
-          const city =
-            addr.suburb ||
-            addr.neighbourhood ||
-            addr.city_district ||
-            addr.quarter ||
-            addr.city ||
-            addr.town ||
-            addr.village ||
-            addr.county ||
-            'Your Area';
-          const state = addr.state || '';
-          const displayCity = state ? `${city}, ${state}` : city;
-
-          setLocationState({ lat, lng, city: displayCity, loading: false, error: null });
-        } catch {
-          // Geocoding failed, show coordinates-based fallback
-          setLocationState({ lat, lng, city: 'Your Location', loading: false, error: null });
-        }
-      },
-      (err) => {
-        // User denied or error — fall back gracefully
-        const msg = err.code === 1 ? 'Location access denied' : 'Could not detect location';
-        setLocationState({ lat: null, lng: null, city: 'Delhi, India', loading: false, error: msg });
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
-    );
-  }, []);
+    setIsLocationLoaded(true);
+  }, [detectLocation]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

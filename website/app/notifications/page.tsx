@@ -19,7 +19,6 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header
-        locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}

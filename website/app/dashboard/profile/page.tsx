@@ -3,16 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
-import { User, Phone, Mail, MapPin, Save, ArrowLeft, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Save, ArrowLeft, CheckCircle, AlertCircle, Loader2, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-
-const INDIA_STATES = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-    'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
-    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
-    'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim',
-    'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-];
+import { INDIAN_STATES, STATE_CITIES } from '@/lib/locationData';
 
 export default function ProfileEditPage() {
     const [form, setForm] = useState({ name: '', phone: '', email: '', state: '', city: '' });
@@ -76,7 +69,7 @@ export default function ProfileEditPage() {
 
     return (
         <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-            <Header locationState={{ loading: false, error: null, city: form.city ? `${form.city}, India` : 'Delhi, India' }} />
+            <Header />
 
             <div className="max-w-lg mx-auto px-4 py-8 space-y-4">
                 {/* Back */}
@@ -150,27 +143,35 @@ export default function ProfileEditPage() {
                                 <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <select
                                     value={form.state}
-                                    onChange={(e) => setForm({ ...form, state: e.target.value })}
-                                    className="w-full pl-9 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-gray-900 appearance-none bg-white"
+                                    onChange={(e) => setForm({ ...form, state: e.target.value, city: '' })}
+                                    className="w-full pl-9 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-gray-900 appearance-none bg-white"
                                 >
                                     <option value="">Select state...</option>
-                                    {INDIA_STATES.map((s) => (
+                                    {INDIAN_STATES.map((s) => (
                                         <option key={s} value={s}>{s}</option>
                                     ))}
                                 </select>
+                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                             </div>
                         </div>
 
                         {/* City */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
-                            <input
-                                type="text"
-                                value={form.city}
-                                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                                placeholder="Your city"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder:text-gray-400"
-                            />
+                            <div className="relative">
+                                <select
+                                    value={form.city}
+                                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                                    disabled={!form.state}
+                                    className="w-full px-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-gray-900 appearance-none bg-white disabled:bg-gray-50"
+                                >
+                                    <option value="">Select city...</option>
+                                    {form.state && STATE_CITIES[form.state]?.map((c) => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            </div>
                         </div>
 
                         {/* Error / Success */}

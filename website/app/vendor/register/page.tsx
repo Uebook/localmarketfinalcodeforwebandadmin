@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Briefcase, CheckCircle, Upload, Image as ImageIcon, FileText, X } from 'lucide-react';
 import Link from 'next/link';
+import { INDIAN_STATES, STATE_CITIES } from '@/lib/locationData';
 
 export default function VendorRegisterPage() {
   const [step, setStep] = useState(1);
@@ -15,6 +16,7 @@ export default function VendorRegisterPage() {
     mobile: '',
     email: '',
     address: '',
+    state: '',
     city: '',
     pincode: '',
     idProof: null as File | null,
@@ -256,17 +258,45 @@ export default function VendorRegisterPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      State <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={formData.state}
+                      onChange={(e) => {
+                        const newState = e.target.value;
+                        setFormData(prev => ({ ...prev, state: newState, city: '' }));
+                      }}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
+                    >
+                      <option value="">Select state</option>
+                      {INDIAN_STATES.map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
                       City <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.city}
                       onChange={(e) => handleChange('city', e.target.value)}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-400"
-                      placeholder="Enter city"
-                    />
+                      disabled={!formData.state}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select city</option>
+                      {formData.state && STATE_CITIES[formData.state]?.map(city => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                      {formData.state && !STATE_CITIES[formData.state] && (
+                        <option value="Other">Other</option>
+                      )}
+                    </select>
                   </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                       Pincode <span className="text-red-500">*</span>
@@ -391,8 +421,8 @@ export default function VendorRegisterPage() {
             )}
           </form>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 

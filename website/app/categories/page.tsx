@@ -6,26 +6,53 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import CategoryGrid from '@/components/CategoryGrid';
 import { ALL_CATEGORIES } from '@/lib/categories';
-import { Grid3X3, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { Grid3X3, ChevronDown, ChevronUp, Search, ArrowLeft } from 'lucide-react';
 
 export default function CategoriesPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [locationState] = useState({
+  const [locationState, setLocationState] = useState({
     lat: null,
     lng: null,
     city: 'Delhi, India',
-    loading: false,
+    loading: true,
     error: null,
   });
+
+  useEffect(() => {
+    const savedLocation = localStorage.getItem('localmarket_location');
+    if (savedLocation) {
+      try {
+        const parsed = JSON.parse(savedLocation);
+        if (parsed.city) {
+          setLocationState({ ...parsed, loading: false, error: null });
+        } else {
+          setLocationState(prev => ({ ...prev, loading: false }));
+        }
+      } catch (e) {
+        setLocationState(prev => ({ ...prev, loading: false }));
+      }
+    } else {
+      setLocationState(prev => ({ ...prev, loading: false }));
+    }
+  }, []);
   const [categories, setCategories] = useState<any[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     fetch('/api/categories')
       .then(res => res.json())
-      .then(data => setCategories(data.categories || []))
-      .catch(err => console.error('Failed to fetch categories:', err));
+      .then(data => {
+        if (data.categories && data.categories.length > 0) {
+          setCategories(data.categories);
+        } else {
+          setCategories(ALL_CATEGORIES);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch categories:', err);
+        setCategories(ALL_CATEGORIES);
+      });
   }, []);
 
   const handleCategorySelect = (categoryName: string) => {
@@ -46,7 +73,6 @@ export default function CategoriesPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header
-        locationState={locationState}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}
@@ -56,8 +82,8 @@ export default function CategoriesPage() {
       <div className="border-b border-slate-100 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex items-center gap-4 mb-3">
-            <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-md">
-              <Grid3X3 className="text-white" size={22} />
+            <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-md cursor-pointer hover:rotate-6 transition-transform" onClick={() => router.back()}>
+              <ArrowLeft className="text-white" size={22} />
             </div>
             <div>
               <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
@@ -88,7 +114,7 @@ export default function CategoriesPage() {
             {showAll ? (
               <><ChevronUp size={18} /> Show Less</>
             ) : (
-              <><ChevronDown size={18} /> View All {categories.length || ALL_CATEGORIES.length} Categories</>
+              <><ChevronDown size={18} /> View All {categories.length || 58} Categories</>
             )}
           </button>
         </div>

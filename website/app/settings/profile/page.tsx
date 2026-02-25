@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { ArrowLeft, User, Mail, Phone, MapPin, Save, Edit } from 'lucide-react';
 import Image from 'next/image';
+import { INDIAN_STATES, STATE_CITIES } from '@/lib/locationData';
 
 export default function ProfileSettingsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -17,6 +18,7 @@ export default function ProfileSettingsPage() {
     email: 'john.doe@example.com',
     phone: '+91 9876543210',
     address: '123 Main Street',
+    state: 'Delhi',
     city: 'Delhi',
     pincode: '110001',
     imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80',
@@ -31,7 +33,6 @@ export default function ProfileSettingsPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header
-        locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}
@@ -165,25 +166,39 @@ export default function ProfileSettingsPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <input
-                        type="text"
+                      <select
+                        value={profileData.state}
+                        onChange={(e) => setProfileData({ ...profileData, state: e.target.value, city: '' })}
+                        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
+                      >
+                        <option value="">Select State</option>
+                        {INDIAN_STATES.map(state => (
+                          <option key={state} value={state}>{state}</option>
+                        ))}
+                      </select>
+                      <select
                         value={profileData.city}
                         onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
-                        placeholder="City"
-                        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                      />
-                      <input
-                        type="text"
-                        value={profileData.pincode}
-                        onChange={(e) => setProfileData({ ...profileData, pincode: e.target.value })}
-                        placeholder="Pincode"
-                        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                      />
+                        disabled={!profileData.state}
+                        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white disabled:bg-gray-50"
+                      >
+                        <option value="">Select City</option>
+                        {profileData.state && STATE_CITIES[profileData.state]?.map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
                     </div>
+                    <input
+                      type="text"
+                      value={profileData.pincode}
+                      onChange={(e) => setProfileData({ ...profileData, pincode: e.target.value })}
+                      placeholder="Pincode"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                    />
                   </div>
                 ) : (
                   <p className="text-gray-900 py-3">
-                    {profileData.address}, {profileData.city} - {profileData.pincode}
+                    {profileData.address}, {profileData.city}, {profileData.state} - {profileData.pincode}
                   </p>
                 )}
               </div>

@@ -94,14 +94,14 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
                         <Bookmark size={20} />
                         <span>Saved Items</span>
                       </button>
-                      <button onClick={() => { onNavigate('eauction'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
+                      {/* <button onClick={() => { onNavigate('eauction'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
                         <Gavel size={20} />
                         <span>E-Auction</span>
                       </button>
                       <button onClick={() => { onNavigate('draws'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
                         <Ticket size={20} />
                         <span>Online Draws</span>
-                      </button>
+                      </button> */}
                     </div>
                   )}
                 </div>

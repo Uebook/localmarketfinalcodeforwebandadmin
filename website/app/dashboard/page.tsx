@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-            <Header locationState={{ loading: false, error: null, city: user.city ? `${user.city}, India` : 'Delhi, India' }} />
+            <Header />
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
@@ -121,8 +121,8 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {/* Quick Stats (Hidden as per request) */}
+                {/* <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                         { icon: Heart, label: 'Saved', value: '—', color: 'text-red-500' },
                         { icon: ShoppingBag, label: 'Orders', value: '—', color: 'text-primary' },
@@ -135,7 +135,7 @@ export default function DashboardPage() {
                             <span className="text-xs text-slate-500 font-medium">{label}</span>
                         </div>
                     ))}
-                </div>
+                </div> */}
 
                 {/* Profile Info Card */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">

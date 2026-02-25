@@ -74,8 +74,8 @@ function FilterPanel({
                   key={opt.id}
                   onClick={() => setLocal(prev => ({ ...prev, sortBy: opt.id as Filters['sortBy'] }))}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-sm font-bold transition-all ${local.sortBy === opt.id
-                      ? 'border-transparent text-white'
-                      : 'border-slate-100 text-slate-700 hover:border-slate-200 bg-white'
+                    ? 'border-transparent text-white'
+                    : 'border-slate-100 text-slate-700 hover:border-slate-200 bg-white'
                     }`}
                   style={local.sortBy === opt.id ? { background: 'var(--gradient-primary, linear-gradient(135deg, #E86A2C, #4A6CF7))' } : {}}
                 >
@@ -95,8 +95,8 @@ function FilterPanel({
                   key={r}
                   onClick={() => setLocal(prev => ({ ...prev, minRating: r }))}
                   className={`flex items-center gap-1 px-3 py-2 rounded-xl border text-sm font-bold transition-all ${local.minRating === r
-                      ? 'border-transparent text-white'
-                      : 'border-slate-100 text-slate-700 hover:border-slate-200 bg-white'
+                    ? 'border-transparent text-white'
+                    : 'border-slate-100 text-slate-700 hover:border-slate-200 bg-white'
                     }`}
                   style={local.minRating === r ? { background: 'var(--gradient-primary, linear-gradient(135deg, #E86A2C, #4A6CF7))' } : {}}
                 >
@@ -121,8 +121,8 @@ function FilterPanel({
                     key={cat}
                     onClick={() => toggleCategory(cat)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-sm font-bold transition-all ${local.categories.includes(cat)
-                        ? 'border-transparent text-white'
-                        : 'border-slate-100 text-slate-700 hover:border-slate-200 bg-white'
+                      ? 'border-transparent text-white'
+                      : 'border-slate-100 text-slate-700 hover:border-slate-200 bg-white'
                       }`}
                     style={local.categories.includes(cat) ? { background: 'var(--gradient-primary, linear-gradient(135deg, #E86A2C, #4A6CF7))' } : {}}
                   >
@@ -213,10 +213,12 @@ function SearchContent() {
 
   const handleSearch = async (query: string) => {
     try {
+      const savedLoc = localStorage.getItem('localmarket_location');
+      const city = savedLoc ? JSON.parse(savedLoc).city : 'Delhi, India';
       fetch('/api/search/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query.trim(), city: 'Delhi, India', userId: JSON.parse(localStorage.getItem('localmarket_user') || '{}').id })
+        body: JSON.stringify({ query: query.trim(), city: city, userId: JSON.parse(localStorage.getItem('localmarket_user') || '{}').id })
       });
     } catch (err) { console.warn('Failed to track search:', err); }
     router.push(`/search?q=${encodeURIComponent(query)}`);
@@ -225,7 +227,6 @@ function SearchContent() {
   return (
     <div className="min-h-screen bg-white">
       <Header
-        locationState={{ loading: false, error: null, city: 'Delhi, India' }}
         onMenuClick={() => setIsSidebarOpen(true)}
         onProfileClick={() => router.push('/settings')}
         onNotificationClick={() => router.push('/notifications')}
