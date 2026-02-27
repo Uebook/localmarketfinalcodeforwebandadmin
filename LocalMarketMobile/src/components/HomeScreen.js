@@ -97,31 +97,28 @@ const HomeScreen = ({ navigation, route }) => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const res = await fetch(`https://admin-panel-rho-sepia-57.vercel.app/api/geocode?lat=${latitude}&lng=${longitude}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data && data.address) {
-                const addr = data.address;
-                const mainArea = addr.village || addr.hamlet || addr.suburb || addr.neighbourhood || addr.city_district || addr.city || addr.town || 'Your Area';
-                const city = addr.city || addr.town || addr.city_district || '';
+            const data = await reverseGeocode(latitude, longitude);
+            if (data && data.address) {
+              const addr = data.address;
+              const mainArea = addr.village || addr.hamlet || addr.suburb || addr.neighbourhood || addr.city_district || addr.city || addr.town || 'Your Area';
+              const city = addr.city || addr.town || addr.city_district || '';
 
-                let displayLabel = mainArea;
-                if (city && city !== mainArea && !displayLabel.includes(city)) {
-                  displayLabel = `${displayLabel}, ${city}`;
-                }
-
-                const fullAddress = data.display_name || Object.values(addr).filter(Boolean).join(', ');
-
-                setLocationState({
-                  lat: latitude,
-                  lng: longitude,
-                  city: displayLabel,
-                  fullAddress: fullAddress,
-                  loading: false,
-                  error: null,
-                });
-                return;
+              let displayLabel = mainArea;
+              if (city && city !== mainArea && !displayLabel.includes(city)) {
+                displayLabel = `${displayLabel}, ${city}`;
               }
+
+              const fullAddress = data.display_name || Object.values(addr).filter(Boolean).join(', ');
+
+              setLocationState({
+                lat: latitude,
+                lng: longitude,
+                city: displayLabel,
+                fullAddress: fullAddress,
+                loading: false,
+                error: null,
+              });
+              return;
             }
           } catch (geocodeErr) {
             console.warn("Geocoding failed", geocodeErr);

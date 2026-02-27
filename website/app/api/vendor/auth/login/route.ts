@@ -12,7 +12,11 @@ export async function POST(request: NextRequest) {
 
         let query = '/rest/v1/vendors?select=*&limit=1';
         if (phone) {
-            const cleaned = phone.replace(/\D/g, '');
+            let cleaned = phone.replace(/\D/g, '');
+            // Handle +91 prefix added by mobile app
+            if (cleaned.length === 12 && cleaned.startsWith('91')) {
+                cleaned = cleaned.substring(2);
+            }
             query += `&contact_number=eq.${encodeURIComponent(cleaned)}`;
         } else {
             query += `&email=eq.${encodeURIComponent(email.toLowerCase().trim())}`;

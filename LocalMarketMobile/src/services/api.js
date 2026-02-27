@@ -3,7 +3,7 @@
  * Base URL: https://admin-panel-rho-sepia-57.vercel.app
  */
 
-const API_BASE_URL = 'https://admin-panel-rho-sepia-57.vercel.app';
+export const API_BASE_URL = 'https://admin-panel-rho-sepia-57.vercel.app'; // Production URL
 
 /**
  * Generic fetch wrapper with error handling
@@ -173,6 +173,21 @@ export const getLocations = async (filters = {}) => {
   } catch (error) {
     console.error('Error getting locations:', error);
     return { locations: [] };
+  }
+};
+
+/**
+ * Reverse geocode latitude and longitude into an address using the backend
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @returns {Promise<{address: Object, display_name: string}>}
+ */
+export const reverseGeocode = async (lat, lng) => {
+  try {
+    return await apiRequest(`/api/geocode?lat=${lat}&lng=${lng}`);
+  } catch (error) {
+    console.error('Error reverse geocoding:', error);
+    throw error;
   }
 };
 
@@ -458,6 +473,28 @@ export const login = async (credentials) => {
 };
 
 /**
+ * Login vendor
+ * @param {Object} credentials
+ * @param {string} credentials.method - 'email' or 'sms'
+ * @param {string} credentials.email - Email (required for email method)
+ * @param {string} credentials.phone - Phone number (required for sms method)
+ * @param {string} credentials.password - Password (required for email method)
+ * @param {string} credentials.otp - OTP (required for sms verification)
+ * @returns {Promise<{success: boolean, user?: Object, message?: string, otp?: string}>}
+ */
+export const vendorLogin = async (credentials) => {
+  try {
+    return await apiRequest('/api/vendor/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  } catch (error) {
+    console.error('Vendor Login error:', error);
+    throw error;
+  }
+};
+
+/**
  * Register new user
  * @param {Object} userData
  * @param {string} userData.full_name - Full name
@@ -734,6 +771,7 @@ export default {
   submitReview,
   submitReviewReply,
   login,
+  vendorLogin,
   register,
   registerVendor,
   uploadFile,

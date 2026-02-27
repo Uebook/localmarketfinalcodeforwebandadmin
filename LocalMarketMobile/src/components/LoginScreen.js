@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { login } from '../services/api';
+import { login, vendorLogin } from '../services/api';
 import { saveUserData } from '../utils/userStorage';
 
 import PermissionRequestScreen from './PermissionRequestScreen';
@@ -65,7 +65,8 @@ const LoginScreen = ({ onLogin, onRegister }) => {
     try {
       if (loginMethod === 'mobile') {
         // Request OTP for SMS login
-        const response = await login({
+        const loginFn = isLocalPlusMode ? vendorLogin : login;
+        const response = await loginFn({
           method: 'sms',
           phone: `+91${mobile}`,
         });
@@ -86,7 +87,8 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           return;
         }
 
-        const response = await login({
+        const loginFn = isLocalPlusMode ? vendorLogin : login;
+        const response = await loginFn({
           method: 'email',
           email: email.toLowerCase(),
           password: password,
@@ -129,7 +131,8 @@ const LoginScreen = ({ onLogin, onRegister }) => {
     setError('');
 
     try {
-      const response = await login({
+      const loginFn = isLocalPlusMode ? vendorLogin : login;
+      const response = await loginFn({
         method: 'sms',
         phone: `+91${mobile}`,
         otp: otpString,
@@ -186,7 +189,8 @@ const LoginScreen = ({ onLogin, onRegister }) => {
     setError('');
 
     try {
-      const response = await login({
+      const loginFn = isLocalPlusMode ? vendorLogin : login;
+      const response = await loginFn({
         method: 'sms',
         phone: `+91${mobile}`,
       });
