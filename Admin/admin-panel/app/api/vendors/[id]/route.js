@@ -18,35 +18,76 @@ export async function GET(req, { params }) {
         }
 
         const v = vendors[0];
+        const vendor = {
+            id: v.id,
+            vendorId: v.id,
+            name: v.name || v.shop_name || '',
+            ownerName: v.owner_name || v.owner || '',
+            email: v.email || '',
+            phone: v.contact_number || '',
+            contactNumber: v.contact_number || '',
+            category: v.category || '',
+            address: v.address || '',
+            city: v.city || '',
+            state: v.state || '',
+            pincode: v.pincode || '',
+            landmark: v.landmark || '',
+            district: v.district || '',
+            status: v.status || 'Active',
+            kycStatus: v.kyc_status || 'Approved',
+            activationStatus: v.status || 'Active',
+            rating: v.rating || 0,
+            reviewCount: v.review_count || 0,
+            profileImageUrl: v.profile_image_url || null,
+            imageUrl: v.image_url || v.shop_front_photo_url || null,
+            about: v.about || '',
+            openTime: v.open_time || '09:00 AM',
+            closeTime: v.close_time || '09:00 PM',
+            openingTime: v.open_time || '09:00',
+            closingTime: v.close_time || '21:00',
+            createdAt: v.created_at || '',
+            profileViews: v.profile_views || 0,
+            searchAppearances: v.search_appearances || 0,
+            role: 'vendor',
+            location: {
+                lat: v.latitude || 28.6139,
+                lng: v.longitude || 77.2090,
+                city: v.city || 'Delhi',
+                state: v.state || 'Delhi',
+                address: v.address || '',
+                pincode: v.pincode || ''
+            }
+        };
+
         return Response.json({
-            vendor: {
-                id: v.id,
-                name: v.name ?? '',
-                ownerName: v.owner_name ?? v.owner ?? '',
-                owner: v.owner ?? v.owner_name ?? '',
-                email: v.email ?? '',
-                phone: v.contact_number ?? '',
-                contactNumber: v.contact_number ?? '',
-                category: v.category ?? '',
-                address: v.address ?? '',
-                city: v.city ?? '',
-                state: v.state ?? '',
-                pincode: v.pincode ?? '',
-                status: v.status ?? 'Pending',
-                kycStatus: v.kyc_status ?? 'Pending',
-                rating: v.rating ?? 0,
-                reviewCount: v.review_count ?? 0,
-                productCount: v.product_count ?? (Array.isArray(products) ? products.length : 0),
-                imageUrl: v.image_url ?? v.shop_front_photo_url ?? null,
-                shopFrontPhotoUrl: v.shop_front_photo_url ?? v.image_url ?? null,
-                idProofUrl: v.id_proof_url ?? null,
-                ownerPhotoUrl: v.owner_photo_url ?? null,
-                insideShopPhotoUrl: v.inside_shop_photo_url ?? null,
-                createdAt: v.created_at ?? '',
-            },
-            products: Array.isArray(products) ? products : [],
-            enquiries: Array.isArray(enquiries) ? enquiries : [],
-            reviews: Array.isArray(reviews) ? reviews : [],
+            vendor,
+            products: Array.isArray(products) ? products.map(p => ({
+                id: p.id,
+                name: p.name,
+                price: p.price,
+                mrp: p.original_price || p.mrp || p.price,
+                discount: p.discount,
+                category: p.categories?.name || p.category_name || '',
+                imageUrl: p.image_url,
+                description: p.description,
+                status: p.status,
+                inStock: p.status === 'Active'
+            })) : [],
+            enquiries: Array.isArray(enquiries) ? enquiries.map(e => ({
+                id: e.id,
+                senderName: e.sender_name || 'Customer',
+                date: e.created_at ? new Date(e.created_at).toLocaleDateString() : '',
+                message: e.message,
+                status: e.status
+            })) : [],
+            reviews: Array.isArray(reviews) ? reviews.map(r => ({
+                id: r.id,
+                user_name: r.user_name || r.customer_name || 'Customer',
+                rating: r.rating,
+                comment: r.comment,
+                created_at: r.created_at,
+                reply: r.reply
+            })) : [],
         }, { status: 200 });
     } catch (e) {
         console.error('Vendor detail error:', e);

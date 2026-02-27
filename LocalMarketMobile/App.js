@@ -7,7 +7,7 @@ import { StatusBar, View, StyleSheet, Text, TouchableOpacity } from 'react-nativ
 import Icon from 'react-native-vector-icons/Feather';
 import { saveUserData, loadUserData, clearUserData, isUserAuthenticated } from './src/utils/userStorage';
 import { ThemeProvider } from './src/components/ThemeProvider';
-import { getSavedVendorIds } from './src/utils/savedVendors';
+import { getSavedVendorIds, clearSavedVendors } from './src/utils/savedVendors';
 
 // Import COLORS with safe fallback - use require to avoid Metro bundler issues
 let COLORS_SAFE = {};
@@ -404,12 +404,17 @@ function App() {
   };
 
   const handleLogout = async () => {
-    // Clear user data from AsyncStorage
+    // Clear all persistent data from AsyncStorage
     try {
       await clearUserData();
+      await clearSavedVendors();
+      // Clear any other app-level async data if needed
+
       setUserData(null);
+      setVendorData(null);
+      setSavedBusinessIds([]);
     } catch (error) {
-      console.error('Error clearing user data:', error);
+      console.error('Error clearing data on logout:', error);
     }
 
     setIsAuthenticated(false);

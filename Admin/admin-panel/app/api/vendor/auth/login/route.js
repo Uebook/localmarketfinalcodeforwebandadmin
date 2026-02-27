@@ -65,6 +65,7 @@ export async function POST(req) {
             imageUrl: v.image_url || v.imageUrl || v.shop_front_photo_url || null,
             openTime: v.open_time || '09:00 AM',
             closeTime: v.close_time || '09:00 PM',
+            role: 'vendor',
             location: {
                 lat: v.latitude || 28.6139,
                 lng: v.longitude || 77.2090,

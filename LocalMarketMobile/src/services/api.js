@@ -541,7 +541,8 @@ export const registerVendor = async (vendorData) => {
  */
 export const getVendorProfile = async (vendorId) => {
   if (!vendorId) return null;
-  return await apiRequest(`/api/vendor/profile?id=${vendorId}`);
+  // Using pluralized /api/vendors/ endpoint which is confirmed working and updated with robust normalization
+  return await apiRequest(`/api/vendors/${vendorId}`);
 };
 
 /**
