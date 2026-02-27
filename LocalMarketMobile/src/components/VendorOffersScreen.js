@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -8,6 +8,7 @@ import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
+import { getFestiveOffers, createOffer, updateOffer, deleteOffer } from '../services/api';
 
 const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
@@ -20,9 +21,10 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     error: null,
   });
 
-  const [offers, setOffers] = useState(vendorData?.offers || []);
-
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [savingOffer, setSavingOffer] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -31,6 +33,26 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     discountAmount: '',
     validUntil: '',
   });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+
+  useEffect(() => {
+    fetchOffers();
+  }, [vendorData?.id]);
+
+  const fetchOffers = async () => {
+    if (!vendorData?.id) return;
+    try {
+      setLoading(true);
+      const data = await getFestiveOffers({ vendorId: vendorData.id });
+      setOffers(data || []);
+    } catch (error) {
+      console.error('Error fetching offers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMenuClick = () => {
     const vendorControl = getVendorSidebarControl();
@@ -69,56 +91,85 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     setShowCreateForm(true);
   };
 
-  const handleDeleteOffer = (offerId) => {
-    setOffers(offers.filter(o => o.id !== offerId));
-    if (setVendorData) {
-      setVendorData({
-        ...vendorData,
-        offers: offers.filter(o => o.id !== offerId),
-      });
-    }
+  const handleDeleteOffer = async (offerId) => {
+    Alert.alert(
+      'Delete Offer',
+      'Are you sure you want to delete this offer?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteOffer(offerId);
+              setOffers(offers.filter(o => o.id !== offerId));
+              Alert.alert('Success', 'Offer deleted successfully');
+            } catch (error) {
+              console.error('Error deleting offer:', error);
+              Alert.alert('Error', 'Failed to delete offer');
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const handleSaveOffer = () => {
+  const handleSaveOffer = async () => {
     if (!formData.title || !formData.code || !formData.discountAmount) {
-      return; // Validation
+      Alert.alert('Error', 'Please fill in all required fields');
+      return;
     }
 
-    const newOffer = {
-      id: editingOffer?.id || `vo${Date.now()}`,
+    // Basic date validation (YYYY-MM-DD or DD/MM/YYYY)
+    let endDate = formData.validUntil;
+    if (endDate && endDate.includes('/')) {
+      const [d, m, y] = endDate.split('/');
+      endDate = `${y}-${m}-${d}`;
+    } else if (!endDate) {
+      endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // Default 30 days
+    }
+
+    const offerPayload = {
       title: formData.title,
       description: formData.description,
-      code: formData.code.toUpperCase(),
-      discountAmount: formData.discountAmount,
-      validUntil: formData.validUntil || '2025-12-31',
-      isActive: true,
-      color: 'bg-purple-600',
+      type: 'vendor',
+      target: 'specific',
+      vendor_ids: [vendorData.id],
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: endDate,
+      discount_percent: parseFloat(formData.discountAmount.replace('%', '')) || null,
+      status: 'active',
     };
 
-    if (editingOffer) {
-      setOffers(offers.map(o => o.id === editingOffer.id ? newOffer : o));
-    } else {
-      setOffers([...offers, newOffer]);
-    }
+    try {
+      setSavingOffer(true);
+      let res;
+      if (editingOffer) {
+        res = await updateOffer({ id: editingOffer.id, ...offerPayload });
+      } else {
+        res = await createOffer(offerPayload);
+      }
 
-    if (setVendorData) {
-      setVendorData({
-        ...vendorData,
-        offers: editingOffer
-          ? offers.map(o => o.id === editingOffer.id ? newOffer : o)
-          : [...offers, newOffer],
-      });
+      if (res) {
+        await fetchOffers();
+        setShowCreateForm(false);
+        setEditingOffer(null);
+        setFormData({
+          title: '',
+          description: '',
+          code: '',
+          discountAmount: '',
+          validUntil: '',
+        });
+        Alert.alert('Success', `Offer ${editingOffer ? 'updated' : 'created'} successfully`);
+      }
+    } catch (error) {
+      console.error('Error saving offer:', error);
+      Alert.alert('Error', 'Failed to save offer');
+    } finally {
+      setSavingOffer(false);
     }
-
-    setShowCreateForm(false);
-    setEditingOffer(null);
-    setFormData({
-      title: '',
-      description: '',
-      code: '',
-      discountAmount: '',
-      validUntil: '',
-    });
   };
 
   const handleCloseForm = () => {
@@ -132,6 +183,41 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
       validUntil: '',
     });
   };
+
+  const handleDateSelect = (day) => {
+    const date = new Date(selectedYear, selectedMonth, day);
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(selectedMonth + 1).padStart(2, '0');
+    const dateStr = `${dayStr}/${monthStr}/${selectedYear}`;
+    setFormData({ ...formData, validUntil: dateStr });
+    setShowDatePicker(false);
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
+    const days = [];
+
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<View key={`empty-${i}`} style={styles.calendarDayEmpty} />);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push(
+        <TouchableOpacity
+          key={d}
+          style={styles.calendarDay}
+          onPress={() => handleDateSelect(d)}
+        >
+          <Text style={styles.calendarDayText}>{d}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return days;
+  };
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   const profileCompletion = 85;
 
@@ -312,24 +398,85 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>VALID UNTIL</Text>
-                  <View style={styles.dateInputContainer}>
+                  <TouchableOpacity
+                    style={styles.dateInputContainer}
+                    onPress={() => setShowDatePicker(true)}
+                    activeOpacity={0.7}
+                  >
                     <TextInput
                       style={[styles.input, styles.dateInput]}
                       value={formData.validUntil}
-                      onChangeText={(text) => setFormData({ ...formData, validUntil: text })}
                       placeholder="dd/mm/yyyy"
                       placeholderTextColor={COLORS.textMuted}
+                      editable={false}
+                      pointerEvents="none"
                     />
                     <Icon name={getIconName('Calendar')} size={20} color={COLORS.textMuted} style={styles.calendarIcon} />
-                  </View>
+                  </TouchableOpacity>
                 </View>
+
+                {/* Date Picker Modal */}
+                <Modal
+                  visible={showDatePicker}
+                  transparent={true}
+                  animationType="fade"
+                  onRequestClose={() => setShowDatePicker(false)}
+                >
+                  <View style={styles.modalOverlay}>
+                    <View style={styles.datePickerContainer}>
+                      <View style={styles.datePickerHeader}>
+                        <TouchableOpacity onPress={() => {
+                          if (selectedMonth === 0) {
+                            setSelectedMonth(11);
+                            setSelectedYear(selectedYear - 1);
+                          } else {
+                            setSelectedMonth(selectedMonth - 1);
+                          }
+                        }}>
+                          <Icon name="chevron-left" size={24} color={COLORS.textPrimary} />
+                        </TouchableOpacity>
+                        <Text style={styles.datePickerTitle}>{months[selectedMonth]} {selectedYear}</Text>
+                        <TouchableOpacity onPress={() => {
+                          if (selectedMonth === 11) {
+                            setSelectedMonth(0);
+                            setSelectedYear(selectedYear + 1);
+                          } else {
+                            setSelectedMonth(selectedMonth + 1);
+                          }
+                        }}>
+                          <Icon name="chevron-right" size={24} color={COLORS.textPrimary} />
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.calendarGrid}>
+                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+                          <Text key={d} style={styles.calendarWeekday}>{d}</Text>
+                        ))}
+                        {renderCalendar()}
+                      </View>
+                      <TouchableOpacity
+                        style={styles.closeDatePickerButton}
+                        onPress={() => setShowDatePicker(false)}
+                      >
+                        <Text style={styles.closeDatePickerButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </Modal>
 
                 <View style={styles.formButtons}>
                   <TouchableOpacity style={styles.cancelButton} onPress={handleCloseForm}>
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.saveOfferButton} onPress={handleSaveOffer}>
-                    <Text style={styles.saveOfferButtonText}>Create Offer</Text>
+                  <TouchableOpacity
+                    style={[styles.saveOfferButton, savingOffer && styles.disabledButton]}
+                    onPress={handleSaveOffer}
+                    disabled={savingOffer}
+                  >
+                    {savingOffer ? (
+                      <ActivityIndicator size="small" color={COLORS.white} />
+                    ) : (
+                      <Text style={styles.saveOfferButtonText}>{editingOffer ? 'Update Offer' : 'Create Offer'}</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -718,6 +865,69 @@ const createStyles = (COLORS) => StyleSheet.create({
   expiryText: {
     fontSize: 12,
     color: COLORS.textMuted,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  datePickerContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    width: '85%',
+    elevation: 5,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  calendarWeekday: {
+    width: `${100 / 7}%`,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    marginBottom: 8,
+  },
+  calendarDay: {
+    width: `${100 / 7}%`,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarDayEmpty: {
+    width: `${100 / 7}%`,
+    height: 40,
+  },
+  calendarDayText: {
+    fontSize: 14,
+    color: COLORS.textPrimary,
+  },
+  closeDatePickerButton: {
+    marginTop: 16,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  closeDatePickerButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.orange,
   },
 });
 

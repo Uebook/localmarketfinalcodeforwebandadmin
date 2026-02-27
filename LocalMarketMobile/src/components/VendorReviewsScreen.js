@@ -10,13 +10,16 @@ import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare, handlePreview } from '../utils/vendorActions';
 
-const VendorReviewsScreen = ({ navigation, vendorData }) => {
+import { submitReviewReply, getVendorProfile } from '../services/api';
+import { ActivityIndicator, Alert } from 'react-native';
+
+const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [locationState] = React.useState({
-    lat: null,
-    lng: null,
-    city: 'Delhi, India',
+    lat: vendorData?.location?.lat || null,
+    lng: vendorData?.location?.lng || null,
+    city: vendorData?.location?.city || vendorData?.city || 'Delhi, India',
     loading: false,
     error: null,
   });
@@ -36,6 +39,50 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
 
   const profileCompletion = 85;
   const reviews = vendorData?.reviews || [];
+
+  const [replyTexts, setReplyTexts] = useState({});
+  const [submittingReply, setSubmittingReply] = useState({});
+
+  const handleReplyUpdate = (reviewId, text) => {
+    setReplyTexts(prev => ({ ...prev, [reviewId]: text }));
+  };
+
+  const handleReplySubmit = async (reviewId) => {
+    const replyText = replyTexts[reviewId];
+    if (!replyText || !replyText.trim()) {
+      Alert.alert('Error', 'Please enter a reply message.');
+      return;
+    }
+
+    try {
+      setSubmittingReply(prev => ({ ...prev, [reviewId]: true }));
+      const response = await submitReviewReply(reviewId, replyText);
+
+      if (response && response.success) {
+        // Clear reply text
+        setReplyTexts(prev => {
+          const newState = { ...prev };
+          delete newState[reviewId];
+          return newState;
+        });
+
+        // Refresh vendor data
+        if (setVendorData && vendorData?.id) {
+          const freshData = await getVendorProfile(vendorData.id);
+          if (freshData) {
+            setVendorData(freshData);
+          }
+        }
+
+        Alert.alert('Success', 'Reply submitted successfully.');
+      }
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      Alert.alert('Error', 'Failed to submit reply. Please try again.');
+    } finally {
+      setSubmittingReply(prev => ({ ...prev, [reviewId]: false }));
+    }
+  };
 
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -182,9 +229,20 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
                     style={styles.replyInput}
                     placeholder="Write a reply..."
                     placeholderTextColor={COLORS.textMuted}
+                    value={replyTexts[review.id] || ''}
+                    onChangeText={(text) => handleReplyUpdate(review.id, text)}
+                    editable={!submittingReply[review.id]}
                   />
-                  <TouchableOpacity style={styles.replyButton}>
-                    <Text style={styles.replyButtonText}>Reply</Text>
+                  <TouchableOpacity
+                    style={[styles.replyButton, submittingReply[review.id] && { opacity: 0.7 }]}
+                    onPress={() => handleReplySubmit(review.id)}
+                    disabled={submittingReply[review.id]}
+                  >
+                    {submittingReply[review.id] ? (
+                      <ActivityIndicator size="small" color={COLORS.orange} />
+                    ) : (
+                      <Text style={styles.replyButtonText}>Reply</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}

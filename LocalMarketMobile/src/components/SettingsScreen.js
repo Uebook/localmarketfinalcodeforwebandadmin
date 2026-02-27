@@ -45,7 +45,7 @@ const SettingsScreen = ({
   const styles = createStyles(COLORS);
 
   useEffect(() => {
-    loadProfileFromAPI();
+    // loadProfileFromAPI();
     loadThemes();
     loadUserTheme();
   }, []);
@@ -56,20 +56,23 @@ const SettingsScreen = ({
   }, [theme]);
 
   useEffect(() => {
-    // Use API data if available, otherwise use passed profileData
-    const dataToUse = apiProfileData || profileData;
+    // Merge API data with passed profileData for completeness
+    const dataToUse = {
+      ...(profileData || {}),
+      ...(apiProfileData || {})
+    };
 
     if (userRole === 'vendor') {
       setFormData({
-        name: dataToUse?.ownerName || dataToUse?.name || '',
-        mobile: dataToUse?.contactNumber || dataToUse?.phone || '',
+        name: dataToUse?.ownerName || dataToUse?.name || dataToUse?.full_name || '',
+        mobile: dataToUse?.contactNumber || dataToUse?.phone || dataToUse?.mobile || '',
         location: dataToUse?.address || dataToUse?.location || '',
         email: dataToUse?.email || '',
-        photo: dataToUse?.ownerPhotoUrl || dataToUse?.profilePhotoUrl || ''
+        photo: dataToUse?.ownerPhotoUrl || dataToUse?.profilePhotoUrl || dataToUse?.imageUrl || ''
       });
     } else {
       setFormData({
-        name: dataToUse?.name || '',
+        name: dataToUse?.name || dataToUse?.full_name || '',
         mobile: dataToUse?.phone || dataToUse?.mobile || '',
         location: dataToUse?.location || `${dataToUse?.city || ''}${dataToUse?.state ? `, ${dataToUse.state}` : ''}`.trim(),
         email: dataToUse?.email || '',

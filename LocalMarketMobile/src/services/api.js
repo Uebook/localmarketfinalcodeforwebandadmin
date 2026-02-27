@@ -4,6 +4,7 @@
  */
 
 export const API_BASE_URL = 'https://admin-panel-rho-sepia-57.vercel.app'; // Production URL
+import { Platform } from 'react-native';
 
 /**
  * Generic fetch wrapper with error handling
@@ -114,21 +115,29 @@ export const getBanners = async () => {
  * Get all festive offers
  * @param {Object} filters - Filter options
  * @param {string} filters.status - Filter by status (active, inactive, expired)
+ * @param {string} filters.vendorId - Filter by vendor ID (optional)
  * @returns {Promise<Array>}
  */
 export const getFestiveOffers = async (filters = {}) => {
   try {
     const params = new URLSearchParams();
     if (filters.status) params.set('status', filters.status);
+    if (filters.vendorId) params.set('vendorId', filters.vendorId);
 
     const queryString = params.toString();
     const response = await apiRequest(`/api/festive-offers${queryString ? `?${queryString}` : ''}`);
 
-    // API returns array directly, not wrapped in {offers: []}
     if (Array.isArray(response)) {
+      // If vendorId is provided, filter client-side if backend doesn't support it yet
+      if (filters.vendorId) {
+        return response.filter(offer =>
+          offer.type === 'vendor' &&
+          offer.vendor_ids &&
+          offer.vendor_ids.includes(filters.vendorId)
+        );
+      }
       return response;
     }
-    // Fallback for old format
     return response.offers || [];
   } catch (error) {
     console.error('Error getting festive offers:', error);
@@ -566,19 +575,27 @@ export const updateVendorProfile = async (id, profileData) => {
  */
 export const uploadFile = async (fileUri, folder) => {
   try {
+    console.log(`Starting upload to ${folder}... URI: ${fileUri}`);
     const formData = new FormData();
+
+    // For React Native fetch/FormData, keeping file:// is usually safer on both platforms
+    // Removing file:// prefix on iOS often causes "Network request failed"
+    const normalizedUri = Platform.OS === 'android' ? fileUri : fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`;
+
     const filename = fileUri.split('/').pop() || 'photo.jpg';
     let type = 'image/jpeg';
     if (filename.toLowerCase().endsWith('.png')) type = 'image/png';
     else if (filename.toLowerCase().endsWith('.pdf')) type = 'application/pdf';
 
     formData.append('file', {
-      uri: fileUri,
+      uri: normalizedUri,
       type: type,
       name: filename,
     });
     formData.append('bucket', 'vendor-documents');
     formData.append('folder', folder);
+
+    console.log('FormData built:', { uri: normalizedUri, type, name: filename, folder });
 
     const response = await fetch(`${API_BASE_URL}/api/upload`, {
       method: 'POST',
@@ -588,13 +605,98 @@ export const uploadFile = async (fileUri, folder) => {
       },
     });
 
+    console.log('Upload response status:', response.status);
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Upload failed');
+
+    if (!response.ok) {
+      console.error('Upload failed on server:', data);
+      throw new Error(data.error || 'Upload failed');
+    }
+
+    console.log('Upload successful! URL:', data.url);
     return data.url;
   } catch (error) {
-    console.error('File Upload error:', error);
+    console.error('File Upload error details:', error);
+    // Specifically catch and log network request failures
+    if (error.message === 'Network request failed') {
+      console.error('Network request failed. This often means the URI is invalid or the server is unreachable.');
+    }
     throw error;
   }
+};
+
+/**
+ * Create a new vendor product
+ * @param {Object} productData - { vendor_id, name, price, ... }
+ * @returns {Promise<Object>}
+ */
+export const createVendorProduct = async (productData) => {
+  return await apiRequest('/api/vendor-products', {
+    method: 'POST',
+    body: JSON.stringify(productData),
+  });
+};
+
+/**
+ * Update a vendor product
+ * @param {string} id - Product ID
+ * @param {Object} productData - Data to update
+ * @returns {Promise<Object>}
+ */
+export const updateVendorProduct = async (id, productData) => {
+  return await apiRequest('/api/vendor-products', {
+    method: 'PATCH',
+    body: JSON.stringify({ id, ...productData }),
+  });
+};
+
+/**
+ * Delete a vendor product
+ * @param {string} id - Product ID
+ * @returns {Promise<Object>}
+ */
+export const deleteVendorProduct = async (id) => {
+  return await apiRequest(`/api/vendor-products?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+};
+
+// ==================== OFFERS API ====================
+
+/**
+ * Create a new offer
+ * @param {Object} offerData
+ * @returns {Promise<Object>}
+ */
+export const createOffer = async (offerData) => {
+  return await apiRequest('/api/festive-offers', {
+    method: 'POST',
+    body: JSON.stringify(offerData),
+  });
+};
+
+/**
+ * Update an existing offer
+ * @param {Object} offerData
+ * @returns {Promise<Object>}
+ */
+export const updateOffer = async (offerData) => {
+  return await apiRequest('/api/festive-offers', {
+    method: 'PATCH',
+    body: JSON.stringify(offerData),
+  });
+};
+
+/**
+ * Delete an offer (sets status to inactive)
+ * @param {string} offerId
+ * @returns {Promise<Object>}
+ */
+export const deleteOffer = async (offerId) => {
+  return await apiRequest('/api/festive-offers', {
+    method: 'PATCH',
+    body: JSON.stringify({ id: offerId, status: 'inactive' }),
+  });
 };
 
 // ==================== SEARCH API ====================

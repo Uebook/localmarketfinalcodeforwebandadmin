@@ -57,6 +57,7 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
   const tabs = [
     { id: 'analytics', label: 'Analytics', icon: Activity, href: '/vendor/dashboard/analytics' },
     { id: 'catalog', label: 'Catalog', icon: Package, href: '/vendor/dashboard/catalog' },
+    { id: 'offers', label: 'Offers', icon: Star, href: '/vendor/dashboard/offers' },
     { id: 'enquiries', label: 'Enquiries', icon: MessageSquare, href: '/vendor/dashboard/enquiries' },
     { id: 'reviews', label: 'Reviews', icon: Star, href: '/vendor/dashboard/reviews' },
     { id: 'profile', label: 'Profile', icon: User, href: '/vendor/dashboard/profile' },
@@ -174,8 +175,8 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
                       key={tab.id}
                       href={tab.href}
                       className={`flex items-center gap-2 px-4 sm:px-5 py-4 border-b-2 transition-colors whitespace-nowrap text-sm font-semibold ${isActive
-                          ? 'border-current'
-                          : 'border-transparent text-slate-500 hover:text-slate-800'
+                        ? 'border-current'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
                         }`}
                       style={isActive ? { color: 'var(--primary)', borderColor: 'var(--primary)' } : {}}
                     >

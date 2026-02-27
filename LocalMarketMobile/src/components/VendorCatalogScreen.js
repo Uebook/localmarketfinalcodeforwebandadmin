@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, TextInput, Switch, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -10,6 +10,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare } from '../utils/vendorActions';
+import { getCategories, createVendorProduct, updateVendorProduct, deleteVendorProduct, uploadFile } from '../services/api';
 
 const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
@@ -39,8 +40,22 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
 
-  const categories = ['Snacks', 'Beverages', 'Electronics', 'Clothing', 'Home & Kitchen', 'Beauty', 'Sports'];
+  const [categories, setCategories] = useState([]);
   const units = ['Piece', 'Kg', 'Litre', 'Pack', 'Box', 'Dozen'];
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        if (data && data.categories) {
+          setCategories(data.categories.map(c => c.name));
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleMenuClick = () => {
     const vendorControl = getVendorSidebarControl();
@@ -98,6 +113,12 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const profileCompletion = 85;
   const [products, setProducts] = useState(vendorData?.products || []);
 
+  useEffect(() => {
+    if (vendorData?.products) {
+      setProducts(vendorData.products);
+    }
+  }, [vendorData]);
+
   const handleAddItem = () => {
     setEditingItem(null);
     setFormData({
@@ -132,14 +153,29 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     setShowAddForm(true);
   };
 
-  const handleDeleteItem = (itemId) => {
-    setProducts(products.filter(p => p.id !== itemId));
-    if (setVendorData) {
-      setVendorData({
-        ...vendorData,
-        products: products.filter(p => p.id !== itemId),
-      });
-    }
+  const handleDeleteItem = async (itemId) => {
+    Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteVendorProduct(itemId);
+            const updatedProducts = products.filter(p => p.id !== itemId);
+            setProducts(updatedProducts);
+            if (setVendorData) {
+              setVendorData({
+                ...vendorData,
+                products: updatedProducts,
+              });
+            }
+          } catch (err) {
+            Alert.alert('Error', 'Failed to delete product');
+          }
+        }
+      }
+    ]);
   };
 
   const handleImagePicker = () => {
@@ -167,44 +203,76 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     return '';
   };
 
-  const handleSaveItem = () => {
+  const handleSaveItem = async () => {
     if (!formData.name || !formData.price) {
-      return; // Validation
+      Alert.alert('Required Fields', 'Please enter Name and Price');
+      return;
     }
 
-    const discount = calculateDiscount(formData.price, formData.mrp);
-    const newItem = {
-      id: editingItem?.id || Date.now().toString(),
-      name: formData.name,
-      category: formData.category,
-      price: `₹${formData.price}`,
-      originalPrice: formData.mrp ? `₹${formData.mrp}` : undefined,
-      discount: discount,
-      inStock: formData.inStock,
-      bestSeller: formData.bestSeller,
-      type: formData.type,
-      unit: formData.unit,
-      description: formData.description,
-      imageUrl: formData.image?.uri || 'https://via.placeholder.com/100',
-    };
+    try {
+      let imageUrl = editingItem?.imageUrl || 'https://via.placeholder.com/100';
+      if (formData.image && formData.image.uri && formData.image.uri !== editingItem?.imageUrl) {
+        // Upload image if it's new
+        imageUrl = await uploadFile(formData.image.uri, 'product-images', formData.image.type);
+      }
 
-    if (editingItem) {
-      setProducts(products.map(p => p.id === editingItem.id ? newItem : p));
-    } else {
-      setProducts([...products, newItem]);
+      const productPayload = {
+        vendor_id: vendorData.id,
+        name: formData.name,
+        price: parseFloat(formData.price),
+        mrp: formData.mrp ? parseFloat(formData.mrp) : null,
+        uom: formData.unit,
+        category: formData.category,
+        description: formData.description,
+        image_url: imageUrl,
+        status: formData.inStock ? 'Active' : 'Inactive',
+      };
+
+      let res;
+      if (editingItem) {
+        res = await updateVendorProduct(editingItem.id, productPayload);
+      } else {
+        res = await createVendorProduct(productPayload);
+      }
+
+      if (res && res.success) {
+        // Update local state
+        const discount = calculateDiscount(formData.price, formData.mrp);
+        const newItem = {
+          ...res.product,
+          id: res.product.id,
+          name: res.product.name,
+          category: res.product.category_name || res.product.category || formData.category,
+          price: `₹${res.product.price}`,
+          originalPrice: res.product.mrp ? `₹${res.product.mrp}` : undefined,
+          discount: discount,
+          inStock: res.product.status === 'Active',
+          imageUrl: res.product.image_url || imageUrl,
+        };
+
+        let updatedProducts;
+        if (editingItem) {
+          updatedProducts = products.map(p => p.id === editingItem.id ? newItem : p);
+        } else {
+          updatedProducts = [...products, newItem];
+        }
+
+        setProducts(updatedProducts);
+        if (setVendorData) {
+          setVendorData({
+            ...vendorData,
+            products: updatedProducts,
+          });
+        }
+        setShowAddForm(false);
+        setEditingItem(null);
+      } else {
+        Alert.alert('Error', res.error || 'Failed to save product');
+      }
+    } catch (err) {
+      console.error('Save Product Error:', err);
+      Alert.alert('Error', 'Something went wrong while saving');
     }
-
-    if (setVendorData) {
-      setVendorData({
-        ...vendorData,
-        products: editingItem
-          ? products.map(p => p.id === editingItem.id ? newItem : p)
-          : [...products, newItem],
-      });
-    }
-
-    setShowAddForm(false);
-    setEditingItem(null);
   };
 
   const handleCloseForm = () => {

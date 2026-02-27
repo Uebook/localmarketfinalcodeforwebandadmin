@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -13,14 +13,17 @@ import WriteReview from './WriteReview';
 import LocationPicker from './LocationPicker';
 import { formatLocation } from '../constants/locations';
 import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { uploadFile, updateVendorProfile, getVendorProfile } from '../services/api';
+import { ActivityIndicator, Image } from 'react-native';
 
-const VendorProfileScreen = ({ navigation, vendorData }) => {
+const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [locationState] = useState({
-    lat: null,
-    lng: null,
-    city: 'Delhi, India',
+    lat: vendorData?.location?.lat || null,
+    lng: vendorData?.location?.lng || null,
+    city: vendorData?.location?.city || vendorData?.city || 'Delhi, India',
     loading: false,
     error: null,
   });
@@ -30,6 +33,130 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
   const [showWriteReview, setShowWriteReview] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [location, setLocation] = useState(vendorData?.location || null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: vendorData?.name || '',
+    category: vendorData?.category || '',
+    ownerName: vendorData?.ownerName || '',
+    contactNumber: vendorData?.contactNumber || '',
+    address: vendorData?.address || '',
+    openTime: vendorData?.openTime || '',
+    closeTime: vendorData?.closeTime || '',
+    about: vendorData?.about || '',
+  });
+
+  const handleEditClick = () => {
+    setEditFormData({
+      name: vendorData?.name || '',
+      category: vendorData?.category || '',
+      ownerName: vendorData?.ownerName || '',
+      contactNumber: vendorData?.contactNumber || '',
+      address: vendorData?.address || '',
+      openTime: vendorData?.openTime || '',
+      closeTime: vendorData?.closeTime || '',
+      about: vendorData?.about || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!vendorData?.id) return;
+    try {
+      setSavingProfile(true);
+      const res = await updateVendorProfile(vendorData.id, editFormData);
+      if (res && res.success !== false) {
+        // Refresh vendor data
+        if (setVendorData) {
+          try {
+            const freshData = await getVendorProfile(vendorData.id);
+            if (freshData && freshData.vendor) {
+              setVendorData(freshData.vendor);
+            }
+          } catch (refreshError) {
+            console.error('Error refreshing vendor data:', refreshError);
+          }
+        }
+        setShowEditModal(false);
+        Alert.alert('Success', 'Profile updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert('Error', 'Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleImagePick = async (type) => {
+    const options = {
+      mediaType: 'photo',
+      includeBase64: false,
+      maxHeight: 1200,
+      maxWidth: 1200,
+    };
+
+    try {
+      const result = await launchImageLibrary(options);
+
+      if (result.didCancel) return;
+      if (result.errorCode) {
+        Alert.alert('Error', result.errorMessage || 'Image picker error');
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        console.log('Image picked:', asset);
+        await handleUpload(asset.uri, type, asset.type); // type is 'cover' or 'profile', asset.type is mimeType
+      }
+    } catch (error) {
+      console.error('Image picking error:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const handleUpload = async (uri, type, mimeType) => {
+    if (!vendorData?.id) return;
+
+    const isCover = type === 'cover';
+    const setUploading = isCover ? setUploadingCover : setUploadingProfile;
+
+    try {
+      setUploading(true);
+
+      // 1. Upload file to Supabase
+      const folder = isCover ? 'shop-fronts' : 'owner-photos';
+      const uploadedUrl = await uploadFile(uri, folder, mimeType);
+
+      if (uploadedUrl) {
+        // 2. Update vendor profile in DB
+        const updateField = isCover ? 'image_url' : 'profile_image_url';
+        await updateVendorProfile(vendorData.id, { [updateField]: uploadedUrl });
+
+        // 3. Refresh vendor data
+        if (setVendorData) {
+          try {
+            const freshData = await getVendorProfile(vendorData.id);
+            if (freshData && freshData.vendor) {
+              setVendorData(freshData.vendor);
+            }
+          } catch (refreshError) {
+            console.error('Error refreshing vendor data after upload:', refreshError);
+          }
+        }
+
+        Alert.alert('Success', `${isCover ? 'Cover' : 'Profile'} image updated successfully.`);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleMenuClick = () => {
     const vendorControl = getVendorSidebarControl();
@@ -76,16 +203,43 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
         {/* Shop Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.coverImage}>
-            <Text style={styles.coverText}>Cover</Text>
-            <TouchableOpacity style={styles.cameraButton}>
-              <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
+            {vendorData?.imageUrl ? (
+              <Image source={{ uri: vendorData.imageUrl }} style={styles.fullImage} />
+            ) : (
+              <Text style={styles.coverText}>Cover Photo</Text>
+            )}
+            <TouchableOpacity
+              style={styles.cameraButton}
+              onPress={() => handleImagePick('cover')}
+              disabled={uploadingCover}
+            >
+              {uploadingCover ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
+              )}
             </TouchableOpacity>
           </View>
 
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
-                <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
+                {vendorData?.profileImageUrl ? (
+                  <Image source={{ uri: vendorData.profileImageUrl }} style={styles.circleImage} />
+                ) : (
+                  <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
+                )}
+                <TouchableOpacity
+                  style={styles.profileCameraButton}
+                  onPress={() => handleImagePick('profile')}
+                  disabled={uploadingProfile}
+                >
+                  {uploadingProfile ? (
+                    <ActivityIndicator size="small" color={COLORS.white} />
+                  ) : (
+                    <Icon name={getIconName('Camera')} size={10} color={COLORS.white} />
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -211,7 +365,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
         <View style={styles.businessProfileSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Business Profile</Text>
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity style={styles.editButton} onPress={handleEditClick}>
               <Icon name={getIconName('Edit')} size={16} color={COLORS.textPrimary} />
               <Text style={styles.editButtonText}>Edit</Text>
             </TouchableOpacity>
@@ -254,7 +408,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>CONTACT</Text>
-                <Text style={styles.fieldValue}>{vendorData?.contactNumber || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{vendorData?.contactNumber || vendorData?.phone || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -355,6 +509,125 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
         }}
         initialLocation={location || {}}
       />
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={showEditModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowEditModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Business Profile</Text>
+              <TouchableOpacity onPress={() => setShowEditModal(false)}>
+                <Icon name={getIconName('X')} size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalForm}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>SHOP NAME</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editFormData.name}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, name: text })}
+                  placeholder="Enter shop name"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>CATEGORY</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editFormData.category}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, category: text })}
+                  placeholder="e.g. Grocery, Electronics"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>OWNER NAME</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editFormData.ownerName}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, ownerName: text })}
+                  placeholder="Enter owner name"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>CONTACT NUMBER</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editFormData.contactNumber}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, contactNumber: text })}
+                  placeholder="Enter contact number"
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>ADDRESS</Text>
+                <TextInput
+                  style={[styles.input, { height: 80 }]}
+                  value={editFormData.address}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, address: text })}
+                  placeholder="Enter full address"
+                  multiline
+                  wrapperStyle={{ alignItems: 'flex-start' }}
+                />
+              </View>
+
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.inputLabel}>OPEN TIME</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={editFormData.openTime}
+                    onChangeText={(text) => setEditFormData({ ...editFormData, openTime: text })}
+                    placeholder="e.g. 09:00 AM"
+                  />
+                </View>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.inputLabel}>CLOSE TIME</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={editFormData.closeTime}
+                    onChangeText={(text) => setEditFormData({ ...editFormData, closeTime: text })}
+                    placeholder="e.g. 09:00 PM"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>ABOUT SHOP</Text>
+                <TextInput
+                  style={[styles.input, { height: 100 }]}
+                  value={editFormData.about}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, about: text })}
+                  placeholder="Tell us about your shop"
+                  multiline
+                  wrapperStyle={{ alignItems: 'flex-start' }}
+                />
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={[styles.saveButton, savingProfile && styles.disabledButton]}
+              onPress={handleEditSave}
+              disabled={savingProfile}
+            >
+              {savingProfile ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -397,9 +670,30 @@ const createStyles = (COLORS) => StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: COLORS.textPrimary,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     padding: 8,
     borderRadius: 8,
+  },
+  profileCameraButton: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: COLORS.orange,
+    padding: 6,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.white,
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  circleImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9,
+    resizeMode: 'cover',
   },
   profileInfo: {
     flexDirection: 'row',
@@ -642,6 +936,66 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.white,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  modalForm: {
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: COLORS.textPrimary,
+    backgroundColor: '#F9FAFB',
+  },
+  saveButton: {
+    backgroundColor: COLORS.orange,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });
 

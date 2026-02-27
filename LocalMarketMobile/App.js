@@ -150,12 +150,12 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
       </Tab.Screen>
       <Tab.Screen name="Reviews">
         {(props) => (
-          <VendorReviewsScreen {...props} vendorData={vendorData} />
+          <VendorReviewsScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />
         )}
       </Tab.Screen>
       <Tab.Screen name="Profile">
         {(props) => (
-          <VendorProfileScreen {...props} vendorData={vendorData} />
+          <VendorProfileScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />
         )}
       </Tab.Screen>
     </Tab.Navigator>
