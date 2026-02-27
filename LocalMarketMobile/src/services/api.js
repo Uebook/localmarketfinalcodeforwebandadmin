@@ -573,36 +573,48 @@ export const updateVendorProfile = async (id, profileData) => {
  * @param {string} folder - The destination folder on the server
  * @returns {Promise<string>} The URL of the uploaded file
  */
-export const uploadFile = async (fileUri, folder) => {
+export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
   try {
-    console.log(`Starting upload to ${folder}... URI: ${fileUri}`);
+    console.log(`Starting upload to ${folder}... URI: ${fileUri}, Mime: ${mimeType}`);
     const formData = new FormData();
 
-    // For React Native fetch/FormData, keeping file:// is usually safer on both platforms
-    // Removing file:// prefix on iOS often causes "Network request failed"
-    const normalizedUri = Platform.OS === 'android' ? fileUri : fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`;
+    // Extremely robust URI handling for React Native fetch/FormData
+    let normalizedUri = fileUri;
 
-    const filename = fileUri.split('/').pop() || 'photo.jpg';
-    let type = 'image/jpeg';
-    if (filename.toLowerCase().endsWith('.png')) type = 'image/png';
-    else if (filename.toLowerCase().endsWith('.pdf')) type = 'application/pdf';
+    if (Platform.OS === 'ios') {
+      // iOS: fetch usually needs 'file://' prefix but sometimes it's already there or missing
+      normalizedUri = fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`;
+    } else {
+      // Android: fetch works best with 'content://' or 'file://' as provided by the picker
+      // If the URI is a plain path, add 'file://'
+      if (!fileUri.includes('://')) {
+        normalizedUri = `file://${fileUri}`;
+      }
+    }
 
-    formData.append('file', {
+    const filename = fileUri.split('/').pop() || (mimeType.includes('pdf') ? 'doc.pdf' : 'photo.jpg');
+
+    const fileObject = {
       uri: normalizedUri,
-      type: type,
+      type: mimeType,
       name: filename,
-    });
+    };
+
+    formData.append('file', fileObject);
     formData.append('bucket', 'vendor-documents');
     formData.append('folder', folder);
 
-    console.log('FormData built:', { uri: normalizedUri, type, name: filename, folder });
+    console.log('FormData Details:', {
+      uri: fileObject.uri,
+      type: fileObject.type,
+      name: fileObject.name,
+      folder,
+      os: Platform.OS
+    });
 
     const response = await fetch(`${API_BASE_URL}/api/upload`, {
       method: 'POST',
       body: formData,
-      headers: {
-        'Accept': 'application/json',
-      },
     });
 
     console.log('Upload response status:', response.status);
