@@ -2,14 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
-import { TOP_8_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
-  const allCategories = categories && categories.length > 0 ? categories : TOP_8_CATEGORIES;
+  const allCategories = categories && categories.length > 0 ? categories : [];
   // Show only 7 categories + View All button (8 items total)
   const displayCategories = allCategories.slice(0, 7);
 

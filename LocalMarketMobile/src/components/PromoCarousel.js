@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, ActivityIndicator } from 'react-native';
-import { PROMO_BANNERS } from '../constants';
 import { getBanners } from '../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -25,13 +24,13 @@ const PromoCarousel = () => {
           .sort((a, b) => (a.priority || 999) - (b.priority || 999));
         setBanners(activeBanners);
       } else {
-        // Fallback to constants
-        setBanners(PROMO_BANNERS);
+        // No fallback - show empty state if no banners found
+        setBanners([]);
       }
     } catch (error) {
       console.error('Error loading banners:', error);
-      // Fallback to constants
-      setBanners(PROMO_BANNERS);
+      // No fallback - show empty state on error
+      setBanners([]);
     } finally {
       setLoading(false);
     }

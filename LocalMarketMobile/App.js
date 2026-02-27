@@ -75,7 +75,6 @@ import SavedScreen from './src/components/SavedScreen';
 import CategoriesScreen from './src/components/CategoriesScreen';
 import ProductDetailsScreen from './src/components/ProductDetailsScreen';
 import AIServiceFlow from './src/components/AIServiceFlow';
-import { INITIAL_VENDOR_DATA } from './src/constants';
 import { setVendorSidebarControl } from './src/utils/vendorSidebarControl';
 import { setSidebarControl } from './src/utils/sidebarControl';
 import { getVendorProfile } from './src/services/api';
@@ -269,7 +268,7 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const [vendorData, setVendorData] = useState(INITIAL_VENDOR_DATA);
+  const [vendorData, setVendorData] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isUserRegistering, setIsUserRegistering] = useState(false);
@@ -321,9 +320,13 @@ function App() {
                     enquiries: fullProfile.enquiries || [],
                     reviews: fullProfile.reviews || [],
                   });
+                } else {
+                  console.warn('Vendor profile not found for ID:', savedUserData.id);
+                  setVendorData(null);
                 }
               } catch (profileError) {
                 console.error('Error fetching vendor profile on boot:', profileError);
+                setVendorData(null);
               }
             } else {
               setInitialRoute('Home');
@@ -370,9 +373,13 @@ function App() {
             enquiries: fullProfile.enquiries || [],
             reviews: fullProfile.reviews || [],
           });
+        } else {
+          console.warn('Vendor profile not found for login ID:', userDataParam.id);
+          setVendorData(null);
         }
       } catch (profileError) {
         console.error('Error fetching vendor profile on login:', profileError);
+        setVendorData(null);
       }
     } else {
       setInitialRoute('Home');
@@ -524,10 +531,6 @@ function App() {
           <StatusBar barStyle="light-content" />
           <LoginScreen
             onLogin={handleLogin}
-            vendorActivationStatus={vendorData.activationStatus}
-            onSimulateAdminApproval={() =>
-              setVendorData((prev) => ({ ...prev, activationStatus: 'Active' }))
-            }
             onRegister={(isVendor) => {
               if (isVendor) {
                 setIsRegistering(true);
@@ -697,9 +700,9 @@ function App() {
           onClose={() => setIsSidebarOpen(false)}
           onNavigate={handleSidebarNavigation}
           userRole={userRole}
-          userName={userRole === 'vendor' ? vendorData.name : (userData?.name || userData?.full_name || 'User')}
-          userEmail={userRole === 'vendor' ? vendorData.email : (userData?.email || '')}
-          userLocation={userRole === 'vendor' ? vendorData.address : (userData?.location || [userData?.city, userData?.state].filter(Boolean).join(', ') || 'Delhi, India')}
+          userName={userRole === 'vendor' ? (vendorData?.name || 'Vendor') : (userData?.name || userData?.full_name || 'User')}
+          userEmail={userRole === 'vendor' ? (vendorData?.email || '') : (userData?.email || '')}
+          userLocation={userRole === 'vendor' ? (vendorData?.address || '') : (userData?.location || [userData?.city, userData?.state].filter(Boolean).join(', ') || 'Delhi, India')}
         />
       </SafeAreaProvider>
     </ThemeProvider>

@@ -1,149 +1,14 @@
 
 
 
-export const CATEGORIES = [
-  { id: '1', name: 'Groceries', iconName: 'ShoppingBag' },
-  { id: '2', name: 'Electronics', iconName: 'Smartphone' },
-  { id: '3', name: 'Clothing', iconName: 'Shirt' },
-  { id: '4', name: 'Medicines', iconName: 'Pill' },
-  { id: '5', name: 'Appliances', iconName: 'Zap' },
-  { id: '6', name: 'Home', iconName: 'Home' },
-  { id: '7', name: 'Accessories', iconName: 'Headphones' },
-  { id: '8', name: 'Sports', iconName: 'Trophy' },
-];
+/** @deprecated Use database categories via API instead */
+export const CATEGORIES = [];
 
-export const INITIAL_VENDOR_DATA = {
-  id: 'v1',
-  name: 'My Awesome Shop',
-  ownerName: 'John Doe',
-  category: 'Grocery',
-  rating: 4.8,
-  reviewCount: 12,
-  distance: '0 km',
-  imageUrl: 'https://images.unsplash.com/photo-1604719312566-b7cb9f9fc72e?auto=format&fit=crop&w=800&q=80',
-  isVerified: true,
-  contactNumber: '9876543210',
-  alternateMobile: '9988776655',
-  whatsappNumber: '9876543210',
-  email: 'john@example.com',
-  referralCode: 'REF2024',
-  address: 'Shop 12, Main Market',
-  landmark: 'Near Clock Tower',
-  city: 'New Delhi',
-  district: 'Central Delhi',
-  pincode: '110001',
-  circle: 'Connaught Place',
-  geoLocation: { lat: 28.6139, lng: 77.2090 },
-  yearsInBusiness: '2',
-  openTime: '09:00 AM - 09:00 PM',
-  openingTime: '09:00',
-  closingTime: '21:00',
-  weeklyOff: 'Sunday',
-  username: '9876543210',
-  otpVerified: true,
-  kycStatus: 'Pending',
-  activationStatus: 'Active',
-  secondaryCategories: ['General Store', 'Daily Essentials'],
-  customCategories: ['Imported Snacks'],
-  priceUpdateFrequency: 'Weekly',
-  stockUpdateOption: 'In Stock',
-  enableBulkUpload: false,
-  enablePriceNotifications: true,
-  competitorRadius: '1km',
-  allowedCategories: ['Grocery', 'Essentials'],
-  about: 'Welcome to our shop! We provide high quality products.',
-  products: [
-    { 
-      id: 'vp1', 
-      name: 'Sample Product', 
-      price: '₹100', 
-      mrp: '₹120',
-      category: 'Snacks',
-      stockQty: '50',
-      imageUrl: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=400&q=80', 
-      description: 'This is a sample product description.',
-      uom: 'Pack',
-      brand: 'GoodBrands',
-      isFastMoving: true,
-      inStock: true
-    }
-  ],
-  enquiries: [
-    { id: 'e1', senderName: 'Rahul Kumar', senderMobile: '+91 9898989898', message: 'Hi, do you have this item in stock?', date: '2024-05-20', status: 'new' },
-    { id: 'e2', senderName: 'Priya Singh', senderMobile: '+91 9797979797', message: 'What are your shop timings?', date: '2024-05-19', status: 'read' },
-    { id: 'e3', senderName: 'Amit Sharma', senderMobile: '+91 9696969696', message: 'Can you deliver to Sector 18?', date: '2024-05-18', status: 'replied' }
-  ],
-  reviews: [
-    { id: 'r1', userName: 'Vikas Gupta', rating: 5, date: '2 days ago', comment: 'Great service and friendly behavior!', reply: 'Thank you Vikas!' },
-    { id: 'r2', userName: 'Anjali Mehra', rating: 4, date: '1 week ago', comment: 'Good products but slight delay in delivery.' },
-    { id: 'r3', userName: 'Rohan Das', rating: 5, date: '2 weeks ago', comment: 'Best shop in the market. Highly recommended.' }
-  ],
-  offers: [
-    { id: 'vo1', title: 'Grand Opening Sale', description: 'Flat 20% off on first purchase', code: 'WELCOME20', discountAmount: '20%', validUntil: '2025-12-31', isActive: true, color: 'bg-purple-600' }
-  ]
-};
+/** @deprecated Use getVendorProfile(id) instead */
+export const INITIAL_VENDOR_DATA = null;
 
-export const NEARBY_BUSINESSES = [
-  {
-    id: '101',
-    name: 'Joe\'s Pizza & Grill',
-    category: 'Restaurant',
-    rating: 4.5,
-    reviewCount: 128,
-    distance: '0.8 km',
-    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80',
-    address: 'Block A, Connaught Place',
-    openTime: 'Opens at 11:00 AM',
-    about: 'Authentic Italian pizza and grill in the heart of the city.',
-    products: [
-      { id: 'p1', name: 'Margherita Pizza', price: '₹350', mrp: '₹400', category: 'Pizza', imageUrl: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=400&q=80', description: 'Classic cheese and basil' },
-      { id: 'p2', name: 'Pasta Alfredo', price: '₹400', category: 'Pasta', imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=400&q=80', description: 'Creamy white sauce pasta' },
-      { id: 'p3', name: 'Grilled Sandwich', price: '₹150', category: 'Snacks', imageUrl: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=400&q=80' }
-    ],
-    offers: [
-       { id: 'o101', title: 'Pizza Fest', description: 'Buy 1 Get 1 Free on Large Pizzas', code: 'BOGOPIZZA', discountAmount: 'BOGO', validUntil: '2024-11-30', isActive: true, color: 'bg-orange-500' }
-    ]
-  },
-  {
-    id: '102',
-    name: 'City Care Pharmacy',
-    category: 'Healthcare',
-    rating: 4.8,
-    reviewCount: 45,
-    distance: '1.2 km',
-    imageUrl: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=800&q=80',
-    address: 'Sector 15, Noida',
-    openTime: 'Open 24 Hours',
-    about: 'Your trusted neighborhood pharmacy for all medical needs.',
-    offers: []
-  },
-  {
-    id: '103',
-    name: 'QuickFix Auto',
-    category: 'Car Service',
-    rating: 4.2,
-    reviewCount: 89,
-    distance: '2.5 km',
-    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&w=800&q=80',
-    address: 'Okhla Industrial Area',
-    openTime: 'Opens at 9:00 AM',
-    offers: [
-      { id: 'o103', title: 'Service Week', description: '10% off on full service', code: 'CARLOVE', discountAmount: '10%', validUntil: '2024-10-15', isActive: true, color: 'bg-blue-600' }
-    ]
-  },
-  {
-    id: '104',
-    name: 'Elite Salon',
-    category: 'Beauty',
-    rating: 4.7,
-    reviewCount: 210,
-    distance: '3.0 km',
-    imageUrl: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?auto=format&fit=crop&w=800&q=80',
-    address: 'Greater Kailash 1',
-    openTime: 'Opens at 10:00 AM',
-    offers: []
-  },
-];
+/** @deprecated Use getVendors API instead */
+export const NEARBY_BUSINESSES = [];
 
 export const FEATURED_BUSINESSES = [
   {
@@ -158,8 +23,8 @@ export const FEATURED_BUSINESSES = [
     address: 'Aerocity, New Delhi',
     about: 'Luxury stay with world-class amenities.',
     products: [
-       { id: 'fp1', name: 'Deluxe Room', price: '₹5000/night', imageUrl: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80' },
-       { id: 'fp2', name: 'Spa Session', price: '₹2000', imageUrl: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=400&q=80' }
+      { id: 'fp1', name: 'Deluxe Room', price: '₹5000/night', imageUrl: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80' },
+      { id: 'fp2', name: 'Spa Session', price: '₹2000', imageUrl: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=400&q=80' }
     ],
     offers: []
   },
@@ -195,29 +60,8 @@ export const RECENT_SEARCHES = [
   'Car Wash',
 ];
 
-export const PROMO_BANNERS = [
-  {
-    id: 'b1',
-    title: 'Summer Sale!',
-    subtitle: 'Get 50% off on AC Services',
-    imageUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80',
-    ctaText: 'Book Now',
-  },
-  {
-    id: 'b2',
-    title: 'New in Town?',
-    subtitle: 'Explore top-rated local cafes',
-    imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80',
-    ctaText: 'Explore',
-  },
-  {
-    id: 'b3',
-    title: 'Health Checkup Camp',
-    subtitle: 'Free basic checkups this weekend',
-    imageUrl: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200&q=80',
-    ctaText: 'View Details',
-  },
-];
+/** @deprecated Use getBanners API instead */
+export const PROMO_BANNERS = [];
 
 export const HOME_SERVICES = [
   { id: 'hs1', name: 'Cleaning', imageUrl: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=400&q=80' },
@@ -819,7 +663,7 @@ export const SEARCH_RESULTS = [
   { id: 'sp8', name: 'Badminton Point', category: 'Sports', rating: 4.5, reviewCount: 110, distance: '3.0 km', imageUrl: 'https://images.unsplash.com/photo-1626224583764-847890e05851?auto=format&fit=crop&w=800&q=80', address: 'Siri Fort' },
   { id: 'sp9', name: 'Football Factory', category: 'Sports', rating: 4.6, reviewCount: 130, distance: '5.5 km', imageUrl: 'https://images.unsplash.com/photo-1552318965-5638e4c66e4c?auto=format&fit=crop&w=800&q=80', address: 'Dwarka Sports Complex' },
   { id: 'sp10', name: 'Adventure Gear', category: 'Sports', rating: 4.9, reviewCount: 75, distance: '2.5 km', imageUrl: 'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?auto=format&fit=crop&w=800&q=80', isVerified: true, address: 'Rohini' },
-  
+
   {
     id: 's1',
     name: 'Punjabi Rasoi',

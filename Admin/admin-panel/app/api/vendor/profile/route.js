@@ -20,42 +20,60 @@ export async function GET(req) {
 
         const v = vendors[0];
 
-        // Format response to match what mobile app expects (based on INITIAL_VENDOR_DATA in mobile)
-        return Response.json({
-            vendor: {
-                id: v.id,
-                name: v.name || v.shop_name || '',
-                ownerName: v.owner_name || v.owner || '',
-                email: v.email || '',
-                phone: v.contact_number || '',
-                category: v.category || '',
+        // Robust normalization to match mobile app expectations (INITIAL_VENDOR_DATA model)
+        const vendor = {
+            id: v.id,
+            vendorId: v.id, // Mobile sometimes uses vendorId
+            name: v.name || v.shop_name || '',
+            ownerName: v.owner_name || v.owner || '',
+            email: v.email || '',
+            phone: v.contact_number || '',
+            contactNumber: v.contact_number || '', // Mobile expects contactNumber
+            category: v.category || '',
+            address: v.address || '',
+            city: v.city || '',
+            state: v.state || '',
+            pincode: v.pincode || '',
+            landmark: v.landmark || '',
+            district: v.district || '',
+            status: v.status || 'Active',
+            kycStatus: v.kyc_status || 'Approved',
+            activationStatus: v.status || 'Active',
+            rating: v.rating || 0,
+            reviewCount: v.review_count || 0,
+            profileImageUrl: v.profile_image_url || null,
+            imageUrl: v.image_url || v.shop_front_photo_url || null,
+            about: v.about || '',
+            openTime: v.open_time || '09:00 AM',
+            closeTime: v.close_time || '09:00 PM', // Mobile expects closeTime
+            openingTime: v.open_time || '09:00',
+            closingTime: v.close_time || '21:00',
+            createdAt: v.created_at || '',
+            profileViews: v.profile_views || 0,
+            searchAppearances: v.search_appearances || 0,
+            location: {
+                lat: v.latitude || 28.6139,
+                lng: v.longitude || 77.2090,
+                city: v.city || 'Delhi',
+                state: v.state || 'Delhi',
                 address: v.address || '',
-                city: v.city || '',
-                state: v.state || '',
-                pincode: v.pincode || '',
-                status: v.status || 'Active',
-                kycStatus: v.kyc_status || 'Approved',
-                activationStatus: v.status || 'Active',
-                rating: v.rating || 0,
-                reviewCount: v.review_count || 0,
-                profileImageUrl: v.profile_image_url || null,
-                imageUrl: v.image_url || v.shop_front_photo_url || null,
-                about: v.about || '',
-                openTime: v.open_time || '',
-                createdAt: v.created_at || '',
-                profileViews: v.profile_views || 0,
-                searchAppearances: v.search_appearances || 0,
-            },
+                pincode: v.pincode || ''
+            }
+        };
+
+        return Response.json({
+            vendor,
             products: Array.isArray(products) ? products.map(p => ({
                 id: p.id,
                 name: p.name,
                 price: p.price,
-                originalPrice: p.original_price,
+                mrp: p.original_price || p.mrp || p.price, // Mobile expects mrp
                 discount: p.discount,
                 category: p.categories?.name || p.category_name || '',
                 imageUrl: p.image_url,
                 description: p.description,
-                status: p.status
+                status: p.status,
+                inStock: p.status === 'Active' // Mobile expects inStock boolean
             })) : [],
             enquiries: Array.isArray(enquiries) ? enquiries.map(e => ({
                 id: e.id,

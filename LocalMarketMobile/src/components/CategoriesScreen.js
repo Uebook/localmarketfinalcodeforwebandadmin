@@ -5,7 +5,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import CategoryGrid from './CategoryGrid';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { ALL_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
 import Icon from 'react-native-vector-icons/Feather';
 import { getCategories } from '../services/api';
@@ -38,8 +37,8 @@ const CategoriesScreen = ({ navigation, route }) => {
       }
     } catch (error) {
       console.error('Error loading categories:', error);
-      // Fallback to constants if API fails
-      setCategories(ALL_CATEGORIES);
+      // No fallback - show empty state if API fails
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -139,12 +138,12 @@ const CategoriesScreen = ({ navigation, route }) => {
           </View>
         ) : (
           <>
-            {(categories.length > 0 ? categories : ALL_CATEGORIES).filter(cat =>
-              cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+            {categories.filter(cat =>
+              (cat.name || '').toLowerCase().includes(searchQuery.toLowerCase())
             ).length > 0 ? (
               <CategoryGrid
-                categories={(categories.length > 0 ? categories : ALL_CATEGORIES).filter(cat =>
-                  cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+                categories={categories.filter(cat =>
+                  (cat.name || '').toLowerCase().includes(searchQuery.toLowerCase())
                 )}
                 onCategorySelect={handleCategorySelect}
                 variant="dark"
