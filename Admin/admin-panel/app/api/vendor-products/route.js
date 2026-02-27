@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch, supabaseRestInsert } from '../../../lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v : '';
@@ -100,5 +100,81 @@ export async function PATCH(req) {
         }
         return Response.json({ error: e?.message || 'Failed to update vendor product' }, { status: 500 });
     }
+}
+
+export async function POST(req) {
+    try {
+        const body = await req.json();
+        const { vendor_id, name, price, mrp, uom, category_id, image_url } = body;
+
+        if (!vendor_id || !name || !price) {
+            return Response.json({ error: 'vendor_id, name, and price are required' }, { status: 400 });
+        }
+
+        const productData = {
+            vendor_id,
+            name: toStr(name),
+            price: Number(price),
+            mrp: mrp ? Number(mrp) : null,
+            uom: toStr(uom) || null,
+            category_id: category_id || null,
+            image_url: toStr(image_url) || null,
+            status: 'Active',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+
+        const result = await supabaseRestInsert('/rest/v1/vendor_products', [productData]);
+        return Response.json({ success: true, product: result[0] || result }, { status: 201 });
+    } catch (e) {
+        console.error('Vendor Products POST Error:', e);
+        return Response.json({ error: e?.message || 'Failed to create vendor product' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = toStr(searchParams.get('id'));
+
+        if (!id) {
+            return Response.json({ error: 'Product ID is required' }, { status: 400 });
+        }
+
+        const SUPABASE_URL = process.env.SUPABASE_URL;
+        const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+        const url = `${SUPABASE_URL}/rest/v1/vendor_products?id=eq.${id}`;
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                apikey: SUPABASE_SERVICE_ROLE_KEY,
+                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation',
+            },
+        });
+
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(`Delete failed: ${text || res.statusText}`);
+        }
+
+        return Response.json({ success: true, message: 'Product deleted successfully' }, { status: 200 });
+    } catch (e) {
+        console.error('Vendor Products DELETE Error:', e);
+        return Response.json({ error: e?.message || 'Failed to delete vendor product' }, { status: 500 });
+    }
+}
+
+export async function OPTIONS() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+    });
 }
 

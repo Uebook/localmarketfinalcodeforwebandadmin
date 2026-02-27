@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
 
 // GET /api/vendor/profile?id=xxx  — fetch full vendor data + products + enquiries + reviews
 export async function GET(req) {
