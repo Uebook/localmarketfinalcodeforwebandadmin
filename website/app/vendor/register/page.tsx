@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Briefcase, CheckCircle, Upload, Image as ImageIcon, FileText, X } from 'lucide-react';
 import Link from 'next/link';
@@ -23,19 +23,71 @@ export default function VendorRegisterPage() {
     businessPhoto: null as File | null,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories');
+        const data = await res.json();
+        if (res.ok) {
+          setCategories(data.categories || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const uploadFile = async (file: File, folder: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('bucket', 'vendor-documents');
+    formData.append('folder', folder);
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data.url;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+
     try {
+      let idProofUrl = '';
+      let businessPhotoUrl = '';
+
+      // Upload ID Proof
+      if (formData.idProof) {
+        idProofUrl = await uploadFile(formData.idProof, 'id-proofs');
+      }
+
+      // Upload Business Photo
+      if (formData.businessPhoto) {
+        businessPhotoUrl = await uploadFile(formData.businessPhoto, 'shop-photos');
+      }
+
       const res = await fetch('/api/vendor/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          idProofUrl,
+          businessPhotoUrl,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -48,8 +100,8 @@ export default function VendorRegisterPage() {
       window.dispatchEvent(new Event('authchange'));
       setSuccess(`Welcome, ${data.vendor.name}! Your registration is submitted and under review.`);
       setTimeout(() => router.push('/vendor/dashboard/analytics'), 1500);
-    } catch {
-      setError('Network error. Please check your connection.');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.');
       setIsLoading(false);
     }
   };
@@ -148,14 +200,17 @@ export default function VendorRegisterPage() {
                     value={formData.category}
                     onChange={(e) => handleChange('category', e.target.value)}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
+                    disabled={isLoadingCategories}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white disabled:opacity-50"
                   >
-                    <option value="" className="text-gray-400">Select category</option>
-                    <option value="Grocery">Grocery</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Clothing">Clothing</option>
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Services">Services (Plumber, Carpenter, etc.)</option>
+                    <option value="" className="text-gray-400">
+                      {isLoadingCategories ? 'Loading categories...' : 'Select category'}
+                    </option>
+                    {categories.map((cat: any) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 {formData.category === 'Services' && (

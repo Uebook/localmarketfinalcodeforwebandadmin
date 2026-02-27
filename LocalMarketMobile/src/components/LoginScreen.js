@@ -257,9 +257,9 @@ const LoginScreen = ({ onLogin, onRegister }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Dark gradient background (reddish-brown to deep purple) */}
+      {/* Dynamic gradient background */}
       <LinearGradient
-        colors={['#7A3B1D', '#581c87']}
+        colors={COLORS.homeBackground || COLORS.primaryGradient || ['#7A3B1D', '#581c87']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -325,7 +325,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={['#fb923c', '#ec4899']} // Orange to pink/purple
+                  colors={COLORS.primaryGradient || ['#fb923c', '#ec4899']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.gradientButton}
@@ -494,7 +494,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                   </View>
                 ) : (
                   <LinearGradient
-                    colors={['#fb923c', '#ec4899']} // Orange to pink/purple
+                    colors={COLORS.primaryGradient || ['#fb923c', '#ec4899']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.gradientButton}
@@ -671,7 +671,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                     activeOpacity={0.8}
                   >
                     <LinearGradient
-                      colors={['#fb923c', '#ec4899']}
+                      colors={COLORS.primaryGradient || ['#fb923c', '#ec4899']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.errorButtonGradient}

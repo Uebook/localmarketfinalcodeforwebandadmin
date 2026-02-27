@@ -47,7 +47,7 @@ try {
 export const ThemeContext = React.createContext({
   theme: 'default',
   themeColors: defaultColors,
-  setTheme: () => {},
+  setTheme: () => { },
 });
 
 export const ThemeProvider = ({ children }) => {
@@ -61,36 +61,45 @@ export const ThemeProvider = ({ children }) => {
 
   const loadAndApplyTheme = async () => {
     try {
-      let themeToApply = 'default';
+      let currentLocalTheme = 'default';
 
-      // 1. First, try to get the globally active theme from database (set by admin)
+      // 1. Check AsyncStorage FIRST (user's local selection or cached theme)
+      // This ensures the theme is applied immediately on app launch
+      const savedTheme = await AsyncStorage.getItem('selectedFestivalTheme');
+      if (savedTheme && savedTheme !== 'default') {
+        currentLocalTheme = savedTheme;
+        console.log('✅ Applied theme from AsyncStorage (fast load):', currentLocalTheme);
+        // Apply immediately
+        applyTheme(currentLocalTheme);
+      }
+
+      // 2. Fetch the globally active theme from database silently
+      let serverTheme = null;
       try {
         const activeTheme = await getActiveTheme();
         if (activeTheme && activeTheme.id) {
-          themeToApply = activeTheme.id;
-          // Cache the theme data
-          setThemesCache(prev => ({
-            ...prev,
-            [activeTheme.id]: activeTheme,
-          }));
-          console.log('Applied global active theme from DB:', themeToApply);
+          serverTheme = activeTheme.id;
+
+          if (serverTheme !== currentLocalTheme) {
+            console.log('🔄 Theme changed on server, updating local theme to:', serverTheme);
+            // Cache the theme data
+            setThemesCache(prev => ({
+              ...prev,
+              [serverTheme]: activeTheme,
+            }));
+            // Update the theme
+            applyTheme(serverTheme);
+            return; // Exit here since we applied the server theme
+          } else {
+            console.log('✅ Server theme matches local theme, no update needed.');
+          }
         }
       } catch (error) {
         console.error('Error fetching global active theme:', error);
       }
 
-      // 2. Check AsyncStorage FIRST (user's local selection takes priority)
-      // This ensures the theme selected in Settings is used immediately
-      if (themeToApply === 'default') {
-        const savedTheme = await AsyncStorage.getItem('selectedFestivalTheme');
-        if (savedTheme && savedTheme !== 'default') {
-          themeToApply = savedTheme;
-          console.log('✅ Applied theme from AsyncStorage (user selection):', themeToApply);
-        }
-      }
-
-      // 3. If no local selection, try to get user's theme preference from database
-      if (themeToApply === 'default') {
+      // 3. If no local selection and no active global theme, try user's preference
+      if (currentLocalTheme === 'default' && !serverTheme) {
         try {
           const userId = await AsyncStorage.getItem('userId');
           const phone = await AsyncStorage.getItem('userPhone');
@@ -99,22 +108,20 @@ export const ThemeProvider = ({ children }) => {
           if (userId || phone || email) {
             const userThemeData = await getUserTheme({ userId, phone, email });
             if (userThemeData && userThemeData.theme && userThemeData.theme !== 'default') {
-              themeToApply = userThemeData.theme;
-              // Also save to AsyncStorage for consistency
-              await AsyncStorage.setItem('selectedFestivalTheme', userThemeData.theme);
-              console.log('✅ Applied user theme from DB:', themeToApply);
+              console.log('✅ Applied user theme from DB:', userThemeData.theme);
+              applyTheme(userThemeData.theme);
+              return;
             }
           }
         } catch (error) {
           console.error('Error fetching user theme:', error);
         }
-      }
 
-      // Apply the theme
-      applyTheme(themeToApply);
+        // Final fallback if nothing found
+        applyTheme('default');
+      }
     } catch (error) {
       console.error('Error loading theme:', error);
-      // Fallback to default
       applyTheme('default');
     }
   };
@@ -185,12 +192,12 @@ export const ThemeProvider = ({ children }) => {
       orange: colors.primary, // Always use API primary color
       blue: colors.secondary, // Always use API secondary color
       primaryGradient: [colors.primary, colors.secondary], // API gradient
-      
+
       // ADDITIONAL COLORS FROM API (if available)
       accentRed: colors.accent || baseColors.accentRed,
       background: colors.background || baseColors.background,
       textPrimary: colors.text || baseColors.textPrimary,
-      
+
       // UPDATE ALL GRADIENT/LEGACY COLORS TO USE API COLORS
       gradientStart: colors.primary,
       gradientEnd: colors.secondary,
@@ -198,13 +205,13 @@ export const ThemeProvider = ({ children }) => {
       primaryOrangeDark: colors.primary,
       primaryBlue: colors.secondary,
       primaryBlueDark: colors.secondary,
-      
+
       // Update home background gradient if available
       ...(colors.background && colors.primary && {
         homeBackground: [colors.primary, colors.secondary],
       }),
     };
-    
+
     console.log('🎨 Applied theme colors from API:', {
       themeId,
       primary: colors.primary,
@@ -221,7 +228,7 @@ export const ThemeProvider = ({ children }) => {
 
   const setTheme = async (themeId) => {
     await applyTheme(themeId);
-    
+
     // Update user's theme preference in the database
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -253,7 +260,7 @@ export const ThemeProvider = ({ children }) => {
 export const useTheme = () => {
   const context = React.useContext(ThemeContext);
   if (!context) {
-    return { theme: 'default', themeColors: COLORS || defaultColors, setTheme: () => {} };
+    return { theme: 'default', themeColors: COLORS || defaultColors, setTheme: () => { } };
   }
   return context;
 };

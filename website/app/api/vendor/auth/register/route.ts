@@ -5,7 +5,7 @@ import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { businessName, ownerName, category, subCategory, mobile, email, address, city, pincode } = body;
+        const { businessName, ownerName, category, subCategory, mobile, email, address, city, pincode, idProofUrl, businessPhotoUrl } = body;
 
         // Required fields
         if (!businessName?.trim()) return NextResponse.json({ error: 'Business name is required' }, { status: 400 });
@@ -50,8 +50,11 @@ export async function POST(request: NextRequest) {
             city: city?.trim() || null,
             pincode: pincode?.trim() || null,
             status: 'Pending',
-            kyc_status: 'Pending',
+            kyc_status: 'Pending', // Setting to Pending until verified
             product_count: 0,
+            id_proof_url: idProofUrl || null,
+            shop_front_photo_url: businessPhotoUrl || null,
+            image_url: businessPhotoUrl || null, // Also set image_url for consistency
         };
 
         const result = await supabaseRestInsert('/rest/v1/vendors', vendor);

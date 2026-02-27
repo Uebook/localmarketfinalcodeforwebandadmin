@@ -443,7 +443,7 @@ const SettingsScreen = ({
                     keyboardType="phone-pad"
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{formData.mobile || '9876543210'}</Text>
+                  <Text style={[styles.infoValue, !formData.mobile && styles.infoValueMissing]}>{formData.mobile || 'Not provided'}</Text>
                 )}
               </View>
             </View>
@@ -464,7 +464,7 @@ const SettingsScreen = ({
                     placeholderTextColor={COLORS.textMuted}
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{formData.email || 'rahul.k@example.com'}</Text>
+                  <Text style={[styles.infoValue, !formData.email && styles.infoValueMissing]}>{formData.email || 'Not provided'}</Text>
                 )}
               </View>
             </View>
@@ -482,7 +482,7 @@ const SettingsScreen = ({
                     onChangeText={(text) => setFormData({ ...formData, location: text })}
                   />
                 ) : (
-                  <Text style={styles.infoValue}>{formData.location || 'Connaught Place, Delhi'}</Text>
+                  <Text style={[styles.infoValue, !formData.location && styles.infoValueMissing]}>{formData.location || 'Not provided'}</Text>
                 )}
               </View>
             </View>
@@ -784,6 +784,10 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: COLORS.textPrimary,
+  },
+  infoValueMissing: {
+    color: COLORS.textMuted,
+    fontStyle: 'italic',
   },
   infoInput: {
     fontSize: 14,

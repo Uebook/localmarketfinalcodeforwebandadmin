@@ -1,23 +1,23 @@
-import { NextResponse } from 'next/server';
 import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
 
 export async function GET() {
     try {
-        // Fetch categories with priority and visibility
-        const categories = await supabaseRestGet('/rest/v1/categories?select=*&visible=eq.true&order=priority.asc');
+        const query = new URLSearchParams();
+        query.set('select', '*');
+        query.set('order', 'priority.asc');
+        query.set('visible', 'eq.true');
 
-        // Normalize for UI
-        const normalized = categories.map((cat: any) => ({
-            id: cat.id,
-            name: cat.name,
-            iconName: cat.icon_name || 'ShoppingBag',
-            priority: cat.priority,
-            slug: cat.name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')
-        }));
+        const rows = await supabaseRestGet(`/rest/v1/categories?${query.toString()}`);
+        const categories = Array.isArray(rows) ? rows.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            priority: c.priority ?? 999,
+            iconUrl: c.icon_url ?? null
+        })) : [];
 
-        return NextResponse.json({ categories: normalized });
-    } catch (error: any) {
-        console.error('Error fetching categories:', error);
-        return NextResponse.json({ error: error.message || 'Failed to fetch categories' }, { status: 500 });
+        return Response.json({ categories }, { status: 200 });
+    } catch (e: any) {
+        console.error('Categories GET Error:', e);
+        return Response.json({ error: e?.message || 'Failed to load categories' }, { status: 500 });
     }
 }

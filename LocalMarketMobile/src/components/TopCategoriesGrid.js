@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { TOP_8_CATEGORIES } from '../constants/categories';
@@ -36,14 +36,17 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
             onPress={() => handleCategoryPress(category)}
             activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={COLORS.primaryGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.iconContainer}
-            >
-              <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={24} color={COLORS.white} />
-            </LinearGradient>
+            <View style={[styles.iconContainer, { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#F1F5F9' }]}>
+              {category.iconUrl || category.icon_url ? (
+                <Image
+                  source={{ uri: category.iconUrl || category.icon_url }}
+                  style={{ width: 32, height: 32 }}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={28} color="#64748B" />
+              )}
+            </View>
             <Text style={styles.categoryName} numberOfLines={2}>
               {category.name}
             </Text>

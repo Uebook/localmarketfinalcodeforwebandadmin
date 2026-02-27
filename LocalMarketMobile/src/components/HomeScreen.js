@@ -6,6 +6,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 
 // Import sidebar control from shared utility
 import { setSidebarControl, getSidebarControl } from '../utils/sidebarControl';
+import { loadUserData } from '../utils/userStorage';
 import SearchBar from './SearchBar';
 import TopCategoriesGrid from './TopCategoriesGrid';
 import NearbySection from './NearbySection';
@@ -15,6 +16,9 @@ import RecentSearches from './RecentSearches';
 import PromoCarousel from './PromoCarousel';
 import { getCategories } from '../services/api';
 import DraggableAIButton from './DraggableAIButton';
+
+import Geolocation from '@react-native-community/geolocation';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 const HomeScreen = ({ navigation, route }) => {
   const COLORS = useThemeColors();
@@ -28,19 +32,123 @@ const HomeScreen = ({ navigation, route }) => {
   });
   const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    // Mock geolocation - in real app, use @react-native-community/geolocation
-    setTimeout(() => {
+  const fetchLocation = async (forceRedetect = false) => {
+    if (forceRedetect) {
+      setLocationState(prev => ({ ...prev, loading: true }));
+    }
+
+    const getFallbackFromUser = async () => {
+      try {
+        const userData = await loadUserData();
+        if (userData && (userData.location || userData.city)) {
+          const cityStr = userData.location || [userData.city, userData.state].filter(Boolean).join(', ');
+          setLocationState({
+            lat: userData.lat || null,
+            lng: userData.lng || null,
+            city: cityStr,
+            fullAddress: cityStr,
+            loading: false,
+            error: null,
+          });
+          return true;
+        }
+      } catch (err) {
+        console.warn('Could not load user location fallback:', err);
+      }
+      return false;
+    };
+
+    const setAbsoluteFallback = () => {
       setLocationState({
         lat: 28.6139,
         lng: 77.2090,
-        city: 'Connaught Place, Delhi',
+        city: 'Delhi, India',
+        fullAddress: 'Delhi, India (Fallback)',
         loading: false,
         error: null,
       });
-    }, 1500);
+    };
 
-    // Load categories from API
+    const handleFallback = async () => {
+      const userFallbackSuccess = await getFallbackFromUser();
+      if (!userFallbackSuccess) {
+        setAbsoluteFallback();
+      }
+    };
+
+    const requestLocationPermission = async () => {
+      try {
+        if (Platform.OS === 'android') {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+          );
+          return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+        return true;
+      } catch (err) {
+        console.warn('Permission error:', err);
+        return false;
+      }
+    };
+
+    const hasPermission = await requestLocationPermission();
+    if (hasPermission) {
+      Geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const res = await fetch(`https://admin-panel-rho-sepia-57.vercel.app/api/geocode?lat=${latitude}&lng=${longitude}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.address) {
+                const addr = data.address;
+                const mainArea = addr.village || addr.hamlet || addr.suburb || addr.neighbourhood || addr.city_district || addr.city || addr.town || 'Your Area';
+                const city = addr.city || addr.town || addr.city_district || '';
+
+                let displayLabel = mainArea;
+                if (city && city !== mainArea && !displayLabel.includes(city)) {
+                  displayLabel = `${displayLabel}, ${city}`;
+                }
+
+                const fullAddress = data.display_name || Object.values(addr).filter(Boolean).join(', ');
+
+                setLocationState({
+                  lat: latitude,
+                  lng: longitude,
+                  city: displayLabel,
+                  fullAddress: fullAddress,
+                  loading: false,
+                  error: null,
+                });
+                return;
+              }
+            }
+          } catch (geocodeErr) {
+            console.warn("Geocoding failed", geocodeErr);
+          }
+
+          setLocationState({
+            lat: latitude,
+            lng: longitude,
+            city: 'Current Location',
+            fullAddress: `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
+            loading: false,
+            error: null,
+          });
+        },
+        (error) => {
+          console.warn("Geolocation failed", error);
+          handleFallback();
+        },
+        { enableHighAccuracy: false, timeout: 20000, maximumAge: forceRedetect ? 0 : 60000 }
+      );
+    } else {
+      handleFallback();
+    }
+  };
+
+  useEffect(() => {
+    fetchLocation();
     loadCategories();
   }, []);
 
@@ -120,6 +228,7 @@ const HomeScreen = ({ navigation, route }) => {
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
+        onLocationRedetect={() => fetchLocation(true)}
       />
       <ScrollView
         style={styles.scrollView}
@@ -128,13 +237,11 @@ const HomeScreen = ({ navigation, route }) => {
       >
         <SearchBar onSearch={handleSearch} navigation={navigation} />
 
-        {categories.length > 0 && (
-          <TopCategoriesGrid
-            categories={categories.slice(0, 8)}
-            onCategorySelect={handleCategorySelect}
-            onViewAll={handleViewAllCategories}
-          />
-        )}
+        <TopCategoriesGrid
+          categories={categories.length > 0 ? categories.slice(0, 8) : []}
+          onCategorySelect={handleCategorySelect}
+          onViewAll={handleViewAllCategories}
+        />
 
         <PromoCarousel />
 

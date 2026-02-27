@@ -92,55 +92,64 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
     }
   };
 
-  const renderBusinessCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.businessCard}
-      onPress={() => handleBusinessClick(item)}
-      activeOpacity={0.7}
-    >
-      <Image source={{ uri: item.imageUrl }} style={styles.businessImage} />
-      <View style={styles.businessInfo}>
-        <View style={styles.businessHeader}>
-          <Text style={styles.businessName} numberOfLines={1}>{item.name}</Text>
-          <TouchableOpacity
-            onPress={() => handleToggleSave(item.id)}
-            activeOpacity={0.7}
-            style={styles.heartButton}
-          >
-            <Icon
-              name="heart"
-              size={20}
-              color={COLORS.orange}
-              fill={COLORS.orange}
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.businessMeta}>
-          <View style={styles.ratingContainer}>
-            <Icon name={getIconName('Star')} size={14} color="#fbbf24" />
-            <Text style={styles.rating}>{item.rating}</Text>
-            <Text style={styles.reviewCount}>({item.reviewCount})</Text>
+  const renderBusinessCard = ({ item }) => {
+    // Safely determine the best image to show, handling empty strings
+    const imgSource = item.profileImageUrl || item.imageUrl || item.shopFrontPhotoUrl;
+    const finalImageUrl = (imgSource && imgSource.trim() !== '') ? imgSource : 'https://via.placeholder.com/150';
+
+    return (
+      <TouchableOpacity
+        style={styles.businessCard}
+        onPress={() => handleBusinessClick(item)}
+        activeOpacity={0.7}
+      >
+        <Image
+          source={{ uri: finalImageUrl }}
+          style={styles.businessImage}
+        />
+        <View style={styles.businessInfo}>
+          <View style={styles.businessHeader}>
+            <Text style={styles.businessName} numberOfLines={1}>{item.name}</Text>
+            <TouchableOpacity
+              onPress={() => handleToggleSave(item.id)}
+              activeOpacity={0.7}
+              style={styles.heartButton}
+            >
+              <Icon
+                name="heart"
+                size={20}
+                color={COLORS.orange}
+                fill={COLORS.orange}
+              />
+            </TouchableOpacity>
           </View>
-          {item.isVerified && (
-            <View style={styles.verifiedBadge}>
-              <Icon name={getIconName('CheckCircle')} size={12} color="#2563eb" />
-              <Text style={styles.verifiedText}>Verified</Text>
+          <View style={styles.businessMeta}>
+            <View style={styles.ratingContainer}>
+              <Icon name={getIconName('Star')} size={14} color="#fbbf24" />
+              <Text style={styles.rating}>{item.rating}</Text>
+              <Text style={styles.reviewCount}>({item.reviewCount})</Text>
             </View>
-          )}
+            {item.isVerified && (
+              <View style={styles.verifiedBadge}>
+                <Icon name={getIconName('CheckCircle')} size={12} color="#2563eb" />
+                <Text style={styles.verifiedText}>Verified</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.locationRow}>
+            <Icon name={getIconName('MapPin')} size={12} color={COLORS.textMuted} />
+            <Text style={styles.location} numberOfLines={1}>{item.address || item.location}</Text>
+          </View>
+          <View style={styles.categoryRow}>
+            <Text style={styles.category}>{item.category}</Text>
+            {item.distance && (
+              <Text style={styles.distance}>{item.distance}</Text>
+            )}
+          </View>
         </View>
-        <View style={styles.locationRow}>
-          <Icon name={getIconName('MapPin')} size={12} color={COLORS.textMuted} />
-          <Text style={styles.location} numberOfLines={1}>{item.address || item.location}</Text>
-        </View>
-        <View style={styles.categoryRow}>
-          <Text style={styles.category}>{item.category}</Text>
-          {item.distance && (
-            <Text style={styles.distance}>{item.distance}</Text>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -238,7 +247,7 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.darkBg,
+    backgroundColor: '#F8FAFC', // White theme background
   },
   gradientBackground: {
     position: 'absolute',
@@ -250,14 +259,14 @@ const createStyles = (COLORS) => StyleSheet.create({
   listContent: {
     padding: 16,
     paddingBottom: 100,
-    backgroundColor: COLORS.darkBg,
+    backgroundColor: '#F8FAFC',
   },
   businessCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.darkBg,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#E2E8F0',
     padding: 12,
     marginBottom: 12,
     shadowColor: '#000',
@@ -285,7 +294,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.textLight,
+    color: '#0F172A',
     marginRight: 8,
   },
   heartButton: {
@@ -305,7 +314,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   rating: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.textLight,
+    color: '#0F172A',
   },
   reviewCount: {
     fontSize: 12,

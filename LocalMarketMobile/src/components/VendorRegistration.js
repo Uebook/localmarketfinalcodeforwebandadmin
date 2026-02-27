@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
@@ -17,10 +18,12 @@ import { getIconName } from '../utils/iconMapping';
 import { launchImageLibrary } from 'react-native-image-picker';
 import LocationPicker from './LocationPicker';
 import { formatLocation } from '../constants/locations';
+import { registerVendor, uploadFile } from '../services/api';
 
 const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showIdProofPicker, setShowIdProofPicker] = useState(false);
   const [showShopProofPicker, setShowShopProofPicker] = useState(false);
@@ -85,31 +88,55 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.ownerPhotoUrl || !formData.shopFrontPhotoUrl || !formData.idProofType || !formData.idProofUrl) {
       Alert.alert('Error', 'Please upload required photos and documents');
       return;
     }
-    
-    const finalData = {
-      ...formData,
-      id: `v${Date.now()}`,
-      rating: 0,
-      reviewCount: 0,
-      distance: '0 km',
-      imageUrl: formData.shopFrontPhotoUrl || 'https://placehold.co/400x300?text=New+Shop',
-      isVerified: false,
-      kycStatus: 'Pending',
-      activationStatus: 'Pending',
-      products: [],
-      enquiries: [],
-      reviews: [],
-      offers: [],
-    };
-    
-    setIsSubmitted(true);
-    if (onComplete) {
-      onComplete(finalData);
+
+    setIsLoading(true);
+    try {
+      let idProofUrl = formData.idProofUrl;
+      let businessPhotoUrl = formData.shopFrontPhotoUrl;
+
+      if (idProofUrl && !idProofUrl.startsWith('http')) {
+        idProofUrl = await uploadFile(idProofUrl, 'id-proofs');
+      }
+
+      if (businessPhotoUrl && !businessPhotoUrl.startsWith('http')) {
+        businessPhotoUrl = await uploadFile(businessPhotoUrl, 'shop-photos');
+      }
+
+      const vendorData = {
+        businessName: formData.name,
+        ownerName: formData.ownerName,
+        category: formData.category,
+        subCategory: formData.circle,
+        mobile: formData.contactNumber,
+        email: formData.email,
+        address: formData.address,
+        state: formData.location ? formData.location.state : formData.state || '',
+        city: formData.city || (formData.location ? formData.location.city : ''),
+        pincode: formData.pincode,
+        idProofUrl,
+        businessPhotoUrl,
+      };
+
+      const response = await registerVendor(vendorData);
+
+      if (response && response.vendor) {
+        setIsSubmitted(true);
+        if (onComplete) {
+          onComplete(response.vendor);
+        }
+      } else {
+        throw new Error('No vendor data returned');
+      }
+    } catch (error) {
+      console.error('Registration failed:', error);
+      Alert.alert('Registration Error', error.message || 'Failed to register vendor. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -237,7 +264,7 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
           Thank you for information, we will review and get back to you in{' '}
           <Text style={styles.bold}>48-72 hrs</Text>.
         </Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.successButton}
           onPress={onCancel || (() => navigation?.goBack())}
           activeOpacity={0.7}
@@ -352,7 +379,7 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
                   onChange={(v) => updateField('address', v)}
                   required
                 />
-                
+
                 <InputField
                   label="Landmark"
                   iconName="MapPin"
@@ -532,17 +559,24 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={[styles.nextButton, step === 3 && styles.submitButton]}
+          style={[styles.nextButton, step === 3 && styles.submitButton, isLoading && { opacity: 0.7 }]}
           onPress={step === 3 ? handleSubmit : handleNext}
           activeOpacity={0.8}
+          disabled={isLoading}
         >
-          <Text style={styles.nextButtonText}>
-            {step === 3 ? 'Submit & Register' : 'Next Step'}
-          </Text>
-          {step === 3 ? (
-            <Icon name={getIconName('CheckCircle')} size={18} color="#ffffff" />
+          {isLoading ? (
+            <ActivityIndicator color="#ffffff" size="small" />
           ) : (
-            <Icon name={getIconName('ArrowRight')} size={18} color="#ffffff" />
+            <>
+              <Text style={styles.nextButtonText}>
+                {step === 3 ? 'Submit & Register' : 'Next Step'}
+              </Text>
+              {step === 3 ? (
+                <Icon name={getIconName('CheckCircle')} size={18} color="#ffffff" />
+              ) : (
+                <Icon name={getIconName('ArrowRight')} size={18} color="#ffffff" />
+              )}
+            </>
           )}
         </TouchableOpacity>
       </View>

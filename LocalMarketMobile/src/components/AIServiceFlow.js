@@ -253,7 +253,7 @@ const AIServiceFlow = ({ navigation }) => {
                     >
                         {msg.sender === 'ai' && (
                             <View style={styles.aiIconContainer}>
-                                <Icon name="aperture" size={16} color="#FFF" />
+                                <Icon name="cpu" size={16} color="#FFF" />
                             </View>
                         )}
                         <Text style={[

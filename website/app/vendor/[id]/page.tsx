@@ -219,13 +219,12 @@ export default function VendorDetailsPage() {
 
               {/* Hero Image */}
               <div className="relative h-72 sm:h-96 w-full rounded-3xl overflow-hidden shadow-lg bg-slate-200">
-                {business.imageUrl ? (
-                  <Image src={business.imageUrl} alt={business.name} fill className="object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
-                    <Package size={64} />
-                  </div>
-                )}
+                {(() => {
+                  const imgUrl = business.profile_image_url || business.imageUrl || business.image_url || business.shop_front_photo_url || 'https://st3.depositphotos.com/15648834/17930/v/450/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg';
+                  return (
+                    <Image src={imgUrl} alt={business.name} fill className="object-cover" />
+                  );
+                })()}
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent" />
 

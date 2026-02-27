@@ -13,7 +13,7 @@ function ReviewsContent() {
   const [saving, setSaving] = useState(false);
 
   const filteredReviews = reviews.filter((r: any) => {
-    const name = r.reviewer_name ?? r.customer_name ?? r.userName ?? '';
+    const name = r.reviewer_name ?? r.customer_name ?? r.user_name ?? r.userName ?? '';
     const comment = r.comment ?? r.review ?? r.text ?? '';
     const ratingVal = r.rating ?? r.stars ?? 0;
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -104,7 +104,7 @@ function ReviewsContent() {
       {filteredReviews.length > 0 ? (
         <div className="space-y-3">
           {filteredReviews.map((review: any) => {
-            const name = review.reviewer_name ?? review.customer_name ?? review.userName ?? 'Customer';
+            const name = review.reviewer_name ?? review.customer_name ?? review.user_name ?? review.userName ?? 'Customer';
             const comment = review.comment ?? review.review ?? review.text ?? '';
             const rating = review.rating ?? review.stars ?? 0;
             const date = review.created_at

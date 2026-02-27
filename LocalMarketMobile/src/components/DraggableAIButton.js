@@ -71,7 +71,7 @@ const DraggableAIButton = ({ onPress }) => {
                 }}
                 activeOpacity={0.8}
             >
-                <Icon name="aperture" size={24} color="#FFF" />
+                <Icon name="cpu" size={24} color="#FFF" />
             </TouchableOpacity>
         </Animated.View>
     );

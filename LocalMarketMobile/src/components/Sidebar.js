@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 
-const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName = 'Guest User', userLocation = 'Delhi, India' }) => {
+const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName = 'Guest User', userEmail = '', userLocation = 'Delhi, India' }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [expandedSections, setExpandedSections] = useState({
@@ -65,10 +65,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
       activeOpacity={0.7}
     >
       <View style={styles.menuItemLeft}>
-        <Icon 
-          name={getIconName(iconName) || iconName} 
-          size={18} 
-          color={highlight ? COLORS.danger : COLORS.textSecondary} 
+        <Icon
+          name={getIconName(iconName) || iconName}
+          size={18}
+          color={highlight ? COLORS.danger : COLORS.textSecondary}
         />
         <Text style={[styles.menuItemText, highlight && styles.menuItemTextHighlight]}>
           {label}
@@ -87,9 +87,9 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
 
   const CollapsibleSection = ({ title, isOpen: sectionOpen, onToggle, children }) => (
     <View style={styles.section}>
-      <TouchableOpacity 
-        style={styles.sectionHeader} 
-        onPress={onToggle} 
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={onToggle}
         activeOpacity={0.7}
       >
         <Text style={styles.sectionTitle}>{title.toUpperCase()}</Text>
@@ -123,7 +123,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
           activeOpacity={1}
           onPress={onClose}
         />
-        <Animated.View 
+        <Animated.View
           style={[
             styles.sidebar,
             {
@@ -145,9 +145,9 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
               {/* Header Content */}
               <View style={styles.headerContent}>
                 {/* Close Button - Top Right */}
-                <TouchableOpacity 
-                  onPress={onClose} 
-                  style={styles.closeButton} 
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.closeButton}
                   activeOpacity={0.7}
                 >
                   <Icon name={getIconName('X')} size={18} color={COLORS.white} />
@@ -166,6 +166,9 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
                   </View>
                   <View style={styles.userDetails}>
                     <Text style={styles.userName} numberOfLines={1}>{userName}</Text>
+                    {!!userEmail && (
+                      <Text style={styles.userEmail} numberOfLines={1}>{userEmail}</Text>
+                    )}
                     {userRole === 'vendor' && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>Local+ Account</Text>
@@ -411,6 +414,11 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: COLORS.white,
+    marginBottom: 4,
+  },
+  userEmail: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 8,
   },
   badge: {

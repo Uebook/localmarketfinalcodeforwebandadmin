@@ -28,6 +28,8 @@ export default function BannerManagement() {
       try {
         setLoading(true);
         setError('');
+        const res = await fetch('/api/banners');
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setError(data?.error || 'Failed to load banners');
         } else if (!cancelled) {

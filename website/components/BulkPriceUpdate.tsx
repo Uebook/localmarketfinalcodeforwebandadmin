@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Upload, Download, File, X, CheckCircle, Info, AlertCircle } from 'lucide-react';
+import { useVendor } from '@/components/VendorDashboardLayout';
 
 interface BulkPriceUpdateProps {
   onBack?: () => void;
@@ -14,18 +15,43 @@ export default function BulkPriceUpdate({ onBack, vendorProducts = [], onUpdateP
   const [loading, setLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
 
-  const handleDownloadTemplate = () => {
-    // In a real app, this would download the Excel template
-    alert('Template download will be available after backend integration. The template will include: Product ID, Product Name, Current Price, New Price, Category, Unit');
+  const { vendor, loading: vendorLoading } = useVendor();
+
+  const handleDownloadTemplate = async () => {
+    if (!vendor?.id) {
+      alert('Vendor session not found');
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/vendor-products/template?vendorId=${encodeURIComponent(vendor.id)}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to download template');
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vendor_price_update_template.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.message || 'Failed to download template');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-          selectedFile.type === 'application/vnd.ms-excel' ||
-          selectedFile.name.endsWith('.xlsx') ||
-          selectedFile.name.endsWith('.xls')) {
+        selectedFile.type === 'application/vnd.ms-excel' ||
+        selectedFile.name.endsWith('.xlsx') ||
+        selectedFile.name.endsWith('.xls')) {
         setFile(selectedFile);
       } else {
         alert('Please select a valid Excel file (.xlsx or .xls)');
@@ -38,18 +64,42 @@ export default function BulkPriceUpdate({ onBack, vendorProducts = [], onUpdateP
       alert('Please select a file first');
       return;
     }
+    if (!vendor?.id) {
+      alert('Vendor session not found');
+      return;
+    }
 
     setLoading(true);
 
-    // Simulate upload process
-    setTimeout(() => {
-      setLoading(false);
-      alert('Price update file uploaded successfully! Prices will be updated after verification.');
-      setFile(null);
-      if (onUpdatePrices) {
-        onUpdatePrices();
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('vendorId', vendor.id);
+
+      const res = await fetch('/api/vendor-products/bulk-price', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.errors && data.errors.length > 0) {
+          alert(`Import failed with errors: ${data.errors.map((e: any) => `Row ${e.row}: ${e.error}`).join('\n')}`);
+        } else {
+          throw new Error(data.error || 'Import failed');
+        }
+      } else {
+        alert(`Successfully updated ${data.updated} product prices!`);
+        setFile(null);
+        if (onUpdatePrices) {
+          onUpdatePrices();
+        }
       }
-    }, 2000);
+    } catch (err: any) {
+      alert(err.message || 'Price update failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

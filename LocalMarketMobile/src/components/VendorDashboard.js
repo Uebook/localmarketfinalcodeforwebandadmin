@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import BulkPriceUpdate from './BulkPriceUpdate';
 import FeedbackForm from './FeedbackForm';
+import { submitReviewReply } from '../services/api';
 
 const VendorDashboard = ({
   navigation,
@@ -18,6 +19,9 @@ const VendorDashboard = ({
   launchAddProductType
 }) => {
   const [activeTab, setActiveTab] = useState(targetTab || 'overview');
+  const [replyInputActive, setReplyInputActive] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
 
   useEffect(() => {
     if (targetTab) {
@@ -170,36 +174,100 @@ const VendorDashboard = ({
     </View>
   );
 
+  const handleReplySubmit = async (reviewId) => {
+    if (!replyText.trim() || !reviewId) return;
+    try {
+      setIsReplying(true);
+      const res = await submitReviewReply(reviewId, replyText.trim());
+      if (res && res.success) {
+        if (onUpdateVendor) {
+          // Triggers a refresh so new replies show up
+          onUpdateVendor();
+        }
+        setReplyInputActive(null);
+        setReplyText('');
+      } else {
+        console.error('Failed to submit reply');
+      }
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+    } finally {
+      setIsReplying(false);
+    }
+  };
+
   const renderReviews = () => (
     <View style={styles.tabContent}>
       {vendor?.reviews && vendor.reviews.length > 0 ? (
         <FlatList
           data={vendor.reviews}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.reviewCard}>
-              <View style={styles.reviewHeader}>
-                <Text style={styles.reviewName}>{item.userName}</Text>
-                <View style={styles.reviewRating}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Icon
-                      key={star}
-                      name={getIconName('Star')}
-                      size={12}
-                      color={star <= item.rating ? '#fbbf24' : '#e5e7eb'}
-                    />
-                  ))}
+          renderItem={({ item }) => {
+            const customerName = item.user_name || item.userName || item.reviewer_name || item.customer_name || 'Customer';
+
+            return (
+              <View style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewName}>{customerName}</Text>
+                  <View style={styles.reviewRating}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Icon
+                        key={star}
+                        name={getIconName('Star')}
+                        size={12}
+                        color={star <= item.rating ? '#fbbf24' : '#e5e7eb'}
+                      />
+                    ))}
+                  </View>
                 </View>
+                {item.created_at || item.date ? (
+                  <Text style={styles.reviewDate}>
+                    {item.created_at ? new Date(item.created_at).toLocaleDateString() : item.date}
+                  </Text>
+                ) : null}
+                <Text style={styles.reviewComment}>{item.comment}</Text>
+                {item.reply ? (
+                  <View style={styles.reviewReply}>
+                    <Text style={styles.reviewReplyText}>Reply: {item.reply}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.reviewReplyContainer}>
+                    {replyInputActive === item.id ? (
+                      <View style={{ marginTop: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb', overflow: 'hidden' }}>
+                          <TextInput
+                            style={{ flex: 1, padding: 10, fontSize: 13, color: '#1f2937' }}
+                            placeholder="Write your reply..."
+                            value={replyText}
+                            onChangeText={setReplyText}
+                            multiline
+                          />
+                          <TouchableOpacity
+                            onPress={() => handleReplySubmit(item.id)}
+                            disabled={isReplying || !replyText.trim()}
+                            style={{ backgroundColor: (isReplying || !replyText.trim()) ? '#d1d5db' : '#dc2626', paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'center' }}
+                          >
+                            <Icon name="send" size={16} color="#fff" />
+                          </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity onPress={() => { setReplyInputActive(null); setReplyText(''); }} style={{ marginTop: 6, alignSelf: 'flex-start' }}>
+                          <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '600' }}>Cancel</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}
+                        onPress={() => setReplyInputActive(item.id)}
+                      >
+                        <Icon name="corner-up-left" size={14} color="#dc2626" />
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#dc2626' }}>Reply to Review</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
               </View>
-              <Text style={styles.reviewDate}>{item.date}</Text>
-              <Text style={styles.reviewComment}>{item.comment}</Text>
-              {item.reply && (
-                <View style={styles.reviewReply}>
-                  <Text style={styles.reviewReplyText}>Reply: {item.reply}</Text>
-                </View>
-              )}
-            </View>
-          )}
+            );
+          }}
         />
       ) : (
         <View style={styles.emptyState}>

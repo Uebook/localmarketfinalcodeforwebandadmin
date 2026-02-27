@@ -53,7 +53,6 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
             const data = await getVendorProducts(business.id);
 
             if (data?.products && Array.isArray(data.products)) {
-                // Transform vendor products to match the expected format
                 const transformedProducts = data.products.map(product => ({
                     id: product.id,
                     name: product.name,
@@ -162,7 +161,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                 // Transform API reviews to match component format
                 const transformedReviews = response.reviews.map(review => ({
                     id: review.id,
-                    userName: review.user_name || review.userName || 'Anonymous',
+                    userName: review.user_name || review.userName || review.reviewer_name || review.customer_name || 'Customer',
                     rating: review.rating,
                     comment: review.comment,
                     date: review.created_at ? new Date(review.created_at).toLocaleDateString() : new Date().toLocaleDateString(),
@@ -250,7 +249,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
                     <View style={styles.businessHeader}>
                         <Text style={styles.businessName}>{displayBusiness.name}</Text>
                         <Image
-                            source={{ uri: displayBusiness.imageUrl }}
+                            source={{ uri: displayBusiness.profileImageUrl || displayBusiness.shopFrontPhotoUrl || displayBusiness.imageUrl || 'https://st3.depositphotos.com/15648834/17930/v/450/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg' }}
                             style={styles.businessImage}
                             resizeMode="cover"
                         />

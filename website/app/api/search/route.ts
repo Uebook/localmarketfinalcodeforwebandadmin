@@ -56,7 +56,7 @@ export async function GET(request: Request) {
                     seen.add(v.id);
                     results.push({
                         ...v,
-                        imageUrl: v.image_url || v.shop_front_photo_url || '',
+                        imageUrl: v.profile_image_url || v.image_url || v.shop_front_photo_url || '',
                         category_name: catMap[v.category_id] || v.category || 'General'
                     });
                 }
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
                     seen.add(v.id);
                     results.push({
                         ...v,
-                        imageUrl: v.image_url || v.shop_front_photo_url || '',
+                        imageUrl: v.profile_image_url || v.image_url || v.shop_front_photo_url || '',
                         category_name: catMap[v.category_id] || v.category || 'General'
                     });
                 }

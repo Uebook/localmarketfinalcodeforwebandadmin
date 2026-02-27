@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { ALL_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
@@ -89,8 +89,18 @@ const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
         onPress={() => onCategorySelect && onCategorySelect(item.name)}
         activeOpacity={0.7}
       >
-        <View style={[styles.iconContainer, { backgroundColor }]}>
-          <Icon name={iconName} size={32} color="#ffffff" />
+        <View style={styles.iconContainer}>
+          {item.iconUrl || item.icon_url ? (
+            <Image
+              source={{ uri: item.iconUrl || item.icon_url }}
+              style={{ width: '100%', height: '100%', borderRadius: 12 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={{ width: '100%', height: '100%', borderRadius: 12, backgroundColor, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name={iconName} size={32} color="#ffffff" />
+            </View>
+          )}
         </View>
         <Text style={[styles.categoryName, { color: textColor }]} numberOfLines={2} ellipsizeMode="tail">
           {item.name}

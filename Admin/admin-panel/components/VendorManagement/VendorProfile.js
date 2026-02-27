@@ -246,6 +246,85 @@ export default function VendorProfile({ vendor: initialVendor, onBack }) {
               <div><span className="text-gray-400">Category</span><p className="font-medium text-gray-800 mt-0.5">{vendor.category || '—'}</p></div>
             </div>
           </div>
+
+          {/* Documents Section */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="font-bold text-gray-900 mb-4">KYC Documents</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ID Proof */}
+              <div>
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">ID Proof</span>
+                {vendor.idProofUrl ? (
+                  <div className="relative group">
+                    {vendor.idProofUrl.toLowerCase().endsWith('.pdf') ? (
+                      <a
+                        href={vendor.idProofUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition"
+                      >
+                        <span className="text-2xl">📄</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">View ID Proof (PDF)</p>
+                          <p className="text-xs text-gray-500">Click to open in new tab</p>
+                        </div>
+                      </a>
+                    ) : (
+                      <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                        <img
+                          src={vendor.idProofUrl}
+                          alt="ID Proof"
+                          className="w-full h-48 object-contain cursor-pointer"
+                          onClick={() => window.open(vendor.idProofUrl, '_blank')}
+                        />
+                        <div className="p-2 border-t border-gray-200 text-center">
+                          <button
+                            onClick={() => window.open(vendor.idProofUrl, '_blank')}
+                            className="text-xs font-bold text-orange-600 hover:text-orange-700"
+                          >
+                            View Full Image
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 bg-gray-50 border border-dashed border-gray-300 rounded-lg text-gray-400">
+                    <span className="text-2xl mb-1">📋</span>
+                    <p className="text-xs font-medium">No ID proof uploaded</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Business Photo / Shop Front */}
+              <div>
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Business Photo</span>
+                {vendor.shopFrontPhotoUrl || vendor.imageUrl ? (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                    <img
+                      src={vendor.shopFrontPhotoUrl || vendor.imageUrl}
+                      alt="Business Photo"
+                      className="w-full h-48 object-cover cursor-pointer"
+                      onClick={() => window.open(vendor.shopFrontPhotoUrl || vendor.imageUrl, '_blank')}
+                    />
+                    <div className="p-2 border-t border-gray-200 text-center">
+                      <button
+                        onClick={() => window.open(vendor.shopFrontPhotoUrl || vendor.imageUrl, '_blank')}
+                        className="text-xs font-bold text-orange-600 hover:text-orange-700"
+                      >
+                        View Full Photo
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 bg-gray-50 border border-dashed border-gray-300 rounded-lg text-gray-400">
+                    <span className="text-2xl mb-1">📸</span>
+                    <p className="text-xs font-medium">No business photo uploaded</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

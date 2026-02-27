@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLayout';
-import { Activity, Package, MessageSquare, Star, CheckCircle, XCircle, AlertCircle, ArrowRight } from 'lucide-react';
+import { Activity, Package, MessageSquare, Star, CheckCircle, XCircle, AlertCircle, ArrowRight, Download } from 'lucide-react';
 
 function DashboardContent() {
   const router = useRouter();
@@ -157,6 +157,7 @@ function DashboardContent() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
             { label: 'Add Product', icon: Package, href: '/vendor/dashboard/catalog', color: 'text-blue-500' },
+            { label: 'Bulk Update', icon: Download, href: '/vendor/dashboard/bulk-update', color: 'text-orange-500' },
             { label: 'View Enquiries', icon: MessageSquare, href: '/vendor/dashboard/enquiries', color: 'text-purple-500' },
             { label: 'Edit Profile', icon: Activity, href: '/vendor/dashboard/profile', color: 'text-green-500' },
           ].map(({ label, icon: Icon, href, color }) => (

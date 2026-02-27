@@ -8,21 +8,42 @@ import Image from 'next/image';
 export default function PromoCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [banners, setBanners] = useState<any[]>(PROMO_BANNERS);
 
   useEffect(() => {
-    if (isHovered) return;
+    fetch('/api/banners')
+      .then(res => res.json())
+      .then(data => {
+        if (data.banners && data.banners.length > 0) {
+          // Map the API structure slightly to fit the UI gracefully
+          const apiBanners = data.banners.map((b: any) => ({
+            id: b.id,
+            title: b.title,
+            subtitle: "Exclusive Local Offer", // Default fallback subtitle since DB doesn't have it
+            imageUrl: b.imageUrl,
+            ctaText: "Claim Now", // Default
+            link: b.linkUrl || "#"
+          }));
+          setBanners(apiBanners);
+        }
+      })
+      .catch(err => console.error('Failed to fetch banners:', err));
+  }, []);
+
+  useEffect(() => {
+    if (isHovered || banners.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % PROMO_BANNERS.length);
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, 6000);
     return () => clearInterval(timer);
   }, [isHovered]);
 
   const next = () => {
-    setCurrentIndex((prev) => (prev + 1) % PROMO_BANNERS.length);
+    setCurrentIndex((prev) => (prev + 1) % banners.length);
   };
 
   const prev = () => {
-    setCurrentIndex((prev) => (prev - 1 + PROMO_BANNERS.length) % PROMO_BANNERS.length);
+    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
   };
 
   return (
@@ -32,7 +53,7 @@ export default function PromoCarousel() {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative h-[300px] sm:h-[400px] md:h-[450px] rounded-[2rem] overflow-hidden shadow-2xl shadow-orange-500/10">
-        {PROMO_BANNERS.map((banner, index) => (
+        {banners.map((banner, index) => (
           <div
             key={banner.id}
             className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100 scale-100 translate-x-0 z-10' : 'opacity-0 scale-105 translate-x-4 z-0'
@@ -90,13 +111,13 @@ export default function PromoCarousel() {
 
       {/* Indicators */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-        {PROMO_BANNERS.map((_, index) => (
+        {banners.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`h-1.5 rounded-full transition-all duration-500 ${index === currentIndex
-                ? 'w-12 bg-white'
-                : 'w-2 bg-white/30 hover:bg-white/50'
+              ? 'w-12 bg-white'
+              : 'w-2 bg-white/30 hover:bg-white/50'
               }`}
           />
         ))}

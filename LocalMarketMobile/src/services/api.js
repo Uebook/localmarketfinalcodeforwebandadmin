@@ -480,6 +480,62 @@ export const register = async (userData) => {
   }
 };
 
+/**
+ * Register new vendor
+ * @param {Object} vendorData
+ * @returns {Promise<{success: boolean, vendor: Object, message: string}>}
+ */
+export const registerVendor = async (vendorData) => {
+  try {
+    return await apiRequest('/api/vendor/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(vendorData),
+    });
+  } catch (error) {
+    console.error('Vendor Registration error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Upload a file to the server using FormData
+ * @param {string} fileUri - The local URI of the file
+ * @param {string} folder - The destination folder on the server
+ * @returns {Promise<string>} The URL of the uploaded file
+ */
+export const uploadFile = async (fileUri, folder) => {
+  try {
+    const formData = new FormData();
+    const filename = fileUri.split('/').pop() || 'photo.jpg';
+    let type = 'image/jpeg';
+    if (filename.toLowerCase().endsWith('.png')) type = 'image/png';
+    else if (filename.toLowerCase().endsWith('.pdf')) type = 'application/pdf';
+
+    formData.append('file', {
+      uri: fileUri,
+      type: type,
+      name: filename,
+    });
+    formData.append('bucket', 'vendor-documents');
+    formData.append('folder', folder);
+
+    const response = await fetch(`${API_BASE_URL}/api/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Upload failed');
+    return data.url;
+  } catch (error) {
+    console.error('File Upload error:', error);
+    throw error;
+  }
+};
+
 // ==================== SEARCH API ====================
 
 /**
@@ -595,6 +651,28 @@ export const submitReview = async (reviewData) => {
   }
 };
 
+/**
+ * Submit a reply to a review (Vendor only)
+ * @param {string} reviewId - ID of the review to reply to
+ * @param {string} reply - The vendor's reply text
+ * @returns {Promise<Object>}
+ */
+export const submitReviewReply = async (reviewId, reply) => {
+  try {
+    if (!reviewId || !reply) {
+      throw new Error('Missing review ID or reply text');
+    }
+
+    return await apiRequest(`/api/vendor/reviews/${encodeURIComponent(reviewId)}/reply`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reply }),
+    });
+  } catch (error) {
+    console.error('Error submitting review reply:', error);
+    throw error;
+  }
+};
+
 // ==================== AI API ====================
 
 /**
@@ -654,9 +732,11 @@ export default {
   getRecentSearches,
   getVendorReviews,
   submitReview,
-  login,
+  submitReviewReply,
   login,
   register,
+  registerVendor,
+  uploadFile,
   startAISession,
   processAIAnswer,
   getAIRecommendations,

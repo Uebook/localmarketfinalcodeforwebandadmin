@@ -67,9 +67,9 @@ const SplashScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient Background - Diagonal from orange-red (top-left) to purple-blue (bottom-right) */}
+      {/* Dynamic Gradient Background */}
       <LinearGradient
-        colors={['#E86A2C', '#4A6CF7']}
+        colors={COLORS.primaryGradient || ['#E86A2C', '#4A6CF7']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientBackground}
@@ -84,7 +84,7 @@ const SplashScreen = () => {
           },
         ]}
       >
-        <Animated.View 
+        <Animated.View
           style={[
             styles.iconContainer,
             {
@@ -92,7 +92,7 @@ const SplashScreen = () => {
             },
           ]}
         >
-          <Animated.View 
+          <Animated.View
             style={[
               styles.iconInnerContainer,
               {
@@ -102,7 +102,7 @@ const SplashScreen = () => {
           >
             <Icon name="shopping-bag" size={56} color={COLORS.orange} />
           </Animated.View>
-          <Animated.View 
+          <Animated.View
             style={[
               styles.iconBadge,
               {
@@ -120,16 +120,16 @@ const SplashScreen = () => {
       {/* Loading Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.progressFill, 
+              styles.progressFill,
               { width: `${progress}%` }
-            ]} 
+            ]}
           />
         </View>
       </View>
 
-      <Animated.Text 
+      <Animated.Text
         style={[
           styles.loadingText,
           {

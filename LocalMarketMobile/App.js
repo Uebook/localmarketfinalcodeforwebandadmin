@@ -667,8 +667,9 @@ function App() {
           onClose={() => setIsSidebarOpen(false)}
           onNavigate={handleSidebarNavigation}
           userRole={userRole}
-          userName={userRole === 'vendor' ? vendorData.name : 'User'}
-          userLocation={userRole === 'vendor' ? vendorData.address : 'Delhi, India'}
+          userName={userRole === 'vendor' ? vendorData.name : (userData?.name || userData?.full_name || 'User')}
+          userEmail={userRole === 'vendor' ? vendorData.email : (userData?.email || '')}
+          userLocation={userRole === 'vendor' ? vendorData.address : (userData?.location || [userData?.city, userData?.state].filter(Boolean).join(', ') || 'Delhi, India')}
         />
       </SafeAreaProvider>
     </ThemeProvider>

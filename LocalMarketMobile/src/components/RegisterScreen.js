@@ -43,7 +43,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successUserData, setSuccessUserData] = useState(null);
-  
+
   const allStates = getAllStates();
   const filteredStates = searchStates(stateSearchQuery);
   const allCities = formData.state ? getCitiesByState(formData.state) : [];
@@ -123,7 +123,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
         } catch (error) {
           console.error('Error saving user data:', error);
         }
-        
+
         setSuccessUserData(response.user);
         setShowSuccessModal(true);
       }
@@ -141,9 +141,9 @@ const RegisterScreen = ({ onRegister, onBack }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Dark gradient background */}
+      {/* Dynamic gradient background */}
       <LinearGradient
-        colors={['#7A3B1D', '#581c87']}
+        colors={COLORS.homeBackground || COLORS.primaryGradient || ['#7A3B1D', '#581c87']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -294,10 +294,10 @@ const RegisterScreen = ({ onRegister, onBack }) => {
               <Text style={[styles.input, !formData.city && styles.placeholderText]}>
                 {formData.city || (formData.state ? 'Select City' : 'Select State first')}
               </Text>
-              <Icon 
-                name={getIconName('ChevronDown')} 
-                size={18} 
-                color={formData.state ? COLORS.orange : COLORS.textMuted} 
+              <Icon
+                name={getIconName('ChevronDown')}
+                size={18}
+                color={formData.state ? COLORS.orange : COLORS.textMuted}
               />
             </TouchableOpacity>
           </View>
@@ -310,7 +310,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={['#fb923c', '#ec4899']}
+              colors={COLORS.primaryGradient || ['#fb923c', '#ec4899']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.gradientButton}
@@ -443,7 +443,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
 
             {/* Success Title */}
             <Text style={styles.successTitle}>Registration Successful!</Text>
-            
+
             {/* Success Message */}
             <Text style={styles.successMessage}>
               Your account has been created successfully. Welcome to Local Market!
@@ -477,7 +477,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={['#fb923c', '#ec4899']}
+                colors={COLORS.primaryGradient || ['#fb923c', '#ec4899']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.successButtonGradient}
