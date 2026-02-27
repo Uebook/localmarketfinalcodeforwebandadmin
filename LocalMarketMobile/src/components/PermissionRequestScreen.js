@@ -18,7 +18,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 const PermissionRequestScreen = ({ visible, onComplete }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
-  
+
   const [permissions, setPermissions] = useState([
     {
       id: 'camera',
@@ -59,20 +59,35 @@ const PermissionRequestScreen = ({ visible, onComplete }) => {
       try {
         const camera = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
         const location = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-        const notifications = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS); // Android 13+
 
-        setPermissions(prev => prev.map(p => {
+        let notifications = false;
+        if (Platform.Version >= 33) {
+          notifications = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+        } else {
+          notifications = true; // Assume granted on older Android
+        }
+
+        const newPermissions = permissions.map(p => {
           if (p.id === 'camera') return { ...p, granted: camera };
           if (p.id === 'location') return { ...p, granted: location };
           if (p.id === 'notification') return { ...p, granted: notifications };
           return p;
-        }));
+        });
+
+        setPermissions(newPermissions);
+
+        // Auto-skip if all required are already granted
+        const ungrantedRequired = newPermissions.filter(p => !p.granted && p.required);
+        if (ungrantedRequired.length === 0 && visible) {
+          onComplete();
+        }
       } catch (err) {
         console.warn(err);
       }
     } else {
-      // iOS permission checking usually requires specific libraries or checking return values of usages
-      // For now, we assume false to ensure we ask/inform the user
+      // iOS permission checking usually requires specific libraries
+      // For now, allow proceeding
+      if (visible) onComplete();
     }
   };
 
@@ -105,20 +120,20 @@ const PermissionRequestScreen = ({ visible, onComplete }) => {
           );
           granted = result === PermissionsAndroid.RESULTS.GRANTED;
         } else if (permission.id === 'notification') {
-           if (Platform.Version >= 33) {
-              const result = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-              );
-              granted = result === PermissionsAndroid.RESULTS.GRANTED;
-           } else {
-             granted = true; // Automatically granted on older Android
-           }
+          if (Platform.Version >= 33) {
+            const result = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+            );
+            granted = result === PermissionsAndroid.RESULTS.GRANTED;
+          } else {
+            granted = true; // Automatically granted on older Android
+          }
         }
 
         if (granted) {
           markAsGranted(permission.id);
         } else {
-             // If manual settings needed
+          // If manual settings needed
         }
       } catch (err) {
         console.warn(err);
@@ -149,22 +164,22 @@ const PermissionRequestScreen = ({ visible, onComplete }) => {
     if (ungranted.length === 0) {
       onComplete();
     } else {
-        // Ask for the first ungranted
-        // requestPermission(ungranted[0]);
-        // For simplicity, we just close if user insists or we can block.
-        // Let's just allow proceeding for now to avoid getting stuck.
-        onComplete();
+      // Ask for the first ungranted
+      // requestPermission(ungranted[0]);
+      // For simplicity, we just close if user insists or we can block.
+      // Let's just allow proceeding for now to avoid getting stuck.
+      onComplete();
     }
   };
-  
+
   const handleGrant = (perm) => {
     requestPermission(perm);
   };
-  
+
   // Filter only ungranted permissions to show? 
   // Or show all with status?
   // Let's show list.
-  
+
   // If all granted, auto close?
   useEffect(() => {
     const allGranted = permissions.every(p => p.granted || !p.required);
@@ -186,10 +201,10 @@ const PermissionRequestScreen = ({ visible, onComplete }) => {
             {permissions.map((item, index) => (
               <View key={item.id} style={styles.item}>
                 <View style={[styles.iconContainer, item.granted && styles.iconContainerGranted]}>
-                  <Icon 
-                    name={item.granted ? 'check' : item.icon} 
-                    size={24} 
-                    color={item.granted ? '#fff' : COLORS.orange} 
+                  <Icon
+                    name={item.granted ? 'check' : item.icon}
+                    size={24}
+                    color={item.granted ? '#fff' : COLORS.orange}
                   />
                 </View>
                 <View style={styles.itemContent}>
@@ -197,7 +212,7 @@ const PermissionRequestScreen = ({ visible, onComplete }) => {
                   <Text style={styles.itemDesc}>{item.description}</Text>
                 </View>
                 {!item.granted && (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.grantButton}
                     onPress={() => handleGrant(item)}
                   >
@@ -205,7 +220,7 @@ const PermissionRequestScreen = ({ visible, onComplete }) => {
                   </TouchableOpacity>
                 )}
                 {item.granted && (
-                     <Text style={styles.grantedText}>Allowed</Text>
+                  <Text style={styles.grantedText}>Allowed</Text>
                 )}
               </View>
             ))}
@@ -213,13 +228,13 @@ const PermissionRequestScreen = ({ visible, onComplete }) => {
 
           <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
             <LinearGradient
-                colors={['#fb923c', '#ec4899']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradient}
+              colors={['#fb923c', '#ec4899']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradient}
             >
-                <Text style={styles.continueText}>Continue to App</Text>
-                <Icon name="arrow-right" size={20} color="#fff" />
+              <Text style={styles.continueText}>Continue to App</Text>
+              <Icon name="arrow-right" size={20} color="#fff" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -302,9 +317,9 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 13,
   },
   grantedText: {
-      color: COLORS.success,
-      fontWeight: '600',
-      fontSize: 13,
+    color: COLORS.success,
+    fontWeight: '600',
+    fontSize: 13,
   },
   continueButton: {
     borderRadius: 12,

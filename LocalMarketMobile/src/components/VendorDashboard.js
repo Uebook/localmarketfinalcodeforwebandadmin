@@ -50,14 +50,14 @@ const VendorDashboard = ({
             <Icon name="activity" size={16} color="#16a34a" />
           </View>
           <Text style={styles.statLabel}>Store Views</Text>
-          <Text style={styles.statValue}>1,245</Text>
+          <Text style={styles.statValue}>{vendor?.profileViews || 0}</Text>
         </View>
         <View style={styles.statCard}>
           <View style={[styles.statIcon, { backgroundColor: '#dbeafe' }]}>
             <Icon name={getIconName('Search')} size={16} color="#2563eb" />
           </View>
           <Text style={styles.statLabel}>Appearances</Text>
-          <Text style={styles.statValue}>3.5k</Text>
+          <Text style={styles.statValue}>{vendor?.searchAppearances || 0}</Text>
         </View>
       </View>
 

@@ -96,18 +96,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   };
 
   const profileCompletion = 85;
-  const [products, setProducts] = useState(vendorData?.products || [
-    {
-      id: '1',
-      name: 'Sample Product',
-      category: 'Snacks',
-      price: '₹100',
-      originalPrice: '₹120',
-      discount: '17% OFF',
-      inStock: true,
-      imageUrl: 'https://via.placeholder.com/100',
-    },
-  ]);
+  const [products, setProducts] = useState(vendorData?.products || []);
 
   const handleAddItem = () => {
     setEditingItem(null);
@@ -208,7 +197,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     if (setVendorData) {
       setVendorData({
         ...vendorData,
-        products: editingItem 
+        products: editingItem
           ? products.map(p => p.id === editingItem.id ? newItem : p)
           : [...products, newItem],
       });
@@ -265,7 +254,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         isVerified: vendorData.isVerified !== false,
         geoLocation: vendorData.geoLocation || { lat: 28.6139, lng: 77.2090 },
       };
-      
+
       navigation.navigate('VendorDetails', { business: businessData });
     }
   };
@@ -279,7 +268,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -296,22 +285,22 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
               <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
                 <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
               </View>
             </View>
-            
+
             <View style={styles.shopInfo}>
               <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>My Awesome Shop</Text>
+                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
                 <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
               </View>
               <View style={styles.locationRow}>
                 <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>Shop 12, Main Market</Text>
+                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
               </View>
               <View style={styles.statusRow}>
                 <View style={styles.statusDot} />
@@ -348,7 +337,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <Text style={styles.actionText}>Preview</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('VendorOffers')}
             >
@@ -357,7 +346,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <Text style={styles.actionText}>Offers</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('Settings')}
             >
@@ -377,8 +366,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
 
           {/* Action Buttons Row */}
           <View style={styles.catalogButtonsRow}>
-            <TouchableOpacity 
-              style={styles.catalogActionButton} 
+            <TouchableOpacity
+              style={styles.catalogActionButton}
               onPress={handleDownloadCatalog}
               activeOpacity={0.8}
             >
@@ -388,8 +377,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
               <Text style={styles.catalogButtonText}>Download Excel</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.catalogActionButton} 
+            <TouchableOpacity
+              style={styles.catalogActionButton}
               onPress={() => navigation?.navigate('BulkPriceUpdate')}
               activeOpacity={0.8}
             >
@@ -399,8 +388,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
               <Text style={styles.catalogButtonText}>Bulk Update</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.catalogActionButton} 
+            <TouchableOpacity
+              style={styles.catalogActionButton}
               onPress={handleAddItem}
               activeOpacity={0.8}
             >
@@ -415,188 +404,188 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           {showAddForm && (
             <View style={styles.addItemForm}>
               <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.formHeader}>
-                <Text style={styles.formTitle}>Add New Item</Text>
-                <TouchableOpacity onPress={handleCloseForm} style={styles.closeButton}>
-                  <Icon name={getIconName('X')} size={20} color={COLORS.textPrimary} />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.formContent}>
-                {/* Image Upload - Left Side */}
-                <TouchableOpacity style={styles.imageUpload} onPress={handleImagePicker}>
-                  {formData.image ? (
-                    <Image source={formData.image} style={styles.uploadedImage} />
-                  ) : (
-                    <>
-                      <Icon name={getIconName('Image')} size={32} color={COLORS.textMuted} />
-                      <Text style={styles.uploadText}>Add Photo</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-
-                {/* Form Fields - Right Side */}
-                <View style={styles.formFields}>
-                  <View style={styles.inputRow}>
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Item Name *</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={formData.name}
-                        onChangeText={(text) => setFormData({ ...formData, name: text })}
-                        placeholder="Enter item name"
-                        placeholderTextColor={COLORS.textMuted}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.inputRow}>
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Price *</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={formData.price}
-                        onChangeText={(text) => setFormData({ ...formData, price: text.replace(/[^0-9]/g, '') })}
-                        placeholder="0"
-                        keyboardType="numeric"
-                        placeholderTextColor={COLORS.textMuted}
-                      />
-                    </View>
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>MRP</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={formData.mrp}
-                        onChangeText={(text) => setFormData({ ...formData, mrp: text.replace(/[^0-9]/g, '') })}
-                        placeholder="0"
-                        keyboardType="numeric"
-                        placeholderTextColor={COLORS.textMuted}
-                      />
-                    </View>
-                  </View>
-
-                  {/* Product/Service Toggle */}
-                  <View style={styles.typeToggle}>
-                    <TouchableOpacity
-                      style={[styles.typeButton, formData.type === 'Product' && styles.typeButtonActive]}
-                      onPress={() => setFormData({ ...formData, type: 'Product' })}
-                    >
-                      <Text style={[styles.typeButtonText, formData.type === 'Product' && styles.typeButtonTextActive]}>
-                        Product
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.typeButton, formData.type === 'Service' && styles.typeButtonActive]}
-                      onPress={() => setFormData({ ...formData, type: 'Service' })}
-                    >
-                      <Text style={[styles.typeButtonText, formData.type === 'Service' && styles.typeButtonTextActive]}>
-                        Service
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Category Dropdown */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Category</Text>
-                    <TouchableOpacity
-                      style={styles.dropdown}
-                      onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                    >
-                      <Text style={[styles.dropdownText, !formData.category && styles.dropdownPlaceholder]}>
-                        {formData.category || 'Select Category'}
-                      </Text>
-                      <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
-                    </TouchableOpacity>
-                    {showCategoryDropdown && (
-                      <View style={styles.dropdownList}>
-                        {categories.map((cat) => (
-                          <TouchableOpacity
-                            key={cat}
-                            style={styles.dropdownItem}
-                            onPress={() => {
-                              setFormData({ ...formData, category: cat });
-                              setShowCategoryDropdown(false);
-                            }}
-                          >
-                            <Text style={styles.dropdownItemText}>{cat}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Unit Dropdown */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Unit</Text>
-                    <TouchableOpacity
-                      style={styles.dropdown}
-                      onPress={() => setShowUnitDropdown(!showUnitDropdown)}
-                    >
-                      <Text style={[styles.dropdownText, !formData.unit && styles.dropdownPlaceholder]}>
-                        {formData.unit || 'Select Unit'}
-                      </Text>
-                      <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
-                    </TouchableOpacity>
-                    {showUnitDropdown && (
-                      <View style={styles.dropdownList}>
-                        {units.map((unit) => (
-                          <TouchableOpacity
-                            key={unit}
-                            style={styles.dropdownItem}
-                            onPress={() => {
-                              setFormData({ ...formData, unit: unit });
-                              setShowUnitDropdown(false);
-                            }}
-                          >
-                            <Text style={styles.dropdownItemText}>{unit}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Description */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Description (Optional)</Text>
-                    <TextInput
-                      style={[styles.input, styles.textArea]}
-                      value={formData.description}
-                      onChangeText={(text) => setFormData({ ...formData, description: text })}
-                      placeholder="Enter description"
-                      placeholderTextColor={COLORS.textMuted}
-                      multiline
-                      numberOfLines={4}
-                    />
-                  </View>
-
-                  {/* Toggles */}
-                  <View style={styles.toggleRow}>
-                    <View style={styles.toggleItem}>
-                      <Text style={styles.toggleLabel}>In Stock</Text>
-                      <Switch
-                        value={formData.inStock}
-                        onValueChange={(value) => setFormData({ ...formData, inStock: value })}
-                        trackColor={{ false: '#E5E7EB', true: '#16a34a' }}
-                        thumbColor={COLORS.white}
-                      />
-                    </View>
-                    <View style={styles.toggleItem}>
-                      <Text style={styles.toggleLabel}>Best Seller</Text>
-                      <Switch
-                        value={formData.bestSeller}
-                        onValueChange={(value) => setFormData({ ...formData, bestSeller: value })}
-                        trackColor={{ false: '#E5E7EB', true: COLORS.orange }}
-                        thumbColor={COLORS.white}
-                      />
-                    </View>
-                  </View>
-
-                  {/* Save Button */}
-                  <TouchableOpacity style={styles.saveButton} onPress={handleSaveItem}>
-                    <Text style={styles.saveButtonText}>Save Item</Text>
+                <View style={styles.formHeader}>
+                  <Text style={styles.formTitle}>Add New Item</Text>
+                  <TouchableOpacity onPress={handleCloseForm} style={styles.closeButton}>
+                    <Icon name={getIconName('X')} size={20} color={COLORS.textPrimary} />
                   </TouchableOpacity>
                 </View>
-              </View>
+
+                <View style={styles.formContent}>
+                  {/* Image Upload - Left Side */}
+                  <TouchableOpacity style={styles.imageUpload} onPress={handleImagePicker}>
+                    {formData.image ? (
+                      <Image source={formData.image} style={styles.uploadedImage} />
+                    ) : (
+                      <>
+                        <Icon name={getIconName('Image')} size={32} color={COLORS.textMuted} />
+                        <Text style={styles.uploadText}>Add Photo</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Form Fields - Right Side */}
+                  <View style={styles.formFields}>
+                    <View style={styles.inputRow}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Item Name *</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={formData.name}
+                          onChangeText={(text) => setFormData({ ...formData, name: text })}
+                          placeholder="Enter item name"
+                          placeholderTextColor={COLORS.textMuted}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputRow}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Price *</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={formData.price}
+                          onChangeText={(text) => setFormData({ ...formData, price: text.replace(/[^0-9]/g, '') })}
+                          placeholder="0"
+                          keyboardType="numeric"
+                          placeholderTextColor={COLORS.textMuted}
+                        />
+                      </View>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>MRP</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={formData.mrp}
+                          onChangeText={(text) => setFormData({ ...formData, mrp: text.replace(/[^0-9]/g, '') })}
+                          placeholder="0"
+                          keyboardType="numeric"
+                          placeholderTextColor={COLORS.textMuted}
+                        />
+                      </View>
+                    </View>
+
+                    {/* Product/Service Toggle */}
+                    <View style={styles.typeToggle}>
+                      <TouchableOpacity
+                        style={[styles.typeButton, formData.type === 'Product' && styles.typeButtonActive]}
+                        onPress={() => setFormData({ ...formData, type: 'Product' })}
+                      >
+                        <Text style={[styles.typeButtonText, formData.type === 'Product' && styles.typeButtonTextActive]}>
+                          Product
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.typeButton, formData.type === 'Service' && styles.typeButtonActive]}
+                        onPress={() => setFormData({ ...formData, type: 'Service' })}
+                      >
+                        <Text style={[styles.typeButtonText, formData.type === 'Service' && styles.typeButtonTextActive]}>
+                          Service
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Category Dropdown */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Category</Text>
+                      <TouchableOpacity
+                        style={styles.dropdown}
+                        onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                      >
+                        <Text style={[styles.dropdownText, !formData.category && styles.dropdownPlaceholder]}>
+                          {formData.category || 'Select Category'}
+                        </Text>
+                        <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
+                      </TouchableOpacity>
+                      {showCategoryDropdown && (
+                        <View style={styles.dropdownList}>
+                          {categories.map((cat) => (
+                            <TouchableOpacity
+                              key={cat}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setFormData({ ...formData, category: cat });
+                                setShowCategoryDropdown(false);
+                              }}
+                            >
+                              <Text style={styles.dropdownItemText}>{cat}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Unit Dropdown */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Unit</Text>
+                      <TouchableOpacity
+                        style={styles.dropdown}
+                        onPress={() => setShowUnitDropdown(!showUnitDropdown)}
+                      >
+                        <Text style={[styles.dropdownText, !formData.unit && styles.dropdownPlaceholder]}>
+                          {formData.unit || 'Select Unit'}
+                        </Text>
+                        <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
+                      </TouchableOpacity>
+                      {showUnitDropdown && (
+                        <View style={styles.dropdownList}>
+                          {units.map((unit) => (
+                            <TouchableOpacity
+                              key={unit}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setFormData({ ...formData, unit: unit });
+                                setShowUnitDropdown(false);
+                              }}
+                            >
+                              <Text style={styles.dropdownItemText}>{unit}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Description */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Description (Optional)</Text>
+                      <TextInput
+                        style={[styles.input, styles.textArea]}
+                        value={formData.description}
+                        onChangeText={(text) => setFormData({ ...formData, description: text })}
+                        placeholder="Enter description"
+                        placeholderTextColor={COLORS.textMuted}
+                        multiline
+                        numberOfLines={4}
+                      />
+                    </View>
+
+                    {/* Toggles */}
+                    <View style={styles.toggleRow}>
+                      <View style={styles.toggleItem}>
+                        <Text style={styles.toggleLabel}>In Stock</Text>
+                        <Switch
+                          value={formData.inStock}
+                          onValueChange={(value) => setFormData({ ...formData, inStock: value })}
+                          trackColor={{ false: '#E5E7EB', true: '#16a34a' }}
+                          thumbColor={COLORS.white}
+                        />
+                      </View>
+                      <View style={styles.toggleItem}>
+                        <Text style={styles.toggleLabel}>Best Seller</Text>
+                        <Switch
+                          value={formData.bestSeller}
+                          onValueChange={(value) => setFormData({ ...formData, bestSeller: value })}
+                          trackColor={{ false: '#E5E7EB', true: COLORS.orange }}
+                          thumbColor={COLORS.white}
+                        />
+                      </View>
+                    </View>
+
+                    {/* Save Button */}
+                    <TouchableOpacity style={styles.saveButton} onPress={handleSaveItem}>
+                      <Text style={styles.saveButtonText}>Save Item</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </ScrollView>
             </View>
           )}
@@ -627,13 +616,13 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                   </View>
                 </View>
                 <View style={styles.productActions}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.actionIconButton}
                     onPress={() => handleEditItem(item)}
                   >
                     <Icon name={getIconName('Edit')} size={18} color={COLORS.textSecondary} />
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.actionIconButton}
                     onPress={() => handleDeleteItem(item.id)}
                   >

@@ -20,9 +20,7 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     error: null,
   });
 
-  const [offers, setOffers] = useState(vendorData?.offers || [
-    { id: 'vo1', title: 'Grand Opening Sale', description: 'Flat 20% off on first purchase', code: 'WELCOME20', discountAmount: '20%', validUntil: '2025-12-31', isActive: true, color: 'bg-purple-600' }
-  ]);
+  const [offers, setOffers] = useState(vendorData?.offers || []);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
@@ -106,7 +104,7 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     if (setVendorData) {
       setVendorData({
         ...vendorData,
-        offers: editingOffer 
+        offers: editingOffer
           ? offers.map(o => o.id === editingOffer.id ? newOffer : o)
           : [...offers, newOffer],
       });
@@ -145,7 +143,7 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -162,22 +160,22 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
               <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
                 <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
               </View>
             </View>
-            
+
             <View style={styles.shopInfo}>
               <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>{vendorData?.name || 'My Awesome Shop'}</Text>
+                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
                 <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
               </View>
               <View style={styles.locationRow}>
                 <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>{vendorData?.address || 'Shop 12, Main Market'}</Text>
+                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
               </View>
               <View style={styles.statusRow}>
                 <View style={styles.statusDot} />

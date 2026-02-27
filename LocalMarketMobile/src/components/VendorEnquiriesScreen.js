@@ -20,32 +20,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
     error: null,
   });
 
-  const [enquiries, setEnquiries] = useState([
-    {
-      id: '1',
-      customerName: 'Rahul Kumar',
-      date: '2024-05-20',
-      message: 'Hi, do you have this item in stock?',
-      status: 'REPLIED',
-      phone: '+91 9898989898',
-    },
-    {
-      id: '2',
-      customerName: 'Priya Singh',
-      date: '2024-05-19',
-      message: 'What are your shop timings?',
-      status: 'READ',
-      phone: '+91 9797979797',
-    },
-    {
-      id: '3',
-      customerName: 'Amit Sharma',
-      date: '2024-05-18',
-      message: 'Can you deliver to Sector 18?',
-      status: 'REPLIED',
-      phone: '+91 9696969696',
-    },
-  ]);
+  const [enquiries, setEnquiries] = useState(vendorData?.enquiries || []);
 
   const handleMenuClick = () => {
     const vendorControl = getVendorSidebarControl();
@@ -95,7 +70,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
         products: vendorData.products || [],
         isVerified: vendorData.isVerified !== false,
       };
-      
+
       navigation.navigate('VendorDetails', { business: businessData });
     }
   };
@@ -117,7 +92,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
   };
 
   const handleMarkAsReplied = (enquiryId) => {
-    setEnquiries(enquiries.map(e => 
+    setEnquiries(enquiries.map(e =>
       e.id === enquiryId ? { ...e, status: 'REPLIED' } : e
     ));
   };
@@ -138,7 +113,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -155,22 +130,22 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
               <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
                 <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
               </View>
             </View>
-            
+
             <View style={styles.shopInfo}>
               <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>My Awesome Shop</Text>
+                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
                 <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
               </View>
               <View style={styles.locationRow}>
                 <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>Shop 12, Main Market</Text>
+                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
               </View>
               <View style={styles.statusRow}>
                 <View style={styles.statusDot} />
@@ -205,7 +180,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Preview</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('VendorOffers')}
             >
@@ -214,7 +189,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Offers</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('Settings')}
             >
@@ -229,7 +204,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
         {/* Enquiries Section */}
         <View style={styles.enquiriesSection}>
           <Text style={styles.sectionTitle}>Customer Enquiries</Text>
-          
+
           {enquiries.map((enquiry) => {
             const statusStyle = getStatusStyle(enquiry.status);
             return (
@@ -247,13 +222,13 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
                     </View>
                   </View>
                   <View style={styles.enquiryActions}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.actionButtonSmall}
                       onPress={() => handleCall(enquiry.phone)}
                     >
                       <Icon name={getIconName('Phone')} size={20} color="#16a34a" />
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.actionButtonSmall}
                       onPress={() => handleMessage(enquiry.phone)}
                     >
@@ -261,18 +236,18 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
                     </TouchableOpacity>
                   </View>
                 </View>
-                
+
                 <Text style={styles.enquiryMessage}>"{enquiry.message}"</Text>
-                
+
                 <View style={styles.enquiryFooter}>
                   <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
                     <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
                       {enquiry.status}
                     </Text>
                   </View>
-                  
+
                   {enquiry.status === 'READ' && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.replyButton}
                       onPress={() => handleMarkAsReplied(enquiry.id)}
                     >

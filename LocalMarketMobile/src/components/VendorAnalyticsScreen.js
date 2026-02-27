@@ -21,17 +21,17 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     error: null,
   });
 
-  // Mock performance data
+  // Performance data (mixing real DB stats with localized mocks)
   const performanceData = {
     totalUsers1KM: 1240,
     activeUsersSearching: 820,
     searchesInCategory: 410,
-    shopViews: 56,
-    usersComparedPrices: 38,
-    usersClickedContact: 7,
-    conversionEstimate: '1-3 sales',
+    shopViews: vendorData?.profileViews || 0,
+    usersComparedPrices: Math.round((vendorData?.profileViews || 0) * 0.6),
+    usersClickedContact: Math.round((vendorData?.profileViews || 0) * 0.1),
+    conversionEstimate: `${Math.round((vendorData?.profileViews || 0) * 0.05)}-${Math.round((vendorData?.profileViews || 0) * 0.15)} sales`,
     pricePosition: 'Higher',
-    rating: '4.0',
+    rating: vendorData?.rating || '0.0',
     priceUpdates: 1,
   };
 
@@ -247,7 +247,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
               ) : (
                 <View style={styles.checkbox} />
               )}
-              <Text style={[styles.competitionTableCell, { 
+              <Text style={[styles.competitionTableCell, {
                 color: item.isReasonable ? '#16a34a' : '#dc2626',
                 marginLeft: 4,
               }]}>
@@ -333,7 +333,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -350,14 +350,14 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
               <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
                 <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
               </View>
             </View>
-            
+
             <View style={styles.shopInfo}>
               <View style={styles.shopNameRow}>
                 <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
@@ -400,7 +400,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Preview</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('VendorOffers')}
             >
@@ -409,7 +409,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Offers</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('Settings')}
             >

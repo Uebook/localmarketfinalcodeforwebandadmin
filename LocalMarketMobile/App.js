@@ -78,6 +78,7 @@ import AIServiceFlow from './src/components/AIServiceFlow';
 import { INITIAL_VENDOR_DATA } from './src/constants';
 import { setVendorSidebarControl } from './src/utils/vendorSidebarControl';
 import { setSidebarControl } from './src/utils/sidebarControl';
+import { getVendorProfile } from './src/services/api';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -307,8 +308,23 @@ function App() {
             setUserData(savedUserData);
             setIsAuthenticated(true);
             setUserRole(savedUserData.role || 'customer');
+
             if (savedUserData.role === 'vendor') {
               setInitialRoute('Analytics');
+              // Fetch full vendor profile
+              try {
+                const fullProfile = await getVendorProfile(savedUserData.id);
+                if (fullProfile && fullProfile.vendor) {
+                  setVendorData({
+                    ...fullProfile.vendor,
+                    products: fullProfile.products || [],
+                    enquiries: fullProfile.enquiries || [],
+                    reviews: fullProfile.reviews || [],
+                  });
+                }
+              } catch (profileError) {
+                console.error('Error fetching vendor profile on boot:', profileError);
+              }
             } else {
               setInitialRoute('Home');
             }
@@ -344,6 +360,20 @@ function App() {
     // Set initial route based on role
     if (role === 'vendor') {
       setInitialRoute('Analytics');
+      // Fetch full vendor profile
+      try {
+        const fullProfile = await getVendorProfile(userDataParam.id);
+        if (fullProfile && fullProfile.vendor) {
+          setVendorData({
+            ...fullProfile.vendor,
+            products: fullProfile.products || [],
+            enquiries: fullProfile.enquiries || [],
+            reviews: fullProfile.reviews || [],
+          });
+        }
+      } catch (profileError) {
+        console.error('Error fetching vendor profile on login:', profileError);
+      }
     } else {
       setInitialRoute('Home');
     }

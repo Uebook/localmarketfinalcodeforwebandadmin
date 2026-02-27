@@ -535,6 +535,29 @@ export const registerVendor = async (vendorData) => {
 };
 
 /**
+ * Get full vendor profile including products, enquiries, and reviews
+ * @param {string} vendorId - Vendor ID
+ * @returns {Promise<Object>}
+ */
+export const getVendorProfile = async (vendorId) => {
+  if (!vendorId) return null;
+  return await apiRequest(`/api/vendor/profile?id=${vendorId}`);
+};
+
+/**
+ * Update vendor profile details
+ * @param {string} id - Vendor ID
+ * @param {Object} profileData - Data to update
+ * @returns {Promise<Object>}
+ */
+export const updateVendorProfile = async (id, profileData) => {
+  return await apiRequest('/api/vendor/profile', {
+    method: 'PATCH',
+    body: JSON.stringify({ id, ...profileData }),
+  });
+};
+
+/**
  * Upload a file to the server using FormData
  * @param {string} fileUri - The local URI of the file
  * @param {string} folder - The destination folder on the server

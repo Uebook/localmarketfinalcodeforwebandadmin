@@ -64,7 +64,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -81,22 +81,22 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
                 <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
               </View>
             </View>
-            
+
             <View style={styles.shopInfo}>
               <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>My Awesome Shop</Text>
+                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
                 <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
               </View>
               <View style={styles.locationRow}>
                 <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>Shop 12, Main Market</Text>
+                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
               </View>
               <View style={styles.statusRow}>
                 <View style={styles.statusDot} />
@@ -131,7 +131,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Preview</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('VendorOffers')}
             >
@@ -140,7 +140,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Offers</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('Settings')}
             >
@@ -224,7 +224,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>SHOP NAME</Text>
-                <Text style={styles.fieldValue}>Not Set</Text>
+                <Text style={styles.fieldValue}>{vendorData?.name || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -234,7 +234,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>CATEGORY</Text>
-                <Text style={styles.fieldValue}>Not Set</Text>
+                <Text style={styles.fieldValue}>{vendorData?.category || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -244,7 +244,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>OWNER NAME</Text>
-                <Text style={styles.fieldValue}>Not Set</Text>
+                <Text style={styles.fieldValue}>{vendorData?.ownerName || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -254,7 +254,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>CONTACT</Text>
-                <Text style={styles.fieldValue}>Not Set</Text>
+                <Text style={styles.fieldValue}>{vendorData?.contactNumber || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -264,11 +264,11 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>ADDRESS</Text>
-                <Text style={styles.fieldValue}>Not Set</Text>
+                <Text style={styles.fieldValue}>{vendorData?.address || 'Not Set'}</Text>
               </View>
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.profileField}
               onPress={() => setShowLocationPicker(true)}
               activeOpacity={0.7}
@@ -291,7 +291,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>OPEN TIME</Text>
-                <Text style={styles.fieldValue}>Not Set</Text>
+                <Text style={styles.fieldValue}>{vendorData?.openTime || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -301,7 +301,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>CLOSE TIME</Text>
-                <Text style={styles.fieldValue}>Not Set</Text>
+                <Text style={styles.fieldValue}>{vendorData?.closeTime || 'Not Set'}</Text>
               </View>
             </View>
           </View>
@@ -310,7 +310,7 @@ const VendorProfileScreen = ({ navigation, vendorData }) => {
         {/* Shop Preferences */}
         <View style={styles.preferencesSection}>
           <Text style={styles.sectionTitle}>SHOP PREFERENCES</Text>
-          
+
           <View style={styles.preferenceItem}>
             <Text style={styles.preferenceLabel}>Receive Price Alerts</Text>
             <Switch

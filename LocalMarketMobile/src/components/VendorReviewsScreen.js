@@ -35,32 +35,7 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
   const handleNotificationClick = () => navigation?.navigate('Notifications');
 
   const profileCompletion = 85;
-  const reviews = [
-    {
-      id: '1',
-      userName: 'Vikas Gupta',
-      rating: 5,
-      comment: 'Great service and friendly behavior!',
-      date: '2 days ago',
-      reply: 'Thank you Vikas!',
-    },
-    {
-      id: '2',
-      userName: 'Anjali Mehra',
-      rating: 4,
-      comment: 'Good products but slight delay in delivery.',
-      date: '1 week ago',
-      reply: null,
-    },
-    {
-      id: '3',
-      userName: 'Rohan Das',
-      rating: 5,
-      comment: 'Best shop in the market. Highly recommended.',
-      date: '2 weeks ago',
-      reply: null,
-    },
-  ];
+  const reviews = vendorData?.reviews || [];
 
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -74,7 +49,7 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <Header
         locationState={locationState}
         onMenuClick={handleMenuClick}
@@ -91,26 +66,26 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
               <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
                 <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
               </View>
             </View>
-            
+
             <View style={styles.shopInfo}>
               <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>My Awesome Shop</Text>
+                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
                 <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
               </View>
               <View style={styles.locationRow}>
                 <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>Shop 12, Main Market</Text>
+                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
               </View>
               <View style={styles.ratingRow}>
                 <Icon name={getIconName('Star')} size={16} color="#fbbf24" />
-                <Text style={styles.ratingText}>4.8 (12)</Text>
+                <Text style={styles.ratingText}>{vendorData?.rating || '0.0'} ({vendorData?.reviewCount || 0})</Text>
               </View>
             </View>
           </View>
@@ -141,7 +116,7 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Preview</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('VendorOffers')}
             >
@@ -150,7 +125,7 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
               </View>
               <Text style={styles.actionText}>Offers</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation?.navigate('Settings')}
             >
@@ -165,16 +140,16 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
         {/* Reviews Section */}
         <View style={styles.reviewsSection}>
           <Text style={styles.sectionTitle}>Customer Reviews</Text>
-          
+
           {reviews.map((review) => (
             <View key={review.id} style={styles.reviewCard}>
               <View style={styles.reviewHeader}>
                 <View style={styles.reviewUser}>
                   <View style={styles.userAvatar}>
-                    <Text style={styles.userAvatarText}>{getInitials(review.userName)}</Text>
+                    <Text style={styles.userAvatarText}>{getInitials(review.user_name || review.userName || 'Customer')}</Text>
                   </View>
                   <View>
-                    <Text style={styles.reviewName}>{review.userName}</Text>
+                    <Text style={styles.reviewName}>{review.user_name || review.userName || 'Customer'}</Text>
                     <View style={styles.starsRow}>
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Icon
@@ -185,13 +160,14 @@ const VendorReviewsScreen = ({ navigation, vendorData }) => {
                         />
                       ))}
                     </View>
+                    <Text style={styles.reviewDate}>{review.created_at ? new Date(review.created_at).toLocaleDateString() : (review.date || '')}</Text>
                   </View>
                 </View>
                 <Text style={styles.reviewDate}>{review.date}</Text>
               </View>
-              
+
               <Text style={styles.reviewComment}>{review.comment}</Text>
-              
+
               {review.reply ? (
                 <View style={styles.replyCard}>
                   <View style={styles.replyHeader}>
