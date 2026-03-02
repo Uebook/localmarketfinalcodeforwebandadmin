@@ -325,12 +325,12 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
           )}
 
           {/* Vendor ID Display */}
-          {vendorData?.vendorId && (
+          {/* {vendorData?.vendorId && (
             <View style={styles.vendorIdCard}>
               <Text style={styles.vendorIdLabel}>Vendor ID</Text>
               <Text style={styles.vendorIdValue}>{vendorData.vendorId}</Text>
             </View>
-          )}
+          )} */}
         </View>
 
         {/* Write Review Section */}

@@ -8,7 +8,7 @@ export async function GET(req, { params }) {
     try {
         const [vendors, products, enquiries, reviews] = await Promise.all([
             supabaseRestGet(`/rest/v1/vendors?id=eq.${id}&select=*&limit=1`),
-            supabaseRestGet(`/rest/v1/vendor_products?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
+            supabaseRestGet(`/rest/v1/vendor_products?vendor_id=eq.${id}&select=*,categories(name)&order=created_at.desc`).catch(() => []),
             supabaseRestGet(`/rest/v1/enquiries?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
             supabaseRestGet(`/rest/v1/reviews?vendor_id=eq.${id}&select=*&order=created_at.desc`).catch(() => []),
         ]);
@@ -70,8 +70,8 @@ export async function GET(req, { params }) {
                 category: p.categories?.name || p.category_name || '',
                 imageUrl: p.image_url,
                 description: p.description,
-                status: p.status,
-                inStock: p.status === 'Active'
+                status: p.is_active !== undefined ? (p.is_active ? 'Active' : 'Inactive') : (p.status || 'Active'),
+                inStock: p.is_active !== false // Map is_active to inStock boolean
             })) : [],
             enquiries: Array.isArray(enquiries) ? enquiries.map(e => ({
                 id: e.id,

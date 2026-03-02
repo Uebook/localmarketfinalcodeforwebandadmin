@@ -14,10 +14,14 @@ export async function GET(req) {
             // Get single product by ID
             try {
                 const query = new URLSearchParams();
-                query.set('select', 'id,name,price,mrp,uom,category_id,vendor_id,updated_at');
+                query.set('select', 'id,name,price,mrp,uom,category_id,vendor_id,description,is_active,image_url,updated_at');
                 query.set('id', `eq.${id}`);
                 const rows = await supabaseRestGet(`/rest/v1/vendor_products?${query.toString()}`);
-                return Response.json({ product: Array.isArray(rows) && rows.length > 0 ? rows[0] : null }, { status: 200 });
+                const product = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+                if (product) {
+                    product.status = product.is_active ? 'Active' : 'Inactive';
+                }
+                return Response.json({ product }, { status: 200 });
             } catch (error) {
                 console.error('Error fetching product by ID:', error);
                 return Response.json({ product: null }, { status: 200 });
@@ -35,12 +39,16 @@ export async function GET(req) {
 
         try {
             const query = new URLSearchParams();
-            query.set('select', 'id,name,price,mrp,uom,category_id,updated_at');
+            query.set('select', 'id,name,price,mrp,uom,category_id,description,is_active,image_url,updated_at');
             query.set('vendor_id', `eq.${encodeURIComponent(vendorId)}`);
             query.set('order', 'name.asc');
 
             const rows = await supabaseRestGet(`/rest/v1/vendor_products?${query.toString()}`);
-            return Response.json({ products: Array.isArray(rows) ? rows : [] }, { status: 200 });
+            const products = Array.isArray(rows) ? rows.map(p => ({
+                ...p,
+                status: p.is_active ? 'Active' : 'Inactive'
+            })) : [];
+            return Response.json({ products }, { status: 200 });
         } catch (error) {
             console.error('Error fetching vendor products:', error);
             console.error('VendorId:', vendorId);
@@ -84,6 +92,12 @@ export async function PATCH(req) {
         if (body.image_url !== undefined) {
             updateData.image_url = toStr(body.image_url) || null;
         }
+        if (body.description !== undefined) {
+            updateData.description = toStr(body.description) || null;
+        }
+        if (body.status !== undefined) {
+            updateData.is_active = body.status === 'Inactive' ? false : true;
+        }
 
         if (Object.keys(updateData).length === 0) {
             return Response.json({ error: 'No fields to update' }, { status: 400 });
@@ -92,13 +106,17 @@ export async function PATCH(req) {
         updateData.updated_at = new Date().toISOString();
 
         const result = await supabaseRestPatch(`/rest/v1/vendor_products?id=eq.${id}`, updateData);
-        return Response.json({ success: true, product: result[0] || result }, { status: 200 });
+        const product = result[0] || result;
+        if (product && typeof product === 'object') {
+            product.status = product.is_active ? 'Active' : 'Inactive';
+        }
+        return Response.json({ success: true, product }, { status: 200 });
     } catch (e) {
         console.error('Vendor Products PATCH Error:', e);
         if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
             return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
         }
-        return Response.json({ error: e?.message || 'Failed to update vendor product' }, { status: 500 });
+        return Response.json({ error: e?.message || 'Failed to update vendor product', details: JSON.stringify(e) }, { status: 500 });
     }
 }
 
@@ -119,16 +137,21 @@ export async function POST(req) {
             uom: toStr(uom) || null,
             category_id: category_id || null,
             image_url: toStr(image_url) || null,
-            status: 'Active',
+            description: toStr(body.description) || null,
+            is_active: body.status === 'Inactive' ? false : true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };
 
         const result = await supabaseRestInsert('/rest/v1/vendor_products', [productData]);
-        return Response.json({ success: true, product: result[0] || result }, { status: 201 });
+        const product = result[0] || result;
+        if (product && typeof product === 'object') {
+            product.status = product.is_active ? 'Active' : 'Inactive';
+        }
+        return Response.json({ success: true, product }, { status: 201 });
     } catch (e) {
         console.error('Vendor Products POST Error:', e);
-        return Response.json({ error: e?.message || 'Failed to create vendor product' }, { status: 500 });
+        return Response.json({ error: e?.message || 'Failed to create vendor product', details: JSON.stringify(e) }, { status: 500 });
     }
 }
 

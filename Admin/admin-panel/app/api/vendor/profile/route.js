@@ -104,10 +104,34 @@ export async function PATCH(req) {
         const { id, ...updates } = body;
         if (!id) return Response.json({ error: 'Vendor ID required' }, { status: 400 });
 
-        const allowed = ['name', 'owner_name', 'email', 'address', 'city', 'state', 'pincode', 'about', 'open_time', 'category'];
+        const allowed = [
+            'name', 'owner_name', 'email', 'address', 'city', 'state', 'pincode',
+            'about', 'open_time', 'close_time', 'category', 'contact_number',
+            'image_url', 'profile_image_url'
+        ];
+
+        // Map mobile camelCase to database snake_case
+        const mapping = {
+            ownerName: 'owner_name',
+            contactNumber: 'contact_number',
+            openTime: 'open_time',
+            closeTime: 'close_time'
+        };
+
         const filtered = {};
+
+        // Process mapped fields
+        for (const [mobileKey, dbKey] of Object.entries(mapping)) {
+            if (updates[mobileKey] !== undefined) {
+                filtered[dbKey] = updates[mobileKey];
+            }
+        }
+
+        // Process standard allowed fields
         for (const key of allowed) {
-            if (updates[key] !== undefined) filtered[key] = updates[key];
+            if (updates[key] !== undefined) {
+                filtered[key] = updates[key];
+            }
         }
 
         const result = await supabaseRestPatch(`/rest/v1/vendors?id=eq.${id}`, filtered);

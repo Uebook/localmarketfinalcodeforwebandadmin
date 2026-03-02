@@ -30,7 +30,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     price: '',
     mrp: '',
     type: 'Product', // Product or Service
-    category: '',
+    categoryId: '',
+    categoryName: '',
     unit: '',
     description: '',
     inStock: true,
@@ -39,6 +40,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   });
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [categories, setCategories] = useState([]);
   const units = ['Piece', 'Kg', 'Litre', 'Pack', 'Box', 'Dozen'];
@@ -48,7 +50,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       try {
         const data = await getCategories();
         if (data && data.categories) {
-          setCategories(data.categories.map(c => c.name));
+          setCategories(data.categories);
         }
       } catch (err) {
         console.error('Failed to fetch categories:', err);
@@ -126,7 +128,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       price: '',
       mrp: '',
       type: 'Product',
-      category: '',
+      categoryId: '',
+      categoryName: '',
       unit: '',
       description: '',
       inStock: true,
@@ -140,11 +143,12 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     setEditingItem(item);
     setFormData({
       name: item.name || '',
-      price: item.price?.replace('₹', '') || '',
-      mrp: item.originalPrice?.replace('₹', '') || '',
+      price: item.price?.toString().replace('₹', '') || '',
+      mrp: item.originalPrice?.toString().replace('₹', '') || '',
       type: item.type || 'Product',
-      category: item.category || '',
-      unit: item.unit || '',
+      categoryId: item.category_id || '',
+      categoryName: item.category_name || item.category || '',
+      unit: item.uom || item.unit || '',
       description: item.description || '',
       inStock: item.inStock !== false,
       bestSeller: item.bestSeller || false,
@@ -209,6 +213,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       return;
     }
 
+    setSaving(true);
     try {
       let imageUrl = editingItem?.imageUrl || 'https://via.placeholder.com/100';
       if (formData.image && formData.image.uri && formData.image.uri !== editingItem?.imageUrl) {
@@ -222,7 +227,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         price: parseFloat(formData.price),
         mrp: formData.mrp ? parseFloat(formData.mrp) : null,
         uom: formData.unit,
-        category: formData.category,
+        category_id: formData.categoryId || null,
         description: formData.description,
         image_url: imageUrl,
         status: formData.inStock ? 'Active' : 'Inactive',
@@ -242,7 +247,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           ...res.product,
           id: res.product.id,
           name: res.product.name,
-          category: res.product.category_name || res.product.category || formData.category,
+          category: res.product.category_name || formData.categoryName || '',
           price: `₹${res.product.price}`,
           originalPrice: res.product.mrp ? `₹${res.product.mrp}` : undefined,
           discount: discount,
@@ -267,11 +272,15 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         setShowAddForm(false);
         setEditingItem(null);
       } else {
-        Alert.alert('Error', res.error || 'Failed to save product');
+        const errorMsg = res.error || 'Failed to save product';
+        const errorDetail = res.details ? `\n\nDetails: ${res.details}` : '';
+        Alert.alert('Error', errorMsg + errorDetail);
       }
     } catch (err) {
       console.error('Save Product Error:', err);
       Alert.alert('Error', 'Something went wrong while saving');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -283,7 +292,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       price: '',
       mrp: '',
       type: 'Product',
-      category: '',
+      categoryId: '',
+      categoryName: '',
       unit: '',
       description: '',
       inStock: true,
@@ -468,195 +478,214 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Add Item Form */}
-          {showAddForm && (
-            <View style={styles.addItemForm}>
-              <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Add/Edit Item Modal */}
+          <Modal
+            visible={showAddForm}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={handleCloseForm}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
                 <View style={styles.formHeader}>
-                  <Text style={styles.formTitle}>Add New Item</Text>
+                  <Text style={styles.formTitle}>{editingItem ? 'Edit Item' : 'Add New Item'}</Text>
                   <TouchableOpacity onPress={handleCloseForm} style={styles.closeButton}>
-                    <Icon name={getIconName('X')} size={20} color={COLORS.textPrimary} />
+                    <Icon name={getIconName('X')} size={24} color={COLORS.textPrimary} />
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.formContent}>
-                  {/* Image Upload - Left Side */}
-                  <TouchableOpacity style={styles.imageUpload} onPress={handleImagePicker}>
-                    {formData.image ? (
-                      <Image source={formData.image} style={styles.uploadedImage} />
-                    ) : (
-                      <>
-                        <Icon name={getIconName('Image')} size={32} color={COLORS.textMuted} />
-                        <Text style={styles.uploadText}>Add Photo</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                <ScrollView showsVerticalScrollIndicator={false} style={styles.formScroll}>
+                  <View style={styles.formSection}>
+                    {/* Image Upload - Centered and larger */}
+                    <TouchableOpacity style={styles.imageUploadFull} onPress={handleImagePicker}>
+                      {formData.image ? (
+                        <Image source={formData.image.uri ? { uri: formData.image.uri } : formData.image} style={styles.uploadedImageFull} />
+                      ) : (
+                        <View style={styles.uploadPlaceholder}>
+                          <Icon name={getIconName('Image')} size={48} color={COLORS.textMuted} />
+                          <Text style={styles.uploadText}>Add Product Photo</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
 
-                  {/* Form Fields - Right Side */}
-                  <View style={styles.formFields}>
-                    <View style={styles.inputRow}>
+                    <View style={styles.formFieldsStack}>
                       <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>Item Name *</Text>
                         <TextInput
                           style={styles.input}
                           value={formData.name}
                           onChangeText={(text) => setFormData({ ...formData, name: text })}
-                          placeholder="Enter item name"
+                          placeholder="e.g. Fresh Apples"
                           placeholderTextColor={COLORS.textMuted}
                         />
                       </View>
-                    </View>
 
-                    <View style={styles.inputRow}>
-                      <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Price *</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={formData.price}
-                          onChangeText={(text) => setFormData({ ...formData, price: text.replace(/[^0-9]/g, '') })}
-                          placeholder="0"
-                          keyboardType="numeric"
-                          placeholderTextColor={COLORS.textMuted}
-                        />
-                      </View>
-                      <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>MRP</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={formData.mrp}
-                          onChangeText={(text) => setFormData({ ...formData, mrp: text.replace(/[^0-9]/g, '') })}
-                          placeholder="0"
-                          keyboardType="numeric"
-                          placeholderTextColor={COLORS.textMuted}
-                        />
-                      </View>
-                    </View>
-
-                    {/* Product/Service Toggle */}
-                    <View style={styles.typeToggle}>
-                      <TouchableOpacity
-                        style={[styles.typeButton, formData.type === 'Product' && styles.typeButtonActive]}
-                        onPress={() => setFormData({ ...formData, type: 'Product' })}
-                      >
-                        <Text style={[styles.typeButtonText, formData.type === 'Product' && styles.typeButtonTextActive]}>
-                          Product
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.typeButton, formData.type === 'Service' && styles.typeButtonActive]}
-                        onPress={() => setFormData({ ...formData, type: 'Service' })}
-                      >
-                        <Text style={[styles.typeButtonText, formData.type === 'Service' && styles.typeButtonTextActive]}>
-                          Service
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Category Dropdown */}
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Category</Text>
-                      <TouchableOpacity
-                        style={styles.dropdown}
-                        onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                      >
-                        <Text style={[styles.dropdownText, !formData.category && styles.dropdownPlaceholder]}>
-                          {formData.category || 'Select Category'}
-                        </Text>
-                        <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
-                      </TouchableOpacity>
-                      {showCategoryDropdown && (
-                        <View style={styles.dropdownList}>
-                          {categories.map((cat) => (
-                            <TouchableOpacity
-                              key={cat}
-                              style={styles.dropdownItem}
-                              onPress={() => {
-                                setFormData({ ...formData, category: cat });
-                                setShowCategoryDropdown(false);
-                              }}
-                            >
-                              <Text style={styles.dropdownItemText}>{cat}</Text>
-                            </TouchableOpacity>
-                          ))}
+                      <View style={styles.inputRow}>
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.inputLabel}>Price (₹) *</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={formData.price}
+                            onChangeText={(text) => setFormData({ ...formData, price: text.replace(/[^0-9]/g, '') })}
+                            placeholder="0"
+                            keyboardType="numeric"
+                            placeholderTextColor={COLORS.textMuted}
+                          />
                         </View>
-                      )}
-                    </View>
-
-                    {/* Unit Dropdown */}
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Unit</Text>
-                      <TouchableOpacity
-                        style={styles.dropdown}
-                        onPress={() => setShowUnitDropdown(!showUnitDropdown)}
-                      >
-                        <Text style={[styles.dropdownText, !formData.unit && styles.dropdownPlaceholder]}>
-                          {formData.unit || 'Select Unit'}
-                        </Text>
-                        <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
-                      </TouchableOpacity>
-                      {showUnitDropdown && (
-                        <View style={styles.dropdownList}>
-                          {units.map((unit) => (
-                            <TouchableOpacity
-                              key={unit}
-                              style={styles.dropdownItem}
-                              onPress={() => {
-                                setFormData({ ...formData, unit: unit });
-                                setShowUnitDropdown(false);
-                              }}
-                            >
-                              <Text style={styles.dropdownItemText}>{unit}</Text>
-                            </TouchableOpacity>
-                          ))}
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.inputLabel}>MRP (₹)</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={formData.mrp}
+                            onChangeText={(text) => setFormData({ ...formData, mrp: text.replace(/[^0-9]/g, '') })}
+                            placeholder="0"
+                            keyboardType="numeric"
+                            placeholderTextColor={COLORS.textMuted}
+                          />
                         </View>
-                      )}
-                    </View>
+                      </View>
 
-                    {/* Description */}
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Description (Optional)</Text>
-                      <TextInput
-                        style={[styles.input, styles.textArea]}
-                        value={formData.description}
-                        onChangeText={(text) => setFormData({ ...formData, description: text })}
-                        placeholder="Enter description"
-                        placeholderTextColor={COLORS.textMuted}
-                        multiline
-                        numberOfLines={4}
-                      />
-                    </View>
+                      {/* Product/Service Toggle */}
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Listing Type</Text>
+                        <View style={styles.typeToggle}>
+                          <TouchableOpacity
+                            style={[styles.typeButton, formData.type === 'Product' && styles.typeButtonActive]}
+                            onPress={() => setFormData({ ...formData, type: 'Product' })}
+                          >
+                            <Text style={[styles.typeButtonText, formData.type === 'Product' && styles.typeButtonTextActive]}>
+                              Product
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.typeButton, formData.type === 'Service' && styles.typeButtonActive]}
+                            onPress={() => setFormData({ ...formData, type: 'Service' })}
+                          >
+                            <Text style={[styles.typeButtonText, formData.type === 'Service' && styles.typeButtonTextActive]}>
+                              Service
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
 
-                    {/* Toggles */}
-                    <View style={styles.toggleRow}>
-                      <View style={styles.toggleItem}>
-                        <Text style={styles.toggleLabel}>In Stock</Text>
-                        <Switch
-                          value={formData.inStock}
-                          onValueChange={(value) => setFormData({ ...formData, inStock: value })}
-                          trackColor={{ false: '#E5E7EB', true: '#16a34a' }}
-                          thumbColor={COLORS.white}
+                      <View style={styles.inputRow}>
+                        {/* Category Dropdown */}
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.inputLabel}>Category</Text>
+                          <TouchableOpacity
+                            style={styles.dropdown}
+                            onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                          >
+                            <Text style={[styles.dropdownText, !formData.categoryId && styles.dropdownPlaceholder]} numberOfLines={1}>
+                              {formData.categoryName || 'Select'}
+                            </Text>
+                            <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
+                          </TouchableOpacity>
+                          {showCategoryDropdown && (
+                            <View style={styles.dropdownList}>
+                              <ScrollView nestedScrollEnabled={true}>
+                                {categories.map((cat) => (
+                                  <TouchableOpacity
+                                    key={cat.id}
+                                    style={styles.dropdownItem}
+                                    onPress={() => {
+                                      setFormData({ ...formData, categoryId: cat.id, categoryName: cat.name });
+                                      setShowCategoryDropdown(false);
+                                    }}
+                                  >
+                                    <Text style={styles.dropdownItemText}>{cat.name}</Text>
+                                  </TouchableOpacity>
+                                ))}
+                              </ScrollView>
+                            </View>
+                          )}
+                        </View>
+
+                        {/* Unit Dropdown */}
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.inputLabel}>Unit</Text>
+                          <TouchableOpacity
+                            style={styles.dropdown}
+                            onPress={() => setShowUnitDropdown(!showUnitDropdown)}
+                          >
+                            <Text style={[styles.dropdownText, !formData.unit && styles.dropdownPlaceholder]}>
+                              {formData.unit || 'Select'}
+                            </Text>
+                            <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
+                          </TouchableOpacity>
+                          {showUnitDropdown && (
+                            <View style={styles.dropdownList}>
+                              <ScrollView nestedScrollEnabled={true}>
+                                {units.map((unit) => (
+                                  <TouchableOpacity
+                                    key={unit}
+                                    style={styles.dropdownItem}
+                                    onPress={() => {
+                                      setFormData({ ...formData, unit: unit });
+                                      setShowUnitDropdown(false);
+                                    }}
+                                  >
+                                    <Text style={styles.dropdownItemText}>{unit}</Text>
+                                  </TouchableOpacity>
+                                ))}
+                              </ScrollView>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+
+                      {/* Description */}
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Description (Optional)</Text>
+                        <TextInput
+                          style={[styles.input, styles.textArea]}
+                          value={formData.description}
+                          onChangeText={(text) => setFormData({ ...formData, description: text })}
+                          placeholder="Describe your product/service..."
+                          placeholderTextColor={COLORS.textMuted}
+                          multiline
+                          numberOfLines={3}
                         />
                       </View>
-                      <View style={styles.toggleItem}>
-                        <Text style={styles.toggleLabel}>Best Seller</Text>
-                        <Switch
-                          value={formData.bestSeller}
-                          onValueChange={(value) => setFormData({ ...formData, bestSeller: value })}
-                          trackColor={{ false: '#E5E7EB', true: COLORS.orange }}
-                          thumbColor={COLORS.white}
-                        />
-                      </View>
-                    </View>
 
-                    {/* Save Button */}
-                    <TouchableOpacity style={styles.saveButton} onPress={handleSaveItem}>
-                      <Text style={styles.saveButtonText}>Save Item</Text>
-                    </TouchableOpacity>
+                      {/* Toggles */}
+                      <View style={styles.toggleRow}>
+                        <View style={styles.toggleItem}>
+                          <Text style={styles.toggleLabel}>In Stock</Text>
+                          <Switch
+                            value={formData.inStock}
+                            onValueChange={(value) => setFormData({ ...formData, inStock: value })}
+                            trackColor={{ false: '#E5E7EB', true: '#16a34a' }}
+                            thumbColor={COLORS.white}
+                          />
+                        </View>
+                        <View style={styles.toggleItem}>
+                          <Text style={styles.toggleLabel}>Best Seller</Text>
+                          <Switch
+                            value={formData.bestSeller}
+                            onValueChange={(value) => setFormData({ ...formData, bestSeller: value })}
+                            trackColor={{ false: '#E5E7EB', true: COLORS.orange }}
+                            thumbColor={COLORS.white}
+                          />
+                        </View>
+                      </View>
+
+                      {/* Save Button */}
+                      <TouchableOpacity
+                        style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                        onPress={handleSaveItem}
+                        disabled={saving}
+                      >
+                        <Text style={styles.saveButtonText}>
+                          {saving ? 'Saving...' : editingItem ? 'Update Item' : 'Add Item'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              </ScrollView>
+                </ScrollView>
+              </View>
             </View>
-          )}
+          </Modal>
 
           <FlatList
             data={products}
@@ -980,6 +1009,54 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   actionIconButton: {
     padding: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: '90%',
+    padding: 20,
+    paddingBottom: 40,
+  },
+  formScroll: {
+    flex: 1,
+  },
+  formSection: {
+    gap: 20,
+    paddingBottom: 20,
+  },
+  imageUploadFull: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: COLORS.divider,
+    borderStyle: 'dashed',
+    backgroundColor: '#F9FAFB',
+    overflow: 'hidden',
+  },
+  uploadedImageFull: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  uploadPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  formFieldsStack: {
+    gap: 16,
+  },
+  saveButtonDisabled: {
+    opacity: 0.7,
+    backgroundColor: COLORS.textMuted,
   },
   addItemForm: {
     backgroundColor: COLORS.white,

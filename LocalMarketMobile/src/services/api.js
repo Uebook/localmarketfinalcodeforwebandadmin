@@ -643,6 +643,7 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
  * @returns {Promise<Object>}
  */
 export const createVendorProduct = async (productData) => {
+  console.log('Creating Product Payload:', JSON.stringify(productData, null, 2));
   return await apiRequest('/api/vendor-products', {
     method: 'POST',
     body: JSON.stringify(productData),
