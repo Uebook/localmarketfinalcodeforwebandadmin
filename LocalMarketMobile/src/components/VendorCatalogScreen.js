@@ -278,7 +278,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       }
     } catch (err) {
       console.error('Save Product Error:', err);
-      Alert.alert('Error', 'Something went wrong while saving');
+      Alert.alert('Error', err.message || 'Something went wrong while saving');
     } finally {
       setSaving(false);
     }
