@@ -35,7 +35,7 @@ const Notifications = ({ navigation, onClose }) => {
             'vendor': { iconName: 'Store', color: '#ea580c', bgColor: '#fed7aa' },
             'review': { iconName: 'Star', color: '#fbbf24', bgColor: '#fef3c7' },
           };
-          
+
           const typeInfo = typeMap[notif.type] || typeMap['info'];
           const createdAt = notif.created_at ? new Date(notif.created_at) : new Date();
           const now = new Date();
@@ -43,7 +43,7 @@ const Notifications = ({ navigation, onClose }) => {
           const diffMins = Math.floor(diffMs / 60000);
           const diffHours = Math.floor(diffMins / 60);
           const diffDays = Math.floor(diffHours / 24);
-          
+
           let timeAgo = 'Just now';
           if (diffDays > 0) {
             timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
@@ -65,13 +65,13 @@ const Notifications = ({ navigation, onClose }) => {
             createdAt: createdAt,
           };
         });
-        
+
         // Sort by created_at descending (newest first)
         transformedNotifications.sort((a, b) => {
           if (!a.createdAt || !b.createdAt) return 0;
           return b.createdAt - a.createdAt;
         });
-        
+
         setNotifications(transformedNotifications);
       } else {
         // Fallback to empty array if no notifications
@@ -92,7 +92,7 @@ const Notifications = ({ navigation, onClose }) => {
 
   const handleNotificationPress = (notification) => {
     // Mark as read
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
     );
     // Handle navigation based on notification type
@@ -142,18 +142,18 @@ const Notifications = ({ navigation, onClose }) => {
         end={{ x: 1, y: 0 }}
         style={styles.gradientBackground}
       />
-      
+
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={handleClose} 
+          <TouchableOpacity
+            onPress={handleClose}
             style={styles.backButton}
             activeOpacity={0.7}
           >
             <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.white} />
           </TouchableOpacity>
-          
+
           <View style={styles.headerCenter}>
             <View style={styles.headerIcon}>
               <Icon name={getIconName('Bell')} size={20} color={COLORS.white} />
@@ -170,10 +170,10 @@ const Notifications = ({ navigation, onClose }) => {
               )}
             </View>
           </View>
-          
+
           <View style={styles.headerRight} />
         </View>
-        
+
         {/* Notifications List */}
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -200,7 +200,7 @@ const Notifications = ({ navigation, onClose }) => {
         {/* Footer */}
         {notifications.length > 0 && (
           <View style={styles.footer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.markAllButton}
               onPress={handleMarkAllRead}
               activeOpacity={0.7}
@@ -328,11 +328,11 @@ const createStyles = (COLORS) => StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '700',
-    color: '#1e293b',
+    color: COLORS.textPrimary,
     marginRight: 8,
   },
   titleUnread: {
-    color: '#1e293b',
+    color: COLORS.textPrimary,
   },
   unreadDot: {
     width: 8,
@@ -343,13 +343,13 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   message: {
     fontSize: 13,
-    color: '#475569',
+    color: COLORS.textSecondary,
     lineHeight: 18,
     marginBottom: 4,
   },
   time: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: COLORS.textMuted,
     fontWeight: '500',
   },
   footer: {

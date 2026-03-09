@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
+import { submitEnquiry } from '../services/api';
 
-const EnquiryModal = ({ businessName, isOpen, onClose }) => {
+const EnquiryModal = ({ businessName, vendorId, isOpen, onClose }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
@@ -12,19 +13,30 @@ const EnquiryModal = ({ businessName, isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name || !phone || !message) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
 
+    if (!vendorId) {
+      Alert.alert('Error', 'Vendor information is missing. Please try again.');
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      await submitEnquiry({
+        vendor_id: vendorId,
+        name,
+        mobile: phone,
+        message,
+      });
+
       setIsSubmitting(false);
       setIsSuccess(true);
-      
+
       // Close modal after showing success message
       setTimeout(() => {
         setIsSuccess(false);
@@ -32,8 +44,12 @@ const EnquiryModal = ({ businessName, isOpen, onClose }) => {
         setPhone('');
         setMessage('');
         onClose();
-      }, 2000);
-    }, 1500);
+      }, 3000);
+    } catch (error) {
+      console.error('Mobile Enquiry Error:', error);
+      setIsSubmitting(false);
+      Alert.alert('Error', error.message || 'Unable to send enquiry. Please try again.');
+    }
   };
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
@@ -12,11 +12,17 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import EnquiryModal from '@/components/EnquiryModal';
+import ProductDetailModal from '@/components/ProductDetailModal';
+import ReviewModal from '@/components/ReviewModal';
 import { isVendorSaved, saveVendor, removeSavedVendor } from '@/lib/savedVendors';
 
 export default function VendorDetailsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isRelModalOpen, setIsRelModalOpen] = useState(false); // leftover or typo? I'll add the one I need
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [vendorData, setVendorData] = useState<any>(null);
@@ -54,27 +60,70 @@ export default function VendorDetailsPage() {
   useEffect(() => {
     if (!params.id) return;
 
+    const fetchVendor = () => {
+      fetch(`/api/vendor/profile?id=${params.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) {
+            setVendorData(data);
+          }
+        })
+        .catch(err => console.error('Failed to fetch vendor profile:', err));
+    };
+
     setLoading(true);
-    fetch(`/api/vendor/profile?id=${params.id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setVendorData(data);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to fetch vendor profile:', err);
-        setError('Failed to load vendor data');
-        setLoading(false);
+    fetchVendor();
+    setLoading(false);
+
+    // Polling for real-time updates (especially reviews)
+    const interval = setInterval(() => {
+      if (activeTab === 'reviews') {
+        console.log('Polling for new reviews...');
+        fetchVendor();
+      }
+    }, 15000); // 15 seconds
+
+    return () => clearInterval(interval);
+  }, [params.id, activeTab]);
+
+  const handleReplyReview = async (reviewId: string) => {
+    const reply = prompt('Enter your reply:');
+    if (!reply) return;
+
+    try {
+      const res = await fetch('/api/reviews/response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId, reply })
       });
-  }, [params.id]);
+      if (res.ok) {
+        alert('Reply posted successfully!');
+        // Trigger re-fetch
+        window.location.reload();
+      }
+    } catch (err) {
+      alert('Failed to post reply.');
+    }
+  };
 
   const business = vendorData?.vendor;
   const products = vendorData?.products || [];
   const reviews = vendorData?.reviews || [];
+
+  const callLink = useMemo(() => {
+    const phone = business?.phone || business?.contactNumber;
+    if (!phone) return null;
+    return `tel:${phone.toString().replace(/\D/g, '')}`;
+  }, [business]);
+
+  const whatsappLink = useMemo(() => {
+    let phone = business?.whatsappNumber || business?.phone || business?.contactNumber;
+    if (!phone) return null;
+    let cleanPhone = phone.toString().replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = cleanPhone.substring(1);
+    if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+    return `https://wa.me/${cleanPhone}`;
+  }, [business]);
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -84,19 +133,22 @@ export default function VendorDetailsPage() {
   ];
 
   const handleCall = () => {
-    const phone = business?.phone || business?.contactNumber;
-    if (phone) window.location.href = `tel:${phone}`;
+    if (callLink) window.location.href = callLink;
   };
 
   const handleWhatsApp = () => {
-    const phone = business?.whatsappNumber || business?.phone || business?.contactNumber;
-    if (phone) window.open(`https://wa.me/${phone.replace(/\D/g, '')}`, '_blank');
+    if (whatsappLink) window.open(whatsappLink, '_blank');
   };
 
   const handleCopyAddress = () => {
     if (business?.address) {
       navigator.clipboard.writeText(business.address);
     }
+  };
+
+  const handleProductClick = (product: any) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
   };
 
   const handleShare = () => {
@@ -389,7 +441,8 @@ export default function VendorDetailsPage() {
                       {products.length > 0 ? products.map((product: any) => (
                         <div
                           key={product.id}
-                          className="group flex gap-4 bg-slate-50 p-4 rounded-2xl hover:bg-white hover:shadow-md hover:border-slate-100 border border-transparent transition-all"
+                          onClick={() => handleProductClick(product)}
+                          className="group flex gap-4 bg-slate-50 p-4 rounded-2xl hover:bg-white hover:shadow-md hover:border-slate-100 border border-transparent transition-all cursor-pointer"
                         >
                           <div className="relative w-24 h-24 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-slate-200">
                             {product.image_url ? (
@@ -398,13 +451,29 @@ export default function VendorDetailsPage() {
                               <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-xs">No Image</div>
                             )}
                           </div>
-                          <div className="flex flex-col justify-center min-w-0">
-                            <h4 className="font-bold text-slate-900 text-base leading-tight truncate">{product.name}</h4>
+                          <div className="flex flex-col justify-center min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="font-bold text-slate-900 text-base leading-tight truncate">{product.name}</h4>
+                              {product.online_price && product.online_price > product.price && (
+                                <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
+                                  Save ₹{product.online_price - product.price} vs Online
+                                </span>
+                              )}
+                            </div>
                             <span className="text-xs text-slate-400 font-medium mt-0.5 truncate">{product.category_name}</span>
                             <div className="flex items-baseline gap-2 mt-2">
-                              <span className="font-black text-lg" style={{ color: 'var(--primary)' }}>₹{product.price}</span>
-                              {product.mrp && product.mrp > product.price && (
-                                <span className="text-slate-300 text-sm line-through">₹{product.mrp}</span>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Lokall Price</span>
+                                <span className="font-black text-lg" style={{ color: 'var(--primary)' }}>₹{product.price}</span>
+                              </div>
+                              {product.online_price && (
+                                <div className="flex flex-col border-l border-slate-200 pl-2">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Online Price</span>
+                                  <span className="text-slate-400 text-sm line-through font-medium">₹{product.online_price}</span>
+                                </div>
+                              )}
+                              {product.mrp && product.mrp > (product.online_price || product.price) && (
+                                <span className="text-slate-200 text-xs line-through ml-auto self-end pb-1">MRP ₹{product.mrp}</span>
                               )}
                             </div>
                           </div>
@@ -420,6 +489,15 @@ export default function VendorDetailsPage() {
 
                   {activeTab === 'reviews' && (
                     <div className="space-y-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Customer Reviews</h4>
+                        <button
+                          onClick={() => setIsReviewModalOpen(true)}
+                          className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95"
+                        >
+                          Leave Review
+                        </button>
+                      </div>
                       {reviews.length > 0 ? reviews.map((review: any) => (
                         <div key={review.id} className="bg-slate-50 p-5 rounded-2xl border border-transparent hover:border-slate-100 transition-all">
                           <div className="flex justify-between items-start mb-3">
@@ -443,6 +521,21 @@ export default function VendorDetailsPage() {
                           <p className="text-sm text-slate-600 leading-relaxed italic">
                             "{review.comment || review.review_text || 'No comment provided.'}"
                           </p>
+                          {review.reply ? (
+                            <div className="mt-4 p-4 bg-white border-l-4 border-primary rounded-xl">
+                              <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Vendor Reply</p>
+                              <p className="text-xs text-slate-500 italic">{review.reply}</p>
+                            </div>
+                          ) : (
+                            localStorage.getItem('localmarket_vendor') && (
+                              <button
+                                onClick={() => handleReplyReview(review.id)}
+                                className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-all flex items-center gap-1"
+                              >
+                                <MessageCircle size={12} /> Reply to Review
+                              </button>
+                            )
+                          )}
                         </div>
                       )) : (
                         <div className="py-12 text-center text-slate-300">
@@ -456,13 +549,21 @@ export default function VendorDetailsPage() {
                   {activeTab === 'info' && (
                     <div className="space-y-4">
                       {[
-                        { icon: Phone, label: 'Phone', value: business.phone || business.contactNumber || 'Not provided', action: handleCall, color: 'bg-green-50 text-green-600' },
-                        { icon: MessageCircle, label: 'WhatsApp', value: business.whatsappNumber || business.phone || business.contactNumber || 'Not provided', action: handleWhatsApp, color: 'bg-green-50 text-green-600' },
-                        { icon: MapPin, label: 'Address', value: business.address || 'Address not provided', action: handleCopyAddress, color: 'bg-orange-50 text-orange-500' },
-                      ].map(({ icon: Icon, label, value, action, color }) => (
-                        <button
+                        { icon: Phone, label: 'Phone', value: business.phone || business.contactNumber || 'Not provided', action: handleCall, href: callLink, color: 'bg-green-50 text-green-600' },
+                        { icon: MessageCircle, label: 'WhatsApp', value: business.whatsappNumber || business.phone || business.contactNumber || 'Not provided', action: handleWhatsApp, href: whatsappLink, color: 'bg-green-50 text-green-600' },
+                        { icon: MapPin, label: 'Address', value: business.address || 'Address not provided', action: handleCopyAddress, href: null, color: 'bg-orange-50 text-orange-500' },
+                      ].map(({ icon: Icon, label, value, action, href, color }) => (
+                        <a
                           key={label}
-                          onClick={action}
+                          href={href || '#'}
+                          target={href?.startsWith('http') ? '_blank' : undefined}
+                          rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                          onClick={(e) => {
+                            if (!href) {
+                              e.preventDefault();
+                              action();
+                            }
+                          }}
                           className="w-full flex items-center gap-4 p-4 bg-slate-50 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-2xl text-left transition-all group"
                         >
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
@@ -473,7 +574,7 @@ export default function VendorDetailsPage() {
                             <p className="text-slate-800 font-semibold text-sm truncate">{value}</p>
                           </div>
                           <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-500 flex-shrink-0 transition-colors" />
-                        </button>
+                        </a>
                       ))}
                     </div>
                   )}
@@ -491,8 +592,9 @@ export default function VendorDetailsPage() {
 
                   <div className="space-y-3">
                     {/* Call */}
-                    <button
-                      onClick={handleCall}
+                    <a
+                      href={callLink || '#'}
+                      onClick={(e) => !callLink && e.preventDefault()}
                       className="w-full flex items-center gap-3 px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-all group text-left"
                     >
                       <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-shadow">
@@ -500,11 +602,14 @@ export default function VendorDetailsPage() {
                       </div>
                       <span className="flex-1 font-bold text-slate-800 text-sm">Call Vendor</span>
                       <ChevronRight size={16} className="text-slate-300" />
-                    </button>
+                    </a>
 
                     {/* WhatsApp */}
-                    <button
-                      onClick={handleWhatsApp}
+                    <a
+                      href={whatsappLink || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => !whatsappLink && e.preventDefault()}
                       className="w-full flex items-center gap-3 px-4 py-3.5 bg-green-50 hover:bg-green-100 rounded-2xl transition-all group text-left"
                     >
                       <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -512,7 +617,7 @@ export default function VendorDetailsPage() {
                       </div>
                       <span className="flex-1 font-bold text-green-800 text-sm">WhatsApp Message</span>
                       <ChevronRight size={16} className="text-green-400" />
-                    </button>
+                    </a>
 
                     {/* Divider */}
                     <div className="border-t border-slate-100 my-1" />
@@ -572,7 +677,38 @@ export default function VendorDetailsPage() {
 
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onNavigate={() => { }} userRole="customer" />
         {isEnquiryModalOpen && (
-          <EnquiryModal isOpen={isEnquiryModalOpen} onClose={() => setIsEnquiryModalOpen(false)} businessName={business.name} />
+          <EnquiryModal
+            isOpen={isEnquiryModalOpen}
+            onClose={() => setIsEnquiryModalOpen(false)}
+            businessName={business.name}
+            vendorId={business.id}
+          />
+        )}
+        {isProductModalOpen && selectedProduct && (
+          <ProductDetailModal
+            product={selectedProduct}
+            vendorName={business.name}
+            onClose={() => setIsProductModalOpen(false)}
+            onWhatsApp={handleWhatsApp}
+            onCall={handleCall}
+            onEnquiry={() => {
+              setIsProductModalOpen(false);
+              setIsEnquiryModalOpen(true);
+            }}
+          />
+        )}
+
+        {business && (
+          <ReviewModal
+            isOpen={isReviewModalOpen}
+            onClose={() => setIsReviewModalOpen(false)}
+            vendorId={business.id}
+            vendorName={business.name || business.shop_name}
+            onSuccess={() => {
+              // refresh data
+              window.location.reload();
+            }}
+          />
         )}
       </div>
     </div>

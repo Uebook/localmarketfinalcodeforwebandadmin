@@ -592,11 +592,11 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
       }
     }
 
-    const filename = fileUri.split('/').pop() || (mimeType.includes('pdf') ? 'doc.pdf' : 'photo.jpg');
+    const filename = fileUri.split('/').pop() || (mimeType && mimeType.includes('pdf') ? 'doc.pdf' : 'photo.jpg');
 
     const fileObject = {
       uri: normalizedUri,
-      type: mimeType,
+      type: mimeType || 'image/jpeg',
       name: filename,
     };
 
@@ -612,27 +612,36 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
       os: Platform.OS
     });
 
-    const response = await fetch(`${API_BASE_URL}/api/upload`, {
-      method: 'POST',
-      body: formData,
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}/api/upload`);
+      xhr.setRequestHeader('Accept', 'application/json');
+
+      xhr.onload = () => {
+        console.log('Upload response status:', xhr.status);
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            console.log('Upload successful! URL:', data.url);
+            resolve(data.url);
+          } else {
+            console.error('Upload failed on server:', data);
+            reject(new Error(data.error || 'Upload failed'));
+          }
+        } catch (e) {
+          reject(new Error('Invalid server response'));
+        }
+      };
+
+      xhr.onerror = () => {
+        console.error('Network request failed. This often means the URI is invalid or the server is unreachable.');
+        reject(new Error('Network request failed'));
+      };
+
+      xhr.send(formData);
     });
-
-    console.log('Upload response status:', response.status);
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Upload failed on server:', data);
-      throw new Error(data.error || 'Upload failed');
-    }
-
-    console.log('Upload successful! URL:', data.url);
-    return data.url;
   } catch (error) {
     console.error('File Upload error details:', error);
-    // Specifically catch and log network request failures
-    if (error.message === 'Network request failed') {
-      console.error('Network request failed. This often means the URI is invalid or the server is unreachable.');
-    }
     throw error;
   }
 };
@@ -657,9 +666,9 @@ export const createVendorProduct = async (productData) => {
  * @returns {Promise<Object>}
  */
 export const updateVendorProduct = async (id, productData) => {
-  return await apiRequest('/api/vendor-products', {
+  return await apiRequest(`/api/vendor-products?id=${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ id, ...productData }),
+    body: JSON.stringify(productData),
   });
 };
 
@@ -770,6 +779,25 @@ export const getRecentSearches = async (filters = {}) => {
   } catch (error) {
     console.error('Error getting recent searches:', error);
     return [];
+  }
+};
+
+// ==================== ENQUIRIES API ====================
+
+/**
+ * Submit a new enquiry to a vendor
+ * @param {Object} enquiryData - { vendor_id, name, mobile, message }
+ * @returns {Promise<Object>}
+ */
+export const submitEnquiry = async (enquiryData) => {
+  try {
+    return await apiRequest('/api/enquiries', {
+      method: 'POST',
+      body: JSON.stringify(enquiryData),
+    });
+  } catch (error) {
+    console.error('Error submitting enquiry:', error);
+    throw error;
   }
 };
 

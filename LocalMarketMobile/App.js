@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar, View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { saveUserData, loadUserData, clearUserData, isUserAuthenticated } from './src/utils/userStorage';
@@ -84,6 +84,7 @@ const Stack = createStackNavigator();
 
 // Vendor-specific tabs
 function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' }) {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       initialRouteName={initialRouteName}
@@ -114,7 +115,13 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
           tabBarActiveTintColor: COLORS_SAFE.textPrimary,
           tabBarInactiveTintColor: COLORS_SAFE.textMuted,
           headerShown: false,
-          tabBarStyle: styles.tabBar,
+          tabBarStyle: [
+            styles.tabBar,
+            {
+              paddingBottom: Math.max(insets.bottom, 8),
+              height: 54 + Math.max(insets.bottom, 8)
+            }
+          ],
           tabBarItemStyle: styles.tabBarItem,
           tabBarButton: (props) => {
             const { children, onPress } = props;
@@ -163,6 +170,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
 }
 
 function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSavedBusinessIds, initialRouteName = 'Home' }) {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       initialRouteName={initialRouteName}
@@ -199,7 +207,13 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
           tabBarActiveTintColor: COLORS_SAFE.textPrimary,
           tabBarInactiveTintColor: COLORS_SAFE.textMuted,
           headerShown: false,
-          tabBarStyle: styles.tabBar,
+          tabBarStyle: [
+            styles.tabBar,
+            {
+              paddingBottom: Math.max(insets.bottom, 8),
+              height: 54 + Math.max(insets.bottom, 8)
+            }
+          ],
           tabBarItemStyle: styles.tabBarItem,
           tabBarButton: (props) => {
             const { children, onPress } = props;
@@ -718,9 +732,7 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: COLORS_SAFE.white,
     borderTopWidth: 0,
-    height: 65,
-    paddingTop: 6,
-    paddingBottom: 6,
+    paddingTop: 8,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },

@@ -7,20 +7,41 @@ interface EnquiryModalProps {
   isOpen: boolean;
   onClose: () => void;
   businessName: string;
+  vendorId: string;
 }
 
-export default function EnquiryModal({ isOpen, onClose, businessName }: EnquiryModalProps) {
+export default function EnquiryModal({ isOpen, onClose, businessName, vendorId }: EnquiryModalProps) {
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate submission
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      const response = await fetch('/api/enquiries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vendor_id: vendorId,
+          name,
+          mobile,
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to send enquiry');
+      }
+
       setIsLoading(false);
       setIsSubmitted(true);
       setTimeout(() => {
@@ -29,8 +50,12 @@ export default function EnquiryModal({ isOpen, onClose, businessName }: EnquiryM
         setName('');
         setMobile('');
         setMessage('');
-      }, 2000);
-    }, 1000);
+      }, 3000);
+    } catch (err: any) {
+      console.error('Enquiry error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -66,6 +91,11 @@ export default function EnquiryModal({ isOpen, onClose, businessName }: EnquiryM
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium animate-shake">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Your Name <span className="text-red-500">*</span>

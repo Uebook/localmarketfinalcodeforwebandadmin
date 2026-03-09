@@ -4,7 +4,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { Activity, Package, MessageSquare, Star, User, Upload, MessageCircle, Loader2, LogOut } from 'lucide-react';
+import { Activity, Package, MessageSquare, Star, User, Upload, MessageCircle, Loader2, LogOut, Bell, X } from 'lucide-react';
 import Link from 'next/link';
 
 interface VendorSession {
@@ -51,6 +51,8 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
   const [enquiries, setEnquiries] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newEnquiryCount, setNewEnquiryCount] = useState(0);
+  const [showNotification, setShowNotification] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -79,6 +81,14 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
           const updated = { ...session, ...data.vendor };
           localStorage.setItem('localmarket_vendor', JSON.stringify(updated));
         }
+
+        // Check for new enquiries
+        if (enquiries.length > 0 && data.enquiries && data.enquiries.length > enquiries.length) {
+          setNewEnquiryCount(prev => prev + (data.enquiries.length - enquiries.length));
+          setShowNotification(true);
+          setTimeout(() => setShowNotification(false), 5000);
+        }
+
         setProducts(data.products || []);
         setEnquiries(data.enquiries || []);
         setReviews(data.reviews || []);
@@ -89,6 +99,15 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
       setLoading(false);
     }
   };
+
+  // Poll for new data every 30 seconds
+  useEffect(() => {
+    if (!vendor) return;
+    const interval = setInterval(() => {
+      loadFromDB(vendor);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [vendor, enquiries.length]);
 
   const refresh = () => {
     if (vendor) loadFromDB(vendor);
@@ -151,16 +170,42 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
                   {displayVendor.address ? ` • ${displayVendor.address}` : ''}
                 </p>
               </div>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 ml-4 px-3 py-2 bg-white/15 hover:bg-white/25 rounded-xl text-xs font-bold transition-colors flex-shrink-0"
-              >
-                <LogOut size={14} />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
+              <div className="flex items-center gap-3 ml-4">
+                <div className="relative">
+                  <Bell size={20} className="text-white/80" />
+                  {newEnquiryCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[var(--primary)]">
+                      {newEnquiryCount}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 px-3 py-2 bg-white/15 hover:bg-white/25 rounded-xl text-xs font-bold transition-colors flex-shrink-0"
+                >
+                  <LogOut size={14} />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Global Notification Toast */}
+        {showNotification && (
+          <div className="fixed bottom-6 right-6 z-[100] bg-white rounded-2xl shadow-2xl p-4 border border-slate-100 flex items-center gap-4 animate-in slide-in-from-right-10 duration-500">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <p className="font-black text-slate-900">New Enquiry Received!</p>
+              <p className="text-xs text-slate-500">Check your enquiries tab for details.</p>
+            </div>
+            <button onClick={() => setShowNotification(false)} className="ml-4 text-slate-300 hover:text-slate-500">
+              <X size={20} />
+            </button>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         {!hideTabs && (

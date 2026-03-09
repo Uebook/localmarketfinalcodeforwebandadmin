@@ -40,16 +40,28 @@ export default function LocationSelector({
   const states = getStates();
   const cities = location.state ? getCities(location.state) : [];
   const towns = location.state && location.city ? getTowns(location.state, location.city) : [];
-  const tehsils = location.state && location.city && location.town 
-    ? getTehsils(location.state, location.city, location.town) 
+  const tehsils = location.state && location.city && location.town
+    ? getTehsils(location.state, location.city, location.town)
     : [];
   const subTehsils = location.state && location.city && location.town && location.tehsil
     ? getSubTehsils(location.state, location.city, location.town, location.tehsil)
     : [];
 
   const handleSelect = (key: keyof LocationData, value: string) => {
+    // Handling special "Entire State" or "All India" selections
+    if (value === 'India-wise (All of India)') {
+      onSelect({ circle: 'All India' });
+      return;
+    }
+
+    if (value.startsWith('All in ')) {
+      const state = value.replace('All in ', '');
+      onSelect({ state, circle: `All ${state}` });
+      return;
+    }
+
     const newLocation: LocationData = { ...location, [key]: value };
-    
+
     // Reset dependent fields
     if (key === 'state') {
       newLocation.city = '';
@@ -87,9 +99,9 @@ export default function LocationSelector({
   const getCurrentOptions = (): string[] => {
     switch (activeStep) {
       case 'state':
-        return states;
+        return ['India-wise (All of India)', ...states];
       case 'city':
-        return cities;
+        return [`All in ${location.state}`, ...cities];
       case 'town':
         return towns;
       case 'tehsil':

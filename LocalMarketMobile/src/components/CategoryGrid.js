@@ -5,65 +5,72 @@ import { ALL_CATEGORIES } from '../constants/categories';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 
-// Map categories to solid colors matching the design
+// Map categories to themed color pairs {bg: pastel, main: vibrant}
 const colorMap = {
-  'Groceries': '#F97316', // Orange
-  'Electronics': '#9333EA', // Purple
-  'Clothing': '#3B82F6', // Blue
-  'Medicines': '#EC4899', // Pink
-  'Appliances': '#FACC15', // Yellow
-  'Home': '#22C55E', // Green
-  'Accessories': '#06B6D4', // Light blue/Cyan
-  'Sports': '#7C3AED', // Dark purple
-  'Fruits': '#22C55E', // Green
-  'Dairy': '#3B82F6', // Blue
-  'Sweets': '#EC4899', // Pink
-  'Meat': '#DC2626', // Red
-  'Fish': '#06B6D4', // Cyan
-  'Cosmetics': '#EC4899', // Pink
-  'Perfume': '#9333EA', // Purple
-  'Jewellery': '#FACC15', // Yellow
-  'Footwear': '#7C3AED', // Dark purple
-  'Bags': '#3B82F6', // Blue
-  'Watches': '#F97316', // Orange
-  'Gift': '#EC4899', // Pink
-  'Toys': '#FACC15', // Yellow
-  'Fitness': '#22C55E', // Green
-  'Music': '#9333EA', // Purple
-  'CCTV': '#3B82F6', // Blue
-  'Computer': '#9333EA', // Purple
-  'Gaming': '#7C3AED', // Dark purple
-  'Car': '#DC2626', // Red
-  'Bike': '#F97316', // Orange
-  'Tyre': '#6B7280', // Gray
-  'Paint': '#FACC15', // Yellow
-  'Tiles': '#06B6D4', // Cyan
-  'Furniture': '#7C3AED', // Dark purple
-  'Mattress': '#22C55E', // Green
-  'Curtains': '#EC4899', // Pink
-  'Lighting': '#FACC15', // Yellow
-  'Utensils': '#F97316', // Orange
-  'Steel': '#6B7280', // Gray
-  'Crockery': '#3B82F6', // Blue
-  'Pooja': '#FACC15', // Yellow
-  'Stationery': '#9333EA', // Purple
-  'Packaging': '#6B7280', // Gray
-  'Plastic': '#06B6D4', // Cyan
-  'Pet': '#EC4899', // Pink
-  'Aquarium': '#06B6D4', // Cyan
-  'Seeds': '#22C55E', // Green
-  'Agriculture': '#F97316', // Orange
-  'Hardware': '#6B7280', // Gray
-  'Electrical': '#FACC15', // Yellow
-  'Building': '#7C3AED', // Dark purple
-  'Water': '#06B6D4', // Cyan
-  'Solar': '#FACC15', // Yellow
-  'Medical': '#EC4899', // Pink
-  'Optical': '#3B82F6', // Blue
-  'Hearing': '#9333EA', // Purple
-  'Ayurvedic': '#22C55E', // Green
-  'Cleaning': '#06B6D4', // Cyan
-  'Seasonal': '#F97316', // Orange
+  'Supermarket': { bg: '#FFF7ED', main: '#F97316' },
+  'Groceries': { bg: '#FFF7ED', main: '#F97316' },
+  'Electronics': { bg: '#FAF5FF', main: '#9333EA' },
+  'Clothing': { bg: '#EFF6FF', main: '#3B82F6' },
+  'Fashion': { bg: '#EFF6FF', main: '#3B82F6' },
+  'Medicines': { bg: '#FDF2F8', main: '#EC4899' },
+  'Health': { bg: '#FDF2F8', main: '#EC4899' },
+  'Medical': { bg: '#FDF2F8', main: '#EC4899' },
+  'Hospitals': { bg: '#FDF2F8', main: '#EC4899' },
+  'Doctors': { bg: '#FDF2F8', main: '#EC4899' },
+  'Pharmacy': { bg: '#FDF2F8', main: '#EC4899' },
+  'Pharmacies': { bg: '#FDF2F8', main: '#EC4899' },
+  'Appliances': { bg: '#FEFCE8', main: '#EAB308' },
+  'Home': { bg: '#F0FDF4', main: '#22C55E' },
+  'Accessories': { bg: '#ECFEFF', main: '#06B6D4' },
+  'Sports': { bg: '#F5F3FF', main: '#7C3AED' },
+  'Fitness': { bg: '#F5F3FF', main: '#7C3AED' },
+  'Gyms': { bg: '#F5F3FF', main: '#7C3AED' },
+  'Fruits': { bg: '#F0FDF4', main: '#22C55E' },
+  'Dairy': { bg: '#EFF6FF', main: '#3B82F6' },
+  'Sweets': { bg: '#FDF2F8', main: '#EC4899' },
+  'Meat': { bg: '#FEF2F2', main: '#DC2626' },
+  'Fish': { bg: '#ECFEFF', main: '#06B6D4' },
+  'Cosmetics': { bg: '#FDF2F8', main: '#EC4899' },
+  'Beauty': { bg: '#FDF2F8', main: '#EC4899' },
+  'Salon': { bg: '#FDF2F8', main: '#EC4899' },
+  'Jewellery': { bg: '#FEFCE8', main: '#EAB308' },
+  'Gift': { bg: '#FDF2F8', main: '#EC4899' },
+  'Toys': { bg: '#FEFCE8', main: '#EAB308' },
+  'Restaurants': { bg: '#FFF7ED', main: '#EA580C' },
+  'Food': { bg: '#FFF7ED', main: '#EA580C' },
+  'Cafes': { bg: '#F0FDF4', main: '#16A34A' },
+  'Bakeries': { bg: '#FAF5FF', main: '#9333EA' },
+  'Hotels': { bg: '#EFF6FF', main: '#2563EB' },
+  'Travel': { bg: '#ECFEFF', main: '#0891B2' },
+  'Automotive': { bg: '#F8FAFC', main: '#475569' },
+  'Car': { bg: '#F8FAFC', main: '#475569' },
+  'Bike': { bg: '#F8FAFC', main: '#475569' },
+  'Schools': { bg: '#F0FDF4', main: '#16A34A' },
+  'Colleges': { bg: '#F0FDF4', main: '#16A34A' },
+  'Real': { bg: '#F8FAFC', main: '#0F172A' },
+  'Property': { bg: '#F8FAFC', main: '#0F172A' },
+  'Banks': { bg: '#F1F5F9', main: '#334155' },
+  'Finance': { bg: '#F1F5F9', main: '#334155' },
+};
+
+// Generate a deterministic color pair based on string
+const getDeterministicTheme = (str) => {
+  const pairs = [
+    { bg: '#FFF7ED', main: '#EA580C' },
+    { bg: '#FAF5FF', main: '#9333EA' },
+    { bg: '#EFF6FF', main: '#2563EB' },
+    { bg: '#FDF2F8', main: '#EC4899' },
+    { bg: '#FEFCE8', main: '#EAB308' },
+    { bg: '#F0FDF4', main: '#16A34A' },
+    { bg: '#ECFEFF', main: '#0891B2' },
+    { bg: '#F5F3FF', main: '#7C3AED' },
+    { bg: '#FEF2F2', main: '#DC2626' },
+  ];
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return pairs[Math.abs(hash) % pairs.length];
 };
 
 // Map icon names - use the utility function
@@ -77,29 +84,45 @@ const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
   const displayCategories = categories && categories.length > 0 ? categories : ALL_CATEGORIES;
 
   const renderCategory = ({ item, index }) => {
-    // Get color from category name or use default
-    const categoryNameKey = item.name.split(' ')[0] || item.name;
-    const backgroundColor = colorMap[categoryNameKey] || colorMap[item.name] || '#9ca3af';
+    // Get theme from category name or use default
+    const words = item.name.split(' ');
+    let theme = null;
+
+    // Try to find a match for any word in the name
+    for (const word of words) {
+      if (colorMap[word]) {
+        theme = colorMap[word];
+        break;
+      }
+    }
+
+    // If still null, use deterministic theme
+    if (!theme) {
+      theme = getDeterministicTheme(item.name);
+    }
+
     const iconName = getCategoryIcon(item.iconName || item.icon_name);
-    const textColor = variant === 'dark' ? COLORS.textPrimary : COLORS.white;
+    const textColor = '#0F172A'; // Dark navy for text
+
+    // Strict image check - must be a valid URL starting with http
+    const hasValidIconUrl = (item.iconUrl || item.icon_url) &&
+      (item.iconUrl || item.icon_url).startsWith('http');
 
     return (
       <TouchableOpacity
-        style={styles.categoryItem}
+        style={styles.categoryCard}
         onPress={() => onCategorySelect && onCategorySelect(item.name)}
         activeOpacity={0.7}
       >
-        <View style={styles.iconContainer}>
-          {item.iconUrl || item.icon_url ? (
+        <View style={[styles.iconSquare, { backgroundColor: theme.bg }]}>
+          {hasValidIconUrl ? (
             <Image
               source={{ uri: item.iconUrl || item.icon_url }}
               style={{ width: '100%', height: '100%', borderRadius: 12 }}
               resizeMode="cover"
             />
           ) : (
-            <View style={{ width: '100%', height: '100%', borderRadius: 12, backgroundColor, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name={iconName} size={32} color="#ffffff" />
-            </View>
+            <Icon name={iconName} size={28} color={theme.main} />
           )}
         </View>
         <Text style={[styles.categoryName, { color: textColor }]} numberOfLines={2} ellipsizeMode="tail">
@@ -115,8 +138,9 @@ const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
         data={displayCategories}
         renderItem={renderCategory}
         keyExtractor={(item, index) => item.id || `category-${index}`}
-        numColumns={4}
+        numColumns={3}
         scrollEnabled={false}
+        columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.grid}
       />
     </View>
@@ -125,39 +149,46 @@ const CategoryGrid = ({ categories, onCategorySelect, variant = 'light' }) => {
 
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   grid: {
-    gap: 20,
+    gap: 12,
+    paddingHorizontal: 8,
   },
-  categoryItem: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    maxWidth: '22%',
+  columnWrapper: {
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
+  categoryCard: {
+    width: '31%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: '#F1F5F9', // Very subtle border
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  iconSquare: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   categoryName: {
     fontSize: 11,
     fontWeight: '700',
     textAlign: 'center',
-    letterSpacing: 0.3,
-    maxWidth: '100%',
-    paddingHorizontal: 4,
+    letterSpacing: 0.2,
+    lineHeight: 14,
+    color: '#0F172A',
   },
 });
 

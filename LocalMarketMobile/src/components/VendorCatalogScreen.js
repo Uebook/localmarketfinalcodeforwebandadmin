@@ -11,6 +11,7 @@ import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare } from '../utils/vendorActions';
 import { getCategories, createVendorProduct, updateVendorProduct, deleteVendorProduct, uploadFile } from '../services/api';
+import { AI_DEFAULT_ITEMS, getSuggestedItemsByCategory } from '../constants/aiDefaultItems';
 
 const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
@@ -36,10 +37,12 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     description: '',
     inStock: true,
     bestSeller: false,
-    image: null,
+    images: [], // Changed from image: null to images: []
   });
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [selectedAICategory, setSelectedAICategory] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const [categories, setCategories] = useState([]);
@@ -132,9 +135,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       categoryName: '',
       unit: '',
       description: '',
-      inStock: true,
       bestSeller: false,
-      image: null,
+      images: [],
     });
     setShowAddForm(true);
   };
@@ -150,11 +152,22 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       categoryName: item.category_name || item.category || '',
       unit: item.uom || item.unit || '',
       description: item.description || '',
-      inStock: item.inStock !== false,
       bestSeller: item.bestSeller || false,
-      image: item.imageUrl ? { uri: item.imageUrl } : null,
+      images: item.images || (item.imageUrl ? [{ uri: item.imageUrl }] : []),
     });
     setShowAddForm(true);
+  };
+
+  const handleSelectAIProduct = (item) => {
+    setFormData({
+      ...formData,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      mrp: (parseInt(item.price) * 1.2).toFixed(0), // Suggest 20% higher MRP
+      images: [{ uri: item.image_url }],
+    });
+    setShowAIModal(false);
   };
 
   const handleDeleteItem = async (itemId) => {
@@ -183,6 +196,11 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   };
 
   const handleImagePicker = () => {
+    if (formData.images.length >= 5) {
+      Alert.alert('Limit Reached', 'You can upload up to 5 images per product.');
+      return;
+    }
+
     launchImageLibrary(
       {
         mediaType: 'photo',
@@ -190,12 +208,20 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       },
       (response) => {
         if (response.assets && response.assets[0]) {
-          setFormData({ ...formData, image: response.assets[0] });
+          setFormData({
+            ...formData,
+            images: [...formData.images, response.assets[0]]
+          });
         }
       }
     );
   };
 
+  const removeImage = (index) => {
+    const updatedImages = [...formData.images];
+    updatedImages.splice(index, 1);
+    setFormData({ ...formData, images: updatedImages });
+  };
   const calculateDiscount = (price, mrp) => {
     if (!price || !mrp) return '';
     const priceNum = parseFloat(price);
@@ -213,12 +239,34 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       return;
     }
 
+    if (formData.images.length < 3) {
+      Alert.alert('Images Required', 'Please upload at least 3 images for this item.');
+      return;
+    }
+
     setSaving(true);
     try {
-      let imageUrl = editingItem?.imageUrl || 'https://via.placeholder.com/100';
-      if (formData.image && formData.image.uri && formData.image.uri !== editingItem?.imageUrl) {
-        // Upload image if it's new
-        imageUrl = await uploadFile(formData.image.uri, 'product-images', formData.image.type);
+      const uploadedImagePromises = formData.images.map(async (img) => {
+        if (img.uri && !img.uri.startsWith('http')) {
+          // Upload new local image
+          try {
+            return await uploadFile(img.uri, 'product-images', img.type || 'image/jpeg');
+          } catch (uploadErr) {
+            console.log('Image upload failed:', uploadErr);
+            throw uploadErr;
+          }
+        }
+        // Return existing remote URL
+        return img.uri || img;
+      });
+
+      let imageUrls;
+      try {
+        imageUrls = await Promise.all(uploadedImagePromises);
+      } catch (err) {
+        Alert.alert('Upload Error', 'Failed to upload some product photos. Please try again.');
+        setSaving(false);
+        return;
       }
 
       const productPayload = {
@@ -229,8 +277,9 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         uom: formData.unit,
         category_id: formData.categoryId || null,
         description: formData.description,
-        image_url: imageUrl,
-        status: formData.inStock ? 'Active' : 'Inactive',
+        image_url: imageUrls[0], // Use first image as primary
+        images: imageUrls, // Store all images if backend supports it
+        status: 'Active',
       };
 
       let res;
@@ -337,8 +386,74 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     }
   };
 
+  const renderAIModal = () => (
+    <Modal
+      visible={showAIModal}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setShowAIModal(false)}
+    >
+      <View style={styles.suggestionModalOverlay}>
+        <View style={styles.suggestionModalContent}>
+          <View style={styles.suggestionModalHeader}>
+            <Text style={styles.suggestionModalTitle}>AI Product Suggestions</Text>
+            <TouchableOpacity onPress={() => setShowAIModal(false)}>
+              <Icon name="x" size={24} color={COLORS.textPrimary} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.categoryList}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {Object.keys(AI_DEFAULT_ITEMS).map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.aicategoryChip,
+                    selectedAICategory === cat && styles.selectedAICategoryChip
+                  ]}
+                  onPress={() => setSelectedAICategory(cat)}
+                >
+                  <Text style={[
+                    styles.aicategoryText,
+                    selectedAICategory === cat && styles.selectedAICategoryText
+                  ]}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.suggestionsList}>
+              {selectedAICategory ? (
+                getSuggestedItemsByCategory(selectedAICategory).map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.suggestionCard}
+                    onPress={() => handleSelectAIProduct(item)}
+                  >
+                    <Image source={{ uri: item.image_url }} style={styles.suggestionImage} />
+                    <View style={styles.suggestionInfo}>
+                      <Text style={styles.suggestionName}>{item.name}</Text>
+                      <Text style={styles.suggestionPrice}>₹{item.price}</Text>
+                    </View>
+                    <Icon name="plus-circle" size={24} color={COLORS.orange} />
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.emptySuggestions}>
+                  <Text style={styles.noSuggestionsText}>Select a category above to see suggestions</Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
+      {renderAIModal()}
       {/* Gradient Background */}
       <LinearGradient
         colors={COLORS.primaryGradient}
@@ -494,19 +609,51 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                   </TouchableOpacity>
                 </View>
 
+                {!editingItem && (
+                  <TouchableOpacity
+                    style={styles.aiQuickAddButton}
+                    onPress={() => setShowAIModal(true)}
+                  >
+                    <LinearGradient
+                      colors={[COLORS.orange, '#f97316']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.aiButtonGradient}
+                    >
+                      <Icon name="zap" size={16} color={COLORS.white} />
+                      <Text style={styles.aiButtonText}>Pick from AI Suggestions</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
+
                 <ScrollView showsVerticalScrollIndicator={false} style={styles.formScroll}>
                   <View style={styles.formSection}>
-                    {/* Image Upload - Centered and larger */}
-                    <TouchableOpacity style={styles.imageUploadFull} onPress={handleImagePicker}>
-                      {formData.image ? (
-                        <Image source={formData.image.uri ? { uri: formData.image.uri } : formData.image} style={styles.uploadedImageFull} />
-                      ) : (
-                        <View style={styles.uploadPlaceholder}>
-                          <Icon name={getIconName('Image')} size={48} color={COLORS.textMuted} />
-                          <Text style={styles.uploadText}>Add Product Photo</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
+                    {/* Multi-Image Upload */}
+                    <View style={styles.imageUploadSection}>
+                      <Text style={styles.inputLabel}>Product Images (Min 3, Max 5) *</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageCarousel}>
+                        {formData.images.map((img, index) => (
+                          <View key={index} style={styles.imageContainer}>
+                            <Image
+                              source={img.uri ? { uri: img.uri } : (typeof img === 'string' ? { uri: img } : img)}
+                              style={styles.uploadedImageThumb}
+                            />
+                            <TouchableOpacity
+                              style={styles.removeImageButton}
+                              onPress={() => removeImage(index)}
+                            >
+                              <Icon name={getIconName('X')} size={12} color={COLORS.white} />
+                            </TouchableOpacity>
+                          </View>
+                        ))}
+                        {formData.images.length < 5 && (
+                          <TouchableOpacity style={styles.addImageButton} onPress={handleImagePicker}>
+                            <Icon name={getIconName('Plus')} size={24} color={COLORS.textMuted} />
+                            <Text style={styles.addImageText}>Add</Text>
+                          </TouchableOpacity>
+                        )}
+                      </ScrollView>
+                    </View>
 
                     <View style={styles.formFieldsStack}>
                       <View style={styles.inputGroup}>
@@ -651,15 +798,6 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                       {/* Toggles */}
                       <View style={styles.toggleRow}>
                         <View style={styles.toggleItem}>
-                          <Text style={styles.toggleLabel}>In Stock</Text>
-                          <Switch
-                            value={formData.inStock}
-                            onValueChange={(value) => setFormData({ ...formData, inStock: value })}
-                            trackColor={{ false: '#E5E7EB', true: '#16a34a' }}
-                            thumbColor={COLORS.white}
-                          />
-                        </View>
-                        <View style={styles.toggleItem}>
                           <Text style={styles.toggleLabel}>Best Seller</Text>
                           <Switch
                             value={formData.bestSeller}
@@ -680,11 +818,11 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           {saving ? 'Saving...' : editingItem ? 'Update Item' : 'Add Item'}
                         </Text>
                       </TouchableOpacity>
-                    </View>
-                  </View>
+                    </View> {/* End formFieldsStack */}
+                  </View> {/* End formSection */}
                 </ScrollView>
-              </View>
-            </View>
+              </View> {/* End modalContent */}
+            </View> {/* End modalOverlay */}
           </Modal>
 
           <FlatList
@@ -704,12 +842,6 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                         {item.discount && <Text style={styles.discount}>{item.discount}</Text>}
                       </>
                     )}
-                  </View>
-                  <View style={styles.stockRow}>
-                    <View style={[styles.stockDot, !item.inStock && styles.stockDotOut]} />
-                    <Text style={[styles.stockText, !item.inStock && styles.stockTextOut]}>
-                      {item.inStock ? 'In Stock' : 'Out of Stock'}
-                    </Text>
                   </View>
                 </View>
                 <View style={styles.productActions}>
@@ -733,7 +865,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         </View>
       </ScrollView>
 
-    </View>
+    </View >
   );
 };
 
@@ -1030,26 +1162,57 @@ const createStyles = (COLORS) => StyleSheet.create({
     gap: 20,
     paddingBottom: 20,
   },
-  imageUploadFull: {
+  imageUploadSection: {
+    marginBottom: 8,
+  },
+  imageCarousel: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+  },
+  imageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 12,
+    position: 'relative',
+    backgroundColor: '#F3F4F6',
+  },
+  uploadedImageThumb: {
     width: '100%',
-    height: 200,
-    borderRadius: 16,
+    height: '100%',
+    borderRadius: 8,
+    resizeMode: 'cover',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#ef4444',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.white,
+    zIndex: 1,
+  },
+  addImageButton: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: COLORS.divider,
     borderStyle: 'dashed',
     backgroundColor: '#F9FAFB',
-    overflow: 'hidden',
-  },
-  uploadedImageFull: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  uploadPlaceholder: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 4,
+  },
+  addImageText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textMuted,
   },
   formFieldsStack: {
     gap: 16,
@@ -1235,8 +1398,121 @@ const createStyles = (COLORS) => StyleSheet.create({
   stockDotOut: {
     backgroundColor: '#dc2626',
   },
-  stockTextOut: {
-    color: '#dc2626',
+  aiQuickAddButton: {
+    marginHorizontal: 0,
+    marginTop: 10,
+    marginBottom: 15,
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: COLORS.orange,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  aiButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  aiButtonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  suggestionModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  suggestionModalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    width: '100%',
+    maxHeight: '80%',
+    padding: 20,
+  },
+  suggestionModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  suggestionModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+  },
+  categoryList: {
+    marginBottom: 15,
+  },
+  aicategoryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  selectedAICategoryChip: {
+    backgroundColor: COLORS.orange + '15',
+    borderColor: COLORS.orange,
+  },
+  aicategoryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  selectedAICategoryText: {
+    color: COLORS.orange,
+  },
+  suggestionsList: {
+    gap: 12,
+  },
+  suggestionCard: {
+    flexDirection: 'row',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    gap: 12,
+    alignItems: 'center',
+  },
+  suggestionImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
+  },
+  suggestionInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  suggestionName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: 2,
+  },
+  suggestionPrice: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.orange,
+  },
+  emptySuggestions: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  noSuggestionsText: {
+    textAlign: 'center',
+    color: COLORS.textMuted,
+    fontSize: 14,
   },
 });
 

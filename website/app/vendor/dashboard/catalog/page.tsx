@@ -5,12 +5,15 @@ import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLa
 import { Plus, Edit, Trash2, Search, Package, Loader2, IndianRupee } from 'lucide-react';
 import Image from 'next/image';
 import AddProductModal from '@/components/AddProductModal';
+import BulkInventoryUpload from '@/components/BulkInventoryUpload';
+import { Download as DownloadIcon } from 'lucide-react';
 
 function CatalogContent() {
   const { products, vendor, loading, refresh } = useVendor();
   const [searchQuery, setSearchQuery] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
 
   const filteredProducts = products.filter((p: any) => {
@@ -47,17 +50,35 @@ function CatalogContent() {
           <h1 className="text-xl sm:text-2xl font-black text-slate-900">Product Catalog</h1>
           <p className="text-slate-400 text-sm mt-0.5">{products.length} products listed</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingProduct(null);
-            setIsAddModalOpen(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2.5 text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
-          style={{ background: 'var(--primary)' }}
-        >
-          <Plus size={16} /> Add Product
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowBulkUpload(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all"
+          >
+            <DownloadIcon size={16} className="rotate-180" /> Bulk Upload
+          </button>
+          <button
+            onClick={() => {
+              setEditingProduct(null);
+              setIsAddModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
+            style={{ background: 'var(--primary)' }}
+          >
+            <Plus size={16} /> Add Product
+          </button>
+        </div>
       </div>
+
+      {showBulkUpload && (
+        <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <BulkInventoryUpload
+            vendorId={vendor?.id || ''}
+            onSuccess={() => { setShowBulkUpload(false); refresh(); }}
+            onCancel={() => setShowBulkUpload(false)}
+          />
+        </div>
+      )}
 
       <AddProductModal
         isOpen={isAddModalOpen}

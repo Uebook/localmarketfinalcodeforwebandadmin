@@ -8,11 +8,13 @@ import { NEARBY_BUSINESSES } from '@/lib/data';
 import { Tag, Copy, Store, ArrowRight, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import OfferDetailModal from '@/components/OfferDetailModal';
 
 export default function OffersPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [offers, setOffers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -84,10 +86,10 @@ export default function OffersPage() {
         ) : offers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {offers.map((offer) => (
-              <Link
+              <div
                 key={offer.id}
-                href={offer.business?.id ? `/vendor/${offer.business.id}` : '#'}
-                className="group"
+                onClick={() => setSelectedOffer(offer)}
+                className="group cursor-pointer"
               >
                 <div className={`${getOfferColor(offer.color)} rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col`}>
                   {/* Business Image */}
@@ -119,16 +121,16 @@ export default function OffersPage() {
                       <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-lg">
                         <Tag size={18} />
                         <span className="font-mono font-bold text-lg">{offer.code}</span>
-                        <button
+                        <div
                           onClick={(e) => {
-                            e.preventDefault();
+                            e.stopPropagation();
                             navigator.clipboard.writeText(offer.code);
                             alert('Coupon code copied!');
                           }}
-                          className="ml-2 p-1 hover:bg-white/20 rounded transition-colors"
+                          className="ml-2 p-1 hover:bg-white/20 rounded transition-colors cursor-pointer"
                         >
                           <Copy size={14} />
-                        </button>
+                        </div>
                       </div>
                     </div>
 
@@ -139,7 +141,7 @@ export default function OffersPage() {
                     </button>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         ) : (
@@ -160,6 +162,13 @@ export default function OffersPage() {
         }}
         userRole="customer"
       />
+
+      {selectedOffer && (
+        <OfferDetailModal
+          offer={selectedOffer}
+          onClose={() => setSelectedOffer(null)}
+        />
+      )}
     </div>
   );
 }

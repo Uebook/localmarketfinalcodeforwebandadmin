@@ -1,5 +1,5 @@
-// Top 8 Most Preferred Shortcut Categories for Home Screen
-export const TOP_8_CATEGORIES = [
+// Top 9 Most Preferred Shortcut Categories for Home Screen
+export const TOP_9_CATEGORIES = [
   { id: '1', name: 'Groceries / General Store', iconName: 'ShoppingBag', priority: 1 },
   { id: '2', name: 'Electronics & Mobile Accessories', iconName: 'Smartphone', priority: 2 },
   { id: '3', name: 'Clothing & Fashion', iconName: 'Shirt', priority: 3 },
@@ -8,13 +8,14 @@ export const TOP_8_CATEGORIES = [
   { id: '6', name: 'Home Essentials & Household Items', iconName: 'Home', priority: 6 },
   { id: '7', name: 'Stationery / Books / Kids Items', iconName: 'FileText', priority: 7 },
   { id: '8', name: 'Hardware/Sanitary/Electrical Items', iconName: 'Tool', priority: 8 },
+  { id: '9', name: 'Fruits & Vegetables', iconName: 'Apple', priority: 9 },
 ];
 
 // Full Category List (58 categories)
 export const ALL_CATEGORIES = [
-  // Top 8 Priority Categories
-  ...TOP_8_CATEGORIES,
-  
+  // Top 9 Priority Categories
+  ...TOP_9_CATEGORIES,
+
   // Strong Retail Categories
   { id: '9', name: 'Fruits & Vegetables', iconName: 'Apple', priority: 9 },
   { id: '10', name: 'Dairy & Milk Products', iconName: 'Droplet', priority: 10 },
@@ -65,7 +66,12 @@ export const ALL_CATEGORIES = [
   { id: '55', name: 'Hearing Aid Store', iconName: 'Headphones', priority: 55 },
   { id: '56', name: 'Ayurvedic Store', iconName: 'Leaf', priority: 56 },
   { id: '57', name: 'Home Cleaning Solutions Store', iconName: 'Sparkles', priority: 57 },
-  { id: '58', name: 'Seasonal & Festival Items', iconName: 'Gift', priority: 58 },
+  { id: '58', name: 'Food Plaza / Restaurant', iconName: 'Utensils', priority: 58 },
+  { id: '59', name: 'Health & Fitness Center', iconName: 'Activity', priority: 59 },
+  { id: '60', name: 'Spa & Salon Services', iconName: 'Scissors', priority: 60 },
+  { id: '61', name: 'Festival Specials & Sales', iconName: 'Zap', priority: 61 },
+  { id: '62', name: 'Clothing Wholesale / Merchants', iconName: 'Shirt', priority: 62 },
+  { id: '63', name: 'Books & Library', iconName: 'FileText', priority: 63 },
 ];
 
 // Get category by ID

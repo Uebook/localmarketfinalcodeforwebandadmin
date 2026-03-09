@@ -171,7 +171,15 @@ function SearchContent() {
 
   useEffect(() => {
     const query = searchParams.get('q') || '';
+    const sort = searchParams.get('sort');
+
     setSearchQuery(query);
+    if (sort === 'price_asc' || sort === 'rating') {
+      setFilters(prev => ({ ...prev, sortBy: sort === 'price_asc' ? 'default' : 'rating' }));
+      // Note: "cheapest" logic usually implies price sort which isn't fully in this mockup's Filters yet
+      // but we can at least show relevant results.
+    }
+
     setLoading(true);
     fetch(`/api/search?q=${encodeURIComponent(query)}`)
       .then(res => res.json())

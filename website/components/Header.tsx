@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocation } from '@/lib/hooks';
+import LocationModal from './LocationModal';
 
 interface HeaderProps {
   locationState?: {
@@ -31,11 +32,12 @@ export default function Header({
   onNotificationClick,
   notificationCount = 2
 }: HeaderProps) {
-  const { location: savedLocation, detectLocation } = useLocation();
+  const { location: savedLocation, detectLocation, updateLocation } = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [locDropdownOpen, setLocDropdownOpen] = useState(false);
+  const [isLocModalOpen, setIsLocModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const locRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -130,7 +132,7 @@ export default function Header({
               <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform">
                 <ShoppingBag className="text-white" size={22} />
               </div>
-              <span className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-primary transition-colors">LOCAL</span>
+              <span className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-primary transition-colors">LOKALL</span>
             </Link>
 
             <div className="relative" ref={locRef}>
@@ -189,10 +191,21 @@ export default function Header({
                       detectLocation();
                       setLocDropdownOpen(false);
                     }}
+                    className="w-full py-3 bg-slate-50 text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-100 transition-all border border-slate-100 active:scale-95 flex items-center justify-center gap-2 mb-2"
+                  >
+                    <Zap size={14} className="text-primary" />
+                    Auto-Detect Location
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setLocDropdownOpen(false);
+                      setIsLocModalOpen(true);
+                    }}
                     className="w-full py-3 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
                   >
-                    <Zap size={14} />
-                    Re-detect Location
+                    <MapPin size={14} />
+                    Select Manually
                   </button>
                 </div>
               )}
@@ -296,6 +309,30 @@ export default function Header({
           </div>
         </div>
       </div>
+      <LocationModal
+        isOpen={isLocModalOpen}
+        onClose={() => setIsLocModalOpen(false)}
+        onSelect={(loc) => {
+          console.log('Manually selected location:', loc);
+          let display = 'Selected Market';
+          if (loc.circle === 'All India') display = 'All India';
+          else if (loc.circle?.startsWith('All ')) display = loc.circle;
+          else display = loc.subTehsil || loc.tehsil || loc.town || loc.city || loc.state || 'Selected Market';
+
+          updateLocation({
+            city: display,
+            lat: null,
+            lng: null
+          });
+
+          // If manual selection, maybe redirect to search for that market
+          const searchParam = loc.circle === 'All India' ? '' : (loc.subTehsil || loc.tehsil || loc.town || loc.city || loc.state || '');
+          if (searchParam) {
+            router.push(`/search?q=${encodeURIComponent(searchParam)}`);
+          }
+        }}
+        initialLocation={savedLocation}
+      />
     </header>
   );
 }

@@ -635,6 +635,7 @@ const VendorDetails = ({ navigation, route, savedBusinessIds = [], setSavedBusin
             <EnquiryModal
                 isOpen={showEnquiryModal}
                 businessName={business.name}
+                vendorId={business.id}
                 onClose={() => setShowEnquiryModal(false)}
             />
 

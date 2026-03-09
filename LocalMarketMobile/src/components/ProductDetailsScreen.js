@@ -51,8 +51,8 @@ const ProductDetailsScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
             style={styles.backButton}
             activeOpacity={0.7}
           >
@@ -72,8 +72,8 @@ const ProductDetailsScreen = ({ navigation, route }) => {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Product Image */}
         <View style={styles.imageContainer}>
-          <Image 
-            source={{ uri: product.imageUrl }} 
+          <Image
+            source={{ uri: product.imageUrl }}
             style={styles.productImage}
             resizeMode="cover"
           />
@@ -111,7 +111,7 @@ const ProductDetailsScreen = ({ navigation, route }) => {
             </View>
           )}
 
-          {/* Product Details */}
+          {/* Product Details - Category/Unit only */}
           <View style={styles.detailsSection}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Category</Text>
@@ -129,21 +129,6 @@ const ProductDetailsScreen = ({ navigation, route }) => {
                 <Text style={styles.detailValue}>{product.uom}</Text>
               </View>
             )}
-            {product.stockQty && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Stock</Text>
-                <Text style={styles.detailValue}>{product.stockQty} {product.uom || 'units'}</Text>
-              </View>
-            )}
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Availability</Text>
-              <View style={styles.availabilityRow}>
-                <View style={[styles.statusDot, { backgroundColor: product.inStock ? '#16a34a' : '#dc2626' }]} />
-                <Text style={[styles.detailValue, { color: product.inStock ? '#16a34a' : '#dc2626' }]}>
-                  {product.inStock ? 'In Stock' : 'Out of Stock'}
-                </Text>
-              </View>
-            </View>
           </View>
 
           {/* Business Info */}
@@ -153,8 +138,8 @@ const ProductDetailsScreen = ({ navigation, route }) => {
               onPress={() => navigation.navigate('VendorDetails', { business })}
               activeOpacity={0.7}
             >
-              <Image 
-                source={{ uri: business.imageUrl }} 
+              <Image
+                source={{ uri: business.imageUrl }}
                 style={styles.businessImage}
                 resizeMode="cover"
               />
@@ -197,7 +182,7 @@ const ProductDetailsScreen = ({ navigation, route }) => {
 
       {/* Sticky Bottom Actions */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.callButton}
           onPress={handleCall}
           activeOpacity={0.8}
@@ -205,14 +190,14 @@ const ProductDetailsScreen = ({ navigation, route }) => {
           <Icon name={getIconName('Phone')} size={20} color="#ffffff" />
           <Text style={styles.callButtonText}>Call</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.enquireButton}
           onPress={handleEnquiry}
           activeOpacity={0.8}
         >
           <Text style={styles.enquireButtonText}>Enquire</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.whatsappButton}
           onPress={handleWhatsApp}
           activeOpacity={0.8}

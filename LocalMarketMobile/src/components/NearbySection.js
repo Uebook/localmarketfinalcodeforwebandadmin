@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 // Static vendor data removed - using database only
 import { getIconName } from '../utils/iconMapping';
 import { getVendors } from '../services/api';
 
-const NearbySection = ({ onBusinessClick, locationState }) => {
+const NearbySection = ({ onBusinessClick, onSeeAll, locationState }) => {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +45,7 @@ const NearbySection = ({ onBusinessClick, locationState }) => {
           distance: vendor.city ? `${vendor.city}` : 'Nearby',
           imageUrl: vendor.imageUrl || 'https://via.placeholder.com/288x160',
           address: vendor.address || '',
+          phone: vendor.phone || vendor.contactNumber || '',
         }));
         setBusinesses(transformedBusinesses);
       } else {
@@ -64,7 +65,7 @@ const NearbySection = ({ onBusinessClick, locationState }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Shops Near You</Text>
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity activeOpacity={0.7} onPress={onSeeAll}>
           <View style={styles.seeAllButton}>
             <Text style={styles.seeAllText}>See All</Text>
             <Icon name={getIconName('ChevronRight')} size={16} color="#fbbf24" />
@@ -130,11 +131,10 @@ const NearbySection = ({ onBusinessClick, locationState }) => {
                     style={styles.callButton}
                     activeOpacity={0.7}
                     onPress={() => {
-                      // Handle call action
-                      const phone = business.contactNumber || business.phone;
-                      if (phone) {
-                        // In a real app, use Linking.openURL(`tel:${phone}`)
-                        console.log('Call:', phone);
+                      if (business.phone) {
+                        Linking.openURL(`tel:${business.phone}`);
+                      } else {
+                        alert('Phone number not available');
                       }
                     }}
                   >

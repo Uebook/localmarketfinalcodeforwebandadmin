@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
+import Voice from '@react-native-voice/voice';
 // Static vendor data removed - using database only
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -40,6 +41,20 @@ const SearchResults = ({
     const sliderTrackRef = useRef(null);
     const [sliderWidth, setSliderWidth] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+
+    useEffect(() => {
+        // Setting up voice listeners
+        Voice.onSpeechStart = onSpeechStart;
+        Voice.onSpeechEnd = onSpeechEnd;
+        Voice.onSpeechResults = onSpeechResults;
+        Voice.onSpeechError = onSpeechError;
+
+        return () => {
+            // Cleanup listeners and stop voice recognition if it's running
+            Voice.destroy().then(Voice.removeAllListeners);
+        };
+    }, []);
 
     useEffect(() => {
         loadSearchData();
@@ -85,9 +100,15 @@ const SearchResults = ({
                 limit: 100,
             };
 
-            // If categoryId is provided, use it to filter vendors
+            // If categoryId is provided (pinned search), use it
             if (categoryId) {
                 vendorFilters.categoryId = categoryId;
+            } else if (matchedCategoryIds.length > 0) {
+                // If we matched any categories based on the text query, use them
+                // Note: getVendors API might only take one ID, so we use the first one 
+                // or the backend handles multiple. For safety, we'll try to let the 
+                // client-side filtering below handle it if the API is limited.
+                vendorFilters.categoryId = matchedCategoryIds[0];
             }
 
             // If query is provided, search by name, owner, or category
@@ -97,9 +118,10 @@ const SearchResults = ({
 
             // Also filter by location if available
             if (locationState?.city) {
-                const cityParts = locationState.city.split(',');
+                // Try to extract city from "Area, City, State"
+                const cityParts = locationState.city.split(',').map(p => p.trim());
                 if (cityParts.length > 1) {
-                    vendorFilters.city = cityParts[cityParts.length - 1].trim();
+                    vendorFilters.city = cityParts[cityParts.length - 2] || cityParts[0];
                 } else {
                     vendorFilters.city = locationState.city;
                 }
@@ -158,25 +180,56 @@ const SearchResults = ({
         }
     };
 
-    const parseDistance = (distStr) => {
-        return parseFloat(distStr.toLowerCase().replace(' km', '').trim()) || 0;
+    // Haversine formula to calculate distance in km
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+        if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const d = R * c; // Distance in km
+        return d;
+    };
+
+    const deg2rad = (deg) => {
+        return deg * (Math.PI / 180);
     };
 
     // Transform vendors to business format
     const transformVendorToBusiness = (vendor) => {
-        // Calculate distance (mock for now, can be enhanced with actual location)
-        // Use a consistent distance based on vendor ID to avoid random changes on re-render
-        const vendorIdNum = parseInt(String(vendor.id).replace(/\D/g, '')) || 0;
-        const distanceValue = (vendorIdNum % 50) + 1; // Range: 1-50 km
-        const distance = vendor.city ? `${distanceValue}.0 km` : 'Nearby';
+        let distanceStr = 'Nearby';
+        let distanceValue = 0;
+
+        if (locationState?.lat && locationState?.lng && vendor.latitude && vendor.longitude) {
+            const dist = calculateDistance(
+                locationState.lat,
+                locationState.lng,
+                parseFloat(vendor.latitude),
+                parseFloat(vendor.longitude)
+            );
+            if (dist !== null) {
+                distanceValue = dist;
+                distanceStr = `${dist.toFixed(1)} km`;
+            }
+        } else {
+            // Fallback for demo/missing data but keep it deterministic
+            const vendorIdNum = parseInt(String(vendor.id).replace(/\D/g, '')) || 0;
+            distanceValue = (vendorIdNum % 15) + 0.5; // More realistic 0-15km
+            distanceStr = `${distanceValue.toFixed(1)} km`;
+        }
 
         return {
             id: vendor.id,
             name: vendor.name || vendor.shop_name || '',
             category: vendor.category || 'General',
-            rating: vendor.rating || 4.0,
-            reviewCount: vendor.reviewCount || vendor.review_count || 0,
-            distance: distance,
+            rating: parseFloat(vendor.rating) || (parseInt(String(vendor.id).charCodeAt(0)) % 2) + 3.5, // Deterministic mock rating 3.5-4.5
+            reviewCount: vendor.reviewCount || vendor.review_count || (parseInt(String(vendor.id).charCodeAt(0)) % 100) + 10,
+            distance: distanceStr,
+            distanceValue: distanceValue, // Store raw value for sorting/filtering
             imageUrl: vendor.imageUrl || vendor.image_url || 'https://via.placeholder.com/300x200',
             address: vendor.address || `${vendor.city || ''} ${vendor.state || ''}`.trim() || 'Nearby',
             isVerified: vendor.kycStatus === 'Approved' || vendor.kyc_status === 'Approved',
@@ -225,8 +278,7 @@ const SearchResults = ({
         }
 
         results = results.filter(item => {
-            const distance = item.distance ? parseDistance(item.distance) : 0;
-            return distance <= maxDistance;
+            return item.distanceValue <= maxDistance;
         });
 
         if (filterTopRated) {
@@ -240,7 +292,7 @@ const SearchResults = ({
         if (sortBy === 'rating') {
             results.sort((a, b) => b.rating - a.rating);
         } else if (sortBy === 'distance') {
-            results.sort((a, b) => parseDistance(a.distance) - parseDistance(b.distance));
+            results.sort((a, b) => a.distanceValue - b.distanceValue);
         }
 
         return results;
@@ -326,6 +378,51 @@ const SearchResults = ({
                 setMaxDistance(newDistance);
             }
         });
+    };
+
+    const onSpeechStart = (e) => {
+        console.log('onSpeechStart: ', e);
+    };
+
+    const onSpeechEnd = (e) => {
+        console.log('onSpeechEnd: ', e);
+        setIsListening(false);
+    };
+
+    const onSpeechResults = (e) => {
+        console.log('onSpeechResults: ', e);
+        if (e.value && e.value.length > 0) {
+            const recognizedText = e.value[0];
+            setIsListening(false);
+
+            if (navigation) {
+                navigation.navigate('SearchResults', { query: recognizedText });
+            }
+        }
+    };
+
+    const onSpeechError = (e) => {
+        console.error('onSpeechError: ', e);
+        setIsListening(false);
+    };
+
+    const startListening = async () => {
+        try {
+            setIsListening(true);
+            await Voice.start('en-US');
+        } catch (e) {
+            console.error(e);
+            setIsListening(false);
+        }
+    };
+
+    const stopListening = async () => {
+        try {
+            await Voice.stop();
+            setIsListening(false);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const sortOptions = [
@@ -436,7 +533,12 @@ const SearchResults = ({
                             <Text style={styles.searchInput}>{query || 'Tutors'}</Text>
                             <Text style={styles.locationText}>Halbatpur, Sector 4</Text>
                         </View>
-                        <Icon name={getIconName('Mic')} size={20} color={COLORS.white} style={styles.micIcon} />
+                        <TouchableOpacity
+                            onPress={startListening}
+                            activeOpacity={0.7}
+                        >
+                            <Icon name={getIconName('Mic')} size={20} color={COLORS.white} style={styles.micIcon} />
+                        </TouchableOpacity>
                     </View>
 
                     <TouchableOpacity style={styles.shareButton} activeOpacity={0.7}>
@@ -645,32 +747,59 @@ const SearchResults = ({
             ) : (
                 <View style={styles.emptyStateContainer}>
                     <View style={styles.emptyState}>
-                        <View style={styles.emptyIcon}>
-                            <Icon name={getIconName('Search')} size={48} color={COLORS.textMuted} />
+                        <View style={styles.emptyContainer}>
+                            <View style={styles.emptyIcon}>
+                                <Icon name={getIconName('Search')} size={48} color={COLORS.textMuted} />
+                            </View>
+                            <Text style={styles.emptyTitle}>Sorry, no vendors found</Text>
+                            <Text style={styles.emptyText}>
+                                Please try different keywords or adjust your filters.
+                            </Text>
+                            <TouchableOpacity
+                                style={styles.resetButton}
+                                onPress={() => {
+                                    setMaxDistance(50);
+                                    setFilterTopRated(false);
+                                    setFilterVerified(false);
+                                    setShowFilterPanel(false);
+                                }}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={styles.resetButtonText}>Reset Filters</Text>
+                            </TouchableOpacity>
                         </View>
-                        <Text style={styles.emptyTitle}>No vendors found</Text>
-                        <Text style={styles.emptyText}>
-                            {isCategorySearch
-                                ? `No vendors found for "${query}" category. Try another category or check back later.`
-                                : query
-                                    ? `No vendors found for "${query}". Try increasing the distance or changing filters.`
-                                    : 'Try increasing the distance or changing filters.'}
-                        </Text>
-                        <TouchableOpacity
-                            style={styles.resetButton}
-                            onPress={() => {
-                                setMaxDistance(50);
-                                setFilterTopRated(false);
-                                setFilterVerified(false);
-                                setShowFilterPanel(false);
-                            }}
-                            activeOpacity={0.7}
-                        >
-                            <Text style={styles.resetButtonText}>Reset Filters</Text>
-                        </TouchableOpacity>
                     </View>
                 </View>
             )}
+
+            {/* Voice Listening Modal */}
+            <Modal
+                visible={isListening}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setIsListening(false)}
+            >
+                <TouchableOpacity
+                    style={styles.voiceOverlay}
+                    activeOpacity={1}
+                    onPress={() => setIsListening(false)}
+                >
+                    <View style={styles.voiceContent}>
+                        <View style={styles.pulseRing}>
+                            <Icon name={getIconName('Mic')} size={40} color={COLORS.white} />
+                        </View>
+                        <Text style={styles.listeningText}>Listening...</Text>
+                        <Text style={styles.listeningSubtext}>Try saying "Restaurants" or "Plumber"</Text>
+
+                        <TouchableOpacity
+                            style={styles.closeVoiceButton}
+                            onPress={stopListening}
+                        >
+                            <Icon name={getIconName('X')} size={24} color="rgba(255,255,255,0.7)" />
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 };
@@ -1049,22 +1178,26 @@ const createStyles = (COLORS) => StyleSheet.create({
         paddingHorizontal: 16,
         backgroundColor: COLORS.white,
     },
-    emptyIcon: {
-        width: 120,
-        height: 120,
-        backgroundColor: '#E5E7EB', // Light gray
-        borderRadius: 60,
+    emptyContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 24,
-        borderWidth: 2,
-        borderColor: '#D1D5DB', // Dark gray outline
+        width: '100%',
+    },
+    emptyIcon: {
+        width: 100,
+        height: 100,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
     },
     emptyTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '700',
         color: COLORS.textPrimary,
         marginBottom: 8,
+        textAlign: 'center',
     },
     emptyText: {
         fontSize: 14,
@@ -1074,12 +1207,59 @@ const createStyles = (COLORS) => StyleSheet.create({
         maxWidth: 280,
     },
     resetButton: {
-        marginTop: 8,
+        marginTop: 20,
+        backgroundColor: COLORS.orange,
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 24,
+        elevation: 2,
+        shadowColor: COLORS.orange,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
     },
     resetButtonText: {
         fontSize: 14,
         fontWeight: '700',
-        color: COLORS.orange,
+        color: COLORS.white,
+    },
+    voiceOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    voiceContent: {
+        alignItems: 'center',
+        padding: 20,
+    },
+    pulseRing: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: COLORS.orange,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+        shadowColor: COLORS.orange,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    listeningText: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#FFF',
+        marginBottom: 8,
+    },
+    listeningSubtext: {
+        fontSize: 16,
+        color: 'rgba(255, 255, 255, 0.6)',
+        marginBottom: 40,
+    },
+    closeVoiceButton: {
+        padding: 12,
     },
     loadingContainer: {
         flex: 1,

@@ -10,12 +10,18 @@ import { loadUserData } from '../utils/userStorage';
 import SearchBar from './SearchBar';
 import TopCategoriesGrid from './TopCategoriesGrid';
 import NearbySection from './NearbySection';
-import CategoryBusinessSection from './CategoryBusinessSection';
 import HorizontalSection from './HorizontalSection';
-import RecentSearches from './RecentSearches';
 import PromoCarousel from './PromoCarousel';
-import { getCategories } from '../services/api';
+import { getCategories, reverseGeocode } from '../services/api';
 import DraggableAIButton from './DraggableAIButton';
+
+// New LOKALL sections
+import CheapestMarketCard from './CheapestMarketCard';
+import FindCheapestButton from './FindCheapestButton';
+import PopularSearches from './PopularSearches';
+import NearbyMarketsSection from './NearbyMarketsSection';
+import TodayDeals from './TodayDeals';
+import PriceDropAlerts from './PriceDropAlerts';
 
 import Geolocation from '@react-native-community/geolocation';
 import { PermissionsAndroid, Platform } from 'react-native';
@@ -60,10 +66,10 @@ const HomeScreen = ({ navigation, route }) => {
 
     const setAbsoluteFallback = () => {
       setLocationState({
-        lat: 28.6139,
-        lng: 77.2090,
-        city: 'Delhi, India',
-        fullAddress: 'Delhi, India (Fallback)',
+        lat: 31.6340,
+        lng: 74.8723,
+        city: 'Amritsar, Punjab',
+        fullAddress: 'Amritsar, Punjab, India',
         loading: false,
         error: null,
       });
@@ -157,24 +163,21 @@ const HomeScreen = ({ navigation, route }) => {
       }
     } catch (error) {
       console.error('Error loading categories:', error);
-      // No fallback - show empty state if categories fail to load
       setCategories([]);
     }
   };
 
   const handleCategorySelect = (categoryName, categoryId) => {
-    // Navigate to search results with category as query - show vendors only
     if (navigation) {
       navigation.navigate('SearchResults', {
         query: categoryName,
-        categoryId: categoryId, // Pass category ID for filtering
-        isCategorySearch: true // Flag to show only vendors
+        categoryId: categoryId,
+        isCategorySearch: true,
       });
     }
   };
 
   const handleViewAllCategories = () => {
-    // Navigate to Categories screen
     if (navigation) {
       navigation.navigate('MainTabs', { screen: 'Categories' });
     }
@@ -182,7 +185,6 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleSearch = (query) => {
     if (navigation && query) {
-      // Navigate directly to SearchResults
       navigation.navigate('SearchResults', { query });
     }
   };
@@ -194,12 +196,9 @@ const HomeScreen = ({ navigation, route }) => {
   };
 
   const handleMenuClick = () => {
-    // Use global sidebar control
     const control = getSidebarControl();
     if (control) {
       control(true);
-    } else {
-      console.warn('Sidebar control not available in HomeScreen');
     }
   };
 
@@ -217,7 +216,6 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* White Background */}
       <View style={styles.whiteBackground} />
 
       <Header
@@ -227,88 +225,51 @@ const HomeScreen = ({ navigation, route }) => {
         onNotificationClick={handleNotificationClick}
         onLocationRedetect={() => fetchLocation(true)}
       />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* 1. Today's Cheapest Market — Hero Intelligence Card */}
+        <CheapestMarketCard navigation={navigation} />
+
+        {/* 2. Large Smart Search Bar (with popular chips built in) */}
         <SearchBar onSearch={handleSearch} navigation={navigation} />
 
+        {/* 3. Quick Category Icons */}
         <TopCategoriesGrid
           categories={categories.length > 0 ? categories.slice(0, 8) : []}
           onCategorySelect={handleCategorySelect}
           onViewAll={handleViewAllCategories}
         />
 
+        {/* 4. Find Cheapest Near You — Hero Feature Button */}
+        <FindCheapestButton navigation={navigation} />
+
+        {/* 5. Popular Searches */}
+        <PopularSearches onSearchClick={handleSearch} />
+
+        {/* 6. Nearby Markets */}
+        <NearbyMarketsSection navigation={navigation} />
+
+        {/* 7. Trending Deals */}
+        <TodayDeals navigation={navigation} />
+
+        {/* 8. Promo Carousel */}
         <PromoCarousel />
 
-        {/* Category-based Business Sections */}
-        {categories.length > 0 && categories.slice(0, 4).map((category) => (
-          <CategoryBusinessSection
-            key={category.id}
-            categoryId={category.id}
-            categoryName={category.name}
-            onBusinessClick={(business) => {
-              // Convert to full business object format
-              const fullBusiness = {
-                ...business,
-                category: category.name,
-                address: business.address || 'Nearby',
-                openTime: 'Open Now',
-                about: `${category.name} store in your area`,
-                isVerified: true,
-              };
-              handleBusinessClick(fullBusiness);
-            }}
-            onViewAll={(catId) => {
-              // Navigate to Categories screen
-              if (navigation) {
-                navigation.navigate('MainTabs', { screen: 'Categories' });
-              }
-            }}
-          />
-        ))}
-
-        <HorizontalSection
-          title="Home Services"
-          onItemClick={handleCategorySelect}
-          onVendorClick={handleBusinessClick}
-          containerClass="bg-black/60"
+        {/* 9. Verified Nearby Shops */}
+        <NearbySection
+          onBusinessClick={handleBusinessClick}
+          onSeeAll={() => navigation.navigate('SearchResults', { query: 'Verified Shops' })}
+          locationState={locationState}
         />
 
-        <RecentSearches onSearchClick={handleSearch} />
-
-        <HorizontalSection
-          title="Education"
-          onItemClick={handleCategorySelect}
-          onVendorClick={handleBusinessClick}
-          containerClass="bg-black/60"
-        />
-
-        <HorizontalSection
-          title="Daily Essentials"
-          onItemClick={handleCategorySelect}
-          onVendorClick={handleBusinessClick}
-          containerClass="bg-black/60"
-        />
-
-        <HorizontalSection
-          title="Health & Fitness"
-          onItemClick={handleCategorySelect}
-          onVendorClick={handleBusinessClick}
-          containerClass="bg-black/60"
-        />
-
-        <NearbySection onBusinessClick={handleBusinessClick} locationState={locationState} />
-
-        <HorizontalSection
-          title="Beauty & Spa"
-          onItemClick={handleCategorySelect}
-          onVendorClick={handleBusinessClick}
-          containerClass="bg-black/60"
-          isCircular={true}
-        />
+        {/* 10. Price Drop Alerts */}
+        <PriceDropAlerts navigation={navigation} />
       </ScrollView>
+
       <DraggableAIButton onPress={() => navigation.navigate('AIServiceFlow')} />
     </View>
   );
@@ -328,7 +289,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   scrollContent: {
-    paddingBottom: 100, // Space for bottom tab navigation
+    paddingBottom: 100,
     backgroundColor: 'transparent',
   },
 });

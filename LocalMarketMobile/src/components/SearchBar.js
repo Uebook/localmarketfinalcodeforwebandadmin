@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, FlatList, Text, ActivityIndicator } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, FlatList, Text, ActivityIndicator, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import Voice from '@react-native-voice/voice';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getCategories, getMasterProducts } from '../services/api';
@@ -12,7 +13,25 @@ const SearchBar = ({ onSearch, navigation }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const searchTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    // Setting up voice listeners
+    Voice.onSpeechStart = onSpeechStart;
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechError = onSpeechError;
+
+    return () => {
+      // Cleanup listeners and stop voice recognition if it's running
+      Voice.destroy().then(Voice.removeAllListeners);
+
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Clear previous timeout
@@ -105,6 +124,56 @@ const SearchBar = ({ onSearch, navigation }) => {
     }
   };
 
+  const onSpeechStart = (e) => {
+    console.log('onSpeechStart: ', e);
+  };
+
+  const onSpeechEnd = (e) => {
+    console.log('onSpeechEnd: ', e);
+    setIsListening(false);
+  };
+
+  const onSpeechResults = (e) => {
+    console.log('onSpeechResults: ', e);
+    if (e.value && e.value.length > 0) {
+      const recognizedText = e.value[0];
+      setQuery(recognizedText);
+      setIsListening(false);
+
+      // Automatically trigger search after a brief delay so user can see what was captured
+      setTimeout(() => {
+        if (onSearch) {
+          onSearch(recognizedText);
+        }
+      }, 500);
+    }
+  };
+
+  const onSpeechError = (e) => {
+    console.log('onSpeechError: ', e);
+    setIsListening(false);
+  };
+
+  const startListening = async () => {
+    try {
+      setQuery('');
+      setIsListening(true);
+      await Voice.start('en-US');
+    } catch (e) {
+      console.error(e);
+      setIsListening(false);
+    }
+  };
+
+  const stopListening = async () => {
+    try {
+      await Voice.stop();
+      setIsListening(false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const renderSuggestion = ({ item }) => {
     const isCategory = item.type === 'category';
 
@@ -140,13 +209,13 @@ const SearchBar = ({ onSearch, navigation }) => {
       <View style={styles.searchContainer}>
         {/* Search Icon */}
         <View style={styles.iconContainer}>
-          <Icon name={getIconName('Search')} size={20} color={COLORS.textMuted} />
+          <Icon name={getIconName('Search')} size={22} color={COLORS.orange} />
         </View>
 
         {/* Input Field */}
         <TextInput
           style={styles.input}
-          placeholder="Search for the lowest price..."
+          placeholder="Search products, markets or shops"
           placeholderTextColor={COLORS.textMuted}
           value={query}
           onChangeText={setQuery}
@@ -160,9 +229,29 @@ const SearchBar = ({ onSearch, navigation }) => {
         />
 
         {/* Mic Icon */}
-        <TouchableOpacity style={styles.micContainer} activeOpacity={0.7}>
-          <Icon name={getIconName('Mic')} size={20} color={COLORS.textMuted} />
+        <TouchableOpacity
+          style={styles.micContainer}
+          activeOpacity={0.7}
+          onPress={startListening}
+        >
+          <View style={styles.micBg}>
+            <Icon name={getIconName('Mic')} size={18} color={COLORS.white} />
+          </View>
         </TouchableOpacity>
+      </View>
+
+      {/* Popular Chips */}
+      <View style={styles.chipsRow}>
+        {['Milk', 'Cooking Oil', 'Atta', 'Mobile Charger', 'Shampoo'].map((chip, i) => (
+          <TouchableOpacity
+            key={i}
+            style={styles.quickChip}
+            onPress={() => { setQuery(chip); onSearch && onSearch(chip); }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.quickChipText}>{chip}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Suggestions Dropdown */}
@@ -188,6 +277,34 @@ const SearchBar = ({ onSearch, navigation }) => {
           ) : null}
         </View>
       )}
+      {/* Voice Listening Modal */}
+      <Modal
+        visible={isListening}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsListening(false)}
+      >
+        <TouchableOpacity
+          style={styles.voiceOverlay}
+          activeOpacity={1}
+          onPress={() => setIsListening(false)}
+        >
+          <View style={styles.voiceContent}>
+            <View style={styles.pulseRing}>
+              <Icon name={getIconName('Mic')} size={40} color={COLORS.white} />
+            </View>
+            <Text style={styles.listeningText}>Listening...</Text>
+            <Text style={styles.listeningSubtext}>Try saying "Restaurants" or "Plumber"</Text>
+
+            <TouchableOpacity
+              style={styles.closeVoiceButton}
+              onPress={stopListening}
+            >
+              <Icon name={getIconName('X')} size={24} color="rgba(255,255,255,0.7)" />
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -200,19 +317,19 @@ const createStyles = (COLORS) => StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 52,
-    borderRadius: 14,
+    height: 60,
+    borderRadius: 18,
     backgroundColor: COLORS.white,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   iconContainer: {
-    width: 48,
+    width: 52,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -221,15 +338,43 @@ const createStyles = (COLORS) => StyleSheet.create({
     flex: 1,
     height: '100%',
     color: COLORS.textPrimary,
-    fontSize: 14,
-    fontWeight: '500',
-    letterSpacing: 0.3,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   micContainer: {
-    width: 48,
+    width: 52,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  micBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: COLORS.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+  },
+  quickChip: {
+    backgroundColor: '#FFF7ED',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#FDBA74',
+    marginRight: 8,
+    marginBottom: 6,
+  },
+  quickChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#EA580C',
   },
   suggestionsContainer: {
     marginTop: 8,
@@ -290,7 +435,6 @@ const createStyles = (COLORS) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 20,
-    gap: 8,
   },
   loadingText: {
     fontSize: 14,
@@ -303,6 +447,44 @@ const createStyles = (COLORS) => StyleSheet.create({
   noSuggestionsText: {
     fontSize: 14,
     color: COLORS.textMuted,
+  },
+  voiceOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voiceContent: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  pulseRing: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: COLORS.orange,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  listeningText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFF',
+    marginBottom: 8,
+  },
+  listeningSubtext: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 40,
+  },
+  closeVoiceButton: {
+    padding: 12,
   },
 });
 

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ShoppingBag, Briefcase, HelpCircle, ArrowRight, ArrowLeft, User, Phone, Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useLocation } from '@/lib/hooks';
 
 type Mode = 'login' | 'register';
 type Method = 'mobile' | 'email';
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { detectLocation } = useLocation();
 
   const router = useRouter();
 
@@ -76,6 +78,10 @@ export default function LoginPage() {
         }
         localStorage.setItem('localmarket_vendor', JSON.stringify(data.vendor));
         window.dispatchEvent(new Event('authchange'));
+
+        // Auto-detect location on login
+        detectLocation();
+
         setSuccess(`Welcome back, ${data.vendor.name}! 🎉`);
         setTimeout(() => router.push('/vendor/dashboard/analytics'), 1000);
       } catch {
@@ -111,6 +117,10 @@ export default function LoginPage() {
       // Save session to localStorage
       const user = data.user;
       localStorage.setItem('localmarket_user', JSON.stringify(user));
+      window.dispatchEvent(new Event('authchange'));
+
+      // Auto-detect location on login
+      detectLocation();
 
       setSuccess(mode === 'login' ? `Welcome back, ${user.name || 'there'}! 🎉` : `Account created! Welcome, ${user.name}! 🎉`);
 
@@ -297,14 +307,33 @@ export default function LoginPage() {
 
           {/* Business register link */}
           {userType === 'business' && (
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <Link
                 href="/vendor/register"
                 style={{ color: 'var(--primary)' }}
-                className="text-sm font-semibold hover:opacity-80 transition-colors"
+                className="block text-sm font-semibold hover:opacity-80 transition-colors"
               >
-                New Business? Register Here →
+                Retail Business? Register Here →
               </Link>
+              <div className="flex items-center gap-2 justify-center py-1">
+                <div className="h-px bg-gray-100 flex-1"></div>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Other Partners</span>
+                <div className="h-px bg-gray-100 flex-1"></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Link
+                  href="/service-provider/register"
+                  className="px-4 py-2 bg-slate-50 rounded-xl text-[11px] font-black text-slate-600 hover:bg-primary/5 hover:text-primary transition-all border border-slate-100"
+                >
+                  Service Provider
+                </Link>
+                <Link
+                  href="/food-plaza/register"
+                  className="px-4 py-2 bg-slate-50 rounded-xl text-[11px] font-black text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100"
+                >
+                  Food Plaza
+                </Link>
+              </div>
             </div>
           )}
 

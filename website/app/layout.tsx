@@ -7,8 +7,8 @@ import AIChatWidget from "@/components/AIChatWidget";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Local Market - Your Local Business Directory",
-  description: "Find and connect with local businesses in your area",
+  title: "LOKALL - Find Cheapest Near You",
+  description: "India's first local price intelligence app. Compare prices, find cheapest markets and shops near you.",
 };
 
 export default function RootLayout({

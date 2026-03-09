@@ -1,0 +1,157 @@
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+
+const PRICE_DROPS = [
+       { id: 1, name: 'Amul Butter 500g', oldPrice: '₹245', newPrice: '₹230', drop: '6%' },
+       { id: 2, name: 'Basmati Rice 5kg', oldPrice: '₹600', newPrice: '₹550', drop: '8%' },
+       { id: 3, name: 'Surf Excel 1kg', oldPrice: '₹340', newPrice: '₹310', drop: '9%' },
+       { id: 4, name: 'Sunflower Oil 1L', oldPrice: '₹175', newPrice: '₹158', drop: '10%' },
+       { id: 5, name: 'Dettol Soap 75g', oldPrice: '₹48', newPrice: '₹42', drop: '13%' },
+];
+
+const PriceDropAlerts = () => {
+       return (
+              <View style={styles.container}>
+                     <View style={styles.header}>
+                            <View style={styles.titleRow}>
+                                   <Text style={styles.emoji}>📉</Text>
+                                   <Text style={styles.title}>Price Drops</Text>
+                                   <View style={styles.newBadge}>
+                                          <Text style={styles.newBadgeText}>NEW</Text>
+                                   </View>
+                            </View>
+                            <Text style={styles.subtitle}>Recent price reductions in your area</Text>
+                     </View>
+
+                     <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.scrollContent}
+                     >
+                            {PRICE_DROPS.map((item) => (
+                                   <View key={item.id} style={styles.card}>
+                                          <View style={styles.dropBadge}>
+                                                 <Icon name="trending-down" size={11} color="#DC2626" />
+                                                 <Text style={styles.dropPct}> {item.drop}</Text>
+                                          </View>
+
+                                          <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+
+                                          <View style={styles.priceRow}>
+                                                 <Text style={styles.oldPrice}>{item.oldPrice}</Text>
+                                                 <Icon name="arrow-right" size={12} color="#94A3B8" style={styles.arrow} />
+                                                 <Text style={styles.newPrice}>{item.newPrice}</Text>
+                                          </View>
+                                   </View>
+                            ))}
+                     </ScrollView>
+              </View>
+       );
+};
+
+const styles = StyleSheet.create({
+       container: {
+              marginTop: 8,
+              marginBottom: 16,
+       },
+       header: {
+              paddingHorizontal: 16,
+              marginBottom: 12,
+       },
+       titleRow: {
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 2,
+       },
+       emoji: {
+              fontSize: 16,
+              marginRight: 6,
+       },
+       title: {
+              fontSize: 18,
+              fontWeight: '800',
+              color: '#0F172A',
+              letterSpacing: -0.3,
+              marginRight: 8,
+       },
+       newBadge: {
+              backgroundColor: '#FEE2E2',
+              borderRadius: 6,
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+       },
+       newBadgeText: {
+              fontSize: 9,
+              fontWeight: '900',
+              color: '#DC2626',
+              letterSpacing: 0.5,
+       },
+       subtitle: {
+              fontSize: 12,
+              color: '#94A3B8',
+              fontWeight: '500',
+       },
+       scrollContent: {
+              paddingHorizontal: 16,
+              flexDirection: 'row',
+              paddingBottom: 4,
+       },
+       card: {
+              width: 148,
+              backgroundColor: '#FFF',
+              borderRadius: 16,
+              padding: 14,
+              borderWidth: 1,
+              borderColor: '#FEE2E2',
+              shadowColor: '#DC2626',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 6,
+              elevation: 2,
+              marginRight: 12,
+       },
+       dropBadge: {
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#FEF2F2',
+              alignSelf: 'flex-start',
+              borderRadius: 8,
+              paddingHorizontal: 7,
+              paddingVertical: 3,
+              marginBottom: 10,
+       },
+       dropPct: {
+              fontSize: 11,
+              fontWeight: '800',
+              color: '#DC2626',
+       },
+       productName: {
+              fontSize: 13,
+              fontWeight: '700',
+              color: '#0F172A',
+              lineHeight: 18,
+              marginBottom: 10,
+       },
+       priceRow: {
+              flexDirection: 'row',
+              alignItems: 'center',
+       },
+       oldPrice: {
+              fontSize: 13,
+              fontWeight: '600',
+              color: '#94A3B8',
+              textDecorationLine: 'line-through',
+       },
+       arrow: {
+              marginHorizontal: 4,
+       },
+       newPrice: {
+              fontSize: 16,
+              fontWeight: '900',
+              color: '#16A34A',
+              letterSpacing: -0.3,
+       },
+});
+
+export default PriceDropAlerts;

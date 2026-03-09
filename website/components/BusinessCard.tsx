@@ -16,6 +16,8 @@ interface BusinessCardProps {
     address?: string;
     openTime?: string;
     isVerified?: boolean;
+    avgOnlinePrice?: number;
+    avgOfflinePrice?: number;
   };
   onClick?: () => void;
 }
@@ -47,8 +49,15 @@ export default function BusinessCard({ business, onClick }: BusinessCardProps) {
             <CheckCircle size={14} strokeWidth={3} />
           </div>
         )}
-        <div className="absolute bottom-3 left-3 px-3 py-1 glass-pill rounded-lg">
-          <span className="text-[10px] font-black uppercase tracking-widest text-white">{business.category}</span>
+        <div className="absolute bottom-3 left-3 flex flex-col gap-1.5">
+          <div className="px-3 py-1 glass-pill rounded-lg w-max">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white">{business.category}</span>
+          </div>
+          {business.avgOnlinePrice && business.avgOfflinePrice && business.avgOnlinePrice > business.avgOfflinePrice && (
+            <div className="px-2 py-1 bg-green-500/90 backdrop-blur-sm text-white rounded-lg w-max shadow-lg animate-pulse">
+              <span className="text-[9px] font-black uppercase">Save ₹{business.avgOnlinePrice - business.avgOfflinePrice} vs Online</span>
+            </div>
+          )}
         </div>
       </div>
 

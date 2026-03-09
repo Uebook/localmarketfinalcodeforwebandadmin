@@ -40,21 +40,30 @@ const Header = ({
               <Icon name={getIconName('Menu')} size={28} color={COLORS.white} />
             </TouchableOpacity>
             <View style={styles.brandSection}>
-              <Text style={styles.brandTitle}>LOCAL</Text>
+              <Text style={styles.brandTitle}>LOKALL</Text>
               <TouchableOpacity
                 style={styles.locationButton}
                 activeOpacity={0.7}
                 onPress={() => setShowLocationModal(true)}
               >
-                <Icon name={getIconName('MapPin')} size={12} color={COLORS.white} style={styles.locationIcon} />
-                <Text style={styles.locationText} numberOfLines={1}>
-                  {locationState.loading
-                    ? 'Detecting...'
-                    : locationState.error
-                      ? 'Select Location'
-                      : locationState.city || 'Delhi, India'}
-                </Text>
-                <Icon name={getIconName('ChevronDown')} size={12} color={COLORS.white} style={styles.chevronIcon} />
+                <Icon name={getIconName('MapPin')} size={11} color='rgba(255,255,255,0.8)' style={styles.locationIcon} />
+                <View style={styles.locationTextBlock}>
+                  <Text style={styles.locationCity} numberOfLines={1}>
+                    {locationState.loading
+                      ? 'Detecting...'
+                      : locationState.error
+                        ? 'Select Location'
+                        : (locationState.fullAddress
+                          ? locationState.fullAddress.split(',')[0]
+                          : locationState.city) || 'Your City'}
+                  </Text>
+                  <Text style={styles.locationArea} numberOfLines={1}>
+                    {locationState.loading ? '' : locationState.city || 'Tap to change'}
+                  </Text>
+                </View>
+                <View style={styles.changeLocationBtn}>
+                  <Text style={styles.changeLocationText}>Change</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -164,28 +173,49 @@ const createStyles = (COLORS) => StyleSheet.create({
     flexDirection: 'column',
   },
   brandTitle: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '900',
     color: COLORS.white,
-    letterSpacing: 0.5,
+    letterSpacing: 1.5,
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 4,
+    gap: 4,
   },
   locationIcon: {
-    marginRight: 4,
+    marginRight: 2,
   },
-  locationText: {
-    fontSize: 12,
+  locationTextBlock: {
+    flexDirection: 'column',
+    maxWidth: 130,
+  },
+  locationCity: {
+    fontSize: 13,
     color: COLORS.white,
-    fontWeight: '500',
-    maxWidth: 120,
+    fontWeight: '700',
+    lineHeight: 16,
   },
-  chevronIcon: {
-    marginLeft: 2,
-    opacity: 0.8,
+  locationArea: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '500',
+    lineHeight: 13,
+  },
+  changeLocationBtn: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  changeLocationText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFF',
+    letterSpacing: 0.3,
   },
   rightSection: {
     flexDirection: 'row',
