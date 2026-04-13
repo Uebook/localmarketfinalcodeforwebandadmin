@@ -1,10 +1,22 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 
 const SearchHeader = ({ query, onBack }) => {
+  const handleShare = async () => {
+    try {
+      const message = `Check out local stores and best deals for "${query}" on LOKALL app!`;
+      await Share.share({
+        message,
+        title: 'LOKALL Search',
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.header}>
@@ -21,7 +33,7 @@ const SearchHeader = ({ query, onBack }) => {
           <Icon name={getIconName('Mic')} size={20} color="#ffffff" style={styles.micIcon} />
         </View>
 
-        <TouchableOpacity style={styles.shareButton} activeOpacity={0.7}>
+        <TouchableOpacity onPress={handleShare} style={styles.shareButton} activeOpacity={0.7}>
           <Icon name={getIconName('Share2')} size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>

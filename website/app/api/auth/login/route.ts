@@ -12,7 +12,14 @@ export async function POST(req: NextRequest) {
 
         let filter = '';
         if (phone) {
-            filter = `phone=eq.${encodeURIComponent(phone.trim())}`;
+            let cleaned = phone.replace(/\D/g, '');
+            // Handle common prefixes/formats (like +91 or 0)
+            if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+            if (cleaned.length === 12 && cleaned.startsWith('91')) {
+                cleaned = cleaned.substring(2);
+            }
+            // Match both versions just in case the database has the prefix or not
+            filter = `phone=in.(${encodeURIComponent(cleaned)},91${encodeURIComponent(cleaned)})`;
         } else if (email) {
             filter = `email=eq.${encodeURIComponent(email.trim().toLowerCase())}`;
         }
@@ -30,6 +37,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({
+            success: true,
             user: {
                 id: user.id,
                 name: user.full_name || '',
@@ -38,9 +46,11 @@ export async function POST(req: NextRequest) {
                 state: user.state || '',
                 city: user.city || '',
                 status: user.status || 'Active',
+                role: 'user',
                 createdAt: user.created_at,
             }
         }, { status: 200 });
+
     } catch (error: any) {
         console.error('Login error:', error);
         if (error.message?.includes('fetch failed') || error.message?.includes('ENOTFOUND')) {

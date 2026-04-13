@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Share } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Share, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
 import Icon from 'react-native-vector-icons/Feather';
+import Image from './ImageWithFallback';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
+import { getVendorProfile } from '../services/api';
 
-const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
+const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [locationState] = React.useState({
@@ -21,6 +24,52 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
   });
 
   const [enquiries, setEnquiries] = useState(vendorData?.enquiries || []);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Sync enquiries when vendorData changes
+  useEffect(() => {
+    if (vendorData?.enquiries) {
+      setEnquiries(vendorData.enquiries);
+    }
+  }, [vendorData]);
+
+  const fetchLatestData = useCallback(async () => {
+    if (!vendorData?.id) return;
+    
+    setRefreshing(true);
+    try {
+      const fullProfile = await getVendorProfile(vendorData.id);
+      if (fullProfile && fullProfile.vendor) {
+        const updatedVendor = {
+          ...fullProfile.vendor,
+          products: fullProfile.products || [],
+          enquiries: fullProfile.enquiries || [],
+          reviews: fullProfile.reviews || [],
+        };
+        
+        setEnquiries(updatedVendor.enquiries);
+        if (setVendorData) {
+          setVendorData(updatedVendor);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch latest enquiries:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [vendorData?.id, setVendorData]);
+
+  // Fetch when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchLatestData();
+    }, [fetchLatestData])
+  );
+
+  const onRefresh = useCallback(() => {
+    fetchLatestData();
+  }, [fetchLatestData]);
+
 
   const handleMenuClick = () => {
     const vendorControl = getVendorSidebarControl();
@@ -121,12 +170,28 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
         onNotificationClick={handleNotificationClick}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* Shop Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.coverImage}>
-            <Text style={styles.coverText}>Cover</Text>
-            <TouchableOpacity style={styles.cameraButton}>
+            {vendorData?.image_url || vendorData?.imageUrl ? (
+              <Image 
+                source={{ uri: vendorData.image_url || vendorData.imageUrl }} 
+                style={styles.fullImage} 
+              />
+            ) : (
+              <Text style={styles.coverText}>Cover Photo</Text>
+            )}
+            <TouchableOpacity 
+              style={styles.cameraButton}
+              onPress={() => navigation.navigate('Profile')}
+            >
               <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
@@ -134,7 +199,14 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
-                <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
+                {vendorData?.profile_image_url || vendorData?.profileImageUrl ? (
+                  <Image 
+                    source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl }} 
+                    style={styles.circleImage} 
+                  />
+                ) : (
+                  <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
+                )}
               </View>
             </View>
 
@@ -205,60 +277,68 @@ const VendorEnquiriesScreen = ({ navigation, vendorData }) => {
         <View style={styles.enquiriesSection}>
           <Text style={styles.sectionTitle}>Customer Enquiries</Text>
 
-          {enquiries.map((enquiry) => {
-            const statusStyle = getStatusStyle(enquiry.status);
-            return (
-              <View key={enquiry.id} style={styles.enquiryCard}>
-                <View style={styles.enquiryHeader}>
-                  <View style={styles.enquiryUser}>
-                    <View style={styles.userAvatar}>
-                      <Icon name={getIconName('User')} size={20} color={COLORS.textMuted} />
-                    </View>
-                    <View style={styles.userInfo}>
-                      <View style={styles.nameDateRow}>
-                        <Text style={styles.enquiryName}>{enquiry.customerName}</Text>
-                        <Text style={styles.enquiryDate}>{enquiry.date}</Text>
+          {enquiries.length > 0 ? (
+            enquiries.map((enquiry) => {
+              const statusStyle = getStatusStyle(enquiry.status);
+              return (
+                <View key={enquiry.id} style={styles.enquiryCard}>
+                  <View style={styles.enquiryHeader}>
+                    <View style={styles.enquiryUser}>
+                      <View style={styles.userAvatar}>
+                        <Icon name={getIconName('User')} size={20} color={COLORS.textMuted} />
+                      </View>
+                      <View style={styles.userInfo}>
+                        <View style={styles.nameDateRow}>
+                          <Text style={styles.enquiryName}>{enquiry.customerName}</Text>
+                          <Text style={styles.enquiryDate}>{enquiry.date}</Text>
+                        </View>
                       </View>
                     </View>
+                    <View style={styles.enquiryActions}>
+                      <TouchableOpacity
+                        style={styles.actionButtonSmall}
+                        onPress={() => handleCall(enquiry.phone)}
+                      >
+                        <Icon name={getIconName('Phone')} size={20} color="#16a34a" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.actionButtonSmall}
+                        onPress={() => handleMessage(enquiry.phone)}
+                      >
+                        <Icon name={getIconName('MessageCircle')} size={20} color="#16a34a" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <View style={styles.enquiryActions}>
-                    <TouchableOpacity
-                      style={styles.actionButtonSmall}
-                      onPress={() => handleCall(enquiry.phone)}
-                    >
-                      <Icon name={getIconName('Phone')} size={20} color="#16a34a" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.actionButtonSmall}
-                      onPress={() => handleMessage(enquiry.phone)}
-                    >
-                      <Icon name={getIconName('MessageCircle')} size={20} color="#16a34a" />
-                    </TouchableOpacity>
+
+                  <Text style={styles.enquiryMessage}>"{enquiry.message}"</Text>
+
+                  <View style={styles.enquiryFooter}>
+                    <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
+                      <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
+                        {enquiry.status}
+                      </Text>
+                    </View>
+
+                    {enquiry.status === 'READ' && (
+                      <TouchableOpacity
+                        style={styles.replyButton}
+                        onPress={() => handleMarkAsReplied(enquiry.id)}
+                      >
+                        <Icon name={getIconName('Clock')} size={14} color={COLORS.blue} />
+                        <Text style={styles.replyButtonText}>Mark as Replied</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
-
-                <Text style={styles.enquiryMessage}>"{enquiry.message}"</Text>
-
-                <View style={styles.enquiryFooter}>
-                  <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
-                    <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
-                      {enquiry.status}
-                    </Text>
-                  </View>
-
-                  {enquiry.status === 'READ' && (
-                    <TouchableOpacity
-                      style={styles.replyButton}
-                      onPress={() => handleMarkAsReplied(enquiry.id)}
-                    >
-                      <Icon name={getIconName('Clock')} size={14} color={COLORS.blue} />
-                      <Text style={styles.replyButtonText}>Mark as Replied</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            );
-          })}
+              );
+            })
+          ) : (
+            <View style={styles.emptyState}>
+              <Icon name={getIconName('MessageSquare')} size={48} color={COLORS.textMuted} />
+              <Text style={styles.emptyText}>No enquiries yet</Text>
+              <Text style={styles.emptySubText}>Pull down to check for new messages</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -325,6 +405,17 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 3,
     borderColor: COLORS.white,
+    overflow: 'hidden',
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  circleImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   shopInfo: {
     flex: 1,
@@ -519,6 +610,29 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: COLORS.blue,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center', 
+    paddingVertical: 60,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    marginTop: 10,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginTop: 16,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: COLORS.textMuted,
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 40,
   },
 });
 

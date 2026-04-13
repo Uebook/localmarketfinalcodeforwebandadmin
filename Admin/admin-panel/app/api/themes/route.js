@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch, supabaseRestUpsert } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch, supabaseRestUpsert } from '@/lib/supabaseAdminFetch';
 
 // GET /api/themes - Get all themes
 export async function GET(request) {

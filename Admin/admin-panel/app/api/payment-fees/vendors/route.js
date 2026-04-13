@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 // GET /api/payment-fees/vendors - Get vendor billing status
 export async function GET(request) {
@@ -7,7 +7,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     
-    let query = `/rest/v1/vendor_billing?select=*,vendors(id,name,vendor_id)&order=due_date.asc`;
+    let query = `/rest/v1/vendor_billing?select=*,vendors(id,name,contact_number,city,state,category)&order=due_date.asc`;
     if (status) {
       query += `&status=eq.${status}`;
     }

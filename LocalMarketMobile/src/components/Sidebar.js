@@ -268,7 +268,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
                     )}
                     <MenuItem
                       iconName="Package"
-                      label="Manage Catalog"
+                      label="Manage Catalogue"
                       onPress={() => handleNav('business-products')}
                     />
                     <MenuItem

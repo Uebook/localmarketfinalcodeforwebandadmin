@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';
@@ -62,6 +62,7 @@ export async function POST(req) {
         const tehsil = toStr(body?.tehsil);
         const sub_tehsil = toStr(body?.subTehsil || body?.sub_tehsil);
         const circle = toStr(body?.circle) || null;
+        const market_icon = body?.marketIcon || body?.market_icon || null;
 
         if (!state || !city || !town || !tehsil || !sub_tehsil) {
             return Response.json(
@@ -70,25 +71,121 @@ export async function POST(req) {
             );
         }
 
-        // Upsert behavior depends on your unique index; if you added locations_unique_hierarchy_idx,
-        // inserting duplicates will error. For simplicity, just insert and rely on uniqueness.
         const inserted = await supabaseRestInsert('/rest/v1/locations', [
-            { state, city, town, tehsil, sub_tehsil, circle },
+            { state, city, town, tehsil, sub_tehsil, circle, market_icon },
         ]);
         return Response.json({ location: Array.isArray(inserted) ? inserted[0] : inserted }, { status: 200 });
     } catch (e) {
         let errorMessage = e?.message || 'Failed to add location';
-
-        // Provide helpful error message if table doesn't exist
-        if (errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorMessage.includes('PGRST205')) {
-            errorMessage = 'The locations table does not exist in Supabase. Please run the SQL script: sql/create_locations_table.sql';
+        if (errorMessage.includes('does not exist') || errorMessage.includes('relation')) {
+            errorMessage = 'The locations table does not exist. Run sql/create_locations_table.sql';
         }
-
-        if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
-            return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
-        }
-
         return Response.json({ error: errorMessage }, { status: 500 });
+    }
+}
+
+export async function PATCH(req) {
+    try {
+        const body = await req.json().catch(() => null);
+        const id = body?.id;
+        const renameFrom = body?.renameFrom;
+        const renameTo = body?.renameTo;
+
+        if (id) {
+            const patch = {};
+            if (body.state !== undefined) patch.state = toStr(body.state);
+            if (body.city !== undefined) patch.city = toStr(body.city);
+            if (body.town !== undefined) patch.town = toStr(body.town);
+            if (body.tehsil !== undefined) patch.tehsil = toStr(body.tehsil);
+            if (body.subTehsil !== undefined) patch.sub_tehsil = toStr(body.subTehsil);
+            if (body.circle !== undefined) patch.circle = toStr(body.circle) || null;
+            if (body.marketIcon !== undefined || body.market_icon !== undefined) {
+                patch.market_icon = body.marketIcon || body.market_icon || null;
+            }
+
+            const updated = await supabaseRestPatch(`/rest/v1/locations?id=eq.${id}`, patch);
+            return Response.json({ location: Array.isArray(updated) ? updated[0] : updated }, { status: 200 });
+        } else if (renameFrom) { // Handle renaming circle and/or updating market_icon for all locations in that circle
+            const updates = {};
+            if (renameTo) updates.circle = renameTo;
+            if (body.marketIcon !== undefined || body.market_icon !== undefined) {
+                updates.market_icon = body.marketIcon || body.market_icon || null;
+            }
+
+            if (Object.keys(updates).length === 0) {
+                return Response.json({ error: 'No updates provided for circle' }, { status: 400 });
+            }
+
+            const updatedLocations = await supabaseRestPatch(
+                `/rest/v1/locations?circle=eq.${encodeURIComponent(renameFrom)}`,
+                updates
+            );
+
+            if (renameTo) {
+                try {
+                    await supabaseRestPatch(
+                        `/rest/v1/vendors?circle=eq.${encodeURIComponent(renameFrom)}`,
+                        { circle: renameTo }
+                    );
+                } catch (ve) {
+                    console.error('Failed to rename circle in vendors table:', ve);
+                }
+            }
+
+            return Response.json({ success: true, updatedCount: Array.isArray(updatedLocations) ? updatedLocations.length : 1 }, { status: 200 });
+        } else if (body?.renameCircleFrom && body?.renameCircleTo) {
+            const updates = { 
+                town: body.renameCircleTo, 
+                tehsil: body.renameCircleTo, 
+                sub_tehsil: body.renameCircleTo 
+            };
+            const updated = await supabaseRestPatch(
+                `/rest/v1/locations?town=eq.${encodeURIComponent(body.renameCircleFrom)}`,
+                updates
+            );
+            return Response.json({ success: true, updatedCount: Array.isArray(updated) ? updated.length : 1 }, { status: 200 });
+        }
+
+        return Response.json({ error: 'id or renameFrom/renameTo required' }, { status: 400 });
+    } catch (e) {
+        return Response.json({ error: e?.message || 'Failed to update location' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+        const marketName = searchParams.get('marketName');
+        const circleNameParam = searchParams.get('circleName');
+
+        if (id) {
+            await supabaseRestDelete(`/rest/v1/locations?id=eq.${id}`);
+            return Response.json({ success: true }, { status: 200 });
+        } else if (marketName) {
+            // Use DELETE instead of PATCH to remove the specific market record
+            await supabaseRestDelete(`/rest/v1/locations?circle=eq.${encodeURIComponent(marketName)}`);
+            
+            // Still PATCH vendors to NULL so they are unassigned but not deleted
+            try {
+                await supabaseRestPatch(
+                    `/rest/v1/vendors?circle=eq.${encodeURIComponent(marketName)}`,
+                    { circle: null }
+                );
+            } catch (ve) {
+                console.error('Failed to clear circle in vendors table:', ve);
+            }
+
+            return Response.json({ success: true }, { status: 200 });
+        } else if (circleNameParam) {
+            // Deleting an entire circle (town/area)
+            await supabaseRestDelete(`/rest/v1/locations?town=eq.${encodeURIComponent(circleNameParam)}`);
+            return Response.json({ success: true }, { status: 200 });
+        }
+
+        return Response.json({ error: 'id, marketName or circleName required' }, { status: 400 });
+    } catch (e) {
+        return Response.json({ error: e?.message || 'Failed to delete location/market' }, { status: 500 });
     }
 }
 

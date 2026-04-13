@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Modal, TextInput } from 'react-native';
+import Image from './ImageWithFallback';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -15,8 +16,8 @@ import { formatLocation } from '../constants/locations';
 import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadFile, updateVendorProfile, getVendorProfile } from '../services/api';
-import { ActivityIndicator, Image } from 'react-native';
-
+import { ActivityIndicator, } from 'react-native';
+// import Image from './ImageWithFallback';
 const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
@@ -28,6 +29,21 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
     error: null,
   });
 
+  // ─── Data Normalization Layer ──────────────────────────────────────────
+  // Ensures both snake_case (DB) and camelCase (UI) keys work interchangeably
+  const getVal = (key) => vendorData?.[key];
+  
+  const normalizedVendor = {
+    ...vendorData,
+    imageUrl: getVal('imageUrl') || getVal('image_url') || getVal('image'),
+    profileImageUrl: getVal('profileImageUrl') || getVal('profile_image_url'),
+    ownerName: getVal('ownerName') || getVal('owner_name'),
+    contactNumber: getVal('contactNumber') || getVal('contact_number') || getVal('phone'),
+    openTime: getVal('openTime') || getVal('open_time'),
+    closeTime: getVal('closeTime') || getVal('close_time'),
+    about: getVal('about') || getVal('description') || '',
+  };
+
   const [priceAlerts, setPriceAlerts] = useState(false);
   const [bulkUploads, setBulkUploads] = useState(false);
   const [showWriteReview, setShowWriteReview] = useState(false);
@@ -38,26 +54,26 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [editFormData, setEditFormData] = useState({
-    name: vendorData?.name || '',
-    category: vendorData?.category || '',
-    ownerName: vendorData?.ownerName || '',
-    contactNumber: vendorData?.contactNumber || '',
-    address: vendorData?.address || '',
-    openTime: vendorData?.openTime || '',
-    closeTime: vendorData?.closeTime || '',
-    about: vendorData?.about || '',
+    name: normalizedVendor.name || '',
+    category: normalizedVendor.category || '',
+    ownerName: normalizedVendor.ownerName || '',
+    contactNumber: normalizedVendor.contactNumber || '',
+    address: normalizedVendor.address || '',
+    openTime: normalizedVendor.openTime || '',
+    closeTime: normalizedVendor.closeTime || '',
+    about: normalizedVendor.about || '',
   });
 
   const handleEditClick = () => {
     setEditFormData({
-      name: vendorData?.name || '',
-      category: vendorData?.category || '',
-      ownerName: vendorData?.ownerName || '',
-      contactNumber: vendorData?.contactNumber || '',
-      address: vendorData?.address || '',
-      openTime: vendorData?.openTime || '',
-      closeTime: vendorData?.closeTime || '',
-      about: vendorData?.about || '',
+      name: normalizedVendor.name || '',
+      category: normalizedVendor.category || '',
+      ownerName: normalizedVendor.ownerName || '',
+      contactNumber: normalizedVendor.contactNumber || '',
+      address: normalizedVendor.address || '',
+      openTime: normalizedVendor.openTime || '',
+      closeTime: normalizedVendor.closeTime || '',
+      about: normalizedVendor.about || '',
     });
     setShowEditModal(true);
   };
@@ -66,14 +82,35 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
     if (!vendorData?.id) return;
     try {
       setSavingProfile(true);
-      const res = await updateVendorProfile(vendorData.id, editFormData);
+      // Map camelCase form keys → snake_case DB columns
+      const payload = {
+        name: editFormData.name,
+        category: editFormData.category,
+        owner_name: editFormData.ownerName,
+        contact_number: editFormData.contactNumber,
+        address: editFormData.address,
+        open_time: editFormData.openTime,
+        close_time: editFormData.closeTime,
+        about: editFormData.about,
+      };
+      const res = await updateVendorProfile(vendorData.id, payload);
       if (res && res.success !== false) {
         // Refresh vendor data
         if (setVendorData) {
           try {
             const freshData = await getVendorProfile(vendorData.id);
             if (freshData && freshData.vendor) {
-              setVendorData(freshData.vendor);
+              // Normalize data before setting
+              const v = freshData.vendor;
+              setVendorData({
+                ...v,
+                imageUrl: v.imageUrl || v.image_url || v.image,
+                profileImageUrl: v.profileImageUrl || v.profile_image_url,
+                ownerName: v.ownerName || v.owner_name,
+                contactNumber: v.contactNumber || v.contact_number || v.phone,
+                openTime: v.openTime || v.open_time,
+                closeTime: v.closeTime || v.close_time,
+              });
             }
           } catch (refreshError) {
             console.error('Error refreshing vendor data:', refreshError);
@@ -99,21 +136,28 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
     };
 
     try {
+      console.log(`[ImagePick] Opening library for: ${type}`);
       const result = await launchImageLibrary(options);
 
-      if (result.didCancel) return;
+      if (result.didCancel) {
+        console.log('[ImagePick] User cancelled image picker');
+        return;
+      }
       if (result.errorCode) {
+        console.error('[ImagePick] Error Code:', result.errorCode, result.errorMessage);
         Alert.alert('Error', result.errorMessage || 'Image picker error');
         return;
       }
 
       if (result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        console.log('Image picked:', asset);
-        await handleUpload(asset.uri, type, asset.type); // type is 'cover' or 'profile', asset.type is mimeType
+        console.log('[ImagePick] Success:', asset.uri);
+        await handleUpload(asset.uri, type, asset.type); 
+      } else {
+        console.warn('[ImagePick] No assets returned');
       }
     } catch (error) {
-      console.error('Image picking error:', error);
+      console.error('[ImagePick] Unexpected Error:', error);
       Alert.alert('Error', 'Failed to pick image');
     }
   };
@@ -141,7 +185,16 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
           try {
             const freshData = await getVendorProfile(vendorData.id);
             if (freshData && freshData.vendor) {
-              setVendorData(freshData.vendor);
+              const v = freshData.vendor;
+              setVendorData({
+                ...v,
+                imageUrl: v.imageUrl || v.image_url || v.image,
+                profileImageUrl: v.profileImageUrl || v.profile_image_url,
+                ownerName: v.ownerName || v.owner_name,
+                contactNumber: v.contactNumber || v.contact_number || v.phone,
+                openTime: v.openTime || v.open_time,
+                closeTime: v.closeTime || v.close_time,
+              });
             }
           } catch (refreshError) {
             console.error('Error refreshing vendor data after upload:', refreshError);
@@ -203,8 +256,8 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
         {/* Shop Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.coverImage}>
-            {vendorData?.imageUrl ? (
-              <Image source={{ uri: vendorData.imageUrl }} style={styles.fullImage} />
+            {normalizedVendor.imageUrl ? (
+              <Image source={{ uri: normalizedVendor.imageUrl }} style={styles.fullImage} />
             ) : (
               <Text style={styles.coverText}>Cover Photo</Text>
             )}
@@ -224,8 +277,8 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
               <View style={styles.profileImage}>
-                {vendorData?.profileImageUrl ? (
-                  <Image source={{ uri: vendorData.profileImageUrl }} style={styles.circleImage} />
+                {normalizedVendor.profileImageUrl ? (
+                  <Image source={{ uri: normalizedVendor.profileImageUrl }} style={styles.circleImage} />
                 ) : (
                   <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
                 )}
@@ -245,12 +298,12 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
 
             <View style={styles.shopInfo}>
               <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
+                <Text style={styles.shopName}>{normalizedVendor.name || 'My Shop'}</Text>
                 <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
               </View>
               <View style={styles.locationRow}>
                 <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
+                <Text style={styles.locationText}>{normalizedVendor.address || 'Shop Address'}</Text>
               </View>
               <View style={styles.statusRow}>
                 <View style={styles.statusDot} />
@@ -273,13 +326,13 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
           </View>
 
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleShare(vendorData)}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => handleShare(normalizedVendor)}>
               <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
                 <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
               </View>
               <Text style={styles.actionText}>Share</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handlePreview(navigation, vendorData)}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => handlePreview(navigation, normalizedVendor)}>
               <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
                 <Icon name={getIconName('Eye')} size={20} color={COLORS.white} />
               </View>
@@ -306,7 +359,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
           </View>
 
           {/* Payment Status Alert */}
-          {vendorData && shouldBlockVendor(vendorData) && (
+          {normalizedVendor && shouldBlockVendor(normalizedVendor) && (
             <View style={styles.paymentAlert}>
               <Icon name={getIconName('AlertCircle')} size={20} color="#dc2626" />
               <View style={styles.paymentAlertContent}>
@@ -378,7 +431,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>SHOP NAME</Text>
-                <Text style={styles.fieldValue}>{vendorData?.name || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{normalizedVendor.name || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -388,7 +441,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>CATEGORY</Text>
-                <Text style={styles.fieldValue}>{vendorData?.category || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{normalizedVendor.category || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -398,7 +451,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>OWNER NAME</Text>
-                <Text style={styles.fieldValue}>{vendorData?.ownerName || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{normalizedVendor.ownerName || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -408,7 +461,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>CONTACT</Text>
-                <Text style={styles.fieldValue}>{vendorData?.contactNumber || vendorData?.phone || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{normalizedVendor.contactNumber || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -418,7 +471,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>ADDRESS</Text>
-                <Text style={styles.fieldValue}>{vendorData?.address || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{normalizedVendor.address || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -445,7 +498,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>OPEN TIME</Text>
-                <Text style={styles.fieldValue}>{vendorData?.openTime || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{normalizedVendor.openTime || 'Not Set'}</Text>
               </View>
             </View>
 
@@ -455,7 +508,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
               <View style={styles.fieldContent}>
                 <Text style={styles.fieldLabel}>CLOSE TIME</Text>
-                <Text style={styles.fieldValue}>{vendorData?.closeTime || 'Not Set'}</Text>
+                <Text style={styles.fieldValue}>{normalizedVendor.closeTime || 'Not Set'}</Text>
               </View>
             </View>
           </View>
@@ -492,19 +545,54 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
         visible={showWriteReview}
         onClose={() => setShowWriteReview(false)}
         onSubmit={handleWriteReview}
-        vendorName={vendorData?.name || 'My Awesome Shop'}
+        vendorName={normalizedVendor.name || 'My Awesome Shop'}
       />
 
       {/* Location Picker */}
       <LocationPicker
         visible={showLocationPicker}
         onClose={() => setShowLocationPicker(false)}
-        onSelect={(selectedLocation) => {
+        onSelect={async (selectedLocation) => {
           setLocation(selectedLocation);
-          // In production, this would save to backend
-          if (vendorData) {
-            // Update vendor data with new location
-            console.log('Location updated:', selectedLocation);
+          if (vendorData?.id) {
+            try {
+              setSavingProfile(true);
+              // Sync to backend
+              const payload = {
+                state: selectedLocation.state,
+                city: selectedLocation.city,
+                area: selectedLocation.area || selectedLocation.town,
+                circle: selectedLocation.circle || selectedLocation.market,
+                pincode: selectedLocation.pincode,
+                latitude: selectedLocation.latitude,
+                longitude: selectedLocation.longitude,
+              };
+              
+              const res = await updateVendorProfile(vendorData.id, payload);
+              if (res && res.success !== false) {
+                // Refresh vendor data
+                if (setVendorData) {
+                  const freshData = await getVendorProfile(vendorData.id);
+                  if (freshData?.vendor) {
+                    const v = freshData.vendor;
+                    setVendorData({
+                      ...v,
+                      imageUrl: v.imageUrl || v.image_url || v.image,
+                      profileImageUrl: v.profileImageUrl || v.profile_image_url,
+                      ownerName: v.ownerName || v.owner_name,
+                      contactNumber: v.contactNumber || v.contact_number || v.phone,
+                      openTime: v.openTime || v.open_time,
+                      closeTime: v.closeTime || v.close_time,
+                    });
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error saving picked location:', error);
+              Alert.alert('Error', 'Failed to save location update.');
+            } finally {
+              setSavingProfile(false);
+            }
           }
         }}
         initialLocation={location || {}}

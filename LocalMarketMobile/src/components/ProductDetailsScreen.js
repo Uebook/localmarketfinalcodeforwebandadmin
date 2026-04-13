@@ -1,12 +1,40 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView,  Linking, Alert, ActivityIndicator, Share } from 'react-native';
+import Image from './ImageWithFallback';
+import { getMarketComparisonStats } from '../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
+import { addToCart } from '../utils/cartStorage';
+import { useState } from 'react';
+import React from 'react';
+
 
 const ProductDetailsScreen = ({ navigation, route }) => {
   const { product, business } = route.params || {};
   const [quantity, setQuantity] = useState(1);
+  const [marketStats, setMarketStats] = useState([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await getMarketComparisonStats();
+        if (res?.success) setMarketStats(res.stats);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const getCheapestMarket = () => {
+    if (!marketStats.length) return null;
+    return [...marketStats].sort((a, b) => b.lower_price_pct - a.lower_price_pct)[0];
+  };
+
+  const bestMarket = getCheapestMarket();
 
   if (!product) {
     return (
@@ -33,9 +61,46 @@ const ProductDetailsScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleEnquiry = () => {
-    Alert.alert('Enquiry', 'Enquiry feature will be implemented soon.');
+  const handleAddToCart = async () => {
+    try {
+      const cartItem = {
+        id: product.id,
+        vendorId: business?.id,
+        vendorName: business?.name || 'Local Store',
+        name: product.name,
+        // Remove currency symbol and parse price
+        price: parseFloat(product.price.toString().replace(/[^0-9.]/g, '')),
+        quantity: quantity,
+        image: product.imageUrl,
+      };
+      await addToCart(cartItem);
+      Alert.alert(
+        'Success',
+        'Item added to cart!',
+        [
+          { text: 'View Cart', onPress: () => navigation.navigate('Cart') },
+          { text: 'Continue Shopping' }
+        ]
+      );
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      Alert.alert('Error', 'Failed to add item to cart.');
+    }
   };
+
+
+  const handleShare = async () => {
+    try {
+      const message = `Check out ${product.name} at ${business?.name || 'Local Store'} on LOKALL!\nPrice: ${product.price}\n\nDownload LOKALL app for best local deals.`;
+      await Share.share({
+        message,
+        title: product.name,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
 
   const incrementQuantity = () => {
     setQuantity(prev => prev + 1);
@@ -59,7 +124,7 @@ const ProductDetailsScreen = ({ navigation, route }) => {
             <Icon name={getIconName('ArrowLeft')} size={24} color="#1e293b" />
           </TouchableOpacity>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
+            <TouchableOpacity onPress={handleShare} style={styles.headerButton} activeOpacity={0.7}>
               <Icon name={getIconName('Share2')} size={20} color="#1e293b" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
@@ -78,6 +143,26 @@ const ProductDetailsScreen = ({ navigation, route }) => {
             resizeMode="cover"
           />
         </View>
+
+        {/* Price Insight Banner */}
+        {!loadingStats && bestMarket && bestMarket.circle !== business?.circle && (
+          <TouchableOpacity 
+            style={styles.insightBanner}
+            onPress={() => navigation.navigate('SearchResults', { query: bestMarket.name })}
+            activeOpacity={0.9}
+          >
+            <View style={styles.insightIconContainer}>
+              <Icon name="trending-down" size={18} color="#ffffff" />
+            </View>
+            <View style={styles.insightTextContainer}>
+              <Text style={styles.insightTitle}>PRICE INSIGHT</Text>
+              <Text style={styles.insightMessage}>
+                Prices are <Text style={styles.bold}>{Math.round(bestMarket.lower_price_pct)}% lower</Text> in {bestMarket.circle} today.
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+        )}
 
         {/* Product Info */}
         <View style={styles.infoCard}>
@@ -191,12 +276,14 @@ const ProductDetailsScreen = ({ navigation, route }) => {
           <Text style={styles.callButtonText}>Call</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.enquireButton}
-          onPress={handleEnquiry}
+          style={styles.cartButton}
+          onPress={handleAddToCart}
           activeOpacity={0.8}
         >
-          <Text style={styles.enquireButtonText}>Enquire</Text>
+          <Icon name="shopping-cart" size={20} color="#ffffff" />
+          <Text style={styles.cartButtonText}>Add to Cart</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.whatsappButton}
           onPress={handleWhatsApp}
@@ -470,24 +557,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
   },
-  enquireButton: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#dc2626',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  enquireButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#dc2626',
-  },
-  whatsappButton: {
-    flex: 1,
-    backgroundColor: '#22c55e',
+  cartButton: {
+    flex: 1.5,
+    backgroundColor: '#dc2626',
     paddingVertical: 12,
     borderRadius: 8,
     flexDirection: 'row',
@@ -495,10 +567,67 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
+  cartButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  whatsappButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#22c55e',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+
   whatsappButtonText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  insightBanner: {
+    margin: 16,
+    marginBottom: 8,
+    backgroundColor: '#dc2626',
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#dc2626',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  insightIconContainer: {
+    width: 36,
+    height: 36,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  insightTextContainer: {
+    flex: 1,
+  },
+  insightTitle: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: 'rgba(255,255,255,0.8)',
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  insightMessage: {
+    fontSize: 13,
+    color: '#ffffff',
+    fontWeight: '500',
+  },
+  bold: {
+    fontWeight: '800',
   },
 });
 

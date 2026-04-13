@@ -35,7 +35,8 @@ export async function POST(request: Request) {
             inputMetadata: {
                 type: 'selection_or_text',
                 placeholder: 'e.g. Plumber, Laptop repair...'
-            }
+            },
+            updatedContext: { history: [], stepCount: 0 }
         }, { headers: corsHeaders() });
     } catch (error) {
         return NextResponse.json(

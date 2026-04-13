@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseRestGet, supabaseRestUpsert } from '@/lib/supabaseAdminFetch';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 
 // CORS headers helper
@@ -80,32 +83,42 @@ export async function POST(request: Request) {
         const intent = context?.intent?.toLowerCase() || '';
         const urgency = context?.urgency?.toLowerCase() || '';
         const budget = context?.budget?.toLowerCase() || 'any';
+        const historyStr = (context.history || []).map((h: any) => `${h.role}: ${h.content}`).join('\n');
 
-        // Validate that intent is service-related
-        const validKeywords = [
-            'plumber', 'electrician', 'carpenter', 'painter', 'cleaning', 'pest', 'control', 'ac', 'appliance', 'repair', 'fix', 'install', 'installation', 'water', 'solar', 'geyser', 'chimney', 'sofa', 'carpet', 'septic', 'tank', 'mason', 'architect', 'interior', 'construction', 'renovation', 'tiles', 'granite', 'marble', 'hardware', 'locks', 'keys', 'windows', 'doors', 'aluminum', 'glass',
-            'doctor', 'clinic', 'hospital', 'pharmacy', 'medical', 'mediacl', 'health', 'medicine', 'medicne', 'diagnostic', 'lab', 'dentist', 'ayurvedic', 'homeopathic', 'physiotherapy', 'nurse', 'ambulance', 'veterinary', 'gym', 'fitness', 'yoga', 'spa', 'salon', 'beauty', 'makeup', 'barber', 'haircut', 'optical', 'blood',
-            'restaurant', 'food', 'cafe', 'bakery', 'catering', 'snacks', 'bar', 'pub', 'dining', 'delivery', 'sweet', 'fruit', 'vegetable', 'meat', 'chicken', 'grocery', 'milk', 'dairy', 'store', 'shop', 'market',
-            'mechanic', 'garage', 'puncture', 'tire', 'car', 'bike', 'wash', 'detailing', 'battery', 'towing', 'spares', 'showroom', 'driving', 'school',
-            'lawyer', 'advocate', 'accountant', 'ca', 'consultant', 'tax', 'notary', 'developer', 'marketing', 'printing', 'security', 'guard', 'placement', 'courier', 'shipping', 'movers', 'packers',
-            'school', 'tuition', 'tutor', 'college', 'training', 'coaching', 'music', 'dance', 'language', 'preschool',
-            'event', 'planner', 'photography', 'photo', 'video', 'decoration', 'florist', 'gift', 'banquet', 'venue', 'dj', 'band',
-            'hotel', 'resort', 'travel', 'agency', 'visa', 'ticket', 'tour', 'rental',
-            'find', 'look', 'need', 'want', 'search', 'hire', 'book', 'urgent', 'emergency', 'asap', 'today', 'tomorrow', 'schedule', 'budget', 'price', 'cost', 'cheap', 'affordable', 'premium', 'near', 'nearby', 'local', 'area', 'location', 'distance', 'service', 'vendor', 'business'
-        ];
+        const prompt = `
+        Conversation History:
+        ${historyStr}
+        
+        Task: Based on the conversation above, extract the single most relevant search keyword or category (e.g., "plumber", "medical", "iphone repair", "grocery") to find vendors in a database.
+        
+        Rules:
+        1. Return ONLY the keyword.
+        2. Combine terms if necessary (e.g., "laptop repair").
+        3. FIX TYPOS.
+        
+        Return ONLY the keyword.
+        `;
 
-        const hasValidKeyword = validKeywords.some(keyword => intent.includes(keyword));
+        let searchKeyword = 'general';
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash"
+        });
+        try {
+            const result = await model.generateContent(prompt);
+            const rawText = result.response.text();
+            searchKeyword = rawText.trim().replace(/['"]/g, '').toLowerCase();
+            console.log('AI Refined Keyword:', searchKeyword);
+        } catch (e) {
+            console.error('Gemini extraction failed:', e);
+            searchKeyword = context.intent || 'general';
+        }
 
-        if (!hasValidKeyword && intent.length > 0) {
-            // Invalid query - return empty results with message
+        // 2. Validate Keyword
+        if (searchKeyword === 'invalid_query') {
             return NextResponse.json({
                 vendors: [],
                 message: "I'm your Local Market assistant! I can only help you find local vendors and services. Please search for things like home services, food, repairs, or shopping.",
-                meta: {
-                    total: 0,
-                    filterUsed: 'invalid_query',
-                    location: { lat: userLat, lng: userLng }
-                }
+                meta: { filterUsed: 'invalid_query' }
             }, { headers: corsHeaders() });
         }
 

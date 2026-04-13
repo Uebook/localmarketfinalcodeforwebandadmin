@@ -31,7 +31,9 @@ function ApplyModal({ draw, onClose }: { draw: Draw; onClose: () => void }) {
     const [success, setSuccess] = useState('');
 
     useEffect(() => {
-        const raw = localStorage.getItem('localmarket_user');
+        const rawUser = localStorage.getItem('localmarket_user');
+        const rawVendor = localStorage.getItem('localmarket_vendor');
+        const raw = rawUser || rawVendor;
         if (raw) {
             try {
                 const u = JSON.parse(raw);
@@ -320,7 +322,7 @@ export default function OnlineDrawsPage() {
                     else if (tab === 'help') router.push('/help');
                     else if (tab === 'logout') router.push('/login');
                 }}
-                userRole="customer"
+                userRole={typeof window !== 'undefined' && localStorage.getItem('localmarket_vendor') ? 'vendor' : 'customer'}
             />
         </div>
     );

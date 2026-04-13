@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Dashboard from '../components/Dashboard';
@@ -16,23 +16,49 @@ import FestiveOffersManagement from '../components/FestiveOffersManagement';
 import BannerManagement from '../components/BannerManagement';
 import EAuctionManagement from '../components/EAuctionManagement';
 import CircleAnalytics from '../components/Analytics/CircleAnalytics';
+import FeaturedManagement from '../components/FeaturedManagement';
 import Settings from '../components/Settings';
+import WelcomeAnimation from '../components/WelcomeAnimation';
+import LoginPage from '../components/LoginPage';
 
 export default function AdminPanel() {
-  // Public access - no authentication required
-  const [isAuthenticated] = useState(true);
+  const [user, setUser] = useState(null);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Authentication removed for public access
-  // const handleLogin = () => {
-  //   localStorage.setItem('admin_authenticated', 'true');
-  //   setIsAuthenticated(true);
-  // };
+  useEffect(() => {
+    // Check authentication state
+    if (typeof window !== 'undefined') {
+      const isAuth = localStorage.getItem('admin_authenticated');
+      const savedUser = localStorage.getItem('admin_user');
+      
+      if (isAuth === 'true' && savedUser) {
+        setIsAuthenticated(true);
+        setUser(JSON.parse(savedUser));
+      }
+
+      // Show welcome animation once per session
+      const hasSeenWelcome = sessionStorage.getItem('admin_seen_welcome');
+      if (!hasSeenWelcome) {
+        setShowWelcome(true);
+        sessionStorage.setItem('admin_seen_welcome', 'true');
+      }
+    }
+  }, []);
+
+  const handleLogin = (userData) => {
+    localStorage.setItem('admin_authenticated', 'true');
+    localStorage.setItem('admin_user', JSON.stringify(userData));
+    setUser(userData);
+    setIsAuthenticated(true);
+  };
 
   const handleLogout = () => {
-    // Logout disabled for public access
-    // localStorage.removeItem('admin_authenticated');
-    // setIsAuthenticated(false);
+    localStorage.removeItem('admin_authenticated');
+    localStorage.removeItem('admin_user');
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
   const getPageTitle = () => {
@@ -59,6 +85,8 @@ export default function AdminPanel() {
         return 'Festive Offers Management';
       case 'banners':
         return 'Banner Management';
+      case 'featured':
+        return 'Home Featured Management';
       case 'e-auction':
         return 'E-Auction & Online Draw';
       case 'circle-analytics':
@@ -94,21 +122,26 @@ export default function AdminPanel() {
         return <FestiveOffersManagement />;
       case 'banners':
         return <BannerManagement />;
+      case 'featured':
+        return <FeaturedManagement />;
       case 'e-auction':
         return <EAuctionManagement />;
       case 'circle-analytics':
         return <CircleAnalytics />;
       case 'settings':
-        return <Settings />;
+        return <Settings user={user} />;
       default:
         return <Dashboard />;
     }
   };
 
-  // Login page removed - public access enabled
-  // if (!isAuthenticated) {
-  //   return <LoginPage onLogin={handleLogin} />;
-  // }
+  if (!user) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  if (showWelcome) {
+    return <WelcomeAnimation onComplete={() => setShowWelcome(false)} />;
+  }
 
   return (
     <div className="flex flex-col h-screen bg-white">

@@ -40,7 +40,9 @@ function ApplyModal({ auction, onClose }: { auction: Auction; onClose: () => voi
 
     // Pre-fill from session
     useEffect(() => {
-        const raw = localStorage.getItem('localmarket_user');
+        const rawUser = localStorage.getItem('localmarket_user');
+        const rawVendor = localStorage.getItem('localmarket_vendor');
+        const raw = rawUser || rawVendor;
         if (raw) {
             const u = JSON.parse(raw);
             setForm(f => ({ ...f, name: u.name || '', phone: u.phone || '', email: u.email || '' }));
@@ -449,7 +451,7 @@ export default function EAuctionPage() {
                     else if (tab === 'help') router.push('/help');
                     else if (tab === 'logout') router.push('/login');
                 }}
-                userRole="customer"
+                userRole={typeof window !== 'undefined' && localStorage.getItem('localmarket_vendor') ? 'vendor' : 'customer'}
             />
         </div>
     );

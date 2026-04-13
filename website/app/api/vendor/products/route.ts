@@ -19,6 +19,7 @@ export async function POST(request: Request) {
             vendorId,
             name,
             price,
+            onlinePrice,
             mrp,
             uom,
             categoryId,
@@ -36,14 +37,15 @@ export async function POST(request: Request) {
             vendor_id: vendorId,
             name: name,
             price: parseFloat(price),
+            online_price: onlinePrice ? parseFloat(onlinePrice) : null,
             mrp: mrp ? parseFloat(mrp) : null,
             uom: uom || null,
             category_id: categoryId || null,
             image_url: imageUrl || null,
             description: body.description || null,
             is_active: inStock !== undefined ? inStock : true,
-            // Note: best_seller/type might need additional columns if not in schema, 
-            // but for now we follow the schema in ensure_vendor_products_table.sql
+            is_best_seller: isBestSeller ?? false,
+            type: type || 'Product',
         };
 
         const result = await supabaseRestInsert('/rest/v1/vendor_products', productData);

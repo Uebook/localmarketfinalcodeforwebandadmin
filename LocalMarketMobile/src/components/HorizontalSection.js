@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import Image from './ImageWithFallback';
 import { getVendors, getVendorProducts, getCategories } from '../services/api';
 import { useThemeColors } from '../hooks/useThemeColors';
 
@@ -159,8 +160,8 @@ const HorizontalSection = ({ title, items = [], onItemClick, onVendorClick, cont
           const isVendor = vendors.length > 0 || (item.id && item.email);
           const itemName = item.name;
           const itemImage = isVendor
-            ? (item.profileImageUrl || item.shopFrontPhotoUrl || item.imageUrl || item.image || 'https://via.placeholder.com/96x96')
-            : (item.imageUrl || 'https://via.placeholder.com/96x96');
+            ? (item.profileImageUrl || item.shopFrontPhotoUrl || item.imageUrl || item.image)
+            : (item.imageUrl);
 
           const isCircularOverride = isCircular || isBeautySpa;
           const displayDistance = item.distance || (item.city ? `${item.city}` : 'Nearby');

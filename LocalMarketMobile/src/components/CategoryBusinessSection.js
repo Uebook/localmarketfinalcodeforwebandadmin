@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
-// Static vendor data removed - using database only
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView,  ActivityIndicator } from 'react-native';
+import Image from './ImageWithFallback';// Static vendor data removed - using database only
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendors, getVendorProducts } from '../services/api';
 
@@ -66,7 +66,7 @@ const CategoryBusinessSection = ({ categoryId, categoryName, onBusinessClick, on
           rating: vendor.rating || 4.0,
           reviewCount: vendor.reviewCount || 0,
           distance: vendor.city ? `${vendor.city}` : 'Nearby',
-          imageUrl: vendor.imageUrl || 'https://via.placeholder.com/160x120',
+          imageUrl: vendor.imageUrl,
           address: vendor.address || '',
         }));
         setBusinesses(transformedBusinesses);

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '../../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 // GET /api/e-auctions/[id]/participants - Fetch all bidders for an auction
 export async function GET(request, { params }) {

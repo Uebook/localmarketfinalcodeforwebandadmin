@@ -12,6 +12,7 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Load user name from AsyncStorage when modal opens
@@ -24,18 +25,19 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
   const loadUserName = async () => {
     try {
       const userData = await loadUserData();
-      if (userData && userData.name) {
-        setUserName(userData.name);
+      if (userData) {
+        if (userData.name) setUserName(userData.name);
+        if (userData.id) setUserId(userData.id);
       } else {
-        // Fallback to individual field
+        // Fallback to individual fields
         const AsyncStorage = require('@react-native-async-storage/async-storage').default;
         const name = await AsyncStorage.getItem('userName');
-        if (name) {
-          setUserName(name);
-        }
+        const id = await AsyncStorage.getItem('userId');
+        if (name) setUserName(name);
+        if (id) setUserId(id);
       }
     } catch (error) {
-      console.error('Error loading user name:', error);
+      console.error('Error loading user data in WriteReview:', error);
     }
   };
 
@@ -63,6 +65,7 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
         rating,
         comment: comment.trim(),
         userName: userName.trim(),
+        userId: userId || `guest_${Date.now()}`, // Ensure we have a user ID
         date: new Date().toISOString(),
         vendorId: vendorId, // Include vendorId for API call
       };
@@ -161,15 +164,18 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
               )}
             </View>
 
-            {/* Name Display (from login, not editable) */}
+            {/* Name Input */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Your Name</Text>
-              <View style={styles.nameDisplay}>
-                <Text style={styles.nameText}>{userName || 'Loading...'}</Text>
-                <Icon name={getIconName('User')} size={16} color={COLORS.textMuted} />
-              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your name"
+                placeholderTextColor={COLORS.textMuted}
+                value={userName}
+                onChangeText={setUserName}
+              />
               {!userName && (
-                <Text style={styles.nameHint}>Name will be loaded from your account</Text>
+                <Text style={styles.nameHint}>Please enter your name to submit the review</Text>
               )}
             </View>
 

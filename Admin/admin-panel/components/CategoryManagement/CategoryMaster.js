@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 export default function CategoryMaster() {
   const [isCreating, setIsCreating] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [newCategory, setNewCategory] = useState({ name: '', subCategories: [], icon_url: '' });
+  const [newCategory, setNewCategory] = useState({ name: '', subCategories: [], icon_url: '', image_url: '' });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,9 +15,12 @@ export default function CategoryMaster() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [iconPreview, setIconPreview] = useState(null);
+   const [iconPreview, setIconPreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const iconFileInputRef = useRef(null);
+  const imageFileInputRef = useRef(null);
   const editIconFileInputRef = useRef(null);
+  const editImageFileInputRef = useRef(null);
 
   const loadCategories = async () => {
     try {
@@ -129,35 +132,95 @@ export default function CategoryMaster() {
     } else {
       setIconPreview(null);
     }
+    if (category.image_url) {
+      setImagePreview(category.image_url);
+    } else {
+      setImagePreview(null);
+    }
   };
 
-  const handleIconUpload = (e, isEdit = false) => {
+  const handleIconUpload = async (e, isEdit = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file');
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Image size should be less than 5MB');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result;
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'general');
+      formData.append('folder', 'category-icons');
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+
       if (isEdit && editingCategory) {
-        setEditingCategory({ ...editingCategory, icon_url: base64String });
+        setEditingCategory({ ...editingCategory, icon_url: data.url });
       } else {
-        setNewCategory({ ...newCategory, icon_url: base64String });
+        setNewCategory({ ...newCategory, icon_url: data.url });
       }
-      setIconPreview(base64String);
-    };
-    reader.readAsDataURL(file);
+      setIconPreview(data.url);
+    } catch (err) {
+      alert(`Icon upload failed: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (e, isEdit = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'general');
+      formData.append('folder', 'category-images');
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+      if (isEdit && editingCategory) {
+        setEditingCategory({ ...editingCategory, image_url: data.url });
+      } else {
+        setNewCategory({ ...newCategory, image_url: data.url });
+      }
+      setImagePreview(data.url);
+    } catch (err) {
+      alert(`Image upload failed: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveCategory = async () => {
@@ -177,6 +240,7 @@ export default function CategoryMaster() {
           visible: editingCategory.visible !== undefined ? editingCategory.visible : true,
           icon_name: editingCategory.icon_name || null,
           icon_url: editingCategory.icon_url || null,
+          image_url: editingCategory.image_url || null,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -192,6 +256,7 @@ export default function CategoryMaster() {
       await loadCategories();
       setEditingCategory(null);
       setIconPreview(null);
+      setImagePreview(null);
       alert('Category updated successfully');
     } catch (e) {
       alert(`Failed to update category: ${e.message}`);
@@ -418,6 +483,58 @@ export default function CategoryMaster() {
                 )}
               </div>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category Banner Image</label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    ref={imageFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, false)}
+                    className="hidden"
+                    id="category-image-upload"
+                  />
+                  <label
+                    htmlFor="category-image-upload"
+                    className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition text-sm font-medium"
+                  >
+                    Upload Banner
+                  </label>
+                  <span className="text-sm text-gray-500 self-center">or</span>
+                  <input
+                    type="url"
+                    value={newCategory.image_url && !newCategory.image_url.startsWith('data:') ? newCategory.image_url : ''}
+                    onChange={(e) => {
+                      setNewCategory({ ...newCategory, image_url: e.target.value });
+                      if (e.target.value) setImagePreview(e.target.value);
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Enter banner image URL..."
+                  />
+                </div>
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img
+                      src={imagePreview}
+                      alt="Banner preview"
+                      className="w-full max-h-40 object-cover rounded-lg border border-gray-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewCategory({ ...newCategory, image_url: '' });
+                        setImagePreview(null);
+                        if (imageFileInputRef.current) imageFileInputRef.current.value = '';
+                      }}
+                      className="mt-2 text-sm text-red-600 hover:text-red-800"
+                    >
+                      Remove Banner
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={async () => {
@@ -435,14 +552,16 @@ export default function CategoryMaster() {
                         priority: 999,
                         visible: true,
                         icon_url: newCategory.icon_url || null,
+                        image_url: newCategory.image_url || null,
                       }),
                     });
                     const data = await res.json().catch(() => ({}));
                     if (!res.ok) throw new Error(data?.error || 'Failed to create category');
                     await loadCategories();
                     setIsCreating(false);
-                    setNewCategory({ name: '', subCategories: [], icon_url: '' });
+                    setNewCategory({ name: '', subCategories: [], icon_url: '', image_url: '' });
                     setIconPreview(null);
+                    setImagePreview(null);
                     alert('Category created successfully');
                   } catch (e) {
                     alert(`Failed to create category: ${e.message}`);
@@ -458,8 +577,9 @@ export default function CategoryMaster() {
               <button
                 onClick={() => {
                   setIsCreating(false);
-                  setNewCategory({ name: '', subCategories: [], icon_url: '' });
+                  setNewCategory({ name: '', subCategories: [], icon_url: '', image_url: '' });
                   setIconPreview(null);
+                  setImagePreview(null);
                 }}
                 disabled={saving}
                 className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition disabled:opacity-50"
@@ -506,6 +626,17 @@ export default function CategoryMaster() {
                         }}
                       />
                     )}
+                    {category.image_url && (
+                        <img
+                          src={category.image_url}
+                          alt={`${category.name} Banner`}
+                          className="w-16 h-10 object-cover rounded-md border border-gray-200"
+                          title="Banner Image"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      )}
                     <div className="flex items-center gap-2">
                       {category.isTop8 && (
                         <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded">
@@ -668,6 +799,58 @@ export default function CategoryMaster() {
                   )}
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category Banner Image</label>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      ref={editImageFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, true)}
+                      className="hidden"
+                      id="edit-category-image-upload"
+                    />
+                    <label
+                      htmlFor="edit-category-image-upload"
+                      className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition text-sm font-medium"
+                    >
+                      Upload Banner
+                    </label>
+                    <span className="text-sm text-gray-500 self-center">or</span>
+                    <input
+                      type="url"
+                      value={editingCategory.image_url && !editingCategory.image_url.startsWith('data:') ? editingCategory.image_url : ''}
+                      onChange={(e) => {
+                        setEditingCategory({ ...editingCategory, image_url: e.target.value });
+                        if (e.target.value) setImagePreview(e.target.value);
+                      }}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Enter banner image URL..."
+                    />
+                  </div>
+                  {imagePreview && (
+                    <div className="mt-2">
+                      <img
+                        src={imagePreview}
+                        alt="Banner preview"
+                        className="w-full max-h-32 object-cover rounded-lg border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCategory({ ...editingCategory, image_url: '' });
+                          setImagePreview(null);
+                          if (editImageFileInputRef.current) editImageFileInputRef.current.value = '';
+                        }}
+                        className="mt-2 text-sm text-red-600 hover:text-red-800"
+                      >
+                        Remove Banner
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -692,6 +875,7 @@ export default function CategoryMaster() {
                   onClick={() => {
                     setEditingCategory(null);
                     setIconPreview(null);
+                    setImagePreview(null);
                   }}
                   disabled={saving}
                   className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition disabled:opacity-50"

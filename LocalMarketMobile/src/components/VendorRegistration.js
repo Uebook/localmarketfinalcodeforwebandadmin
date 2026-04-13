@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,990 +7,583 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  Image,
-  Modal,
-  Platform,
   ActivityIndicator,
+  Platform,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { launchImageLibrary } from 'react-native-image-picker';
-import LocationPicker from './LocationPicker';
-import { formatLocation } from '../constants/locations';
-import { registerVendor, uploadFile } from '../services/api';
+import { registerVendor, uploadFile, getCategories, getDynamicLocations } from '../services/api';
+import Image from './ImageWithFallback';
+import Logo from './Logo';
 
+const ORANGE = '#EA580C';
+const BLUE = '#4A6CF7';
+
+// ─── Reusable Focused Input ────────────────────────────────────────────────
+const FocusedInput = ({ label, required, placeholder, value, onChangeText, keyboardType, multiline, numberOfLines, prefix }) => {
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef(null);
+  return (
+    <View style={fieldStyles.fieldContainer}>
+      <Text style={fieldStyles.label}>
+        {label}{required && <Text style={fieldStyles.required}> *</Text>}
+      </Text>
+      <Pressable
+        onPress={() => inputRef.current?.focus()}
+        style={[fieldStyles.inputRow, focused && fieldStyles.inputFocused, multiline && { alignItems: 'flex-start', paddingTop: 12 }]}
+      >
+        {prefix && <Text style={fieldStyles.prefix}>{prefix}</Text>}
+        <TextInput
+          ref={inputRef}
+          style={[fieldStyles.input, multiline && { minHeight: 80, textAlignVertical: 'top' }]}
+          value={value || ''}
+          onChangeText={onChangeText}
+          placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+          placeholderTextColor="#94A3B8"
+          keyboardType={keyboardType || 'default'}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
+          underlineColorAndroid="transparent"
+        />
+      </Pressable>
+    </View>
+  );
+};
+
+// ─── Dropdown (Sheet Modal) ────────────────────────────────────────────────
+const DropdownPicker = ({ label, required, value, options, onSelect, loading, disabled, placeholder }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <View style={fieldStyles.fieldContainer}>
+      <Text style={fieldStyles.label}>
+        {label}{required && <Text style={fieldStyles.required}> *</Text>}
+      </Text>
+      <TouchableOpacity
+        style={[fieldStyles.inputRow, disabled && { opacity: 0.5 }]}
+        onPress={() => !disabled && setOpen(true)}
+        activeOpacity={0.7}
+      >
+        <Text style={[fieldStyles.input, !value && { color: '#94A3B8' }]}>
+          {loading ? 'Loading...' : (value || placeholder || `Select ${label}`)}
+        </Text>
+        {loading ? (
+          <ActivityIndicator size="small" color={ORANGE} />
+        ) : (
+          <Icon name="chevron-down" size={18} color="#94A3B8" />
+        )}
+      </TouchableOpacity>
+
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+        <TouchableOpacity style={dropStyles.overlay} activeOpacity={1} onPress={() => setOpen(false)}>
+          <View style={dropStyles.sheet}>
+            <View style={dropStyles.handle} />
+            <Text style={dropStyles.title}>{label}</Text>
+            <ScrollView>
+              {options.map((opt, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[dropStyles.option, value === opt && dropStyles.optionActive]}
+                  onPress={() => { onSelect(opt); setOpen(false); }}
+                >
+                  <Text style={[dropStyles.optionText, value === opt && dropStyles.optionTextActive]}>{opt}</Text>
+                  {value === opt && <Icon name="check" size={18} color={ORANGE} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+};
+
+// ─── Photo Upload Field ────────────────────────────────────────────────────
+const PhotoUpload = ({ label, value, onPress }) => (
+  <TouchableOpacity style={fieldStyles.photoBox} onPress={onPress} activeOpacity={0.7}>
+    {value ? (
+      <Image source={{ uri: value }} style={fieldStyles.photoImage} />
+    ) : (
+      <>
+        <Icon name="camera" size={28} color="#94A3B8" />
+        <Text style={fieldStyles.photoLabel}>{label}</Text>
+      </>
+    )}
+  </TouchableOpacity>
+);
+
+// ─── Step Indicator (matches website) ─────────────────────────────────────
+const StepBar = ({ step, total = 5 }) => (
+  <View style={stepBarStyles.row}>
+    {Array.from({ length: total }, (_, i) => i + 1).map((s) => (
+      <React.Fragment key={s}>
+        <View style={[stepBarStyles.circle, step >= s && stepBarStyles.circleActive, step > s && stepBarStyles.circleDone]}>
+          {step > s ? (
+            <Icon name="check" size={14} color="#FFF" />
+          ) : (
+            <Text style={[stepBarStyles.circleText, step >= s && stepBarStyles.circleTextActive]}>{s}</Text>
+          )}
+        </View>
+        {s < total && (
+          <View style={[stepBarStyles.line, step > s && stepBarStyles.lineActive]} />
+        )}
+      </React.Fragment>
+    ))}
+  </View>
+);
+
+// ─── Main Component ────────────────────────────────────────────────────────
 const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   const [step, setStep] = useState(1);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [showIdProofPicker, setShowIdProofPicker] = useState(false);
-  const [showShopProofPicker, setShowShopProofPicker] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [error, setError] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [loadingCats, setLoadingCats] = useState(true);
+
+  // Location cascades
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [towns, setTowns] = useState([]);
+  const [markets, setMarkets] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingTowns, setLoadingTowns] = useState(false);
+  const [loadingMarkets, setLoadingMarkets] = useState(false);
+
   const [formData, setFormData] = useState({
-    name: '',
-    ownerName: '',
-    contactNumber: '',
-    alternateMobile: '',
-    whatsappNumber: '',
-    email: '',
-    referralCode: '',
-    category: '',
-    address: '',
-    landmark: '',
-    pincode: '',
-    city: '',
-    district: '',
-    circle: '',
-    location: null, // { state, city, town, tehsil, subTehsil }
-    openingTime: '',
-    closingTime: '',
-    weeklyOff: '',
-    ownerPhotoUrl: '',
-    shopFrontPhotoUrl: '',
-    insideShopPhotoUrl: '',
-    idProofType: '',
-    idProofUrl: '',
-    shopProofType: '',
-    shopProofUrl: '',
-    gstNumber: '',
-    panNumber: '',
+    businessName: '', ownerName: '', category: '', subCategory: '',
+    mobile: '', email: '',
+    address: '', state: '', city: '', area: '', circle: '', pincode: '',
+    latitude: null, longitude: null,
+    idProofUrl: '', businessPhotoUrl: '', shopDocumentUrl: '',
   });
 
-  const updateField = (key, value) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+  const update = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
+
+  // Load categories
+  useEffect(() => {
+    getCategories().then(data => {
+      const cats = data?.categories || [];
+      setCategories(cats.map(c => c.name));
+    }).catch(() => {}).finally(() => setLoadingCats(false));
+
+    // Load states
+    setLoadingStates(true);
+    getDynamicLocations().then(data => {
+      setStates(data?.data || []);
+    }).catch(() => {}).finally(() => setLoadingStates(false));
+  }, []);
+
+  // Cascade: state → cities
+  useEffect(() => {
+    if (!formData.state) { setCities([]); return; }
+    setLoadingCities(true);
+    getDynamicLocations('state', formData.state)
+      .then(data => setCities(data?.data || []))
+      .catch(() => {}).finally(() => setLoadingCities(false));
+  }, [formData.state]);
+
+  // Cascade: city → towns
+  useEffect(() => {
+    if (!formData.city) { setTowns([]); return; }
+    setLoadingTowns(true);
+    getDynamicLocations('city', formData.city)
+      .then(data => setTowns(data?.data || []))
+      .catch(() => {}).finally(() => setLoadingTowns(false));
+  }, [formData.city]);
+
+  // Cascade: area → markets
+  useEffect(() => {
+    if (!formData.area) { setMarkets([]); return; }
+    setLoadingMarkets(true);
+    getDynamicLocations('town', formData.area)
+      .then(data => setMarkets(data?.data || []))
+      .catch(() => {}).finally(() => setLoadingMarkets(false));
+  }, [formData.area]);
+
+  const validate = () => {
+    setError('');
+    if (step === 1) {
+      if (!formData.businessName.trim()) { setError('Business Name is required'); return false; }
+      if (!formData.ownerName.trim()) { setError('Owner Name is required'); return false; }
+      if (!formData.category) { setError('Please select a category'); return false; }
+    } else if (step === 2) {
+      if (!formData.mobile || formData.mobile.length < 10) { setError('Valid 10-digit mobile number is required'); return false; }
+    } else if (step === 3) {
+      if (!formData.state) { setError('State is required'); return false; }
+      if (!formData.city) { setError('City is required'); return false; }
+      if (!formData.area) { setError('Circle / Area is required'); return false; }
+      if (!formData.circle) { setError('Specific Market is required'); return false; }
+    } else if (step === 4) {
+      if (!formData.address.trim()) { setError('Full address is required'); return false; }
+      if (!formData.pincode || formData.pincode.length < 6) { setError('Valid 6-digit pincode is required'); return false; }
+    } else if (step === 5) {
+      if (!formData.idProofUrl) { setError('ID Proof photo is required'); return false; }
+      if (!formData.businessPhotoUrl) { setError('Business Photo is required'); return false; }
+      if (!formData.shopDocumentUrl) { setError('Shop Document is required'); return false; }
+    }
+    return true;
   };
 
   const handleNext = () => {
-    if (step === 1) {
-      if (!formData.name || !formData.ownerName || !formData.contactNumber) {
-        Alert.alert('Error', 'Please fill required fields (Shop Name, Owner Name, Mobile)');
-        return;
-      }
-    }
-    if (step === 2) {
-      if (!formData.category || !formData.address || !formData.pincode) {
-        Alert.alert('Error', 'Please fill required Shop Details');
-        return;
-      }
-    }
-    setStep(prev => prev + 1);
+    if (validate()) setStep(s => s + 1);
   };
 
   const handleBack = () => {
     if (step > 1) {
-      setStep(prev => prev - 1);
-    } else if (onCancel) {
-      onCancel();
-    } else if (navigation) {
-      navigation.goBack();
+      setStep(s => s - 1);
+      setError('');
     }
+    else if (onCancel) onCancel();
+    else navigation?.goBack();
+  };
+
+  const pickImage = (field) => {
+    launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, (res) => {
+      if (res.assets?.[0]) update(field, res.assets[0].uri);
+    });
   };
 
   const handleSubmit = async () => {
-    if (!formData.ownerPhotoUrl || !formData.shopFrontPhotoUrl || !formData.idProofType || !formData.idProofUrl) {
-      Alert.alert('Error', 'Please upload required photos and documents');
-      return;
-    }
-
+    if (!validate()) return;
     setIsLoading(true);
     try {
       let idProofUrl = formData.idProofUrl;
-      let businessPhotoUrl = formData.shopFrontPhotoUrl;
+      let businessPhotoUrl = formData.businessPhotoUrl;
+      let shopDocumentUrl = formData.shopDocumentUrl;
 
+      // Individual image uploads with fallback to original URI if fails
+      // We wrap each in try-catch so one fail doesn't block overall registration
       if (idProofUrl && !idProofUrl.startsWith('http')) {
-        idProofUrl = await uploadFile(idProofUrl, 'id-proofs');
+        try {
+          idProofUrl = await uploadFile(idProofUrl, 'id-proofs');
+        } catch (e) {
+          console.warn('ID Proof upload failed, proceeding without it:', e.message);
+          idProofUrl = null; 
+        }
       }
-
       if (businessPhotoUrl && !businessPhotoUrl.startsWith('http')) {
-        businessPhotoUrl = await uploadFile(businessPhotoUrl, 'shop-photos');
+        try {
+          businessPhotoUrl = await uploadFile(businessPhotoUrl, 'shop-photos');
+        } catch (e) {
+          console.warn('Business Photo upload failed, proceeding without it:', e.message);
+          businessPhotoUrl = null;
+        }
+      }
+      if (shopDocumentUrl && !shopDocumentUrl.startsWith('http')) {
+        try {
+          shopDocumentUrl = await uploadFile(shopDocumentUrl, 'kyc-documents');
+        } catch (e) {
+          console.warn('Shop Document upload failed, proceeding without it:', e.message);
+          shopDocumentUrl = null;
+        }
       }
 
-      const vendorData = {
-        businessName: formData.name,
+
+      const response = await registerVendor({
+        businessName: formData.businessName,
         ownerName: formData.ownerName,
         category: formData.category,
-        subCategory: formData.circle,
-        mobile: formData.contactNumber,
+        subCategory: formData.subCategory,
+        mobile: formData.mobile,
         email: formData.email,
         address: formData.address,
-        state: formData.location ? formData.location.state : formData.state || '',
-        city: formData.city || (formData.location ? formData.location.city : ''),
+        state: formData.state,
+        city: formData.city,
+        area: formData.area,
+        circle: formData.circle,
         pincode: formData.pincode,
-        idProofUrl,
-        businessPhotoUrl,
-      };
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        idProofUrl, businessPhotoUrl, shopDocumentUrl,
+      });
 
-      const response = await registerVendor(vendorData);
-
-      if (response && response.vendor) {
-        setIsSubmitted(true);
-        if (onComplete) {
-          onComplete(response.vendor);
-        }
+      if (response?.vendor) {
+        setStep(6);
+        if (onComplete) onComplete(response.vendor);
       } else {
-        throw new Error('No vendor data returned');
+        throw new Error('Registration failed. No vendor data returned.');
       }
-    } catch (error) {
-      console.error('Registration failed:', error);
-      Alert.alert('Registration Error', error.message || 'Failed to register vendor. Please try again.');
+    } catch (err) {
+      console.error('Registration error:', err);
+      // Show actual error message if available
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleImagePicker = (fieldKey) => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.8,
-    };
-
-    launchImageLibrary(options, (response) => {
-      if (response.assets && response.assets[0]) {
-        updateField(fieldKey, response.assets[0].uri);
-      }
-    });
-  };
-
-  const categories = ['Grocery', 'Fruits & Vegetables', 'Electronics', 'Mobile Accessories', 'Garments', 'Hardware', 'General Store', 'Others'];
-  const idProofTypes = ['Aadhaar', 'PAN', 'Voter ID', 'Driving Licence'];
-  const shopProofTypes = ['GST Certificate', 'Shop License', 'Rent Agreement', 'Utility Bill'];
-
-  const PickerModal = ({ visible, onClose, items, onSelect, selectedValue, title }) => (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Icon name={getIconName('X')} size={24} color="#1e293b" />
-            </TouchableOpacity>
+  // ── Success Screen ─────────────────────────────────────────────────────
+  if (step === 6) {
+    return (
+      <View style={styles.successBg}>
+        <LinearGradient colors={[ORANGE, BLUE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={styles.successCard}>
+          <View style={styles.successIconCircle}>
+            <Icon name="check-circle" size={48} color="#16A34A" />
           </View>
-          <ScrollView>
-            {items.map((item) => (
-              <TouchableOpacity
-                key={item}
-                style={[
-                  styles.modalOption,
-                  selectedValue === item && styles.modalOptionActive
-                ]}
-                onPress={() => {
-                  onSelect(item);
-                  onClose();
-                }}
-              >
-                <Text style={[
-                  styles.modalOptionText,
-                  selectedValue === item && styles.modalOptionTextActive
-                ]}>
-                  {item}
-                </Text>
-                {selectedValue === item && (
-                  <Icon name={getIconName('Check')} size={20} color="#ea580c" />
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <Text style={styles.successTitle}>Registration Successful!</Text>
+          <Text style={styles.successSub}>
+            Your business has been submitted for review. We will verify and activate your account within{' '}
+            <Text style={{ fontWeight: '900', color: '#0F172A' }}>48-72 hours</Text>.
+          </Text>
+          <TouchableOpacity
+            style={styles.successBtn}
+            onPress={onCancel || (() => navigation?.goBack())}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.successBtnText}>Back to Login</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
-  );
-
-  const InputField = ({ label, iconName, value, onChange, required, placeholder, keyboardType, iconText }) => (
-    <View style={styles.inputFieldContainer}>
-      <Text style={styles.inputFieldLabel}>
-        {label.toUpperCase()} {required && <Text style={styles.required}>*</Text>}
-      </Text>
-      <View style={styles.inputFieldWrapper}>
-        {iconText ? (
-          <Text style={styles.inputIconText}>{iconText}</Text>
-        ) : iconName ? (
-          <Icon name={getIconName(iconName) || iconName?.toLowerCase()} size={20} color="#94a3b8" style={styles.inputIcon} />
-        ) : null}
-        <TextInput
-          style={styles.inputField}
-          value={value || ''}
-          onChangeText={onChange}
-          placeholder={placeholder || `Enter ${label}`}
-          placeholderTextColor="#94a3b8"
-          keyboardType={keyboardType || 'default'}
-        />
-      </View>
-    </View>
-  );
-
-  const DropdownField = ({ label, value, onPress, iconName }) => (
-    <View style={styles.inputFieldContainer}>
-      <Text style={styles.inputFieldLabel}>{label.toUpperCase()}</Text>
-      <TouchableOpacity style={styles.dropdownWrapper} onPress={onPress} activeOpacity={0.7}>
-        <Icon name={getIconName(iconName)} size={20} color="#94a3b8" style={styles.inputIcon} />
-        <Text style={[styles.dropdownText, !value && styles.dropdownPlaceholder]}>
-          {value || `Select ${label}`}
-        </Text>
-        <Icon name={getIconName('ChevronDown')} size={20} color="#94a3b8" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const PhotoUploadField = ({ label, fieldKey, isSquare = true }) => {
-    const hasImage = formData[fieldKey];
-    return (
-      <TouchableOpacity
-        style={[styles.photoUploadField, isSquare ? styles.photoUploadSquare : styles.photoUploadRect]}
-        onPress={() => handleImagePicker(fieldKey)}
-        activeOpacity={0.7}
-      >
-        {hasImage ? (
-          <Image source={{ uri: hasImage }} style={styles.photoUploadImage} />
-        ) : (
-          <>
-            <Icon name="camera" size={32} color="#94a3b8" />
-            <Text style={styles.photoUploadLabel}>{label}</Text>
-          </>
-        )}
-      </TouchableOpacity>
-    );
-  };
-
-  if (isSubmitted) {
-    return (
-      <View style={styles.successContainer}>
-        <View style={styles.successIcon}>
-          <Icon name={getIconName('CheckCircle')} size={48} color="#16a34a" />
-        </View>
-        <Text style={styles.successTitle}>Registration Successful!</Text>
-        <Text style={styles.successText}>
-          Thank you for information, we will review and get back to you in{' '}
-          <Text style={styles.bold}>48-72 hrs</Text>.
-        </Text>
-        <TouchableOpacity
-          style={styles.successButton}
-          onPress={onCancel || (() => navigation?.goBack())}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.successButtonText}>Back to Login</Text>
-        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={handleBack} style={styles.cancelButton} activeOpacity={0.7}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: ORANGE }}>
+        {/* Gradient Hero Header (matches website) */}
+        <LinearGradient colors={[ORANGE, BLUE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.heroHeader}>
+          <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.7}>
+            <Icon name="arrow-left" size={22} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Local+ Registration</Text>
-          <Text style={styles.stepIndicator}>Step {step}/3</Text>
-        </View>
-        <View style={styles.headerUnderline} />
+          <View style={styles.heroIconCircle}>
+            <Icon name="briefcase" size={28} color={ORANGE} />
+          </View>
+          <Text style={styles.heroTitle}>Register Your Business</Text>
+          <Text style={styles.heroSub}>Join LocalMarket and grow your business</Text>
+        </LinearGradient>
       </SafeAreaView>
 
-      {/* Progress Bar */}
-      <View style={styles.progressBarContainer}>
-        <View style={[styles.progressBar, { width: `${(step / 3) * 100}%` }]} />
+      {/* Step Bar */}
+      <View style={styles.stepBarContainer}>
+        <StepBar step={step} total={5} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* STEP 1: BASIC INFORMATION */}
+      {/* Error Banner */}
+      {!!error && (
+        <View style={styles.errorBanner}>
+          <Icon name="alert-circle" size={16} color="#DC2626" />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="always"
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+      >
+        {/* ── STEP 1: Business Info ──────────────────────────────────── */}
         {step === 1 && (
-          <View style={styles.stepContent}>
-            <View style={styles.stepHeaderOrange}>
-              <Text style={styles.stepHeaderTextOrange}>Basic Local+ Information</Text>
-            </View>
-
-            <View style={styles.fieldsContainer}>
-              <InputField
-                label="Shop Name"
-                iconName="Store"
-                value={formData.name}
-                onChange={(v) => updateField('name', v)}
-                required
-              />
-              <InputField
-                label="Owner / Proprietor Name"
-                iconName="User"
-                value={formData.ownerName}
-                onChange={(v) => updateField('ownerName', v)}
-                required
-              />
-              <InputField
-                label="Registered Mobile Number"
-                iconName="Phone"
-                value={formData.contactNumber}
-                onChange={(v) => updateField('contactNumber', v)}
-                keyboardType="phone-pad"
-                required
-              />
-              <InputField
-                label="Alternate Mobile Number (Optional)"
-                iconName="Phone"
-                value={formData.alternateMobile}
-                onChange={(v) => updateField('alternateMobile', v)}
-                keyboardType="phone-pad"
-              />
-              <InputField
-                label="WhatsApp Number (Optional)"
-                iconName="Phone"
-                value={formData.whatsappNumber}
-                onChange={(v) => updateField('whatsappNumber', v)}
-                keyboardType="phone-pad"
-              />
-              <InputField
-                label="Email Address (Optional)"
-                iconName="Mail"
-                value={formData.email}
-                onChange={(v) => updateField('email', v)}
-                keyboardType="email-address"
-              />
-              <InputField
-                label="Referral Code (Optional)"
-                iconName="Hash"
-                iconText="#"
-                value={formData.referralCode}
-                onChange={(v) => updateField('referralCode', v)}
-              />
-            </View>
+          <View style={styles.stepBlock}>
+            <Text style={styles.stepTitle}>Business Information</Text>
+            <FocusedInput label="Business Name" required value={formData.businessName} onChangeText={v => update('businessName', v)} placeholder="Enter business name" />
+            <FocusedInput label="Owner Name" required value={formData.ownerName} onChangeText={v => update('ownerName', v)} placeholder="Enter owner name" />
+            <DropdownPicker
+              label="Category" required
+              value={formData.category}
+              options={categories}
+              loading={loadingCats}
+              onSelect={v => update('category', v)}
+              placeholder="Select category"
+            />
           </View>
         )}
 
-        {/* STEP 2: SHOP DETAILS */}
+        {/* ── STEP 2: Contact Info ───────────────────────────────────── */}
         {step === 2 && (
-          <View style={styles.stepContent}>
-            <View style={styles.stepHeaderOrange}>
-              <Text style={styles.stepHeaderTextOrange}>Shop Details</Text>
-            </View>
-
-            <View style={styles.shopDetailsCard}>
-              <View style={styles.fieldsContainer}>
-                <DropdownField
-                  label="Business Category"
-                  value={formData.category}
-                  onPress={() => setShowCategoryPicker(true)}
-                  iconName="Store"
-                />
-
-                <InputField
-                  label="Shop Address"
-                  iconName="MapPin"
-                  value={formData.address}
-                  onChange={(v) => updateField('address', v)}
-                  required
-                />
-
-                <InputField
-                  label="Landmark"
-                  iconName="MapPin"
-                  value={formData.landmark}
-                  onChange={(v) => updateField('landmark', v)}
-                />
-
-                <InputField
-                  label="Pincode"
-                  iconName="MapPin"
-                  value={formData.pincode}
-                  onChange={(v) => updateField('pincode', v)}
-                  keyboardType="number-pad"
-                  required
-                />
-
-                <DropdownField
-                  label="Location (State/City/Town/Tehsil/Sub-Tehsil)"
-                  value={formData.location ? formatLocation(formData.location) : ''}
-                  onPress={() => setShowLocationPicker(true)}
-                  iconName="MapPin"
-                  placeholder="Select Location"
-                />
-
-                <InputField
-                  label="City (Legacy)"
-                  iconName="MapPin"
-                  value={formData.city}
-                  onChange={(v) => updateField('city', v)}
-                />
-
-                <InputField
-                  label="District"
-                  iconName="MapPin"
-                  value={formData.district}
-                  onChange={(v) => updateField('district', v)}
-                  placeholder="Enter District"
-                />
-
-                <InputField
-                  label="Circle (Micro-region)"
-                  iconName="MapPin"
-                  value={formData.circle}
-                  onChange={(v) => updateField('circle', v)}
-                  placeholder="e.g. Connaught Place"
-                />
-
-                <View style={styles.mapButtonContainer}>
-                  <Text style={styles.inputFieldLabel}>SHOP LOCATION</Text>
-                  <TouchableOpacity style={styles.mapButton} activeOpacity={0.7}>
-                    <Icon name={getIconName('MapPin')} size={20} color="#ea580c" />
-                    <Text style={styles.mapButtonText}>Drop Pin on Map</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <InputField
-                  label="Opening Time"
-                  iconName="Clock"
-                  value={formData.openingTime}
-                  onChange={(v) => updateField('openingTime', v)}
-                  placeholder="--:--"
-                />
-
-                <InputField
-                  label="Closing Time"
-                  iconName="Clock"
-                  value={formData.closingTime}
-                  onChange={(v) => updateField('closingTime', v)}
-                  placeholder="--:--"
-                />
-
-                <InputField
-                  label="Weekly Off"
-                  iconName="Clock"
-                  value={formData.weeklyOff}
-                  onChange={(v) => updateField('weeklyOff', v)}
-                  placeholder="Enter Weekly Off"
-                />
-              </View>
-            </View>
+          <View style={styles.stepBlock}>
+            <Text style={styles.stepTitle}>Contact Information</Text>
+            <FocusedInput label="Mobile Number" required value={formData.mobile} onChangeText={v => update('mobile', v.replace(/\D/g, '').slice(0, 10))} keyboardType="phone-pad" placeholder="Enter 10-digit number" prefix="+91" />
+            <FocusedInput label="Email Address" value={formData.email} onChangeText={v => update('email', v)} keyboardType="email-address" placeholder="Enter email address" />
           </View>
         )}
 
-        {/* STEP 3: KYC & DOCUMENTS */}
+        {/* ── STEP 3: Regional Selection ────────────────────────────── */}
         {step === 3 && (
-          <View style={styles.stepContent}>
-            <View style={styles.stepHeaderGreen}>
-              <Text style={styles.stepHeaderTextGreen}>KYC & Verification</Text>
-            </View>
+          <View style={styles.stepBlock}>
+            <Text style={styles.stepTitle}>Service Region</Text>
+            <Text style={styles.stepSub}>Select the area where your business is located</Text>
+            <DropdownPicker label="State" required value={formData.state} options={states} loading={loadingStates} onSelect={v => { update('state', v); update('city', ''); update('area', ''); update('circle', ''); }} />
+            <DropdownPicker label="City" required value={formData.city} options={cities} loading={loadingCities} disabled={!formData.state} onSelect={v => { update('city', v); update('area', ''); update('circle', ''); }} />
+            <DropdownPicker label="Circle / Area" required value={formData.area} options={[...towns, towns.length > 0 ? 'Other' : null].filter(Boolean)} loading={loadingTowns} disabled={!formData.city} onSelect={v => { update('area', v); update('circle', ''); }} />
+            <DropdownPicker label="Specific Market" required value={formData.circle} options={[...markets, markets.length > 0 ? 'Other' : null].filter(Boolean)} loading={loadingMarkets} disabled={!formData.area} onSelect={v => update('circle', v)} />
+          </View>
+        )}
 
-            {/* Photos */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Icon name="camera" size={20} color="#64748b" />
-                <Text style={styles.sectionTitle}>Photos</Text>
-              </View>
-              <View style={styles.photosContainer}>
-                <PhotoUploadField label="Owner Photo" fieldKey="ownerPhotoUrl" isSquare={true} />
-                <PhotoUploadField label="Shop Front Photo" fieldKey="shopFrontPhotoUrl" isSquare={true} />
-                <PhotoUploadField label="Inside Shop Photo (Optional)" fieldKey="insideShopPhotoUrl" isSquare={false} />
-              </View>
-            </View>
+        {/* ── STEP 4: Physical Storefront ────────────────────────────── */}
+        {step === 4 && (
+          <View style={styles.stepBlock}>
+            <Text style={styles.stepTitle}>Storefront Details</Text>
+            <Text style={styles.stepSub}>Help customers find your exact shop location</Text>
+            <FocusedInput label="Full Address" required value={formData.address} onChangeText={v => update('address', v)} placeholder="Shop No, Building Name, Street..." multiline numberOfLines={3} />
+            <FocusedInput label="Pincode" required value={formData.pincode} onChangeText={v => update('pincode', v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" placeholder="e.g. 110001" />
+            
+            <TouchableOpacity 
+              style={styles.locationDetectionBtn}
+              onPress={() => {
+                // Future: Use Geolocation API to detect lat/lng
+                Alert.alert('Coming Soon', 'GPS detection will be available in the next update.');
+              }}
+            >
+              <Icon name="navigation" size={16} color={ORANGE} />
+              <Text style={styles.locationDetectionText}>Detect Current Location</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-            {/* ID Proof */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Icon name={getIconName('User')} size={20} color="#64748b" />
-                <Text style={styles.sectionTitle}>Valid ID Proof</Text>
+        {/* ── STEP 5: Documents ──────────────────────────────────────── */}
+        {step === 5 && (
+          <View style={styles.stepBlock}>
+            <Text style={styles.stepTitle}>Documents & Photos</Text>
+            <Text style={styles.stepSub}>Upload the required documents for verification</Text>
+            <View style={styles.photoGrid}>
+              <View style={styles.photoItem}>
+                <PhotoUpload label="ID Proof *" value={formData.idProofUrl} onPress={() => pickImage('idProofUrl')} />
+                <Text style={styles.photoCaption}>Aadhaar / PAN / Voter ID</Text>
               </View>
-              <View style={styles.fieldsContainer}>
-                <DropdownField
-                  label="ID Type"
-                  value={formData.idProofType}
-                  onPress={() => setShowIdProofPicker(true)}
-                  iconName="User"
-                />
-                <PhotoUploadField label="Upload ID Proof" fieldKey="idProofUrl" isSquare={false} />
-              </View>
-            </View>
-
-            {/* Shop Proof */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Icon name={getIconName('Store')} size={20} color="#64748b" />
-                <Text style={styles.sectionTitle}>Proof of Ownership</Text>
-              </View>
-              <View style={styles.fieldsContainer}>
-                <DropdownField
-                  label="Proof Type"
-                  value={formData.shopProofType}
-                  onPress={() => setShowShopProofPicker(true)}
-                  iconName="Store"
-                />
-                <PhotoUploadField label="Upload Shop Proof" fieldKey="shopProofUrl" isSquare={false} />
+              <View style={styles.photoItem}>
+                <PhotoUpload label="Business Photo *" value={formData.businessPhotoUrl} onPress={() => pickImage('businessPhotoUrl')} />
+                <Text style={styles.photoCaption}>Shop front photo</Text>
               </View>
             </View>
-
-            {/* Tax Info */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Icon name={getIconName('FileText')} size={20} color="#64748b" />
-                <Text style={styles.sectionTitle}>Tax Details</Text>
-              </View>
-              <View style={styles.fieldsContainer}>
-                <InputField
-                  label="GST Number (If applicable)"
-                  iconName="Hash"
-                  iconText="#"
-                  value={formData.gstNumber}
-                  onChange={(v) => updateField('gstNumber', v)}
-                  placeholder="Enter GST Number (If applicable)"
-                />
-                <InputField
-                  label="PAN Number (Optional)"
-                  iconName="Hash"
-                  iconText="#"
-                  value={formData.panNumber}
-                  onChange={(v) => updateField('panNumber', v)}
-                  placeholder="Enter PAN Number (Optional)"
-                />
-              </View>
-            </View>
+            <PhotoUpload label="Shop Document / KYC *" value={formData.shopDocumentUrl} onPress={() => pickImage('shopDocumentUrl')} />
+            <Text style={[styles.photoCaption, { marginTop: 4 }]}>GST / Shop License / Rent Agreement</Text>
           </View>
         )}
       </ScrollView>
 
-      {/* Footer Actions */}
+      {/* Footer Buttons */}
       <View style={styles.footer}>
         {step > 1 && (
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={handleBack}
-            activeOpacity={0.7}
-          >
-            <Icon name={getIconName('ArrowLeft')} size={16} color="#475569" />
-            <Text style={styles.backButtonText}>Back</Text>
+          <TouchableOpacity style={styles.btnBack} onPress={handleBack} activeOpacity={0.7}>
+            <Text style={styles.btnBackText}>Back</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={[styles.nextButton, step === 3 && styles.submitButton, isLoading && { opacity: 0.7 }]}
-          onPress={step === 3 ? handleSubmit : handleNext}
+          style={[styles.btnNext, step > 1 && { flex: 1 }, isLoading && { opacity: 0.7 }]}
+          onPress={step === 5 ? handleSubmit : handleNext}
           activeOpacity={0.8}
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="#ffffff" size="small" />
+            <ActivityIndicator color="#FFF" size="small" />
           ) : (
             <>
-              <Text style={styles.nextButtonText}>
-                {step === 3 ? 'Submit & Register' : 'Next Step'}
-              </Text>
-              {step === 3 ? (
-                <Icon name={getIconName('CheckCircle')} size={18} color="#ffffff" />
-              ) : (
-                <Icon name={getIconName('ArrowRight')} size={18} color="#ffffff" />
-              )}
+              <Text style={styles.btnNextText}>{step === 5 ? 'Submit & Register' : 'Next Step'}</Text>
+              <Icon name={step === 5 ? 'check-circle' : 'arrow-right'} size={18} color="#FFF" />
             </>
           )}
         </TouchableOpacity>
       </View>
-
-      {/* Pickers */}
-      <PickerModal
-        visible={showCategoryPicker}
-        onClose={() => setShowCategoryPicker(false)}
-        items={categories}
-        onSelect={(item) => updateField('category', item)}
-        selectedValue={formData.category}
-        title="Select Business Category"
-      />
-      <PickerModal
-        visible={showIdProofPicker}
-        onClose={() => setShowIdProofPicker(false)}
-        items={idProofTypes}
-        onSelect={(item) => updateField('idProofType', item)}
-        selectedValue={formData.idProofType}
-        title="Select ID Type"
-      />
-      <PickerModal
-        visible={showShopProofPicker}
-        onClose={() => setShowShopProofPicker(false)}
-        items={shopProofTypes}
-        onSelect={(item) => updateField('shopProofType', item)}
-        selectedValue={formData.shopProofType}
-        title="Select Proof Type"
-      />
-
-      {/* Location Picker */}
-      <LocationPicker
-        visible={showLocationPicker}
-        onClose={() => setShowLocationPicker(false)}
-        onSelect={(location) => {
-          updateField('location', location);
-          // Also update city field for backward compatibility
-          if (location.city) {
-            updateField('city', location.city);
-          }
-        }}
-        initialLocation={formData.location || {}}
-      />
     </View>
   );
 };
 
+// ─── Field Styles ──────────────────────────────────────────────────────────
+const fieldStyles = StyleSheet.create({
+  fieldContainer: { marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 8 },
+  required: { color: '#DC2626' },
+  inputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12,
+    backgroundColor: '#FFF', paddingHorizontal: 14, minHeight: 50,
+  },
+  inputFocused: { borderColor: ORANGE, shadowColor: ORANGE, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 3 },
+  prefix: { fontSize: 15, fontWeight: '700', color: '#64748B', marginRight: 8 },
+  input: { flex: 1, fontSize: 15, fontWeight: '500', color: '#0F172A', padding: 0 },
+  photoBox: {
+    borderWidth: 2, borderStyle: 'dashed', borderColor: '#CBD5E1',
+    borderRadius: 14, backgroundColor: '#F8FAFC',
+    alignItems: 'center', justifyContent: 'center',
+    height: 130, gap: 8,
+  },
+  photoImage: { width: '100%', height: '100%', borderRadius: 12 },
+  photoLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', textAlign: 'center' },
+});
+
+const dropStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#FFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '70%' },
+  handle: { width: 40, height: 4, backgroundColor: '#E2E8F0', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 4 },
+  title: { fontSize: 16, fontWeight: '800', color: '#0F172A', padding: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
+  optionActive: { backgroundColor: '#FFF7ED' },
+  optionText: { fontSize: 15, fontWeight: '500', color: '#0F172A' },
+  optionTextActive: { fontWeight: '800', color: ORANGE },
+});
+
+const stepBarStyles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16 },
+  circle: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: '#CBD5E1', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF' },
+  circleActive: { borderColor: ORANGE, backgroundColor: ORANGE },
+  circleDone: { backgroundColor: ORANGE },
+  circleText: { fontSize: 14, fontWeight: '800', color: '#94A3B8' },
+  circleTextActive: { color: '#FFF' },
+  line: { flex: 1, height: 2, backgroundColor: '#E2E8F0', marginHorizontal: 4 },
+  lineActive: { backgroundColor: ORANGE },
+});
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  heroHeader: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 28, alignItems: 'center' },
+  backBtn: { position: 'absolute', left: 16, top: 16, padding: 6 },
+  heroIconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6 },
+  heroTitle: { fontSize: 22, fontWeight: '900', color: '#FFF', marginBottom: 4 },
+  heroSub: { fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.85)' },
+  stepBarContainer: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 20, marginTop: 12, padding: 14, backgroundColor: '#FEF2F2', borderRadius: 12, borderWidth: 1, borderColor: '#FECACA' },
+  errorText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#DC2626' },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: 20, paddingBottom: 120 },
+  stepBlock: { gap: 4 },
+  stepTitle: { fontSize: 20, fontWeight: '900', color: '#0F172A', marginBottom: 20 },
+  stepSub: { fontSize: 13, color: '#64748B', marginBottom: 16, marginTop: -10, fontWeight: '500' },
+  photoGrid: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+  photoItem: { flex: 1 },
+  photoCaption: { fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center', marginBottom: 12 },
+  footer: {
+    flexDirection: 'row', padding: 16, gap: 12,
+    borderTopWidth: 1, borderTopColor: '#F1F5F9', backgroundColor: '#FFF',
+    ...Platform.select({ ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.06, shadowRadius: 8 }, android: { elevation: 8 } }),
   },
-  header: {
-    backgroundColor: '#ffffff',
-  },
-  headerContent: {
-    height: 56,
+  btnBack: { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
+  btnBackText: { fontSize: 15, fontWeight: '800', color: '#64748B' },
+  btnNext: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14, backgroundColor: ORANGE },
+  btnNextText: { fontSize: 15, fontWeight: '900', color: '#FFF' },
+  successBg: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  successCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 32, alignItems: 'center', width: '100%', maxWidth: 360, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 8 },
+  successIconCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  successTitle: { fontSize: 22, fontWeight: '900', color: '#0F172A', marginBottom: 12, textAlign: 'center' },
+  successSub: { fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 22, marginBottom: 28 },
+  successBtn: { width: '100%', paddingVertical: 14, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center' },
+  successBtnText: { fontSize: 15, fontWeight: '900', color: '#FFF' },
+  locationDetectionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    marginTop: 8,
+    borderWidth: 1.5,
+    borderColor: ORANGE,
+    borderRadius: 12,
+    borderStyle: 'dashed',
   },
-  headerUnderline: {
-    height: 2,
-    backgroundColor: '#ea580c',
-    marginHorizontal: 20,
-  },
-  cancelButton: {
-    padding: 4,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  stepIndicator: {
+  locationDetectionText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#ea580c',
-  },
-  progressBarContainer: {
-    height: 4,
-    backgroundColor: '#f3f4f6',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#ea580c',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  stepContent: {
-    gap: 24,
-  },
-  stepHeaderOrange: {
-    backgroundColor: '#fff7ed',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#fed7aa',
-  },
-  stepHeaderGreen: {
-    backgroundColor: '#f0fdf4',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#bbf7d0',
-  },
-  stepHeaderTextOrange: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#ea580c',
-  },
-  stepHeaderTextGreen: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#16a34a',
-  },
-  shopDetailsCard: {
-    backgroundColor: '#faf5f0',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#f3f4f6',
-  },
-  fieldsContainer: {
-    gap: 16,
-  },
-  inputFieldContainer: {
-    gap: 8,
-  },
-  inputFieldLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginLeft: 4,
-  },
-  required: {
-    color: '#dc2626',
-  },
-  inputFieldWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    minHeight: 48,
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  inputIconText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#64748b',
-    marginRight: 12,
-  },
-  inputField: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#1e293b',
-    padding: 0,
-  },
-  dropdownWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    minHeight: 48,
-  },
-  dropdownText: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#1e293b',
-  },
-  dropdownPlaceholder: {
-    color: '#94a3b8',
-  },
-  mapButtonContainer: {
-    gap: 8,
-  },
-  mapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#fed7aa',
-    borderRadius: 12,
-    paddingVertical: 14,
-    minHeight: 48,
-  },
-  mapButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#ea580c',
-  },
-  section: {
-    marginTop: 24,
-    paddingTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  photosContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  photoUploadField: {
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: '#d1d5db',
-    borderRadius: 12,
-    backgroundColor: '#f9fafb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 16,
-  },
-  photoUploadSquare: {
-    width: '48%',
-    aspectRatio: 1,
-  },
-  photoUploadRect: {
-    width: '100%',
-    height: 120,
-  },
-  photoUploadImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-  },
-  photoUploadLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#64748b',
-    textAlign: 'center',
-  },
-  footer: {
-    flexDirection: 'row',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-    gap: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  backButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#f3f4f6',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  backButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  nextButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#ea580c',
-  },
-  submitButton: {
-    backgroundColor: '#ea580c',
-  },
-  nextButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '70%',
-    paddingBottom: 40,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  modalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  modalOptionActive: {
-    backgroundColor: '#fff7ed',
-  },
-  modalOptionText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1e293b',
-  },
-  modalOptionTextActive: {
-    fontWeight: '700',
-    color: '#ea580c',
-  },
-  successContainer: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  successIcon: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#dcfce7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  successText: {
-    fontSize: 16,
-    color: '#475569',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-    maxWidth: 300,
-  },
-  bold: {
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  successButton: {
-    width: '100%',
-    maxWidth: 300,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#ea580c',
-    alignItems: 'center',
-  },
-  successButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
+    color: ORANGE,
   },
 });
 

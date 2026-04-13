@@ -1,7 +1,8 @@
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
-  return typeof v === 'string' ? v.trim() : '';
+  if (v === null || v === undefined) return '';
+  return String(v).trim();
 }
 
 export async function GET() {
@@ -31,11 +32,13 @@ export async function POST(req) {
     const sort_order = Number.isFinite(Number(body?.sort_order)) ? Number(body.sort_order) : 0;
     const start_at = body?.start_at || body?.startAt || null;
     const end_at = body?.end_at || body?.endAt || null;
+    const target_city = toStr(body?.target_city || body?.targetCity) || null;
+    const target_circle = toStr(body?.target_circle || body?.targetCircle) || null;
 
     if (!image_url) return Response.json({ error: 'image_url is required' }, { status: 400 });
 
     const inserted = await supabaseRestInsert('/rest/v1/banners', [
-      { title, image_url, link_url, active, sort_order, start_at, end_at },
+      { title, image_url, link_url, active, sort_order, start_at, end_at, target_city, target_circle },
     ]);
     return Response.json({ banner: Array.isArray(inserted) ? inserted[0] : inserted }, { status: 200 });
   } catch (e) {
@@ -62,6 +65,8 @@ export async function PATCH(req) {
     if (body.sort_order !== undefined) patch.sort_order = body.sort_order;
     if (body.start_at !== undefined || body.startAt !== undefined) patch.start_at = body.start_at || body.startAt;
     if (body.end_at !== undefined || body.endAt !== undefined) patch.end_at = body.end_at || body.endAt;
+    if (body.target_city !== undefined || body.targetCity !== undefined) patch.target_city = body.target_city || body.targetCity;
+    if (body.target_circle !== undefined || body.targetCircle !== undefined) patch.target_circle = body.target_circle || body.targetCircle;
 
     const updated = await supabaseRestPatch(`/rest/v1/banners?id=eq.${encodeURIComponent(id)}`, patch);
     return Response.json({ banner: Array.isArray(updated) ? updated[0] : updated }, { status: 200 });
@@ -72,6 +77,20 @@ export async function PATCH(req) {
       return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
     }
     return Response.json({ error: errorMessage }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) return Response.json({ error: 'id is required' }, { status: 400 });
+
+    await supabaseRestDelete(`/rest/v1/banners?id=eq.${encodeURIComponent(id)}`);
+    return Response.json({ success: true }, { status: 200 });
+  } catch (e) {
+    console.error('Error deleting banner:', e.message);
+    return Response.json({ error: e.message }, { status: 500 });
   }
 }
 

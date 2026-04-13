@@ -2,14 +2,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { ShoppingBag, Smartphone, Shirt, Pill, Zap, Home, Headphones, Trophy, Apple, Droplet, Gift, Camera, Music, Activity, Gamepad, Car, Bike, Palette, Square, Layers, Bed, Image, Sun, Utensils, Box, Star, Package, Heart, Leaf, Eye, Monitor, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShoppingBag, Smartphone, Shirt, Pill, Zap, Home, Headphones, Trophy, Apple, Droplet, Gift, Camera, Music, Activity, Gamepad, Car, Bike, Palette, Square, Layers, Bed, Image as ImageIcon, Sun, Utensils, Box, Star, Package, Heart, Leaf, Eye, Monitor, ChevronDown, ChevronUp } from 'lucide-react';
 import { ALL_CATEGORIES, TOP_9_CATEGORIES } from '@/lib/categories';
+import Image from 'next/image';
 
 interface CategoryGridProps {
   onCategorySelect: (categoryName: string) => void;
   variant?: 'light' | 'dark';
   showAll?: boolean;
   categories?: any[];
+  hideButton?: boolean;
 }
 
 const iconMap: Record<string, any> = {
@@ -18,7 +20,7 @@ const iconMap: Record<string, any> = {
   Tool: Trophy,
   Apple, Droplet, Gift, Camera, Music, Activity, Gamepad, Car, Bike,
   Circle: Square,
-  Palette, Square, Layers, Bed, Image, Sun, Utensils, Box, Star, Package, Heart, Leaf, Eye, Monitor,
+  Palette, Square, Layers, Bed, Image: ImageIcon, Sun, Utensils, Box, Star, Package, Heart, Leaf, Eye, Monitor,
   Drumstick: Gift,
   Fish: Droplet,
   Sparkles: Star,
@@ -42,8 +44,16 @@ const iconColors = [
   { bg: 'bg-indigo-50', text: 'text-indigo-500' },
 ];
 
-export default function CategoryGrid({ onCategorySelect, variant = 'light', showAll: initialShowAll = false, categories }: CategoryGridProps) {
-  const [isExpanded, setIsExpanded] = useState(initialShowAll);
+export default function CategoryGrid({
+  onCategorySelect,
+  variant = 'light',
+  showAll: initialShowAll = false,
+  categories,
+  hideButton = false
+}: CategoryGridProps) {
+  const [isExpandedState, setIsExpandedState] = useState(initialShowAll);
+
+  const isExpanded = initialShowAll || isExpandedState;
   const router = useRouter();
 
   const handleCategoryClick = (categoryName: string) => {
@@ -68,10 +78,11 @@ export default function CategoryGrid({ onCategorySelect, variant = 'light', show
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-6 sm:gap-8">
         {categoriesToShow.map((category: any, i: number) => {
           const Icon = iconMap[category.iconName] || ShoppingBag;
           const color = iconColors[i % iconColors.length];
+          const hasImage = !!category.imageUrl;
 
           if (isDark) {
             // Dark variant for use on colored backgrounds
@@ -92,56 +103,76 @@ export default function CategoryGrid({ onCategorySelect, variant = 'light', show
             );
           }
 
-          // Light variant — premium white card
+          // Premium Light Variant Card (Image-centric)
           return (
             <button
-              key={category.id}
+              key={category.id || category.name}
               onClick={() => onCategorySelect(category.name)}
-              className="group relative flex flex-col items-center justify-center gap-4 p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl min-h-[160px] overflow-hidden reveal bg-white border border-slate-100 shadow-sm"
+              className="group relative flex flex-col items-start justify-end gap-0 rounded-[2rem] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] min-h-[180px] overflow-hidden reveal bg-white border border-slate-100 shadow-sm"
               style={{ animationDelay: `${i * 0.04}s` }}
             >
-              {/* Subtle hover gradient overlay */}
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-                style={{ background: 'linear-gradient(135deg, var(--primary)08, var(--secondary)06)' }}
-              />
-
-              {/* Icon */}
-              <div className={`relative z-10 p-4 rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${color.bg} ${color.text}`}>
-                <Icon size={30} strokeWidth={1.5} />
+              {/* Background Image with High Transparency Overlay */}
+              <div className="absolute inset-0 z-0">
+                {hasImage ? (
+                  <>
+                    <Image
+                      src={category.imageUrl}
+                      alt={category.name}
+                      fill
+                      className="object-cover opacity-60 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-85"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent" />
+                  </>
+                ) : (
+                  <div className={`w-full h-full ${color.bg} opacity-30`} />
+                )}
               </div>
 
-              {/* Label */}
-              <div className="relative z-10 text-center">
-                <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 line-clamp-2 leading-tight transition-colors">
-                  {category.name}
+              {/* Icon (Floating Top Right) */}
+              <div className={`absolute top-5 right-5 z-20 p-2 rounded-xl transition-all duration-500 shadow-sm bg-white/80 backdrop-blur-sm text-slate-400 group-hover:text-primary group-hover:scale-110 group-hover:rotate-6 border border-slate-50 w-10 h-10 flex items-center justify-center overflow-hidden`}>
+                {category.iconUrl ? (
+                  <img src={category.iconUrl} alt="" className="w-full h-full object-contain" />
+                ) : (
+                  <Icon size={20} strokeWidth={2} />
+                )}
+              </div>
+
+              {/* Label & Content */}
+              <div className="relative z-10 w-full p-5 text-left">
+                {/* Category Badge */}
+                <span className="inline-block px-2 py-0.5 bg-blue-100/80 text-[9px] font-black text-blue-500 uppercase tracking-widest rounded-md mb-2 transform transition-all duration-500 group-hover:translate-x-1">
+                  Category
                 </span>
+
+                <h3 className="text-base font-black text-slate-800 leading-tight transition-all duration-500 group-hover:translate-x-1 line-clamp-2 mb-3">
+                  {category.name}
+                </h3>
+
+                {/* Decorative Green Bar */}
+                <div className="h-1 w-6 bg-green-600 rounded-full transition-all duration-500 group-hover:w-12" />
               </div>
 
-              {/* Bottom accent line */}
-              <div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 group-hover:w-10 rounded-full transition-all duration-400"
-                style={{ background: 'var(--primary)' }}
-              />
+              {/* Shine effect on hover */}
+              <div className="absolute inset-0 z-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
             </button>
           );
         })}
       </div>
 
-      {!initialShowAll && baseCategories.length > 9 && (
-        <div className="flex justify-center mt-8">
+      {!hideButton && !initialShowAll && baseCategories.length > 9 && (
+        <div className="flex justify-center mt-12">
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 px-8 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-700 hover:bg-slate-50 hover:border-primary/30 transition-all shadow-sm active:scale-95 group"
+            onClick={() => setIsExpandedState(!isExpandedState)}
+            className="group flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-[2rem] text-sm font-black uppercase tracking-widest hover:bg-primary transition-all shadow-xl shadow-slate-200 active:scale-95"
           >
-            {isExpanded ? (
+            {isExpandedState ? (
               <>
-                <ChevronUp size={18} className="text-primary" />
-                Show Fewer Categories
+                <ChevronUp size={20} className="transition-transform group-hover:-translate-y-1" />
+                Show Less
               </>
             ) : (
               <>
-                <ChevronDown size={18} className="text-primary" />
+                <ChevronDown size={20} className="transition-transform group-hover:translate-y-1" />
                 Explore {baseCategories.length - 9} More Categories
               </>
             )}

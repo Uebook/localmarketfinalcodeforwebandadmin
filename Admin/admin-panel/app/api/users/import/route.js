@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';

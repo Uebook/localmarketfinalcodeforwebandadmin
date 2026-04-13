@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getStates, getCities, getTowns, getTehsils, getSubTehsils, CIRCLES } from '../constants/locations';
+import { CIRCLES } from '../constants/locations';
+import { getLocations } from '../services/api';
 
 const LocationSelector = ({
   navigation,
@@ -25,16 +26,42 @@ const LocationSelector = ({
   });
 
   const [activeStep, setActiveStep] = useState('state');
+  const [options, setOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const states = getStates();
-  const cities = location.state ? getCities(location.state) : [];
-  const towns = location.state && location.city ? getTowns(location.state, location.city) : [];
-  const tehsils = location.state && location.city && location.town 
-    ? getTehsils(location.state, location.city, location.town) 
-    : [];
-  const subTehsils = location.state && location.city && location.town && location.tehsil
-    ? getSubTehsils(location.state, location.city, location.town, location.tehsil)
-    : [];
+  useEffect(() => {
+    fetchOptions();
+  }, [activeStep, location.state, location.city, location.town, location.tehsil]);
+
+  const fetchOptions = async () => {
+    setIsLoading(true);
+    try {
+      let data = [];
+      if (activeStep === 'state') {
+        const res = await getLocations();
+        data = res.locations || [];
+      } else if (activeStep === 'city') {
+        const res = await getLocations({ state: location.state });
+        data = res.locations || [];
+      } else if (activeStep === 'town') {
+        const res = await getLocations({ state: location.state, city: location.city });
+        data = res.locations || [];
+      } else if (activeStep === 'tehsil') {
+        const res = await getLocations({ state: location.state, city: location.city, town: location.town });
+        data = res.locations || [];
+      } else if (activeStep === 'subTehsil') {
+        const res = await getLocations({ state: location.state, city: location.city, town: location.town, tehsil: location.tehsil });
+        data = res.locations || [];
+      } else if (activeStep === 'circle') {
+        data = CIRCLES;
+      }
+      setOptions(data);
+    } catch (error) {
+      console.error('Failed to fetch location options:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSelect = (key, value) => {
     const newLocation = { ...location, [key]: value };
@@ -84,24 +111,7 @@ const LocationSelector = ({
     }
   };
 
-  const getCurrentOptions = () => {
-    switch (activeStep) {
-      case 'state':
-        return states;
-      case 'city':
-        return cities;
-      case 'town':
-        return towns;
-      case 'tehsil':
-        return tehsils;
-      case 'subTehsil':
-        return subTehsils;
-      case 'circle':
-        return CIRCLES;
-      default:
-        return [];
-    }
-  };
+  const getCurrentOptions = () => options;
 
   const getStepLabel = () => {
     switch (activeStep) {
@@ -237,11 +247,16 @@ const LocationSelector = ({
       )}
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {options.length === 0 ? (
+        {isLoading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color="var(--primary)" />
+            <Text style={styles.emptyStateText}>Loading options...</Text>
+          </View>
+        ) : options.length === 0 ? (
           <View style={styles.emptyState}>
             <Icon name="alert-circle" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyStateText}>
-              Please select {activeStep === 'city' ? 'a state' : activeStep === 'town' ? 'a city' : 'previous options'} first
+              No options found for this selection.
             </Text>
           </View>
         ) : (

@@ -10,45 +10,49 @@ const PRICE_DROPS = [
        { id: 5, name: 'Dettol Soap 75g', oldPrice: '₹48', newPrice: '₹42', drop: '13%' },
 ];
 
-const PriceDropAlerts = () => {
-       return (
-              <View style={styles.container}>
-                     <View style={styles.header}>
-                            <View style={styles.titleRow}>
-                                   <Text style={styles.emoji}>📉</Text>
-                                   <Text style={styles.title}>Price Drops</Text>
-                                   <View style={styles.newBadge}>
-                                          <Text style={styles.newBadgeText}>NEW</Text>
-                                   </View>
-                            </View>
-                            <Text style={styles.subtitle}>Recent price reductions in your area</Text>
-                     </View>
+const PriceDropAlerts = ({ data = [] }) => {
+  const safeData = Array.isArray(data) ? data : [];
+  if (safeData.length === 0) return null;
 
-                     <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.scrollContent}
-                     >
-                            {PRICE_DROPS.map((item) => (
-                                   <View key={item.id} style={styles.card}>
-                                          <View style={styles.dropBadge}>
-                                                 <Icon name="trending-down" size={11} color="#DC2626" />
-                                                 <Text style={styles.dropPct}> {item.drop}</Text>
-                                          </View>
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <Text style={styles.emoji}>📉</Text>
+          <Text style={styles.title}>Price Drops</Text>
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>NEW</Text>
+          </View>
+        </View>
+        <Text style={styles.subtitle}>Recent price reductions in your area</Text>
+      </View>
 
-                                          <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {safeData.map((item) => (
+          <View key={item.id} style={styles.card}>
+            <View style={styles.dropBadge}>
+              <Icon name="trending-down" size={11} color="#DC2626" />
+              <Text style={styles.dropPct}> {item.pct || 'Sale'}</Text>
+            </View>
 
-                                          <View style={styles.priceRow}>
-                                                 <Text style={styles.oldPrice}>{item.oldPrice}</Text>
-                                                 <Icon name="arrow-right" size={12} color="#94A3B8" style={styles.arrow} />
-                                                 <Text style={styles.newPrice}>{item.newPrice}</Text>
-                                          </View>
-                                   </View>
-                            ))}
-                     </ScrollView>
-              </View>
-       );
+            <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+
+            <View style={styles.priceRow}>
+              <Text style={styles.oldPrice}>₹{item.old || item.mrp}</Text>
+              <Icon name="arrow-right" size={12} color="#94A3B8" style={styles.arrow} />
+              <Text style={styles.newPrice}>₹{item.new || item.price}</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
 };
+
 
 const styles = StyleSheet.create({
        container: {

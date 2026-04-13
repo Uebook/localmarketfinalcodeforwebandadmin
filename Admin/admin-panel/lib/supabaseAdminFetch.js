@@ -19,9 +19,13 @@ function getKey() {
 export function assertSupabaseEnv() {
   const key = getKey();
   if (!SUPABASE_URL || !key) {
-    throw new Error(
-      'Missing SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) environment variables.'
-    );
+    const missing = [];
+    if (!SUPABASE_URL) missing.push('SUPABASE_URL');
+    if (!key) missing.push('SUPABASE_SERVICE_ROLE_KEY/ANON_KEY');
+    
+    const errorMsg = `[Supabase] Configuration error: Missing environment variables (${missing.join(', ')}).`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 }
 
@@ -30,43 +34,46 @@ export async function supabaseRestGet(pathWithQuery) {
   const key = getKey();
   const url = `${SUPABASE_URL}${pathWithQuery}`;
 
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
-    // Avoid caching admin data at the edge during dev
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    let errorText = '';
-    try {
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const json = await res.json().catch(() => null);
-        errorText = json ? JSON.stringify(json) : '';
-      } else {
-        errorText = await res.text().catch(() => '');
-      }
-    } catch (e) {
-      errorText = res.statusText || 'Unknown error';
-    }
-
-    // Log more details for debugging
-    console.error(`Supabase REST error (${res.status}):`, {
-      url: pathWithQuery,
-      status: res.status,
-      statusText: res.statusText,
-      error: errorText,
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+      },
+      // Avoid caching admin data at the edge during dev
+      cache: 'no-store',
     });
 
-    throw new Error(`Supabase REST error (${res.status}): ${errorText || res.statusText}`);
-  }
+    if (!res.ok) {
+      let errorText = '';
+      try {
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const json = await res.json().catch(() => null);
+          errorText = json ? JSON.stringify(json) : '';
+        } else {
+          errorText = await res.text().catch(() => '');
+        }
+      } catch (e) {
+        errorText = res.statusText || 'Unknown error';
+      }
 
-  return await res.json();
+      const statusError = `Supabase REST error (${res.status}): ${errorText || res.statusText}`;
+      console.error(`[Supabase] GET Failure:`, { url, status: res.status, error: errorText });
+      throw new Error(statusError);
+    }
+
+    return await res.json();
+  } catch (err) {
+    if (err.message && (err.message.includes('fetch failed') || err.message.includes('ENOTFOUND'))) {
+      console.error(`[Supabase] Network Error during GET ${url}:`, err.message);
+    } else {
+      console.error(`[Supabase] Unexpected Error during GET ${url}:`, err);
+    }
+    throw err;
+  }
 }
 
 async function supabaseRestWrite(method, pathWithQuery, body, extraHeaders = {}) {
@@ -109,6 +116,16 @@ export async function supabaseRestUpsert(pathWithQuery, rows) {
   return await supabaseRestWrite('POST', pathWithQuery, rows, {
     Prefer: 'resolution=merge-duplicates,return=representation',
   });
+}
+
+export async function supabaseRestPost(pathWithQuery, bodyOrOptions) {
+  // Handle general-purpose REST calls (legacy pattern found in some routes)
+  if (bodyOrOptions && bodyOrOptions.method && bodyOrOptions.body) {
+    const rawBody = typeof bodyOrOptions.body === 'string' ? JSON.parse(bodyOrOptions.body) : bodyOrOptions.body;
+    return await supabaseRestWrite(bodyOrOptions.method, pathWithQuery, rawBody);
+  }
+  // Standard POST behavior (Insert)
+  return await supabaseRestInsert(pathWithQuery, bodyOrOptions);
 }
 
 export async function supabaseRestPatch(pathWithQuery, patchBody) {

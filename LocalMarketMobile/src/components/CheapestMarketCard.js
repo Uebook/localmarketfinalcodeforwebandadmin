@@ -1,51 +1,90 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { getMarketComparisonStats } from '../services/api';
 
-const CheapestMarketCard = ({ navigation }) => {
-       const COLORS = useThemeColors();
+const CheapestMarketCard = ({ navigation, city, circle }) => {
+  const COLORS = useThemeColors();
+  const [loading, setLoading] = useState(true);
+  const [bestMarket, setBestMarket] = useState({
+    name: 'Hall Bazaar',
+    saving: 8,
+    city: 'Amritsar'
+  });
 
-       return (
-              <TouchableOpacity
-                     style={styles.wrapper}
-                     activeOpacity={0.88}
-                     onPress={() => navigation && navigation.navigate('SearchResults', { query: 'Hall Bazaar' })}
-              >
-                     <LinearGradient
-                            colors={['#FF6B00', '#FF9D3B']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.card}
-                     >
-                            {/* Left Content */}
-                            <View style={styles.content}>
-                                   <View style={styles.badgeRow}>
-                                          <View style={styles.liveDot} />
-                                          <Text style={styles.badgeText}>TODAY'S CHEAPEST MARKET</Text>
-                                   </View>
-                                   <Text style={styles.marketName}>Hall Bazaar</Text>
-                                   <Text style={styles.savingsText}>
-                                          <Text style={styles.highlight}>8% cheaper</Text> than nearby markets
-                                   </Text>
-                                   <View style={styles.ctaRow}>
-                                          <Text style={styles.ctaText}>Explore Deals</Text>
-                                          <Icon name="arrow-right" size={14} color="#FFF" style={{ marginLeft: 4 }} />
-                                   </View>
-                            </View>
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await getMarketComparisonStats(city, circle);
+        if (response?.success && response.stats?.length > 0) {
+          // Sort by highest saving percentage
+          const sorted = [...response.stats].sort((a, b) => b.lower_price_pct - a.lower_price_pct);
+          const top = sorted[0];
+          setBestMarket({
+            name: top.circle || top.name || 'Hall Bazaar',
+            saving: Math.round(top.lower_price_pct || 8),
+            city: top.city || city || 'Amritsar'
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching market stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-                            {/* Right Decoration */}
-                            <View style={styles.rightDecor}>
-                                   <View style={styles.bigCircle} />
-                                   <View style={styles.smallCircle} />
-                                   <View style={styles.tagContainer}>
-                                          <Icon name="tag" size={36} color="rgba(255,255,255,0.25)" />
-                                   </View>
-                            </View>
-                     </LinearGradient>
-              </TouchableOpacity>
-       );
+    fetchStats();
+  }, [city, circle]);
+
+  if (loading) {
+    return (
+      <View style={[styles.wrapper, styles.loadingWrapper]}>
+        <ActivityIndicator color="#FF6B00" />
+      </View>
+    );
+  }
+
+  return (
+    <TouchableOpacity
+      style={styles.wrapper}
+      activeOpacity={0.88}
+      onPress={() => navigation && navigation.navigate('SearchResults', { query: bestMarket.name })}
+    >
+      <LinearGradient
+        colors={['#FF6B00', '#FF9D3B']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.card}
+      >
+        {/* Left Content */}
+        <View style={styles.content}>
+          <View style={styles.badgeRow}>
+            <View style={styles.liveDot} />
+            <Text style={styles.badgeText}>TODAY'S CHEAPEST MARKET</Text>
+          </View>
+          <Text style={styles.marketName}>{bestMarket.name}</Text>
+          <Text style={styles.savingsText}>
+            <Text style={styles.highlight}>{bestMarket.saving}% lower price</Text> than nearby markets today
+          </Text>
+          <View style={styles.ctaRow}>
+            <Text style={styles.ctaText}>Explore Deals</Text>
+            <Icon name="arrow-right" size={14} color="#FFF" style={{ marginLeft: 4 }} />
+          </View>
+        </View>
+
+        {/* Right Decoration */}
+        <View style={styles.rightDecor}>
+          <View style={styles.bigCircle} />
+          <View style={styles.smallCircle} />
+          <View style={styles.tagContainer}>
+            <Icon name="tag" size={36} color="rgba(255,255,255,0.25)" />
+          </View>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -67,6 +106,12 @@ const styles = StyleSheet.create({
               flexDirection: 'row',
               alignItems: 'center',
               overflow: 'hidden',
+       },
+       loadingWrapper: {
+              height: 140,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(0,0,0,0.05)',
        },
        content: {
               flex: 1,

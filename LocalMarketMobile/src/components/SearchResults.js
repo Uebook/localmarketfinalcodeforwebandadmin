@@ -1,13 +1,18 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, PanResponder, Dimensions, ActivityIndicator, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, PanResponder, Modal, Share } from 'react-native';
+import ImageWithFallback from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
-import Voice from '@react-native-voice/voice';
 // Static vendor data removed - using database only
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getVendors, getVendorProducts, getCategories } from '../services/api';
+import { 
+    getVendors, 
+    getVendorProducts, 
+    getCategories,
+    getSearchResults 
+} from '../services/api';
 
 const SearchResults = ({
     navigation,
@@ -25,13 +30,14 @@ const SearchResults = ({
     // Get query from route params or props
     const query = route?.params?.query || propQuery;
     const categoryId = route?.params?.categoryId;
-    const isCategorySearch = route?.params?.isCategorySearch || false; // Flag to indicate category-based search
+    const circle = route?.params?.circle;
+    const isCategorySearch = route?.params?.isCategorySearch || false; 
     const COLORS = useThemeColors();
     const styles = createStyles(COLORS);
-    // Use savedBusinessIds from props if available, otherwise use savedIds
+
     const savedIds = savedBusinessIds.length > 0 ? savedBusinessIds : propSavedIds;
     const [sortBy, setSortBy] = useState('default');
-    const [maxDistance, setMaxDistance] = useState(22);
+    const [maxDistance, setMaxDistance] = useState(25);
     const [filterTopRated, setFilterTopRated] = useState(false);
     const [filterVerified, setFilterVerified] = useState(false);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -41,139 +47,62 @@ const SearchResults = ({
     const sliderTrackRef = useRef(null);
     const [sliderWidth, setSliderWidth] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
-    const [isListening, setIsListening] = useState(false);
-
-    useEffect(() => {
-        // Setting up voice listeners
-        Voice.onSpeechStart = onSpeechStart;
-        Voice.onSpeechEnd = onSpeechEnd;
-        Voice.onSpeechResults = onSpeechResults;
-        Voice.onSpeechError = onSpeechError;
-
-        return () => {
-            // Cleanup listeners and stop voice recognition if it's running
-            Voice.destroy().then(Voice.removeAllListeners);
-        };
-    }, []);
 
     useEffect(() => {
         loadSearchData();
-    }, [query, categoryId]);
+    }, [query, categoryId, circle, locationState?.city]);
 
     const loadSearchData = async () => {
         try {
             setLoading(true);
 
-            // Fetch categories to match query to category
-            let matchedCategoryIds = [];
-            if (query) {
-                try {
-                    const categoriesData = await getCategories();
-                    if (categoriesData?.categories) {
-                        const lowerQuery = query.toLowerCase();
-                        // Find all categories that match the query (including partial matches)
-                        const matchedCategories = categoriesData.categories.filter(cat => {
-                            const catName = (cat.name || '').toLowerCase();
-                            // Check if category name contains query or query contains category name
-                            // Also check for partial word matches (e.g., "Fruits" matches "Fresh Fruits")
-                            const queryWords = lowerQuery.split(/[\s&]+/).filter(w => w.length > 2);
-                            const catWords = catName.split(/[\s&]+/).filter(w => w.length > 2);
-
-                            return catName.includes(lowerQuery) ||
-                                lowerQuery.includes(catName) ||
-                                queryWords.some(qw => catWords.some(cw => cw.includes(qw) || qw.includes(cw)));
-                        });
-
-                        if (matchedCategories.length > 0) {
-                            matchedCategoryIds = matchedCategories.map(cat => cat.id);
-                            console.log(`Matched ${matchedCategories.length} categories:`, matchedCategories.map(c => c.name));
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error fetching categories:', error);
-                }
-            }
-
-            // Fetch vendors based on query/category
-            const vendorFilters = {
-                status: 'Active',
-                limit: 100,
+            // 1. Prepare Localized Filters
+            const filters = {
+                q: query || '',
+                // format=vendors returns vendor-centric results with matchingProducts,
+                // which is exactly what the website's search page uses.
+                format: 'vendors'
             };
 
-            // If categoryId is provided (pinned search), use it
-            if (categoryId) {
-                vendorFilters.categoryId = categoryId;
-            } else if (matchedCategoryIds.length > 0) {
-                // If we matched any categories based on the text query, use them
-                // Note: getVendors API might only take one ID, so we use the first one 
-                // or the backend handles multiple. For safety, we'll try to let the 
-                // client-side filtering below handle it if the API is limited.
-                vendorFilters.categoryId = matchedCategoryIds[0];
-            }
 
-            // If query is provided, search by name, owner, or category
-            if (query) {
-                vendorFilters.q = query;
-            }
-
-            // Also filter by location if available
+            // Handle City
             if (locationState?.city) {
-                // Try to extract city from "Area, City, State"
-                const cityParts = locationState.city.split(',').map(p => p.trim());
-                if (cityParts.length > 1) {
-                    vendorFilters.city = cityParts[cityParts.length - 2] || cityParts[0];
+                // If "All Amritsar", use Amritsar for hierarchical search
+                if (locationState.city.startsWith('All ')) {
+                    filters.city = locationState.city.replace('All ', '').trim();
                 } else {
-                    vendorFilters.city = locationState.city;
+                    filters.city = locationState.city.split(',')[0].trim();
                 }
             }
 
-            const vendorsData = await getVendors(vendorFilters);
-            let fetchedVendors = vendorsData?.vendors || [];
-
-            // If categoryId is provided, filter vendors that have products in this category
-            if (categoryId && fetchedVendors.length > 0) {
-                const vendorsWithCategoryProducts = await Promise.all(
-                    fetchedVendors.map(async (vendor) => {
-                        try {
-                            const vendorProductsData = await getVendorProducts(vendor.id);
-                            const hasCategoryProducts = vendorProductsData?.products?.some(
-                                product => product.category_id === categoryId || product.category_id === String(categoryId)
-                            );
-                            return hasCategoryProducts ? vendor : null;
-                        } catch (error) {
-                            console.error(`Error checking products for vendor ${vendor.id}:`, error);
-                            return null;
-                        }
-                    })
-                );
-                fetchedVendors = vendorsWithCategoryProducts.filter(v => v !== null);
+            // Handle Circle
+            if (circle) {
+                filters.circle = circle;
+            } else if (route?.params?.circle) {
+                filters.circle = route.params.circle;
             }
 
-            // Products are no longer fetched - only showing vendors
+            // Map categoryId to query if it's a category search but no text query provided
+            if (categoryId && !query) {
+                try {
+                    const cats = await getCategories();
+                    const cat = cats?.categories?.find(c => String(c.id) === String(categoryId));
+                    if (cat) filters.q = cat.name;
+                } catch (e) {}
+            }
 
-            // Fetch vendor products for each vendor to match against
-            const vendorsWithProducts = await Promise.all(
-                fetchedVendors.map(async (vendor) => {
-                    try {
-                        const vendorProductsData = await getVendorProducts(vendor.id);
-                        return {
-                            ...vendor,
-                            products: vendorProductsData?.products || [],
-                        };
-                    } catch (error) {
-                        console.error(`Error fetching products for vendor ${vendor.id}:`, error);
-                        return {
-                            ...vendor,
-                            products: [],
-                        };
-                    }
-                })
-            );
+            // 2. Call unified Search API (Matches Website logic)
+            const searchData = await getSearchResults(filters);
+            
+            // 3. Normalize results for the existing rendering logic
+            const results = searchData?.results || [];
+            
+            // Fetch minimal details or use the ones from search if needed
+            // The /api/search already includes vendor info and matchingProducts
+            setVendors(results);
 
-            setVendors(vendorsWithProducts);
         } catch (error) {
             console.error('Error loading search data:', error);
-            // No fallback - show empty state if no vendors found
             setVendors([]);
         } finally {
             setLoading(false);
@@ -230,11 +159,13 @@ const SearchResults = ({
             reviewCount: vendor.reviewCount || vendor.review_count || (parseInt(String(vendor.id).charCodeAt(0)) % 100) + 10,
             distance: distanceStr,
             distanceValue: distanceValue, // Store raw value for sorting/filtering
-            imageUrl: vendor.imageUrl || vendor.image_url || 'https://via.placeholder.com/300x200',
+            imageUrl: vendor.imageUrl || vendor.image_url,
             address: vendor.address || `${vendor.city || ''} ${vendor.state || ''}`.trim() || 'Nearby',
             isVerified: vendor.kycStatus === 'Approved' || vendor.kyc_status === 'Approved',
-            products: vendor.products || [],
+            matchingProducts: vendor.matchingProducts || vendor.products || [],
+            products: vendor.matchingProducts || vendor.products || [],
             contactNumber: vendor.contactNumber || vendor.contact_number || '',
+
             email: vendor.email || '',
         };
     };
@@ -380,49 +311,36 @@ const SearchResults = ({
         });
     };
 
-    const onSpeechStart = (e) => {
-        console.log('onSpeechStart: ', e);
-    };
-
-    const onSpeechEnd = (e) => {
-        console.log('onSpeechEnd: ', e);
-        setIsListening(false);
-    };
-
-    const onSpeechResults = (e) => {
-        console.log('onSpeechResults: ', e);
-        if (e.value && e.value.length > 0) {
-            const recognizedText = e.value[0];
-            setIsListening(false);
-
-            if (navigation) {
-                navigation.navigate('SearchResults', { query: recognizedText });
-            }
+    const handleShare = async () => {
+        try {
+            const message = `Check out local stores and best deals for "${query || 'local services'}" on LOKALL app!`;
+            await Share.share({
+                message,
+                title: 'LOKALL Search',
+            });
+        } catch (error) {
+            console.error('Error sharing:', error);
         }
     };
 
-    const onSpeechError = (e) => {
-        console.error('onSpeechError: ', e);
-        setIsListening(false);
+    const handleBusinessShare = async (business) => {
+        try {
+            const message = `Check out ${business.name} on LOKALL!\nLocation: ${business.address}\n\nDownload LOKALL app for best local updates.`;
+            await Share.share({
+                message,
+                title: business.name,
+            });
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
     };
 
     const startListening = async () => {
-        try {
-            setIsListening(true);
-            await Voice.start('en-US');
-        } catch (e) {
-            console.error(e);
-            setIsListening(false);
-        }
+        console.warn('Voice search has been removed.');
     };
 
     const stopListening = async () => {
-        try {
-            await Voice.stop();
-            setIsListening(false);
-        } catch (e) {
-            console.error(e);
-        }
+        // Voice search removed
     };
 
     const sortOptions = [
@@ -433,6 +351,7 @@ const SearchResults = ({
 
     const renderBusinessCard = ({ item, index }) => {
         const isSaved = savedIds.includes(item.id);
+        const matchingProducts = item.matchingProducts || [];
 
         return (
             <TouchableOpacity
@@ -442,7 +361,7 @@ const SearchResults = ({
             >
                 <View style={styles.cardContent}>
                     <View style={styles.imageContainer}>
-                        <Image
+                        <ImageWithFallback
                             source={{ uri: item.imageUrl }}
                             style={styles.image}
                             resizeMode="cover"
@@ -494,16 +413,68 @@ const SearchResults = ({
                                         color={isSaved ? COLORS.orange : COLORS.textMuted}
                                     />
                                 </TouchableOpacity>
-                                <TouchableOpacity activeOpacity={0.7}>
+                                <TouchableOpacity 
+                                    onPress={(e) => {
+                                        e.stopPropagation();
+                                        handleBusinessShare(item);
+                                    }}
+                                    activeOpacity={0.7}
+                                >
                                     <Icon name={getIconName('Share2')} size={16} color="#9ca3af" />
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </View>
                 </View>
+
+                {/* Matching Products Section (Website-style) */}
+                {matchingProducts.length > 0 && query && (
+                    <View style={styles.matchingSection}>
+                        <Text style={styles.matchingSectionLabel}>MATCHING ITEMS</Text>
+                        <View style={styles.matchingList}>
+                            {matchingProducts.slice(0, 2).map((prod, idx) => {
+                                const isMatch = query && prod.name.toLowerCase().includes(query.toLowerCase());
+                                return (
+                                    <View 
+                                        key={prod.id || idx} 
+                                        style={[
+                                            styles.matchingItem,
+                                            isMatch && styles.matchingItemActive
+                                        ]}
+                                    >
+                                        <View style={styles.matchingItemInfo}>
+                                            <Image 
+                                                source={{ uri: prod.image }} 
+                                                style={styles.matchingItemImage} 
+                                            />
+                                            <View>
+                                                <Text style={styles.matchingItemName} numberOfLines={1}>
+                                                    {prod.name}
+                                                </Text>
+                                                <Text style={styles.matchingItemPrice}>₹{prod.price}</Text>
+                                            </View>
+                                        </View>
+                                        <TouchableOpacity 
+                                            style={styles.basketBtn}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Icon name={getIconName('ShoppingBag')} size={14} color="#64748B" />
+                                        </TouchableOpacity>
+                                    </View>
+                                );
+                            })}
+                            {matchingProducts.length > 2 && (
+                                <Text style={styles.moreMatchingText}>
+                                    + {matchingProducts.length - 2} more matching items
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+                )}
             </TouchableOpacity>
         );
     };
+
 
     const handleBack = () => {
         if (navigation) {
@@ -530,18 +501,12 @@ const SearchResults = ({
                     <View style={styles.searchContainer}>
                         <Icon name={getIconName('Search')} size={20} color="rgba(255, 255, 255, 0.7)" style={styles.searchIcon} />
                         <View style={styles.searchInputContainer}>
-                            <Text style={styles.searchInput}>{query || 'Tutors'}</Text>
-                            <Text style={styles.locationText}>Halbatpur, Sector 4</Text>
+                            <Text style={styles.searchInput}>{query || 'Search local stores...'}</Text>
+                            <Text style={styles.locationText}>{locationState?.city || 'Nearby'}</Text>
                         </View>
-                        <TouchableOpacity
-                            onPress={startListening}
-                            activeOpacity={0.7}
-                        >
-                            <Icon name={getIconName('Mic')} size={20} color={COLORS.white} style={styles.micIcon} />
-                        </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity style={styles.shareButton} activeOpacity={0.7}>
+                    <TouchableOpacity onPress={handleShare} style={styles.shareButton} activeOpacity={0.7}>
                         <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
                     </TouchableOpacity>
                 </View>
@@ -771,35 +736,6 @@ const SearchResults = ({
                     </View>
                 </View>
             )}
-
-            {/* Voice Listening Modal */}
-            <Modal
-                visible={isListening}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => setIsListening(false)}
-            >
-                <TouchableOpacity
-                    style={styles.voiceOverlay}
-                    activeOpacity={1}
-                    onPress={() => setIsListening(false)}
-                >
-                    <View style={styles.voiceContent}>
-                        <View style={styles.pulseRing}>
-                            <Icon name={getIconName('Mic')} size={40} color={COLORS.white} />
-                        </View>
-                        <Text style={styles.listeningText}>Listening...</Text>
-                        <Text style={styles.listeningSubtext}>Try saying "Restaurants" or "Plumber"</Text>
-
-                        <TouchableOpacity
-                            style={styles.closeVoiceButton}
-                            onPress={stopListening}
-                        >
-                            <Icon name={getIconName('X')} size={24} color="rgba(255,255,255,0.7)" />
-                        </TouchableOpacity>
-                    </View>
-                </TouchableOpacity>
-            </Modal>
         </View>
     );
 };
@@ -1041,15 +977,86 @@ const createStyles = (COLORS) => StyleSheet.create({
     },
     businessCard: {
         backgroundColor: COLORS.white,
-        borderRadius: 12,
+        marginHorizontal: 16,
+        marginBottom: 16,
+        borderRadius: 24, // Matches website's "2rem"
         borderWidth: 1,
         borderColor: COLORS.divider,
+        overflow: 'hidden',
+        elevation: 3,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
     },
+    matchingSection: {
+        backgroundColor: '#F8FAFC',
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        padding: 12,
+        paddingTop: 10,
+    },
+    matchingSectionLabel: {
+        fontSize: 10,
+        fontWeight: '900',
+        color: '#94A3B8',
+        letterSpacing: 1,
+        paddingHorizontal: 4,
+        marginBottom: 8,
+    },
+    matchingList: {
+        gap: 8,
+    },
+    matchingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#FFFFFF',
+        padding: 8,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    matchingItemActive: {
+        backgroundColor: '#FFF7ED',
+        borderColor: '#FDBA74',
+    },
+    matchingItemInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        flex: 1,
+    },
+    matchingItemImage: {
+        width: 36,
+        height: 36,
+        borderRadius: 8,
+        backgroundColor: '#F1F5F9',
+    },
+    matchingItemName: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#1E293B',
+        width: 140,
+    },
+    matchingItemPrice: {
+        fontSize: 11,
+        fontWeight: '900',
+        color: '#FF6B00',
+    },
+    basketBtn: {
+        padding: 8,
+        borderRadius: 8,
+        backgroundColor: '#F8FAFC',
+    },
+    moreMatchingText: {
+        fontSize: 10,
+        fontWeight: '900',
+        color: '#94A3B8',
+        textAlign: 'center',
+        marginTop: 4,
+    },
+
     cardContent: {
         flexDirection: 'row',
         padding: 12,
@@ -1223,44 +1230,6 @@ const createStyles = (COLORS) => StyleSheet.create({
         fontWeight: '700',
         color: COLORS.white,
     },
-    voiceOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    voiceContent: {
-        alignItems: 'center',
-        padding: 20,
-    },
-    pulseRing: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: COLORS.orange,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 24,
-        shadowColor: COLORS.orange,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 20,
-        elevation: 10,
-    },
-    listeningText: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#FFF',
-        marginBottom: 8,
-    },
-    listeningSubtext: {
-        fontSize: 16,
-        color: 'rgba(255, 255, 255, 0.6)',
-        marginBottom: 40,
-    },
-    closeVoiceButton: {
-        padding: 12,
-    },
     loadingContainer: {
         flex: 1,
         alignItems: 'center',
@@ -1391,4 +1360,5 @@ const createStyles = (COLORS) => StyleSheet.create({
 });
 
 export default SearchResults;
+
 

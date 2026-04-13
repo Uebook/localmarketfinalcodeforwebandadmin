@@ -1,4 +1,4 @@
-import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';

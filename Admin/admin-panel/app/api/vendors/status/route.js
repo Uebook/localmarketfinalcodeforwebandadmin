@@ -1,4 +1,4 @@
-import { supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
   if (v === null || v === undefined) return '';
@@ -21,8 +21,8 @@ export async function PATCH(req) {
     const status = toStr(body?.status);
     const kycStatus = toStr(body?.kycStatus);
 
-    if (!id) return Response.json({ error: 'id is required' }, { status: 400 });
-    if (!status && !kycStatus && !body?.name && !body?.owner && !body?.contactNumber && !body?.email && !body?.state && !body?.city && !body?.category && body?.pincode === undefined && body?.rating === undefined && body?.reviewCount === undefined && body?.imageUrl === undefined && body?.image_url === undefined && body?.shopFrontPhotoUrl === undefined && body?.shop_front_photo_url === undefined) {
+    if (!id) return Response.json({ error: 'id is required' }, { status:400 });
+    if (!status && !kycStatus && !body?.name && !body?.owner && !body?.contactNumber && !body?.email && !body?.state && !body?.city && !body?.category && body?.pincode === undefined && body?.rating === undefined && body?.reviewCount === undefined && body?.imageUrl === undefined && body?.image_url === undefined && body?.shopFrontPhotoUrl === undefined && body?.shop_front_photo_url === undefined && body?.idProofUrl === undefined && body?.id_proof_url === undefined && body?.shopProofUrl === undefined && body?.shop_proof_url === undefined) {
       return Response.json({ error: 'At least one field to update is required' }, { status: 400 });
     }
 
@@ -119,6 +119,18 @@ export async function PATCH(req) {
     if (body?.shop_front_photo_url !== undefined) {
       const shopPhotoVal = toStr(body.shop_front_photo_url);
       patch.shop_front_photo_url = shopPhotoVal || null;
+    }
+    if (body?.idProofUrl !== undefined) {
+      patch.id_proof_url = toStr(body.idProofUrl) || null;
+    }
+    if (body?.id_proof_url !== undefined) {
+      patch.id_proof_url = toStr(body.id_proof_url) || null;
+    }
+    if (body?.shopProofUrl !== undefined) {
+      patch.shop_proof_url = toStr(body.shopProofUrl) || null;
+    }
+    if (body?.shop_proof_url !== undefined) {
+      patch.shop_proof_url = toStr(body.shop_proof_url) || null;
     }
 
     const updated = await supabaseRestPatch(`/rest/v1/vendors?id=eq.${encodeURIComponent(id)}`, patch);

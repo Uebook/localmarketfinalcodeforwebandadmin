@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';
@@ -10,6 +10,7 @@ function normalizeCategory(c) {
         name: c.name ?? c.title ?? '',
         iconName: c.iconName ?? c.icon_name ?? null,
         iconUrl: c.iconUrl ?? c.icon_url ?? null,
+        imageUrl: c.imageUrl ?? c.image_url ?? null,
         priority: c.priority ?? c.sort_order ?? 999,
         visible: c.visible ?? c.is_visible ?? true,
         // optional denormalized fields (if you provide a view)
@@ -51,6 +52,7 @@ export async function POST(req) {
                 name: toStr(body.name),
                 icon_name: body.iconName || body.icon_name || null,
                 icon_url: body.iconUrl || body.icon_url || null,
+                image_url: body.imageUrl || body.image_url || null,
                 priority: body.priority ?? 999,
                 visible: body.visible !== undefined ? body.visible : true,
             };
@@ -78,6 +80,7 @@ export async function POST(req) {
                 name: toStr(cat.name),
                 icon_name: cat.iconName || cat.icon_name || null,
                 icon_url: cat.iconUrl || cat.icon_url || null,
+                image_url: cat.imageUrl || cat.image_url || null,
                 priority: cat.priority ?? 999,
                 visible: cat.visible !== undefined ? cat.visible : true,
             }));
@@ -118,6 +121,9 @@ export async function PATCH(req) {
         }
         if (body.icon_url !== undefined || body.iconUrl !== undefined) {
             updateData.icon_url = body.icon_url || body.iconUrl || null;
+        }
+        if (body.image_url !== undefined || body.imageUrl !== undefined) {
+            updateData.image_url = body.image_url || body.imageUrl || null;
         }
         if (body.priority !== undefined) {
             const priority = Number(body.priority);

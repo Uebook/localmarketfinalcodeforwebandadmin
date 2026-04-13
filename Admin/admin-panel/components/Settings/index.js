@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import ThemeManagement from './ThemeManagement';
 import GeneralSettings from './GeneralSettings';
+import SiteSettings from './SiteSettings';
 
-export default function Settings() {
+export default function Settings({ user }) {
   const [activeTab, setActiveTab] = useState('general');
 
   const tabs = [
     { id: 'general', label: 'General Settings', icon: '⚙️' },
     { id: 'theme', label: 'Festival Themes', icon: '🎨' },
+    { id: 'site', label: 'Site Support & Branding', icon: '🌐' },
   ];
 
   return (
@@ -40,8 +42,9 @@ export default function Settings() {
       </div>
 
       {/* Content */}
-      {activeTab === 'general' && <GeneralSettings onSwitchToTheme={() => setActiveTab('theme')} />}
+      {activeTab === 'general' && <GeneralSettings user={user} onSwitchToTheme={() => setActiveTab('theme')} />}
       {activeTab === 'theme' && <ThemeManagement />}
+      {activeTab === 'site' && <SiteSettings />}
     </div>
   );
 }

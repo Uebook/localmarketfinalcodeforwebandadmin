@@ -13,11 +13,15 @@ export async function POST(request: NextRequest) {
         let query = '/rest/v1/vendors?select=*&limit=1';
         if (phone) {
             let cleaned = phone.replace(/\D/g, '');
-            // Handle +91 prefix added by mobile app
+            // Handle common prefixes/formats
+            if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
             if (cleaned.length === 12 && cleaned.startsWith('91')) {
                 cleaned = cleaned.substring(2);
             }
-            query += `&contact_number=eq.${encodeURIComponent(cleaned)}`;
+            // If it's still 10 digits after basic cleaning, that's likely the core number.
+            // But we will query for both versions (with and without 91) just in case.
+            const queryValue = cleaned;
+            query += `&contact_number=in.(${encodeURIComponent(queryValue)},91${encodeURIComponent(queryValue)})`;
         } else {
             query += `&email=eq.${encodeURIComponent(email.toLowerCase().trim())}`;
         }
@@ -29,18 +33,20 @@ export async function POST(request: NextRequest) {
 
         const v = results[0];
         const status = (v.status ?? '').trim();
-        if (status !== 'Active') {
-            if (status === 'Blocked') {
-                return NextResponse.json({
-                    error: 'Your account has been blocked. Please contact support.'
-                }, { status: 403 });
-            }
-            // Pending, Inactive, etc.
+        if (status === 'Blocked') {
             return NextResponse.json({
-                error: 'Your account is pending admin approval. You will be notified once activated.',
-                status,
+                error: 'Your account has been blocked. Please contact support.'
             }, { status: 403 });
         }
+        
+        if (status === 'Pending') {
+            return NextResponse.json({
+                error: 'Your account is under review. Please wait for admin approval before you can access the dashboard.'
+            }, { status: 403 });
+        }
+        
+        // Removed payment and subscription checks per user request to allow direct login.
+
 
         const vendor = {
             id: v.id,
@@ -60,7 +66,16 @@ export async function POST(request: NextRequest) {
             imageUrl: v.image_url ?? v.imageUrl ?? v.shop_front_photo_url ?? null,
         };
 
-        return NextResponse.json({ vendor }, { status: 200 });
+        const vendorData = {
+            ...vendor,
+            role: 'vendor'
+        };
+        
+        return NextResponse.json({ 
+            success: true, 
+            vendor: vendorData, 
+            user: vendorData 
+        }, { status: 200 });
     } catch (error: any) {
         console.error('Vendor login error:', error);
         return NextResponse.json({ error: error.message || 'Login failed' }, { status: 500 });

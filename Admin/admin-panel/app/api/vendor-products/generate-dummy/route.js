@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestInsert } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
 
 // Product templates with pricing
 const PRODUCT_TEMPLATES = [

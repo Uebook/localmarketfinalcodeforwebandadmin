@@ -25,85 +25,50 @@ export const getIconName = (lucideIconName) => {
         'Store': 'shopping-cart', // or store if using different set, fallback to shopping-cart
 
         // Categories
+        'Apple': 'award', // Feather doesn't have apple, award looks like a fruit/badge
+        'Droplet': 'droplet',
+        'Gift': 'gift',
+        'Camera': 'camera',
+        'Music': 'music',
+        'Activity': 'activity',
+        'Gamepad': 'target', // closest in feather
+        'Car': 'truck',
+        'Bike': 'truck',
+        'Palette': 'edit-2',
+        'Square': 'square',
+        'Layers': 'layers',
+        'Bed': 'home',
+        'Image': 'image',
+        'Sun': 'sun',
+        'Utensils': 'coffee', // closest
+        'Box': 'box',
+        'Star': 'star',
+        'Package': 'package',
+        'Heart': 'heart',
+        'Leaf': 'wind',
+        'Eye': 'eye',
+        'Monitor': 'monitor',
+        'Drumstick': 'award', 
+        'Fish': 'droplet',
+        'Sparkles': 'star',
+        'Wind': 'wind',
+        'Gem': 'star',
+        'Footprints': 'activity',
+        'Toy': 'gift',
+        'Briefcase': 'briefcase',
+        'Clock': 'clock',
         'Smartphone': 'smartphone',
-        'Shirt': 'circle', // Feather doesn't have shirt
-        'Pill': 'activity', // Feather doesn't have pill, use 'activity' or 'plus-circle'
+        'Shirt': 'circle',
+        'ShoppingBag': 'shopping-bag',
+        'Smartphone': 'smartphone',
+        'Pill': 'activity',
         'Zap': 'zap',
         'Home': 'home',
         'Headphones': 'headphones',
-        'Trophy': 'award', // Trophy -> award in Feather
-        'Scissors': 'scissors',
-        'Wrench': 'tool',
-        'Car': 'truck', // closest in feather is truck or navigation
-        'Book': 'book',
-        'Briefcase': 'briefcase',
-        'Coffee': 'coffee',
-        'Music': 'music',
-        'Camera': 'camera',
-        'Utensils': 'circle', // fallback
-        'Dumbbell': 'activity', // fallback
-        'Stethoscope': 'plus-circle', // fallback
-        'Building': 'home', // closest
-        'GraduationCap': 'book-open', // closest
-        'Hammer': 'tool', // closest
-        'Truck': 'truck',
-        'Baby': 'smile', // closest
-        'Tv': 'tv',
-        'Sofa': 'square', // fallback
-        'Bike': 'circle', // fallback
-        'PaintBucket': 'edit-2', // fallback
-        'Flower': 'sun', // fallback
-        'Leaf': 'wind', // fallback
-        'Droplet': 'droplet',
-
-        // Additional icons that might be needed
-        'X': 'x',
-        'Check': 'check',
-        'Edit': 'edit',
-        'Trash': 'trash-2',
-        'Plus': 'plus',
-        'Minus': 'minus',
-        'Settings': 'settings',
-        'LogOut': 'log-out',
-        'HelpCircle': 'help-circle',
-        'Info': 'info',
-        'Mail': 'mail',
-        'MessageCircle': 'message-circle',
-        'MessageSquare': 'message-square',
-        'Share2': 'share-2',
-        'MoreVertical': 'more-vertical',
-        'CheckCircle': 'check-circle',
-        'SlidersHorizontal': 'sliders',
-        'Sliders': 'sliders',
-        'AlertCircle': 'alert-circle',
-        'ArrowRight': 'arrow-right',
-        'Grid': 'grid',
-        'Ticket': 'tag',
-        'Hash': '#',
+        'Trophy': 'award',
         'FileText': 'file-text',
-        'File': 'file',
-        'TrendingUp': 'trending-up',
-        'Package': 'package',
-        'Bookmark': 'bookmark',
-        'Activity': 'activity',
-        'Shield': 'shield',
-        'Eye': 'eye',
-        'Image': 'image',
-        'Calendar': 'calendar',
-        'Palette': 'palette',
-        'Copy': 'copy',
-        'ThumbsUp': 'thumbs-up',
-        'Lock': 'lock',
-        'PlusCircle': 'plus-circle',
-        'CreditCard': 'credit-card',
-        'Download': 'download',
-        'Upload': 'upload',
         'Tool': 'tool',
-        'Wind': 'wind',
-        'Box': 'box',
-        'Layers': 'layers',
-        'Sun': 'sun',
-        'Bed': 'home',
+        'GraduationCap': 'book-open',
         'Smartphone': 'smartphone',
         'Smartphone': 'smartphone',
         'Monitor': 'monitor',
@@ -246,7 +211,7 @@ export const getIconName = (lucideIconName) => {
         'Grocery': 'shopping-cart',
         'Supermarket': 'shopping-bag',
         'Bakery': 'coffee',
-        'FastFood': 'utensils',
+        'FastFood': 'coffee',
         'Cafe': 'coffee',
         'Salon': 'scissors',
         'Spa': 'droplet',

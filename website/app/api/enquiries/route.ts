@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
         // Mapping frontend fields to DB fields if necessary
         const enquiryData = {
             vendor_id,
-            customer_name: name,
-            customer_phone: mobile,
+            sender_name: name,
+            sender_phone: mobile,
             message,
             status: 'new',
             created_at: new Date().toISOString(),

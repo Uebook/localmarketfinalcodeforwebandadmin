@@ -1,11 +1,13 @@
 'use client';
 
-import { Menu, MapPin, ChevronDown, Bell, User, ShoppingBag, LayoutDashboard, LogOut, Zap } from 'lucide-react';
+import { Menu, MapPin, ChevronDown, Bell, User, LayoutDashboard, LogOut, Zap, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocation } from '@/lib/hooks';
 import LocationModal from './LocationModal';
+import { getCart, CartItem } from '@/lib/cart';
 
 interface HeaderProps {
   locationState?: {
@@ -24,6 +26,7 @@ interface UserSession {
   name: string;
   email: string;
   phone: string;
+  role?: 'customer' | 'vendor';
 }
 
 export default function Header({
@@ -38,6 +41,7 @@ export default function Header({
   const [menuOpen, setMenuOpen] = useState(false);
   const [locDropdownOpen, setLocDropdownOpen] = useState(false);
   const [isLocModalOpen, setIsLocModalOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const locRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -51,8 +55,18 @@ export default function Header({
   // Load session and saved location
   useEffect(() => {
     const rawUser = localStorage.getItem('localmarket_user');
+    const rawVendor = localStorage.getItem('localmarket_vendor');
+
     if (rawUser) {
-      try { setUser(JSON.parse(rawUser)); } catch { /* ignore */ }
+      try {
+        const u = JSON.parse(rawUser);
+        setUser({ ...u, role: 'customer' });
+      } catch { /* ignore */ }
+    } else if (rawVendor) {
+      try {
+        const v = JSON.parse(rawVendor);
+        setUser({ ...v, role: 'vendor' });
+      } catch { /* ignore */ }
     }
 
     const savedLoc = localStorage.getItem('localmarket_location');
@@ -66,14 +80,26 @@ export default function Header({
     // Listen for storage changes (login/logout from other tabs)
     const onStorage = () => {
       const u = localStorage.getItem('localmarket_user');
-      setUser(u ? JSON.parse(u) : null);
+      const v = localStorage.getItem('localmarket_vendor');
+      if (u) setUser({ ...JSON.parse(u), role: 'customer' });
+      else if (v) setUser({ ...JSON.parse(v), role: 'vendor' });
+      else setUser(null);
     };
     window.addEventListener('storage', onStorage);
     // Also listen for a custom 'authchange' event for same-tab updates
     window.addEventListener('authchange', onStorage);
+    // Cart listener
+    const updateCartCount = () => {
+      const cart = getCart();
+      setCartCount(cart.reduce((acc, item) => acc + item.quantity, 0));
+    };
+    updateCartCount();
+    window.addEventListener('cartchange', updateCartCount);
+
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('authchange', onStorage);
+      window.removeEventListener('cartchange', updateCartCount);
     };
   }, []);
 
@@ -103,6 +129,7 @@ export default function Header({
 
   const handleLogout = () => {
     localStorage.removeItem('localmarket_user');
+    localStorage.removeItem('localmarket_vendor');
     setUser(null);
     setMenuOpen(false);
     window.dispatchEvent(new Event('authchange'));
@@ -124,14 +151,18 @@ export default function Header({
           <div className="flex items-center gap-6">
             <button
               onClick={onMenuClick}
-              className="p-2 text-slate-700 hover:bg-slate-100 rounded-xl transition-all lg:hidden"
+              className="p-2 text-slate-700 hover:bg-slate-100 rounded-xl transition-all xl:hidden"
             >
               <Menu size={24} />
             </button>
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform">
-                <ShoppingBag className="text-white" size={22} />
-              </div>
+            <Link href="/" className="flex items-center gap-1.5 group">
+              <Image
+                src="/lokall-logo.svg"
+                alt="LOKALL Logo"
+                width={42}
+                height={42}
+                className="group-hover:scale-105 transition-transform duration-300"
+              />
               <span className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-primary transition-colors">LOKALL</span>
             </Link>
 
@@ -151,8 +182,8 @@ export default function Header({
                   </span>
                   <span className="text-xs font-bold text-slate-600 truncate max-w-[300px]">
                     {propLocation
-                      ? (propLocation.loading ? 'Detecting...' : propLocation.error ? 'Select Location' : propLocation.city || 'Delhi, India')
-                      : (savedLocation.loading ? 'Detecting...' : savedLocation.error ? 'Select Location' : savedLocation.city || 'Delhi, India')
+                      ? (propLocation.loading ? 'Detecting...' : propLocation.error ? 'Select Location' : propLocation.city || 'Detecting...')
+                      : (savedLocation.loading ? 'Detecting...' : savedLocation.error ? 'Select Location' : savedLocation.city || 'Detecting...')
                     }
                   </span>
                 </div>
@@ -213,11 +244,11 @@ export default function Header({
           </div>
 
           {/* Center: Navigation */}
-          <nav className="hidden lg:flex items-center gap-1 bg-white border border-slate-100 p-1.5 rounded-2xl">
+          <nav className="hidden xl:flex items-center gap-1 bg-white border border-slate-100 p-1.5 rounded-2xl">
             {[
               { label: 'Home', href: '/' },
               { label: 'Categories', href: '/categories' },
-              { label: 'Offers', href: '/offers' },
+              { label: 'Offer & Sale', href: '/offers' },
               // { label: 'E-Auction', href: '/eauction' },
               // { label: 'Draws', href: '/draws' },
               { label: 'Saved', href: '/saved' },
@@ -244,6 +275,20 @@ export default function Header({
               )}
             </button>
 
+            {user && (
+              <Link
+                href="/cart"
+                className="relative p-2.5 text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+              >
+                <ShoppingCart size={20} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white shadow-sm">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {user ? (
               /* Logged‑in user avatar + dropdown */
               <div className="relative" ref={menuRef}>
@@ -265,15 +310,15 @@ export default function Header({
                       <p className="text-xs text-slate-500 truncate">{user.phone || user.email}</p>
                     </div>
                     <Link
-                      href="/dashboard"
+                      href={user.role === 'vendor' ? '/vendor/dashboard/analytics' : '/dashboard'}
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-medium"
                     >
                       <LayoutDashboard size={16} className="text-primary" style={{ color: 'var(--primary)' }} />
-                      My Dashboard
+                      {user.role === 'vendor' ? 'Vendor Dashboard' : 'My Dashboard'}
                     </Link>
                     <Link
-                      href="/dashboard/profile"
+                      href={user.role === 'vendor' ? '/vendor/dashboard/profile' : '/dashboard/profile'}
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-medium"
                     >
@@ -319,20 +364,16 @@ export default function Header({
           else if (loc.circle?.startsWith('All ')) display = loc.circle;
           else display = loc.subTehsil || loc.tehsil || loc.town || loc.city || loc.state || 'Selected Market';
 
+
           updateLocation({
             city: display,
             lat: null,
             lng: null
           });
-
-          // If manual selection, maybe redirect to search for that market
-          const searchParam = loc.circle === 'All India' ? '' : (loc.subTehsil || loc.tehsil || loc.town || loc.city || loc.state || '');
-          if (searchParam) {
-            router.push(`/search?q=${encodeURIComponent(searchParam)}`);
-          }
         }}
         initialLocation={savedLocation}
       />
+
     </header>
   );
 }

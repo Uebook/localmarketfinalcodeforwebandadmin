@@ -16,6 +16,7 @@ export default function FestiveOffersManagement() {
     endDate: '',
     discount: '',
     description: '',
+    image_url: '',
   });
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function FestiveOffersManagement() {
           end_date: formattedEndDate,
           discount_percent: formData.discount ? parseFloat(formData.discount) : null,
           description: formData.description?.trim() || null,
+          image_url: formData.image_url || null,
         }),
       });
 
@@ -94,6 +96,7 @@ export default function FestiveOffersManagement() {
           endDate: '',
           discount: '',
           description: '',
+          image_url: '',
         });
         alert('Offer created successfully!');
       } else {
@@ -131,6 +134,36 @@ export default function FestiveOffersManagement() {
     } catch (error) {
       console.error('Error updating offer:', error);
       alert('Failed to update offer');
+    }
+  };
+
+  const handleUploadImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+      uploadData.append('bucket', 'general');
+      uploadData.append('folder', 'festive-offers');
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setFormData(prev => ({ ...prev, image_url: data.url }));
+      } else {
+        alert(data.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -234,6 +267,31 @@ export default function FestiveOffersManagement() {
                 placeholder="Offer description..."
               />
             </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Offer Image</label>
+              <div className="flex items-center gap-4">
+                {formData.image_url && (
+                  <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-gray-200">
+                    <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                      className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full shadow-lg"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadImage}
+                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 transition-all cursor-pointer"
+                  />
+                  <p className="mt-1 text-xs text-gray-400 font-medium tracking-tight">Recommended: 1200x600px PNG or JPG</p>
+                </div>
+              </div>
+            </div>
           </div>
           <button
             onClick={handleCreateOffer}
@@ -274,6 +332,13 @@ export default function FestiveOffersManagement() {
                       {offer.discount_percent && <span>Discount: <span className="font-semibold">{offer.discount_percent}%</span></span>}
                     </div>
                   </div>
+                </div>
+                {offer.image_url && (
+                  <div className="mt-4 relative w-full h-40 rounded-xl overflow-hidden border border-gray-100 shadow-sm bg-slate-50">
+                    <img src={offer.image_url} alt={offer.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="mt-4 flex justify-end">
                   <div className="flex gap-2">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${offer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                       }`}>

@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Utensils, CheckCircle, Store, Phone, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { INDIAN_STATES, STATE_CITIES } from '@/lib/locationData';
+import WelcomeAnimation from '@/components/WelcomeAnimation';
 
 export default function FoodPlazaRegisterPage() {
        const [step, setStep] = useState(1);
        const [isLoading, setIsLoading] = useState(false);
        const [error, setError] = useState('');
        const [success, setSuccess] = useState('');
+       const [showWelcome, setShowWelcome] = useState(false);
        const router = useRouter();
 
        const [formData, setFormData] = useState({
@@ -63,15 +65,19 @@ export default function FoodPlazaRegisterPage() {
                      const data = await res.json();
                      if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-                     setSuccess('Restaurant registered successfully! Redirecting...');
+                     setSuccess('Restaurant registered successfully! 🎉');
                      localStorage.setItem('localmarket_vendor', JSON.stringify(data.vendor));
                      window.dispatchEvent(new Event('authchange'));
-                     setTimeout(() => router.push('/vendor/dashboard/analytics'), 1500);
+                     setTimeout(() => setShowWelcome(true), 1000);
               } catch (err: any) {
                      setError(err.message);
                      setIsLoading(false);
               }
        };
+
+       if (showWelcome) {
+              return <WelcomeAnimation onComplete={() => router.push('/')} />;
+       }
 
        return (
               <div className="min-h-screen bg-slate-50">

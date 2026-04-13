@@ -48,6 +48,7 @@ try {
 
 // Import screens
 import SplashScreen from './src/components/SplashScreen';
+import WelcomeAnimation from './src/components/WelcomeAnimation';
 import LoginScreen from './src/components/LoginScreen';
 import RegisterScreen from './src/components/RegisterScreen';
 import HomeScreen from './src/components/HomeScreen';
@@ -75,7 +76,10 @@ import SavedScreen from './src/components/SavedScreen';
 import CategoriesScreen from './src/components/CategoriesScreen';
 import ProductDetailsScreen from './src/components/ProductDetailsScreen';
 import AIServiceFlow from './src/components/AIServiceFlow';
+import MarketScreen from './src/components/MarketScreen';
+import CartScreen from './src/components/CartScreen';
 import { setVendorSidebarControl } from './src/utils/vendorSidebarControl';
+
 import { setSidebarControl } from './src/utils/sidebarControl';
 import { getVendorProfile } from './src/services/api';
 
@@ -92,7 +96,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
         let iconName;
         if (route.name === 'Analytics') {
           iconName = 'activity';
-        } else if (route.name === 'Catalog') {
+        } else if (route.name === 'Catalogue') {
           iconName = 'package';
         } else if (route.name === 'Enquiries') {
           iconName = 'message-square';
@@ -145,7 +149,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
           <VendorAnalyticsScreen {...props} vendorData={vendorData} />
         )}
       </Tab.Screen>
-      <Tab.Screen name="Catalog">
+      <Tab.Screen name="Catalogue">
         {(props) => (
           <VendorCatalogScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />
         )}
@@ -186,9 +190,12 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
           iconName = 'tag';
         } else if (route.name === 'Saved') {
           iconName = 'bookmark';
+        } else if (route.name === 'Cart') {
+          iconName = 'shopping-cart';
         } else if (route.name === 'Business') {
           iconName = 'briefcase';
         }
+
 
         return {
           tabBarIcon: ({ focused }) => {
@@ -274,7 +281,9 @@ function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSa
           />
         )}
       </Tab.Screen>
+      <Tab.Screen name="Cart" component={CartScreen} />
     </Tab.Navigator>
+
   );
 }
 
@@ -353,12 +362,8 @@ function App() {
     };
 
     loadSavedData();
-
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000);
-    return () => clearTimeout(timer);
   }, []);
+
 
   const handleLogin = async (role, userDataParam = null) => {
     setUserRole(role);
@@ -471,7 +476,7 @@ function App() {
       if (tab === 'business-analytics') {
         navigationRef.current?.navigate('VendorTabs', { screen: 'Analytics' });
       } else if (tab === 'business-products' || tab === 'business-add-product' || tab === 'business-add-service') {
-        navigationRef.current?.navigate('VendorTabs', { screen: 'Catalog' });
+        navigationRef.current?.navigate('VendorTabs', { screen: 'Catalogue' });
       } else if (tab === 'business-enquiries') {
         navigationRef.current?.navigate('VendorTabs', { screen: 'Enquiries' });
       } else if (tab === 'business-offers') {
@@ -509,11 +514,12 @@ function App() {
       <ThemeProvider>
         <SafeAreaProvider>
           <StatusBar barStyle="light-content" />
-          <SplashScreen />
+          <WelcomeAnimation onComplete={() => setShowSplash(false)} />
         </SafeAreaProvider>
       </ThemeProvider>
     );
   }
+
 
   if (isUserRegistering) {
     return (
@@ -605,13 +611,15 @@ function App() {
                 />
               )}
             </Stack.Screen>
+            <Stack.Screen name="MarketScreen" component={MarketScreen} options={{ headerShown: false }} />
             <Stack.Screen name="AIServiceFlow" component={AIServiceFlow} options={{ headerShown: false }} />
-            <Stack.Screen name="VendorDetails">
+            <Stack.Screen name="VendorDetails" options={{ headerShown: false }}>
               {(props) => {
                 const business = props.route.params?.business || props.route.params?.vendor;
                 return (
                   <VendorDetails
                     {...props}
+                    business={business}
                     savedBusinessIds={savedBusinessIds}
                     setSavedBusinessIds={setSavedBusinessIds}
                   />

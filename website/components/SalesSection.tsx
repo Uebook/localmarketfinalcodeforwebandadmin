@@ -65,11 +65,24 @@ export default function SalesSection() {
               <div
                      key={sale.id}
                      onClick={() => setSelectedSale(sale)}
-                     className="min-w-[300px] sm:min-w-[340px] relative group cursor-pointer overflow-hidden rounded-3xl shadow-xl shadow-slate-200 transition-all hover:-translate-y-1 hover:shadow-2xl"
+                     className="min-w-[300px] sm:min-w-[340px] relative group cursor-pointer overflow-hidden rounded-3xl shadow-xl shadow-slate-200 transition-all hover:-translate-y-1 hover:shadow-2xl h-48"
               >
-                     {/* Background Pattern/Gradient */}
-                     <div className={`absolute inset-0 bg-gradient-to-br ${sale.color || 'from-orange-500 to-rose-500'} opacity-90`} />
-                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+                     {/* Background Image or Gradient */}
+                     {sale.image_url ? (
+                            <div className="absolute inset-0">
+                                   <img 
+                                          src={sale.image_url} 
+                                          alt={sale.title} 
+                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                                   />
+                                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                            </div>
+                     ) : (
+                            <>
+                                   <div className={`absolute inset-0 bg-gradient-to-br ${sale.color || 'from-orange-500 to-rose-500'} opacity-90`} />
+                                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+                            </>
+                     )}
 
                      <div className="relative p-6 h-full flex flex-col justify-between">
                             <div>
@@ -118,7 +131,7 @@ export default function SalesSection() {
                             <div>
                                    <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
                                           <Zap className="text-orange-500 fill-orange-500" size={24} />
-                                          Active Sales & Offers
+                                          Active Offer & Sale
                                    </h2>
                                    <p className="text-slate-400 text-sm font-medium mt-0.5">Big savings from top local markets</p>
                             </div>

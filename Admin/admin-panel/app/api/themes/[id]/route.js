@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 // DELETE /api/themes/[id] - Delete a theme
 export async function DELETE(request, { params }) {

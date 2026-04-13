@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 /**
  * PATCH /api/user/theme - Update user's selected theme

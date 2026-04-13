@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch, supabaseRestInsert } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v : '';
@@ -14,7 +14,7 @@ export async function GET(req) {
             // Get single product by ID
             try {
                 const query = new URLSearchParams();
-                query.set('select', 'id,name,price,mrp,uom,category_id,vendor_id,description,is_active,image_url,updated_at');
+                query.set('select', 'id,name,price,mrp,online_price,uom,category_id,vendor_id,description,is_active,image_url,updated_at');
                 query.set('id', `eq.${id}`);
                 const rows = await supabaseRestGet(`/rest/v1/vendor_products?${query.toString()}`);
                 const product = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
@@ -39,7 +39,7 @@ export async function GET(req) {
 
         try {
             const query = new URLSearchParams();
-            query.set('select', 'id,name,price,mrp,uom,category_id,description,is_active,image_url,updated_at');
+            query.set('select', 'id,name,price,mrp,online_price,uom,category_id,description,is_active,image_url,updated_at');
             query.set('vendor_id', `eq.${encodeURIComponent(vendorId)}`);
             query.set('order', 'name.asc');
 
@@ -84,6 +84,10 @@ export async function PATCH(req) {
         if (body.mrp !== undefined) {
             const mrp = Number(body.mrp);
             updateData.mrp = isNaN(mrp) ? null : mrp;
+        }
+        if (body.online_price !== undefined) {
+            const onlinePrice = Number(body.online_price);
+            updateData.online_price = isNaN(onlinePrice) ? null : onlinePrice;
         }
         if (body.uom !== undefined) updateData.uom = toStr(body.uom) || null;
         if (body.category_id !== undefined) {
@@ -134,6 +138,7 @@ export async function POST(req) {
             name: toStr(name),
             price: Number(price),
             mrp: mrp ? Number(mrp) : null,
+            online_price: body.online_price ? Number(body.online_price) : null,
             uom: toStr(uom) || null,
             category_id: category_id || null,
             image_url: toStr(image_url) || null,

@@ -11,6 +11,7 @@ const menuItems = [
   { id: 'payment-fees', label: 'Payment & Fees', icon: '💳' },
   { id: 'festive-offers', label: 'Festive Offers', icon: '🎉' },
   { id: 'banners', label: 'Banner Management', icon: '🖼️' },
+  { id: 'featured', label: 'Home Featured', icon: '✨' },
   { id: 'e-auction', label: 'E-Auction & Draw', icon: '🎲' },
   { id: 'circle-analytics', label: 'Circle Analytics', icon: '📊' },
   { id: 'reports', label: 'Reports & Analytics', icon: '📈' },

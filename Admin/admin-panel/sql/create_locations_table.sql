@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.locations (
   tehsil TEXT NOT NULL,
   sub_tehsil TEXT NOT NULL,
   circle TEXT,
+  market_icon TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

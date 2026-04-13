@@ -193,6 +193,29 @@ export const LOCATION_DATA = {
         }
       }
     }
+  },
+  'Punjab': {
+    cities: {
+      'Amritsar': {
+        towns: {
+          'Hall Bazaar': {
+            tehsils: { 'Hall Bazaar Main': { subTehsils: ['Market Area'] } }
+          },
+          'Golden Temple': {
+            tehsils: { 'Heritage Street': { subTehsils: ['Main Entrance'] } }
+          },
+          'Katra Jaimal Singh': {
+            tehsils: { 'Katra Jaimal Main': { subTehsils: ['Textile Market'] } }
+          },
+          'Ranjit Avenue': {
+            tehsils: { 'District Shopping Complex': { subTehsils: ['B-Block', 'C-Block'] } }
+          }
+        }
+      },
+      'Ludhiana': {
+        towns: {}
+      }
+    }
   }
 };
 

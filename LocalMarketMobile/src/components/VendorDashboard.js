@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, FlatList, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView,  FlatList, TextInput } from 'react-native';
+import Image from './ImageWithFallback';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import BulkPriceUpdate from './BulkPriceUpdate';
 import FeedbackForm from './FeedbackForm';
-import { submitReviewReply } from '../services/api';
+import { submitReviewReply, getVendorPerformance } from '../services/api';
 
 const VendorDashboard = ({
   navigation,
@@ -22,12 +23,39 @@ const VendorDashboard = ({
   const [replyInputActive, setReplyInputActive] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
+  const [performanceStats, setPerformanceStats] = useState({
+    leads: 0,
+    views: 0,
+    enquiries: 0,
+    calls: 0,
+    whatsapp: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     if (targetTab) {
       setActiveTab(targetTab);
     }
   }, [targetTab]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (isVendor && vendor?.id) {
+        setLoadingStats(true);
+        try {
+          const res = await getVendorPerformance(vendor.id);
+          if (res?.success) {
+            setPerformanceStats(res.stats);
+          }
+        } catch (error) {
+          console.error('Error fetching dashboard stats:', error);
+        } finally {
+          setLoadingStats(false);
+        }
+      }
+    };
+    fetchStats();
+  }, [isVendor, vendor?.id]);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: 'activity' },
@@ -50,14 +78,14 @@ const VendorDashboard = ({
             <Icon name="activity" size={16} color="#16a34a" />
           </View>
           <Text style={styles.statLabel}>Store Views</Text>
-          <Text style={styles.statValue}>{vendor?.profileViews || 0}</Text>
+          <Text style={styles.statValue}>{performanceStats.views || vendor?.profileViews || 0}</Text>
         </View>
         <View style={styles.statCard}>
           <View style={[styles.statIcon, { backgroundColor: '#dbeafe' }]}>
             <Icon name={getIconName('Search')} size={16} color="#2563eb" />
           </View>
           <Text style={styles.statLabel}>Appearances</Text>
-          <Text style={styles.statValue}>{vendor?.searchAppearances || 0}</Text>
+          <Text style={styles.statValue}>{performanceStats.leads || vendor?.searchAppearances || 0}</Text>
         </View>
       </View>
 
@@ -68,7 +96,7 @@ const VendorDashboard = ({
         </View>
         <View style={styles.detailedStatItem}>
           <Text style={styles.detailedStatLabel}>Enquiries</Text>
-          <Text style={styles.detailedStatValue}>{vendor?.enquiries?.length || 0}</Text>
+          <Text style={styles.detailedStatValue}>{performanceStats.enquiries || vendor?.enquiries?.length || 0}</Text>
         </View>
         <View style={styles.detailedStatItem}>
           <Text style={styles.detailedStatLabel}>Reviews</Text>
@@ -116,7 +144,7 @@ const VendorDashboard = ({
   const renderProducts = () => (
     <View style={styles.tabContent}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Your Catalog ({vendor?.products?.length || 0})</Text>
+        <Text style={styles.sectionTitle}>Your Catalogue ({vendor?.products?.length || 0})</Text>
         <TouchableOpacity style={styles.addButton} activeOpacity={0.7}>
           <Icon name={getIconName('Plus')} size={12} color="#ffffff" />
           <Text style={styles.addButtonText}>Add Item</Text>

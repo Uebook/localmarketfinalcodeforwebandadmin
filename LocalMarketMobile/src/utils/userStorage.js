@@ -35,25 +35,26 @@ export const saveUserData = async (userData, role = 'customer') => {
       return;
     }
 
-    // Save individual fields for backward compatibility
+    // Save individual fields for backward compatibility - ENSURE STRINGS for Android
     if (userData.id) {
-      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_ID, userData.id);
+      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_ID, String(userData.id));
     }
     if (userData.name) {
-      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_NAME, userData.name);
+      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_NAME, String(userData.name));
     }
     if (userData.email) {
-      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_EMAIL, userData.email);
+      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_EMAIL, String(userData.email));
     }
     if (userData.phone) {
-      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_PHONE, userData.phone);
+      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_PHONE, String(userData.phone));
     }
     if (userData.state) {
-      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_STATE, userData.state);
+      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_STATE, String(userData.state));
     }
     if (userData.city) {
-      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_CITY, userData.city);
+      await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_CITY, String(userData.city));
     }
+
 
     // Save role
     await AsyncStorage.setItem(USER_STORAGE_KEYS.USER_ROLE, role);

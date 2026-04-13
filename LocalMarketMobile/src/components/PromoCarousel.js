@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import Image from './ImageWithFallback';
 import { getBanners } from '../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

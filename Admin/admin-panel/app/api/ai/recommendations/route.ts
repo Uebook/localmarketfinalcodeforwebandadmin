@@ -27,61 +27,36 @@ export async function POST(request: Request) {
 
         console.log('AI Logic Context:', context);
 
-        // 1. Use Gemini to extract a search keyword from the context
+        // 1. Use Gemini to extract a search keyword from the history
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash"
+            model: "gemini-1.5-flash"
         });
 
+        const historyStr = (context.history || []).map(h => `${h.role}: ${h.content}`).join('\n');
 
         const prompt = `
-        Context: ${JSON.stringify(context)}
-        Task: You are an AI assistant for a local market app. Your job is to extract a search keyword to find vendors or services.
+        Conversation History:
+        ${historyStr}
+        
+        Task: Based on the conversation above, extract the single most relevant search keyword or category (e.g., "plumber", "medical", "iphone repair", "grocery") to find vendors in a database.
         
         Rules:
-        1. If the user is asking for a service, product, or vendor (e.g., "plumber", "medicine", "laptop repair", "grocery"), extract the main keyword.
-        2. EXTREMELY IMPORTANT: Handle obvious typos (e.g., "mediacl" should become "medical", "medicne" should become "medicine").
-        3. If the user asks a general question, tells a joke, or says something unrelated to finding a local service (e.g., "tell me a joke", "who are you", "what is the weather"), return exactly 'invalid_query'.
-        4. Do not answer the question. Only return the keyword or 'invalid_query'.
+        1. Return ONLY the keyword.
+        2. Combine terms if necessary (e.g., "laptop repair").
+        3. FIX TYPOS.
         
-        Return ONLY the keyword or 'invalid_query'.
+        Return ONLY the keyword.
         `;
 
         let searchKeyword = 'general';
         try {
             const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const rawText = response.text();
-            console.log('Gemini RAW response:', rawText);
+            const rawText = result.response.text();
             searchKeyword = rawText.trim().replace(/['"]/g, '').toLowerCase();
-            console.log('Gemini extracted keyword:', searchKeyword);
+            console.log('AI Refined Keyword:', searchKeyword);
         } catch (e) {
-            console.error('Gemini extraction failed, using fallback:', e);
-            // Fallback: Use simple keyword matching
-            const contextStr = JSON.stringify(context).toLowerCase();
-
-            // List of valid service-related keywords
-            const validKeywords = [
-                'plumber', 'electrician', 'carpenter', 'painter', 'cleaning', 'pest', 'control', 'ac', 'appliance', 'repair', 'fix', 'install', 'installation', 'water', 'solar', 'geyser', 'chimney', 'sofa', 'carpet', 'septic', 'tank', 'mason', 'architect', 'interior', 'construction', 'renovation', 'tiles', 'granite', 'marble', 'hardware', 'locks', 'keys', 'windows', 'doors', 'aluminum', 'glass',
-                'doctor', 'clinic', 'hospital', 'pharmacy', 'medical', 'mediacl', 'health', 'medicine', 'medicne', 'diagnostic', 'lab', 'dentist', 'ayurvedic', 'homeopathic', 'physiotherapy', 'nurse', 'ambulance', 'veterinary', 'gym', 'fitness', 'yoga', 'spa', 'salon', 'beauty', 'makeup', 'barber', 'haircut', 'optical', 'blood',
-                'restaurant', 'food', 'cafe', 'bakery', 'catering', 'snacks', 'bar', 'pub', 'dining', 'delivery', 'sweet', 'fruit', 'vegetable', 'meat', 'chicken', 'grocery', 'milk', 'dairy', 'store', 'shop', 'market',
-                'mechanic', 'garage', 'puncture', 'tire', 'car', 'bike', 'wash', 'detailing', 'battery', 'towing', 'spares', 'showroom', 'driving', 'school',
-                'lawyer', 'advocate', 'accountant', 'ca', 'consultant', 'tax', 'notary', 'developer', 'marketing', 'printing', 'security', 'guard', 'placement', 'courier', 'shipping', 'movers', 'packers',
-                'school', 'tuition', 'tutor', 'college', 'training', 'coaching', 'music', 'dance', 'language', 'preschool',
-                'event', 'planner', 'photography', 'photo', 'video', 'decoration', 'florist', 'gift', 'banquet', 'venue', 'dj', 'band',
-                'hotel', 'resort', 'travel', 'agency', 'visa', 'ticket', 'tour', 'rental',
-                'find', 'look', 'need', 'want', 'search', 'hire', 'book', 'urgent', 'emergency', 'asap', 'today', 'tomorrow', 'schedule', 'budget', 'price', 'cost', 'cheap', 'affordable', 'premium', 'near', 'nearby', 'local', 'area', 'location', 'distance', 'service', 'vendor', 'business'
-            ];
-
-            // Check if any valid keyword is present
-            const hasValidKeyword = validKeywords.some(keyword => contextStr.includes(keyword));
-
-            if (!hasValidKeyword) {
-                // Likely an off-topic query
-                searchKeyword = 'invalid_query';
-            } else {
-                // Extract from context
-                searchKeyword = context?.intent || 'general';
-            }
+            console.error('Gemini extraction failed:', e);
+            searchKeyword = context.intent || 'general';
         }
 
         // 2. Validate Keyword

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ShoppingBag, Briefcase, HelpCircle, ArrowRight, ArrowLeft, User, Phone, Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useLocation } from '@/lib/hooks';
+import WelcomeAnimation from '@/components/WelcomeAnimation';
 
 type Mode = 'login' | 'register';
 type Method = 'mobile' | 'email';
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showWelcome, setShowWelcome] = useState(false);
   const { detectLocation } = useLocation();
 
   const router = useRouter();
@@ -79,11 +81,11 @@ export default function LoginPage() {
         localStorage.setItem('localmarket_vendor', JSON.stringify(data.vendor));
         window.dispatchEvent(new Event('authchange'));
 
-        // Auto-detect location on login
-        detectLocation();
-
-        setSuccess(`Welcome back, ${data.vendor.name}! 🎉`);
-        setTimeout(() => router.push('/vendor/dashboard/analytics'), 1000);
+        if (method === 'mobile' || userType === 'business') {
+          setTimeout(() => setShowWelcome(true), 500);
+        } else {
+          setTimeout(() => router.push('/'), 1000);
+        }
       } catch {
         setError('Network error. Please try again.');
       } finally {
@@ -124,9 +126,12 @@ export default function LoginPage() {
 
       setSuccess(mode === 'login' ? `Welcome back, ${user.name || 'there'}! 🎉` : `Account created! Welcome, ${user.name}! 🎉`);
 
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1000);
+      // Trigger animation for mobile login
+      if (method === 'mobile') {
+        setTimeout(() => setShowWelcome(true), 500);
+      } else {
+        setTimeout(() => router.push('/'), 1000);
+      }
     } catch (err) {
       setError('Network error. Please check your connection and try again.');
     } finally {
@@ -140,6 +145,11 @@ export default function LoginPage() {
     if (method === 'email' && !email.includes('@')) return false;
     return true;
   };
+
+  if (showWelcome) {
+    const destination = userType === 'business' ? '/vendor/dashboard/analytics' : '/';
+    return <WelcomeAnimation onComplete={() => router.push(destination)} />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--background)' }}>

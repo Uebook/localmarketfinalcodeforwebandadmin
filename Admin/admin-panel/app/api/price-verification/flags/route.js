@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 // GET /api/price-verification/flags - Get flagged products
 export async function GET(request) {

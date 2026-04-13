@@ -6,13 +6,13 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SearchBar from '@/components/SearchBar';
 import BusinessCard from '@/components/BusinessCard';
-import { Search, SlidersHorizontal, ArrowLeft, X, Star } from 'lucide-react';
+import { Search, SlidersHorizontal, ArrowLeft, X, Star, ShoppingCart } from 'lucide-react';
 
 // ─── Filter Types ──────────────────────────────────────────────────────────
 interface Filters {
   categories: string[];
   minRating: number;
-  sortBy: 'default' | 'rating' | 'name';
+  sortBy: 'default' | 'rating' | 'name' | 'price_asc';
 }
 
 const DEFAULT_FILTERS: Filters = { categories: [], minRating: 0, sortBy: 'default' };
@@ -67,6 +67,7 @@ function FilterPanel({
             <div className="space-y-2">
               {[
                 { id: 'default', label: 'Relevance' },
+                { id: 'price_asc', label: 'Cheapest First' },
                 { id: 'rating', label: 'Top Rated' },
                 { id: 'name', label: 'Name (A–Z)' },
               ].map(opt => (
@@ -174,10 +175,8 @@ function SearchContent() {
     const sort = searchParams.get('sort');
 
     setSearchQuery(query);
-    if (sort === 'price_asc' || sort === 'rating') {
-      setFilters(prev => ({ ...prev, sortBy: sort === 'price_asc' ? 'default' : 'rating' }));
-      // Note: "cheapest" logic usually implies price sort which isn't fully in this mockup's Filters yet
-      // but we can at least show relevant results.
+    if (sort === 'price_asc' || sort === 'rating' || sort === 'name') {
+      setFilters(prev => ({ ...prev, sortBy: sort as Filters['sortBy'] }));
     }
 
     setLoading(true);
@@ -210,6 +209,16 @@ function SearchContent() {
       filtered.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     } else if (filters.sortBy === 'name') {
       filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    } else if (filters.sortBy === 'price_asc') {
+      filtered.sort((a, b) => {
+        const getMinPrice = (biz: any) => {
+          if (!biz.matchingProducts || biz.matchingProducts.length === 0) return 999999;
+          // Ensure we only sort by non-zero prices to keep 'Visit Store' entries at the bottom
+          const prices = biz.matchingProducts.map((p: any) => (p.price && p.price > 0) ? p.price : 999999);
+          return Math.min(...prices);
+        };
+        return getMinPrice(a) - getMinPrice(b);
+      });
     }
     return filtered;
   }, [allResults, filters]);
@@ -223,10 +232,11 @@ function SearchContent() {
     try {
       const savedLoc = localStorage.getItem('localmarket_location');
       const city = savedLoc ? JSON.parse(savedLoc).city : 'Delhi, India';
+      const user = JSON.parse(localStorage.getItem('localmarket_user') || localStorage.getItem('localmarket_vendor') || '{}');
       fetch('/api/search/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query.trim(), city: city, userId: JSON.parse(localStorage.getItem('localmarket_user') || '{}').id })
+        body: JSON.stringify({ query: query.trim(), city: city, userId: user.id })
       });
     } catch (err) { console.warn('Failed to track search:', err); }
     router.push(`/search?q=${encodeURIComponent(query)}`);
@@ -251,15 +261,22 @@ function SearchContent() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <button
-                onClick={() => router.back()}
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.history.length > 2) {
+                    router.back();
+                  } else {
+                    const isVendor = typeof window !== 'undefined' && localStorage.getItem('localmarket_vendor');
+                    router.push(isVendor ? '/vendor/dashboard' : '/');
+                  }
+                }}
                 className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors mb-4"
               >
                 <ArrowLeft size={14} /> Back
               </button>
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-2">
+              <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent tracking-tight mb-2">
                 {searchQuery ? `Results for "${searchQuery}"` : 'Browse Everything'}
               </h1>
-              <p className="text-slate-500 font-bold">
+              <p className="text-sm font-bold text-slate-500">
                 Showing {results.length} of {allResults.length} {allResults.length === 1 ? 'business' : 'businesses'}
                 {activeFilterCount > 0 ? ` (${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} active)` : ''}
               </p>
@@ -292,7 +309,7 @@ function SearchContent() {
             <div className="flex flex-wrap gap-2 mt-4">
               {filters.sortBy !== 'default' && (
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
-                  Sort: {filters.sortBy === 'rating' ? 'Top Rated' : 'Name A–Z'}
+                  Sort: {filters.sortBy === 'rating' ? 'Top Rated' : filters.sortBy === 'price_asc' ? 'Cheapest First' : 'Name A–Z'}
                   <button onClick={() => setFilters(f => ({ ...f, sortBy: 'default' }))} className="hover:text-red-500"><X size={12} /></button>
                 </span>
               )}
@@ -318,15 +335,93 @@ function SearchContent() {
 
         {/* Results */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 reveal">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
-            <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Finding results...</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-20">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex flex-col bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm h-[340px] opacity-70">
+                <div className="w-full h-48 bg-slate-100" />
+                <div className="p-5 flex flex-col gap-3 flex-1">
+                  <div className="w-3/4 h-5 bg-slate-200 rounded-md" />
+                  <div className="w-1/2 h-3 bg-slate-100 rounded-md" />
+                  <div className="mt-auto flex justify-between items-center">
+                    <div className="w-1/3 h-4 bg-slate-100 rounded-md" />
+                    <div className="w-1/4 h-6 bg-slate-200 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : results.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 reveal" style={{ animationDelay: '0.2s' }}>
             {results.map((business, i) => (
-              <div key={business.id} className="reveal" style={{ animationDelay: `${i * 0.05 + 0.3}s` }}>
-                <BusinessCard business={business} onClick={() => router.push(`/vendor/${business.id}`)} />
+              <div key={business.id} className="reveal relative group bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all overflow-hidden flex flex-col" style={{ animationDelay: `${i * 0.05 + 0.3}s` }}>
+                <BusinessCard business={business} variant="flat" onClick={() => router.push(`/vendor/${business.id}`)} />
+
+                {/* Matching Items Overview */}
+                {business.matchingProducts && business.matchingProducts.length > 0 ? (
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-4 space-y-3 mt-auto">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Matching Items</p>
+                    <div className="flex flex-col gap-2">
+                      {business.matchingProducts.slice(0, 2).map((prod: any) => {
+                        const isMatch = searchQuery && prod.name.toLowerCase().includes(searchQuery.toLowerCase());
+                        return (
+                          <div key={prod.id} className={`flex items-center justify-between p-2.5 rounded-xl shadow-sm border transition-all hover:border-primary/30 ${
+                            isMatch 
+                            ? 'bg-orange-50/50 border-orange-400 ring-4 ring-orange-400/10 z-10 scale-[1.02]' 
+                            : 'bg-white border-slate-100'
+                          }`}>
+                            <div className="flex items-center gap-3">
+                              {prod.image && (
+                                <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-100/50">
+                                  <img src={prod.image} className="object-cover w-full h-full" alt={prod.name} />
+                                </div>
+                              )}
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-800 line-clamp-1">{prod.name}</span>
+                              <span className="text-[11px] font-black text-primary">₹{prod.price}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const { addToCart } = require('@/lib/cart');
+                              addToCart({
+                                id: prod.id,
+                                vendorId: business.id,
+                                vendorName: business.name,
+                                name: prod.name,
+                                price: prod.price,
+                                quantity: 1,
+                                image: prod.image
+                              });
+                            }}
+                            className="p-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-900 hover:text-white transition-all group/btn"
+                            title="Add to Basket"
+                          >
+                            <ShoppingCart size={14} className="group-hover/btn:scale-110 transition-transform" />
+                          </button>
+                          </div>
+                        );
+                      })}
+                      {business.matchingProducts.length > 2 && (
+                        <button
+                          onClick={() => router.push(`/vendor/${business.id}`)}
+                          className="mt-1 text-[10px] font-black text-slate-500 hover:text-primary transition-colors text-center w-full py-1.5 rounded-lg hover:bg-white border border-transparent hover:border-slate-100"
+                        >
+                          + {business.matchingProducts.length - 2} more matching items
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-auto border-t border-slate-50/50 p-4 bg-slate-50/30">
+                    <button
+                      onClick={() => router.push(`/vendor/${business.id}`)}
+                      className="w-full py-3 bg-white border border-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm group-hover:border-slate-200 group-hover:text-slate-900"
+                    >
+                      Explore Store →
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -382,7 +477,7 @@ function SearchContent() {
           else if (tab === 'categories') router.push('/categories');
           else if (tab === 'saved') router.push('/saved');
         }}
-        userRole="customer"
+        userRole={typeof window !== 'undefined' && localStorage.getItem('localmarket_vendor') ? 'vendor' : 'customer'}
       />
     </div>
   );

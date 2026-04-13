@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, TextInput, Switch, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity,  FlatList, TextInput, Switch, Modal, Alert, RefreshControl } from 'react-native';
+import Image from './ImageWithFallback';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -10,7 +11,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare } from '../utils/vendorActions';
-import { getCategories, createVendorProduct, updateVendorProduct, deleteVendorProduct, uploadFile } from '../services/api';
+import { getCategories, createVendorProduct, updateVendorProduct, deleteVendorProduct, uploadFile, getVendorProducts } from '../services/api';
 import { AI_DEFAULT_ITEMS, getSuggestedItemsByCategory } from '../constants/aiDefaultItems';
 
 const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
@@ -24,6 +25,37 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     error: null,
   });
 
+  const [refreshing, setRefreshing] = useState(false);
+  const [products, setProducts] = useState(vendorData?.products || []);
+
+  const fetchProducts = async (showLoading = false) => {
+    if (!vendorData?.id) return;
+    if (showLoading) setRefreshing(true);
+    try {
+      const freshProducts = await getVendorProducts(vendorData.id);
+      if (Array.isArray(freshProducts)) {
+        setProducts(freshProducts);
+        if (setVendorData) {
+          setVendorData(prev => ({ ...prev, products: freshProducts }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    } finally {
+      if (showLoading) setRefreshing(false);
+    }
+  };
+
+  const onRefresh = React.useCallback(() => {
+    fetchProducts(true);
+  }, [vendorData?.id]);
+
+  useEffect(() => {
+    if (vendorData?.products) {
+      setProducts(vendorData.products);
+    }
+  }, [vendorData?.products]);
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
@@ -36,8 +68,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     unit: '',
     description: '',
     inStock: true,
-    bestSeller: false,
-    images: [], // Changed from image: null to images: []
+    image: null,
   });
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
@@ -85,14 +116,14 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     }
   };
 
-  const handleDownloadCatalog = () => {
+  const handleDownloadCatalogue = () => {
     if (products.length === 0) {
-      Alert.alert('Empty Catalog', 'Please add products to your catalog before downloading.');
+      Alert.alert('Empty Catalogue', 'Please add products to your catalogue before downloading.');
       return;
     }
 
-    // Generate catalog data for download
-    const catalogData = products.map((product, index) => ({
+    // Generate catalogue data for download
+    const catalogueData = products.map((product, index) => ({
       'S.No': index + 1,
       'Product ID': product.id || `PROD-${index + 1}`,
       'Product Name': product.name || '',
@@ -107,22 +138,15 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
 
     // In production, this would generate and download an actual Excel/CSV file
     Alert.alert(
-      'Catalog Download',
-      `Catalog file generated for ${products.length} products.\n\n` +
-      `In production, this would download an Excel/CSV file with all your catalog items.\n\n` +
+      'Catalogue Download',
+      `Catalogue file generated for ${products.length} products.\n\n` +
+      `In production, this would download an Excel/CSV file with all your catalogue items.\n\n` +
       `File includes: Product ID, Name, Category, Price, MRP, Unit, Stock Status, and Description.`,
       [{ text: 'OK' }]
     );
   };
 
   const profileCompletion = 85;
-  const [products, setProducts] = useState(vendorData?.products || []);
-
-  useEffect(() => {
-    if (vendorData?.products) {
-      setProducts(vendorData.products);
-    }
-  }, [vendorData]);
 
   const handleAddItem = () => {
     setEditingItem(null);
@@ -136,7 +160,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       unit: '',
       description: '',
       bestSeller: false,
-      images: [],
+      image: null,
     });
     setShowAddForm(true);
   };
@@ -153,7 +177,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       unit: item.uom || item.unit || '',
       description: item.description || '',
       bestSeller: item.bestSeller || false,
-      images: item.images || (item.imageUrl ? [{ uri: item.imageUrl }] : []),
+      image: item.image_url || item.imageUrl || null,
     });
     setShowAddForm(true);
   };
@@ -164,8 +188,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       name: item.name,
       description: item.description,
       price: item.price,
-      mrp: (parseInt(item.price) * 1.2).toFixed(0), // Suggest 20% higher MRP
-      images: [{ uri: item.image_url }],
+      mrp: (parseInt(item.price) * 1.2).toFixed(0),
+      image: item.image_url,
     });
     setShowAIModal(false);
   };
@@ -196,11 +220,6 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   };
 
   const handleImagePicker = () => {
-    if (formData.images.length >= 5) {
-      Alert.alert('Limit Reached', 'You can upload up to 5 images per product.');
-      return;
-    }
-
     launchImageLibrary(
       {
         mediaType: 'photo',
@@ -210,7 +229,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         if (response.assets && response.assets[0]) {
           setFormData({
             ...formData,
-            images: [...formData.images, response.assets[0]]
+            image: response.assets[0]
           });
         }
       }
@@ -239,48 +258,41 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       return;
     }
 
-    if (formData.images.length < 3) {
-      Alert.alert('Images Required', 'Please upload at least 3 images for this item.');
+    if (!formData.image) {
+      Alert.alert('Image Required', 'Please upload an image for this item.');
       return;
     }
 
+
     setSaving(true);
     try {
-      const uploadedImagePromises = formData.images.map(async (img) => {
-        if (img.uri && !img.uri.startsWith('http')) {
-          // Upload new local image
-          try {
-            return await uploadFile(img.uri, 'product-images', img.type || 'image/jpeg');
-          } catch (uploadErr) {
-            console.log('Image upload failed:', uploadErr);
-            throw uploadErr;
-          }
+      let uploadedUrl = formData.image?.uri || formData.image;
+      
+      if (formData.image?.uri && !formData.image.uri.startsWith('http')) {
+        try {
+          uploadedUrl = await uploadFile(formData.image.uri, 'product-images', formData.image.type || 'image/jpeg');
+        } catch (uploadErr) {
+          console.warn('Image upload failed, using local URI as fallback:', uploadErr);
         }
-        // Return existing remote URL
-        return img.uri || img;
-      });
-
-      let imageUrls;
-      try {
-        imageUrls = await Promise.all(uploadedImagePromises);
-      } catch (err) {
-        Alert.alert('Upload Error', 'Failed to upload some product photos. Please try again.');
-        setSaving(false);
-        return;
       }
 
+
       const productPayload = {
-        vendor_id: vendorData.id,
+        vendorId: vendorData.id,
+        vendor_id: vendorData.id, // Keep for legacy
         name: formData.name,
         price: parseFloat(formData.price),
         mrp: formData.mrp ? parseFloat(formData.mrp) : null,
         uom: formData.unit,
-        category_id: formData.categoryId || null,
+        categoryId: formData.categoryId || null,
         description: formData.description,
-        image_url: imageUrls[0], // Use first image as primary
-        images: imageUrls, // Store all images if backend supports it
-        status: 'Active',
+        imageUrl: uploadedUrl, 
+        image_url: uploadedUrl, 
+        inStock: formData.inStock !== false,
+        type: formData.type || 'Product',
+        isBestSeller: formData.bestSeller || false,
       };
+
 
       let res;
       if (editingItem) {
@@ -301,7 +313,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           originalPrice: res.product.mrp ? `₹${res.product.mrp}` : undefined,
           discount: discount,
           inStock: res.product.status === 'Active',
-          imageUrl: res.product.image_url || imageUrl,
+          imageUrl: res.product.image_url || uploadedUrl,
+          image_url: res.product.image_url || uploadedUrl,
         };
 
         let updatedProducts;
@@ -318,6 +331,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             products: updatedProducts,
           });
         }
+        // Force a fresh fetch from server to ensure perfect sync
+        fetchProducts();
         setShowAddForm(false);
         setEditingItem(null);
       } else {
@@ -347,8 +362,9 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       description: '',
       inStock: true,
       bestSeller: false,
-      image: null,
+      image: null
     });
+
   };
 
   const handlePreview = () => {
@@ -469,7 +485,18 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         onNotificationClick={handleNotificationClick}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.orange]}
+            tintColor={COLORS.orange}
+          />
+        }
+      >
         {/* Shop Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.coverImage}>
@@ -551,17 +578,17 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           </View>
         </View>
 
-        {/* Catalog Section */}
+        {/* Catalogue Section */}
         <View style={styles.catalogSection}>
           <View style={styles.catalogHeader}>
-            <Text style={styles.catalogTitle}>Your Catalog ({products.length})</Text>
+            <Text style={styles.catalogTitle}>Your Catalogue ({products.length})</Text>
           </View>
 
           {/* Action Buttons Row */}
           <View style={styles.catalogButtonsRow}>
             <TouchableOpacity
               style={styles.catalogActionButton}
-              onPress={handleDownloadCatalog}
+              onPress={handleDownloadCatalogue}
               activeOpacity={0.8}
             >
               <View style={[styles.catalogButtonIcon, { backgroundColor: '#16a34a' }]}>
@@ -628,31 +655,26 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
 
                 <ScrollView showsVerticalScrollIndicator={false} style={styles.formScroll}>
                   <View style={styles.formSection}>
-                    {/* Multi-Image Upload */}
                     <View style={styles.imageUploadSection}>
-                      <Text style={styles.inputLabel}>Product Images (Min 3, Max 5) *</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageCarousel}>
-                        {formData.images.map((img, index) => (
-                          <View key={index} style={styles.imageContainer}>
-                            <Image
-                              source={img.uri ? { uri: img.uri } : (typeof img === 'string' ? { uri: img } : img)}
-                              style={styles.uploadedImageThumb}
+                      <Text style={styles.inputLabel}>Product Photo *</Text>
+                      <TouchableOpacity style={styles.singleImageSelector} onPress={handleImagePicker}>
+                        {formData.image ? (
+                          <View style={styles.selectedImageContainer}>
+                            <Image 
+                              source={formData.image.uri ? { uri: formData.image.uri } : (typeof formData.image === 'string' ? { uri: formData.image } : formData.image)}
+                              style={styles.selectedImageLarge} 
                             />
-                            <TouchableOpacity
-                              style={styles.removeImageButton}
-                              onPress={() => removeImage(index)}
-                            >
-                              <Icon name={getIconName('X')} size={12} color={COLORS.white} />
-                            </TouchableOpacity>
+                            <View style={styles.editImageIcon}>
+                              <Icon name={getIconName('Camera')} size={20} color={COLORS.white} />
+                            </View>
                           </View>
-                        ))}
-                        {formData.images.length < 5 && (
-                          <TouchableOpacity style={styles.addImageButton} onPress={handleImagePicker}>
-                            <Icon name={getIconName('Plus')} size={24} color={COLORS.textMuted} />
-                            <Text style={styles.addImageText}>Add</Text>
-                          </TouchableOpacity>
+                        ) : (
+                          <View style={styles.imagePlaceholder}>
+                            <Icon name={getIconName('Plus')} size={32} color={COLORS.textMuted} />
+                            <Text style={styles.placeholderText}>Tap to add photo</Text>
+                          </View>
                         )}
-                      </ScrollView>
+                      </TouchableOpacity>
                     </View>
 
                     <View style={styles.formFieldsStack}>
@@ -830,7 +852,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.productCard}>
-                <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
+                <Image source={{ uri: item.imageUrl || item.image_url }} style={styles.productImage} />
                 <View style={styles.productInfo}>
                   <Text style={styles.productName}>{item.name}</Text>
                   <Text style={styles.productCategory}>{item.category}</Text>
@@ -1163,54 +1185,54 @@ const createStyles = (COLORS) => StyleSheet.create({
     paddingBottom: 20,
   },
   imageUploadSection: {
-    marginBottom: 8,
-  },
-  imageCarousel: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-  },
-  imageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginRight: 12,
-    position: 'relative',
-    backgroundColor: '#F3F4F6',
-  },
-  uploadedImageThumb: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-    resizeMode: 'cover',
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#ef4444',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    marginBottom: 20,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.white,
-    zIndex: 1,
   },
-  addImageButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+  singleImageSelector: {
+    width: '100%',
+    height: 180,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: COLORS.divider,
     borderStyle: 'dashed',
     backgroundColor: '#F9FAFB',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedImageContainer: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  selectedImageLarge: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  editImageIcon: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: COLORS.orange,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  imagePlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
-  addImageText: {
-    fontSize: 12,
+  placeholderText: {
+    marginTop: 8,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.textMuted,
   },

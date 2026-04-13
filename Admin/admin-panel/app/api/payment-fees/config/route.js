@@ -1,29 +1,55 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestUpsert } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestUpsert } from '@/lib/supabaseAdminFetch';
 
 // GET /api/payment-fees/config - Get configuration
 export async function GET() {
+  console.log('[API] GET /api/payment-fees/config - Starting request');
   try {
     const config = await supabaseRestGet('/rest/v1/payment_fees_config?id=eq.default&select=*');
     const configData = Array.isArray(config) ? config[0] : config;
+    
+    if (!configData) {
+      console.warn('[API] GET /api/payment-fees/config - No config found in DB, returning defaults');
+    } else {
+      console.log('[API] GET /api/payment-fees/config - Success');
+    }
+
     return NextResponse.json(configData || {
-      monthly_fee: 999,
-      six_monthly_fee: 4999,
-      yearly_fee: 8999,
+      monthly_fee: 50,
+      six_monthly_fee: 299,
+      yearly_fee: 599,
       grace_period_days: 7,
       auto_block_enabled: true,
+      banner_enabled: true,
+      banner_badge: '🚀 Registration Offer',
+      banner_title: 'Activate Your Vendor Account',
+      banner_subtitle: 'Choose a subscription plan to start selling on Local Market and reach thousands of customers in your area.',
+      banner_image_url: '',
     });
   } catch (error) {
-    console.error('Error fetching payment fees config:', error.message);
-    const isOffline = error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'));
-    // Return default config if table doesn't exist or offline
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace';
+    
+    console.error('[API] GET /api/payment-fees/config - Failed:', {
+      message: errorMsg,
+      stack: errorStack
+    });
+
+    const isOffline = errorMsg.includes('fetch failed') || errorMsg.includes('ENOTFOUND');
+    
     return NextResponse.json({
-      monthly_fee: 999,
-      six_monthly_fee: 4999,
-      yearly_fee: 8999,
+      monthly_fee: 50,
+      six_monthly_fee: 299,
+      yearly_fee: 599,
       grace_period_days: 7,
       auto_block_enabled: true,
-      ...(isOffline && { warning: 'offline_mode' })
+      banner_enabled: true,
+      banner_badge: '🚀 Registration Offer',
+      banner_title: 'Activate Your Vendor Account',
+      banner_subtitle: 'Choose a subscription plan to start selling on Local Market and reach thousands of customers in your area.',
+      banner_image_url: '',
+      warning: isOffline ? 'offline_mode' : 'fetch_error',
+      debug_error: errorMsg
     });
   }
 }
@@ -38,6 +64,11 @@ export async function PATCH(request) {
       yearly_fee,
       grace_period_days,
       auto_block_enabled,
+      banner_enabled,
+      banner_badge,
+      banner_title,
+      banner_subtitle,
+      banner_image_url,
     } = body;
 
     const config = {
@@ -47,39 +78,61 @@ export async function PATCH(request) {
       ...(yearly_fee !== undefined && { yearly_fee: parseFloat(yearly_fee) }),
       ...(grace_period_days !== undefined && { grace_period_days: parseInt(grace_period_days) }),
       ...(auto_block_enabled !== undefined && { auto_block_enabled: Boolean(auto_block_enabled) }),
+      ...(banner_enabled !== undefined && { banner_enabled: Boolean(banner_enabled) }),
+      ...(banner_badge !== undefined && { banner_badge: String(banner_badge) }),
+      ...(banner_title !== undefined && { banner_title: String(banner_title) }),
+      ...(banner_subtitle !== undefined && { banner_subtitle: String(banner_subtitle) }),
+      ...(banner_image_url !== undefined && { banner_image_url: banner_image_url ? String(banner_image_url) : null }),
     };
 
-    // Try to upsert, but handle case where table might not exist
-    let result;
+    let result = null;
+    let success = false;
+
+    // Step 1: Attempt Upsert
     try {
-      // First try to upsert (will create if doesn't exist, update if exists)
-      // supabaseRestUpsert expects an array
       result = await supabaseRestUpsert('/rest/v1/payment_fees_config', [config]);
-      const finalResult = Array.isArray(result) ? result[0] : result;
-      return NextResponse.json(finalResult || config);
+      success = true;
     } catch (upsertError) {
-      console.error('Upsert failed, trying insert:', upsertError.message);
-      // If upsert fails, try insert
+      console.error('Upsert failed, will attempt fallback insert:', upsertError.message);
+    }
+
+    // Step 2: Fallback to Insert if Upsert failed
+    if (!success) {
       try {
         const { supabaseRestInsert } = await import('../../../../lib/supabaseAdminFetch');
         result = await supabaseRestInsert('/rest/v1/payment_fees_config', [config]);
-        const finalResult = Array.isArray(result) ? result[0] : result;
-        return NextResponse.json(finalResult || config);
+        success = true;
       } catch (insertError) {
-        // If both fail, the table probably doesn't exist
-        console.error('Payment fees config table might not exist:', insertError.message);
-        // Still return success with config data (could be stored in localStorage as fallback)
-        // This allows the UI to work even if the table doesn't exist
-        return NextResponse.json(config);
+        console.error('Insert fallback failed:', insertError.message);
+        throw new Error(`Failed to save configuration: ${insertError.message}. Did you run the SQL migration?`);
       }
     }
+
+    const finalResult = Array.isArray(result) ? result[0] : result;
+    console.log('[API] PATCH /api/payment-fees/config - Success');
+    return NextResponse.json(finalResult || config);
+
   } catch (error) {
-    console.error('Error updating payment fees config:', error);
-    if (error.message && (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND'))) {
-      return NextResponse.json({ success: false, warning: 'Sync failed: Database unreachable' });
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace';
+
+    console.error('[API] PATCH /api/payment-fees/config - Failed:', {
+      message: errorMsg,
+      stack: errorStack
+    });
+    
+    const isNetworkError = errorMsg.includes('fetch failed') || errorMsg.includes('ENOTFOUND');
+
+    if (isNetworkError) {
+      return NextResponse.json({ 
+        success: false, 
+        warning: 'Sync failed: Database unreachable' 
+      }, { status: 503 });
     }
+    
     return NextResponse.json({
-      error: error.message || 'Failed to save configuration. The payment_fees_config table might not exist in Supabase.'
+      error: errorMsg,
+      debug_stack: errorStack
     }, { status: 500 });
   }
 }

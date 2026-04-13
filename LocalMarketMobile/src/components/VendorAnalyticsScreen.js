@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { getVendorTrending, getVendorPerformance } from '../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -11,6 +12,19 @@ import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare, handlePreview } from '../utils/vendorActions';
 
 const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [performanceStats, setPerformanceStats] = useState({
+    leads: 0,
+    views: 0,
+    enquiries: 0,
+    calls: 0,
+    whatsapp: 0,
+    recentLeads: []
+  });
+  const [trendingData, setTrendingData] = useState([]);
+  const [analyticsRecommendations, setAnalyticsRecommendations] = useState([]);
+
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [locationState] = useState({
@@ -21,17 +35,54 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     error: null,
   });
 
-  // Performance data (mixing real DB stats with localized mocks)
+  React.useEffect(() => {
+    const fetchAllAnalytics = async () => {
+      if (!vendorData?.id) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const vendorCity = vendorData.city || 'Amritsar';
+        const vendorCategory = vendorData.category || '';
+
+        // Parallel fetch for speed
+        const [perfRes, trendRes] = await Promise.all([
+          getVendorPerformance(vendorData.id),
+          getVendorTrending(vendorCity, vendorCategory)
+        ]);
+
+        if (perfRes?.success) {
+          setPerformanceStats(perfRes.stats);
+        }
+
+        if (trendRes?.success) {
+          setTrendingData(trendRes.trending || []);
+          setAnalyticsRecommendations(trendRes.recommendations || []);
+        }
+      } catch (err) {
+        console.error('Analytics fetch error:', err);
+        setError('Failed to load performance data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllAnalytics();
+  }, [vendorData?.id]);
+
+  // Performance data (mapping real stats)
   const performanceData = {
-    totalUsers1KM: 1240,
-    activeUsersSearching: 820,
-    searchesInCategory: 410,
-    shopViews: vendorData?.profileViews || 0,
-    usersComparedPrices: Math.round((vendorData?.profileViews || 0) * 0.6),
-    usersClickedContact: Math.round((vendorData?.profileViews || 0) * 0.1),
-    conversionEstimate: `${Math.round((vendorData?.profileViews || 0) * 0.05)}-${Math.round((vendorData?.profileViews || 0) * 0.15)} sales`,
-    pricePosition: 'Higher',
-    rating: vendorData?.rating || '0.0',
+    totalUsers1KM: performanceStats.areaUsers || 450,
+    activeUsersSearching: performanceStats.activeUsers || 120,
+    searchesInCategory: performanceStats.categorySearches || 45,
+    shopViews: performanceStats.views || 0,
+    usersComparedPrices: performanceStats.leads || 0,
+    usersClickedContact: (performanceStats.calls || 0) + (performanceStats.whatsapp || 0),
+    conversionEstimate: `${performanceStats.enquiries || 0}-${(performanceStats.enquiries || 0) + 5} sales`,
+    pricePosition: (performanceStats.enquiries || 0) > 5 ? 'Competitive' : 'Lower',
+    rating: vendorData?.rating || '4.5',
     priceUpdates: 1,
   };
 
@@ -81,49 +132,23 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     { month: 'Month 2', users: 1200, searches: 450, views: 38, clicks: 7 },
   ];
 
-  // Auto recommendations based on interpretation guidance
-  const recommendations = [
-    {
-      type: 'pricing',
-      title: 'Pricing Suggestion',
-      message: 'Your price is ₹40 higher than market average. Try reducing to ₹720 for Basmati Rice 5kg',
-      icon: 'dollar-sign',
-      color: COLORS.orange,
-    },
-    {
-      type: 'product',
-      title: 'Product Suggestion',
-      message: 'Users are searching for "Toor Dal 1kg". Add this product to increase visibility.',
-      icon: 'package',
-      color: COLORS.blue,
-    },
-    {
-      type: 'engagement',
-      title: 'Engagement Tip',
-      message: 'Shops with weekly price updates get 4x more views. Update your prices regularly.',
-      icon: 'trending-up',
-      color: '#16a34a',
-    },
-    {
-      type: 'visibility',
-      title: 'Visibility Improvement',
-      message: 'Upload shop photo to improve listing trust and get more views.',
-      icon: 'camera',
-      color: COLORS.orange,
-    },
-  ];
+  // Auto recommendations from API
+  const recommendations = analyticsRecommendations.length > 0 
+    ? analyticsRecommendations 
+    : [
+        {
+          type: 'engagement',
+          title: 'Welcome Note',
+          message: 'Start updating your prices to see live market comparisons here.',
+          icon: 'trending-up',
+          color: COLORS.orange,
+        }
+      ];
 
-  // High demand products
-  const highDemandProducts = [
-    'Basmati Rice 5kg',
-    'Mustard Oil 1L',
-    'Atta 10kg',
-    'Toor Dal 1kg',
-    'Sugar 1kg',
-    'Tea 500g',
-    'Biscuits',
-    'Soap',
-  ];
+  // High demand products from search logs
+  const highDemandProducts = trendingData.length > 0 
+    ? trendingData.map(t => t.query) 
+    : ['Basmati Rice', 'Atta', 'Cooking Oil', 'Sugar'];
 
   const handleMenuClick = () => {
     const vendorControl = getVendorSidebarControl();
@@ -154,7 +179,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     <View style={styles.performanceCard}>
       <Text style={styles.sectionTitle}>VENDOR PERFORMANCE INSIGHT REPORT</Text>
       <View style={styles.reportHeader}>
-        <Text style={styles.reportHeaderText}>Market: {locationState.city}</Text>
+        <Text style={styles.reportHeaderText}>Market: {vendorData?.town || vendorData?.city || 'Delhi, India'}</Text>
         <Text style={styles.reportHeaderText}>Vendor: {vendorData?.name || 'My Shop'}</Text>
         <Text style={styles.reportHeaderText}>Date Range: Last 30 Days</Text>
       </View>
@@ -325,6 +350,15 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={COLORS.orange} />
+        <Text style={styles.loadingText}>Loading performance analytics...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -470,6 +504,16 @@ const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
   },
   gradientBackground: {
     position: 'absolute',

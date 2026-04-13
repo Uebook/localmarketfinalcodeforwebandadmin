@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface LocationState {
     lat: number | null;
@@ -13,7 +13,7 @@ export const useLocation = () => {
         lat: null,
         lng: null,
         city: '',
-        loading: true,
+        loading: false, // Don't start with loading: true to avoid flicker on first load if we have saved data
         error: null,
     });
 
@@ -56,7 +56,7 @@ export const useLocation = () => {
         };
     }, []);
 
-    const updateLocation = (newLoc: Partial<LocationState>) => {
+    const updateLocation = useCallback((newLoc: Partial<LocationState>) => {
         const savedLocation = localStorage.getItem('localmarket_location');
         let current = {};
         try {
@@ -76,78 +76,68 @@ export const useLocation = () => {
         setTimeout(() => {
             window.dispatchEvent(new Event('localmarket_location_changed'));
         }, 0);
-    };
+    }, []);
 
-    const detectLocation = async () => {
+    const detectLocation = useCallback(async () => {
         if (!navigator.geolocation) {
-            updateLocation({ error: 'Geolocation not supported' });
+            updateLocation({ error: 'Geolocation not supported by your browser' });
             return;
         }
 
+        console.log('useLocation: Starting detection...');
         setLocation(prev => ({ ...prev, loading: true, error: null }));
+
+        // Use a persistent timeout to ensure we don't hang if getCurrentPosition hangs
+        const maxWait = setTimeout(() => {
+            console.warn('useLocation: Geolocation request timed out (client-side)');
+            updateLocation({ loading: false, error: 'Location detection timed out. Please select manually.' });
+        }, 15000); // 15s total safety net
 
         navigator.geolocation.getCurrentPosition(
             async (position) => {
+                clearTimeout(maxWait);
                 const { latitude: lat, longitude: lng } = position.coords;
+                console.log('useLocation: GPS Coords obtained:', lat, lng);
+                
                 try {
-                    const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`);
+                    const res = await fetch(`/api/location/detect?lat=${lat}&lng=${lng}`);
                     const data = await res.json();
 
-                    if (data.error) throw new Error(data.error);
+                    if (!res.ok || data.error) throw new Error(data.error || 'Area detection failed');
 
-                    const addr = data.address || {};
-                    console.log('useLocation: Raw Geocode Address:', addr);
+                    console.log('useLocation: API Detection Result:', data);
 
-                    // Specific priority for "Area" as requested
-                    // Villages and small hamlets often provide the exact name like "Bisrakh"
-                    const mainArea =
-                        addr.village ||
-                        addr.hamlet ||
-                        addr.suburb ||
-                        addr.neighbourhood ||
-                        addr.residential ||
-                        addr.allotments ||
-                        addr.city_district ||
-                        addr.industrial ||
-                        addr.city ||
-                        addr.town ||
-                        addr.county ||
-                        'Your Area';
-
-                    const subArea = (mainArea === addr.village || mainArea === addr.hamlet)
-                        ? (addr.suburb || addr.neighbourhood || '')
-                        : '';
-
-                    let displayLabel = mainArea;
-                    if (subArea && subArea !== mainArea) {
-                        displayLabel = `${mainArea}, ${subArea}`;
-                    }
-
-                    const city = addr.city || addr.town || addr.city_district || '';
-                    if (city && city !== mainArea && city !== subArea && !displayLabel.includes(city)) {
-                        displayLabel = `${displayLabel}, ${city}`;
-                    }
-
-                    const state = addr.state || '';
-                    if (state && !displayLabel.includes(state) && displayLabel.split(',').length < 3) {
-                        displayLabel = `${displayLabel}, ${state}`;
-                    }
-
+                    const displayLabel = data.displayLabel || 'Your Area';
                     updateLocation({ lat, lng, city: displayLabel, loading: false, error: null });
-                    console.log('useLocation: Detection complete:', displayLabel);
                 } catch (err: any) {
-                    console.error('useLocation: Geocoding failed', err);
-                    updateLocation({ lat, lng, city: 'Unknown Location', loading: false, error: err.message });
+                    console.error('useLocation: API call failed', err);
+                    updateLocation({ lat, lng, city: 'Unknown Location', loading: false, error: 'Service temporarily slow. Please select manually.' });
                 }
             },
-            (err) => {
-                const msg = err.code === 1 ? 'Location access denied' : 'Could not detect location';
+            async (err) => {
+                clearTimeout(maxWait);
+                console.warn('useLocation: GPS Error', err.code, err.message);
+                
+                // If GPS fails, attempt IP fallback via the API directly
+                try {
+                    console.log('useLocation: Attempting IP-only fallback...');
+                    const res = await fetch('/api/location/detect');
+                    const data = await res.json();
+                    if (data.success && data.city) {
+                        updateLocation({ city: data.displayLabel, loading: false, error: null });
+                        return;
+                    }
+                } catch (e) { /* ignore */ }
+
+                const msg = err.code === 1 
+                    ? 'Location access denied. Please enable GPS or select manually.' 
+                    : 'Could not detect GPS location. Please select manually.';
+                
                 updateLocation({ loading: false, error: msg });
-                console.warn('useLocation: Geolocation failed', msg);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
         );
-    };
+    }, [updateLocation]);
 
     return { location, updateLocation, detectLocation };
 };

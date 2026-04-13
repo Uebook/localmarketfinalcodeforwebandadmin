@@ -1,4 +1,4 @@
-import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 // GET /api/vendors/[id]  — full vendor detail + products + enquiries + reviews
 export async function GET(req, { params }) {
@@ -40,6 +40,9 @@ export async function GET(req, { params }) {
             reviewCount: v.review_count || 0,
             profileImageUrl: v.profile_image_url || null,
             imageUrl: v.image_url || v.shop_front_photo_url || null,
+            idProofUrl: v.id_proof_url || null,
+            shopProofUrl: v.shop_proof_url || null,
+            shopFrontPhotoUrl: v.shop_front_photo_url || v.image_url || null,
             about: v.about || '',
             openTime: v.open_time || '09:00 AM',
             closeTime: v.close_time || '09:00 PM',
@@ -76,6 +79,7 @@ export async function GET(req, { params }) {
             enquiries: Array.isArray(enquiries) ? enquiries.map(e => ({
                 id: e.id,
                 senderName: e.sender_name || 'Customer',
+                senderPhone: e.sender_phone || '',
                 date: e.created_at ? new Date(e.created_at).toLocaleDateString() : '',
                 message: e.message,
                 status: e.status
@@ -92,5 +96,31 @@ export async function GET(req, { params }) {
     } catch (e) {
         console.error('Vendor detail error:', e);
         return Response.json({ error: e?.message || 'Failed to load vendor' }, { status: 500 });
+    }
+}
+
+// DELETE /api/vendors/[id]
+export async function DELETE(req, { params }) {
+    const { id } = await params;
+    if (!id) return Response.json({ error: 'Vendor ID required' }, { status: 400 });
+
+    try {
+        console.log(`Deleting vendor ${id}...`);
+
+        // 1. Delete related data (best effort cleanup)
+        // Note: If you have ON DELETE CASCADE in Postgres, these are redundant but safe.
+        await Promise.allSettled([
+            supabaseRestDelete(`/rest/v1/vendor_products?vendor_id=eq.${id}`),
+            supabaseRestDelete(`/rest/v1/enquiries?vendor_id=eq.${id}`),
+            supabaseRestDelete(`/rest/v1/reviews?vendor_id=eq.${id}`),
+        ]);
+
+        // 2. Delete the vendor
+        await supabaseRestDelete(`/rest/v1/vendors?id=eq.${id}`);
+
+        return Response.json({ success: true, message: 'Vendor deleted successfully' });
+    } catch (e) {
+        console.error('Vendor delete error:', e);
+        return Response.json({ error: e?.message || 'Failed to delete vendor' }, { status: 500 });
     }
 }

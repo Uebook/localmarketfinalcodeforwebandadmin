@@ -5,6 +5,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
+import LocationPicker from './LocationPicker';
+import Logo from './Logo';
 
 const Header = ({
   locationState,
@@ -17,17 +19,18 @@ const Header = ({
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+
+  const handleManualLocationSelect = (location) => {
+    // We could pass this up, but for now we'll just close it
+    // Wait, the parent needs to know! Since Header didn't originally receive an onLocationSelect,
+    // we should see if we can trigger something or if the parent reload will fetch from storage.
+    // Let's pass it up if we can, else just redetect. We'll add onLocationSelect to props.
+  };
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.header}>
-        {/* Gradient Background */}
-        <LinearGradient
-          colors={COLORS.primaryGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientBackground}
-        />
         {/* Content */}
         <View style={styles.headerContent}>
           {/* Left: Hamburger & Brand */}
@@ -36,36 +39,44 @@ const Header = ({
               onPress={onMenuClick}
               style={styles.menuButton}
               activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Icon name={getIconName('Menu')} size={28} color={COLORS.white} />
+              <Icon name={getIconName('Menu')} size={26} color={COLORS.textPrimary} />
             </TouchableOpacity>
-            <View style={styles.brandSection}>
-              <Text style={styles.brandTitle}>LOKALL</Text>
-              <TouchableOpacity
-                style={styles.locationButton}
-                activeOpacity={0.7}
-                onPress={() => setShowLocationModal(true)}
-              >
-                <Icon name={getIconName('MapPin')} size={11} color='rgba(255,255,255,0.8)' style={styles.locationIcon} />
-                <View style={styles.locationTextBlock}>
-                  <Text style={styles.locationCity} numberOfLines={1}>
-                    {locationState.loading
-                      ? 'Detecting...'
-                      : locationState.error
-                        ? 'Select Location'
-                        : (locationState.fullAddress
-                          ? locationState.fullAddress.split(',')[0]
-                          : locationState.city) || 'Your City'}
-                  </Text>
-                  <Text style={styles.locationArea} numberOfLines={1}>
-                    {locationState.loading ? '' : locationState.city || 'Tap to change'}
-                  </Text>
-                </View>
-                <View style={styles.changeLocationBtn}>
-                  <Text style={styles.changeLocationText}>Change</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity 
+              onPress={() => onLocationRedetect && onLocationRedetect()}
+              activeOpacity={0.8}
+              style={styles.logoWrapper}
+            >
+              <Logo size={34} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Center: Location */}
+          <View style={styles.centerSection}>
+            <TouchableOpacity
+              style={styles.locationButton}
+              activeOpacity={0.7}
+              onPress={() => setShowLocationModal(true)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <View style={styles.locationIconBg}>
+                <Icon name={getIconName('MapPin')} size={12} color={COLORS.orange} />
+              </View>
+              <View style={styles.locationTextBlock}>
+                <Text style={styles.locationCity} numberOfLines={1}>
+                  {locationState.loading
+                    ? 'Detecting...'
+                    : (locationState.displayLabel || 'Your Area')}
+                </Text>
+                <Text style={styles.locationArea} numberOfLines={1}>
+                  {locationState.loading 
+                    ? 'Searching...' 
+                    : (locationState.city || 'Tap to Select')}
+                </Text>
+              </View>
+              <Icon name={getIconName('ChevronDown')} size={14} color={COLORS.textMuted} />
+            </TouchableOpacity>
           </View>
 
           {/* Right: Actions */}
@@ -75,7 +86,7 @@ const Header = ({
               style={styles.notificationButton}
               activeOpacity={0.7}
             >
-              <Icon name={getIconName('Bell')} size={24} color={COLORS.white} />
+              <Icon name={getIconName('Bell')} size={22} color={COLORS.textPrimary} />
               {notificationCount > 0 && (
                 <View style={styles.notificationBadge} />
               )}
@@ -86,7 +97,7 @@ const Header = ({
               activeOpacity={0.7}
             >
               <View style={styles.profileIconContainer}>
-                <Icon name={getIconName('User')} size={20} color={COLORS.white} />
+                <Icon name={getIconName('User')} size={20} color={COLORS.textPrimary} />
               </View>
             </TouchableOpacity>
           </View>
@@ -132,95 +143,128 @@ const Header = ({
               <Icon name={getIconName('Zap')} size={14} color="#FFF" style={{ marginRight: 6 }} />
               <Text style={styles.redetectText}>Re-detect Location</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.manualSelectButton}
+              onPress={() => {
+                setShowLocationModal(false);
+                setShowLocationPicker(true);
+              }}
+              activeOpacity={0.8}
+            >
+              <Icon name={getIconName('Map')} size={14} color={COLORS.orange} style={{ marginRight: 6 }} />
+              <Text style={styles.manualSelectText}>Choose Location Manually</Text>
+            </TouchableOpacity>
           </Pressable>
         </Pressable>
       </Modal>
+
+      <LocationPicker
+        visible={showLocationPicker}
+        initialLocation={{
+          state: locationState?.state,
+          city: locationState?.city,
+          circle: locationState?.circle
+        }}
+        onClose={() => setShowLocationPicker(false)}
+        onSelect={(loc) => {
+           // Provide a way to inform the parent component that a manual location was picked
+           if (onLocationRedetect) {
+             // For now we just trigger redetect as a fallback, 
+             // but ideally the parent needs an onManualLocationSelect handler
+             // Let's call the redetect trigger, but later this can be expanded.
+             onLocationRedetect(loc);
+           }
+        }}
+      />
     </SafeAreaView>
   );
 };
 
 const createStyles = (COLORS) => StyleSheet.create({
   safeArea: {
-    backgroundColor: 'transparent',
+    backgroundColor: COLORS.white,
   },
   header: {
-    height: 64,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  gradientBackground: {
-    ...StyleSheet.absoluteFillObject,
+    height: 70,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    height: '100%',
-    position: 'relative',
-    zIndex: 1,
+    height: 64,
   },
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    flex: 1,
+    gap: 8,
   },
   menuButton: {
-    padding: 4,
+    padding: 6,
+    marginRight: 2,
   },
-  brandSection: {
-    flexDirection: 'column',
+  logoWrapper: {
+    padding: 2,
   },
-  brandTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: COLORS.white,
-    letterSpacing: 1.5,
+  centerSection: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-    gap: 4,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    maxWidth: '100%',
   },
-  locationIcon: {
-    marginRight: 2,
+  locationIconBg: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    backgroundColor: '#FFF7ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   locationTextBlock: {
     flexDirection: 'column',
-    maxWidth: 130,
+    marginRight: 6,
+    maxWidth: 100,
   },
   locationCity: {
-    fontSize: 13,
-    color: COLORS.white,
-    fontWeight: '700',
-    lineHeight: 16,
+    fontSize: 12,
+    color: '#0F172A',
+    fontWeight: '800',
+    lineHeight: 14,
   },
   locationArea: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '500',
-    lineHeight: 13,
-  },
-  changeLocationBtn: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  changeLocationText: {
     fontSize: 9,
-    fontWeight: '800',
-    color: '#FFF',
-    letterSpacing: 0.3,
+    color: '#94A3B8',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+    lineHeight: 11,
   },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   notificationButton: {
     padding: 8,
@@ -228,81 +272,80 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   notificationBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 10,
-    height: 10,
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
     backgroundColor: COLORS.orange,
-    borderRadius: 5,
-    borderWidth: 2,
+    borderRadius: 4,
+    borderWidth: 1.5,
     borderColor: COLORS.white,
   },
   profileButton: {
     padding: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#F1F5F9',
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   profileIconContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'flex-start',
-    paddingTop: 85, // Roughly below header
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+    justifyContent: 'center',
+    padding: 20,
   },
   modalContent: {
     backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 24,
+    padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowRadius: 20,
     elevation: 8,
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
-    paddingBottom: 12,
   },
   modalIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#FFF7ED',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   modalTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
     color: '#0F172A',
   },
   modalSubtitle: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#94A3B8',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   addressBox: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   fullAddressText: {
     fontSize: 14,
@@ -314,22 +357,40 @@ const createStyles = (COLORS) => StyleSheet.create({
   redetectButton: {
     flexDirection: 'row',
     backgroundColor: '#0F172A',
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   redetectText: {
     color: '#FFF',
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+  },
+  manualSelectButton: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  manualSelectText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 });
 

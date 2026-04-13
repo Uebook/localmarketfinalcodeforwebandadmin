@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
 
 // GET /api/reports/search - Get search reports
 export async function GET(request) {
@@ -8,54 +8,79 @@ export async function GET(request) {
         const state = searchParams.get('state');
         const city = searchParams.get('city');
 
-        let query = '/rest/v1/search_logs?select=search_query,location_state,location_city,location_town,searched_at';
+        // Fetch 14 days of logs to calculate trends (current 7 vs previous 7)
+        const now = new Date();
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const fourteenDaysAgo = new Date(now);
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-        // Build query with filters
+        let supabaseQuery = `/rest/v1/search_logs?searched_at=gte.${fourteenDaysAgo.toISOString()}&select=search_query,location_state,location_city,location_town,searched_at`;
         const filters = [];
-        if (state) {
+        if (state && state !== 'all') {
             filters.push(`location_state=eq.${encodeURIComponent(state)}`);
         }
-        if (city) {
+        if (city && city !== 'all') {
             filters.push(`location_city=eq.${encodeURIComponent(city)}`);
         }
 
         if (filters.length > 0) {
-            query += '&' + filters.join('&');
+            supabaseQuery += '&' + filters.join('&');
         }
+
+        supabaseQuery += '&order=searched_at.desc';
 
         let logs = [];
         try {
-            logs = await supabaseRestGet(query);
+            logs = await supabaseRestGet(supabaseQuery);
             logs = Array.isArray(logs) ? logs : [];
         } catch (e) {
-            console.warn('search_logs table may not exist or is empty:', e.message);
+            console.warn('search_logs table fetching error:', e.message);
             logs = [];
         }
 
-        // Aggregate by search query
-        const searchCounts = {};
+        // Aggregate by search query and period
+        const searchMetrics = {};
         logs.forEach(log => {
-            const key = log.search_query.toLowerCase().trim();
-            if (!searchCounts[key]) {
-                searchCounts[key] = {
-                    product: log.search_query,
-                    count: 0,
-                    locations: new Set(),
+            const rawQuery = log.search_query || '';
+            const key = rawQuery.toLowerCase().trim();
+            if (!key) return;
+
+            if (!searchMetrics[key]) {
+                searchMetrics[key] = {
+                    product: rawQuery,
+                    currentCount: 0,
+                    previousCount: 0,
+                    location: log.location_city || log.location_state || 'Multiple'
                 };
             }
-            searchCounts[key].count++;
-            if (log.location_state) searchCounts[key].locations.add(log.location_state);
-            if (log.location_city) searchCounts[key].locations.add(log.location_city);
+
+            const searchedAt = new Date(log.searched_at);
+            if (searchedAt >= sevenDaysAgo) {
+                searchMetrics[key].currentCount++;
+            } else {
+                searchMetrics[key].previousCount++;
+            }
         });
 
-        // Convert to array and sort
-        const topSearches = Object.values(searchCounts)
-            .map(item => ({
-                product: item.product,
-                count: item.count,
-                location: Array.from(item.locations)[0] || 'N/A',
-                trend: '+0%', // Calculate trend if you have historical data
-            }))
+        // Convert to array and calculate trends
+        const topSearches = Object.values(searchMetrics)
+            .map(item => {
+                let trend = '0%';
+                if (item.previousCount === 0) {
+                    trend = item.currentCount > 0 ? '+100%' : '0%';
+                } else {
+                    const change = ((item.currentCount - item.previousCount) / item.previousCount) * 100;
+                    trend = `${change >= 0 ? '+' : ''}${change.toFixed(0)}%`;
+                }
+                
+                return {
+                    product: item.product,
+                    count: item.currentCount,
+                    location: item.location,
+                    trend: trend
+                };
+            })
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
 

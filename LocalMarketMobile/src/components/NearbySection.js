@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Linking } from 'react-native';
+import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
 // Static vendor data removed - using database only
 import { getIconName } from '../utils/iconMapping';
@@ -23,13 +24,7 @@ const NearbySection = ({ onBusinessClick, onSeeAll, locationState }) => {
       };
 
       if (locationState?.city) {
-        // Extract city name from locationState.city (e.g., "Connaught Place, Delhi" -> "Delhi")
-        const cityParts = locationState.city.split(',');
-        if (cityParts.length > 1) {
-          filters.city = cityParts[cityParts.length - 1].trim();
-        } else {
-          filters.city = locationState.city;
-        }
+        filters.city = locationState.city;
       }
 
       const data = await getVendors(filters);
@@ -43,7 +38,7 @@ const NearbySection = ({ onBusinessClick, onSeeAll, locationState }) => {
           rating: vendor.rating || 4.0,
           reviewCount: vendor.reviewCount || 0,
           distance: vendor.city ? `${vendor.city}` : 'Nearby',
-          imageUrl: vendor.imageUrl || 'https://via.placeholder.com/288x160',
+          imageUrl: vendor.imageUrl,
           address: vendor.address || '',
           phone: vendor.phone || vendor.contactNumber || '',
         }));

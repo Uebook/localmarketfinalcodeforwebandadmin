@@ -161,7 +161,7 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
                         <span>Enquiries</span>
                       </button>
                       <button onClick={() => { onNavigate('business-offers'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-gray-50 rounded-lg">
-                        <span>Offers</span>
+                        <span>Offer & Sale</span>
                       </button>
                       <button onClick={() => { onNavigate('business-details'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-gray-50 rounded-lg">
                         <span>Details</span>

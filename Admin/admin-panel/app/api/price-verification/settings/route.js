@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestUpsert } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestUpsert } from '@/lib/supabaseAdminFetch';
 
 // GET /api/price-verification/settings - Get settings
 export async function GET() {

@@ -4,6 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
+import Logo from './Logo';
 
 const { width, height } = Dimensions.get('window');
 
@@ -100,7 +101,7 @@ const SplashScreen = () => {
               },
             ]}
           >
-            <Icon name="shopping-bag" size={56} color={COLORS.orange} />
+            <Logo size={80} />
           </Animated.View>
           <Animated.View
             style={[

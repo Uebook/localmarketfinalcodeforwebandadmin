@@ -25,10 +25,13 @@ export function assertSupabaseEnv() {
   }
 }
 
-export async function supabaseRestGet(pathWithQuery: string) {
+export async function supabaseRestGet(pathWithQuery: string, options: RequestInit = {}) {
   assertSupabaseEnv();
   const key = getKey();
   const url = `${SUPABASE_URL}${pathWithQuery}`;
+
+  // If the caller provides caching instructions, we skip the default 'no-store'
+  const hasCacheInstruction = options.cache || options.next;
 
   const res = await fetch(url, {
     method: 'GET',
@@ -37,7 +40,8 @@ export async function supabaseRestGet(pathWithQuery: string) {
       Authorization: `Bearer ${key!}`,
       'Content-Type': 'application/json',
     },
-    cache: 'no-store',
+    cache: hasCacheInstruction ? undefined : 'no-store',
+    ...options,
   });
 
   if (!res.ok) {

@@ -1,26 +1,41 @@
 // Default Indian States, Cities, Towns, Tehsils, and Sub-tehsils
 export const INDIAN_LOCATIONS = {
-  "Delhi": {
+  "Andhra Pradesh": { cities: { "Visakhapatnam": { towns: { "Visakhapatnam": { tehsils: { "Gajuwaka": { subTehsils: ["Auto Nagar"] } } } } }, "Vijayawada": { towns: { "Vijayawada": { tehsils: { "Vijayawada Rural": { subTehsils: ["Enikepadu"] } } } } } } },
+  "Arunachal Pradesh": { cities: { "Itanagar": { towns: { "Itanagar": { tehsils: { "Itanagar": { subTehsils: ["Naharlagun"] } } } } } } },
+  "Assam": { cities: { "Guwahati": { towns: { "Guwahati": { tehsils: { "Guwahati": { subTehsils: ["Dispur"] } } } } } } },
+  "Bihar": { cities: { "Patna": { towns: { "Patna": { tehsils: { "Patna Sadar": { subTehsils: ["Patliputra"] } } } } } } },
+  "Chhattisgarh": { cities: { "Raipur": { towns: { "Raipur": { tehsils: { "Raipur": { subTehsils: ["Naya Raipur"] } } } } } } },
+  "Goa": { cities: { "Panaji": { towns: { "North Goa": { tehsils: { "Tiswadi": { subTehsils: ["Panaji"] } } } } } } },
+  "Gujarat": {
     cities: {
-      "New Delhi": {
+      "Ahmedabad": {
         towns: {
-          "Central Delhi": {
+          "Ahmedabad": {
             tehsils: {
-              "Connaught Place": {
-                subTehsils: ["CP", "Janpath", "Parliament Street"]
-              },
-              "Chandni Chowk": {
-                subTehsils: ["Old Delhi", "Red Fort", "Jama Masjid"]
+              "Ahmedabad City": {
+                subTehsils: ["Navrangpura", "Maninagar", "Vastrapur"]
               }
             }
-          },
-          "South Delhi": {
+          }
+        }
+      },
+      "Surat": { towns: { "Surat": { tehsils: { "Surat City": { subTehsils: ["Athwa", "Varachha"] } } } } }
+    }
+  },
+  "Haryana": { cities: { "Gurugram": { towns: { "Gurugram": { tehsils: { "Gurugram": { subTehsils: ["Sohna Road", "DLF"] } } } } }, "Faridabad": { towns: { "Faridabad": { tehsils: { "Faridabad": { subTehsils: ["NIT"] } } } } } } },
+  "Himachal Pradesh": { cities: { "Shimla": { towns: { "Shimla": { tehsils: { "Shimla Urban": { subTehsils: ["Mall Road"] } } } } } } },
+  "Jharkhand": { cities: { "Ranchi": { towns: { "Ranchi": { tehsils: { "Ranchi": { subTehsils: ["Kanke"] } } } } } } },
+  "Karnataka": {
+    cities: {
+      "Bangalore": {
+        towns: {
+          "Bangalore Urban": {
             tehsils: {
-              "Saket": {
-                subTehsils: ["Malviya Nagar", "Hauz Khas", "Green Park"]
+              "Bangalore North": {
+                subTehsils: ["Hebbal", "Yelahanka", "Yeshwanthpur"]
               },
-              "Vasant Kunj": {
-                subTehsils: ["Vasant Vihar", "Munirka", "RK Puram"]
+              "Bangalore South": {
+                subTehsils: ["Koramangala", "HSR Layout", "BTM Layout"]
               }
             }
           }
@@ -28,6 +43,8 @@ export const INDIAN_LOCATIONS = {
       }
     }
   },
+  "Kerala": { cities: { "Kochi": { towns: { "Ernakulam": { tehsils: { "Kanayannur": { subTehsils: ["Edappally"] } } } } } } },
+  "Madhya Pradesh": { cities: { "Bhopal": { towns: { "Bhopal": { tehsils: { "Huzur": { subTehsils: ["Arera Colony"] } } } } }, "Indore": { towns: { "Indore": { tehsils: { "Indore": { subTehsils: ["Vijay Nagar"] } } } } } } },
   "Maharashtra": {
     cities: {
       "Mumbai": {
@@ -64,67 +81,34 @@ export const INDIAN_LOCATIONS = {
       }
     }
   },
-  "Karnataka": {
+  "Manipur": { cities: { "Imphal": { towns: { "Imphal West": { tehsils: { "Lamphelpat": { subTehsils: ["Imphal"] } } } } } } },
+  "Meghalaya": { cities: { "Shillong": { towns: { "East Khasi Hills": { tehsils: { "Mylliem": { subTehsils: ["Shillong"] } } } } } } },
+  "Mizoram": { cities: { "Aizawl": { towns: { "Aizawl": { tehsils: { "Aizawl": { subTehsils: ["Aizawl"] } } } } } } },
+  "Nagaland": { cities: { "Kohima": { towns: { "Kohima": { tehsils: { "Kohima": { subTehsils: ["Kohima"] } } } } } } },
+  "Odisha": { cities: { "Bhubaneswar": { towns: { "Khurda": { tehsils: { "Bhubaneswar": { subTehsils: ["Nayapalli"] } } } } } } },
+  "Punjab": {
     cities: {
-      "Bangalore": {
+      "Ludhiana": {
         towns: {
-          "Bangalore Urban": {
+          "Ludhiana West": {
             tehsils: {
-              "Bangalore North": {
-                subTehsils: ["Hebbal", "Yelahanka", "Yeshwanthpur"]
-              },
-              "Bangalore South": {
-                subTehsils: ["Koramangala", "HSR Layout", "BTM Layout"]
-              }
+              "Sarabha Nagar": { subTehsils: ["Kipps Market", "Malhar Road", "Gurdev Nagar"] },
+              "Model Town": { subTehsils: ["Pritam Palace", "Jawaddi", "Atam Nagar"] }
             }
           }
         }
-      }
-    }
-  },
-  "Gujarat": {
-    cities: {
-      "Ahmedabad": {
+      },
+      "Amritsar": {
         towns: {
-          "Ahmedabad": {
+          "Amritsar City": {
             tehsils: {
-              "Ahmedabad City": {
-                subTehsils: ["Navrangpura", "Maninagar", "Vastrapur"]
-              }
+              "Amritsar-1": { subTehsils: ["Hall Bazaar", "Katra Ahluwalia", "Town Hall", "Golden Temple Area"] },
+              "Amritsar-2": { subTehsils: ["Block A", "Block B", "District Shopping Center", "Ranjit Avenue"] }
             }
           }
         }
-      }
-    }
-  },
-  "Tamil Nadu": {
-    cities: {
-      "Chennai": {
-        towns: {
-          "Chennai": {
-            tehsils: {
-              "Chennai North": {
-                subTehsils: ["T Nagar", "Anna Nagar", "Kilpauk"]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "West Bengal": {
-    cities: {
-      "Kolkata": {
-        towns: {
-          "Kolkata": {
-            tehsils: {
-              "Kolkata North": {
-                subTehsils: ["Salt Lake", "New Town", "Rajarhat"]
-              }
-            }
-          }
-        }
-      }
+      },
+      "Jalandhar": { towns: { "Jalandhar City": { tehsils: { "Jalandhar-1": { subTehsils: ["Model Town"] } } } } }
     }
   },
   "Rajasthan": {
@@ -142,29 +126,70 @@ export const INDIAN_LOCATIONS = {
       }
     }
   },
+  "Sikkim": { cities: { "Gangtok": { towns: { "East Sikkim": { tehsils: { "Gangtok": { subTehsils: ["Gangtok"] } } } } } } },
+  "Tamil Nadu": {
+    cities: {
+      "Chennai": {
+        towns: {
+          "Chennai": {
+            tehsils: {
+              "Chennai North": {
+                subTehsils: ["T Nagar", "Anna Nagar", "Kilpauk"]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "Telangana": { cities: { "Hyderabad": { towns: { "Hyderabad": { tehsils: { "Ameerpet": { subTehsils: ["Ameerpet", "SR Nagar"] } } } } } } },
+  "Tripura": { cities: { "Agartala": { towns: { "West Tripura": { tehsils: { "Agartala": { subTehsils: ["Agartala"] } } } } } } },
   "Uttar Pradesh": {
     cities: {
       "Lucknow": {
         towns: {
-          "Lucknow": {
+          "Lucknow City": {
             tehsils: {
-              "Lucknow City": {
-                subTehsils: ["Gomti Nagar", "Hazratganj", "Aliganj"]
-              }
+              "Gomti Nagar": { subTehsils: ["Vivek Khand", "Vipul Khand", "Patrakarpuram"] },
+              "Hazratganj": { subTehsils: ["Janpath", "Vidhan Sabha", "Park Road"] },
+              "Aliganj": { subTehsils: ["Sector B", "Sector H", "Kapurthala"] }
             }
           }
         }
-      }
-    }
-  },
-  "Telangana": {
-    cities: {
-      "Hyderabad": {
+      },
+      "Noida": {
         towns: {
-          "Hyderabad": {
+          "Gautam Buddha Nagar": {
             tehsils: {
-              "Hyderabad Central": {
-                subTehsils: ["Banjara Hills", "Jubilee Hills", "Hitech City"]
+              "Noida Sector 62": { subTehsils: ["Brahmaputra", "Indirapuram Border", "Fortis"] },
+              "Noida Sector 18": { subTehsils: ["Atta Market", "DLF Mall", "Wave Mall"] },
+              "Noida City Center": { subTehsils: ["Sector 39", "Sector 34", "Sector 32"] }
+            }
+          }
+        }
+      },
+      "Ghaziabad": {
+        towns: {
+          "Ghaziabad City": {
+            tehsils: {
+              "Indirapuram": { subTehsils: ["Vaibhav Khand", "Ahinsa Khand", "Niti Khand"] },
+              "Vaishali": { subTehsils: ["Sector 1", "Sector 4", "Sector 5"] },
+              "Vasundhara": { subTehsils: ["Sector 10", "Sector 13", "Sector 16"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "Uttarakhand": { cities: { "Dehradun": { towns: { "Dehradun": { tehsils: { "Dehradun": { subTehsils: ["Rajpur Road"] } } } } } } },
+  "West Bengal": {
+    cities: {
+      "Kolkata": {
+        towns: {
+          "Kolkata": {
+            tehsils: {
+              "Kolkata North": {
+                subTehsils: ["Salt Lake", "New Town", "Rajarhat"]
               }
             }
           }
@@ -172,21 +197,55 @@ export const INDIAN_LOCATIONS = {
       }
     }
   },
-  "Punjab": {
+  "Andaman and Nicobar Islands": { cities: { "Port Blair": { towns: { "Port Blair": { tehsils: { "Port Blair": { subTehsils: ["Port Blair"] } } } } } } },
+  "Chandigarh": {
     cities: {
       "Chandigarh": {
         towns: {
-          "Chandigarh": {
+          "Chandigarh City": {
             tehsils: {
-              "Chandigarh": {
-                subTehsils: ["Sector 17", "Sector 35", "Sector 22"]
+              "Sector 17": { subTehsils: ["City Center", "ISBT 17", "Bank Square"] },
+              "Sector 35": { subTehsils: ["Market 35C", "Hotel Aroma", "JW Marriott"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "Dadra and Nagar Haveli and Daman and Diu": { cities: { "Daman": { towns: { "Daman": { tehsils: { "Daman": { subTehsils: ["Daman"] } } } } } } },
+  "Lakshadweep": { cities: { "Kavaratti": { towns: { "Lakshadweep": { tehsils: { "Kavaratti": { subTehsils: ["Kavaratti"] } } } } } } },
+  "Delhi": {
+    cities: {
+      "New Delhi": {
+        towns: {
+          "Central Delhi": {
+            tehsils: {
+              "Connaught Place": {
+                subTehsils: ["CP", "Janpath", "Parliament Street"]
+              },
+              "Chandni Chowk": {
+                subTehsils: ["Old Delhi", "Red Fort", "Jama Masjid"]
+              }
+            }
+          },
+          "South Delhi": {
+            tehsils: {
+              "Saket": {
+                subTehsils: ["Malviya Nagar", "Hauz Khas", "Green Park"]
+              },
+              "Vasant Kunj": {
+                subTehsils: ["Vasant Vihar", "Munirka", "RK Puram"]
               }
             }
           }
         }
       }
     }
-  }
+  },
+  "Puducherry": { cities: { "Puducherry": { towns: { "Puducherry": { tehsils: { "Puducherry": { subTehsils: ["Puducherry"] } } } } } } },
+  "Jammu and Kashmir": { cities: { "Srinagar": { towns: { "Srinagar": { tehsils: { "Srinagar": { subTehsils: ["Dal Lake"] } } } } }, "Jammu": { towns: { "Jammu": { tehsils: { "Jammu": { subTehsils: ["Gandhi Nagar"] } } } } } } },
+  "Ladakh": { cities: { "Leh": { towns: { "Leh": { tehsils: { "Leh": { subTehsils: ["Leh Market"] } } } } } } }
+
 };
 
 // Helper functions to get location lists

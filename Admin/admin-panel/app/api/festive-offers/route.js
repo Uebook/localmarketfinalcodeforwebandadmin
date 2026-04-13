@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '../../../lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 // GET /api/festive-offers - Get all offers
 export async function GET(request) {
@@ -34,6 +34,7 @@ export async function POST(request) {
             end_date,
             discount_percent,
             description,
+            image_url,
         } = body;
 
         // Validate required fields
@@ -93,6 +94,7 @@ export async function POST(request) {
             end_date,
             discount_percent: discount_percent !== null && discount_percent !== undefined ? parseFloat(discount_percent) : null,
             description: description?.trim() || null,
+            image_url: image_url || null,
             status: 'active',
         };
 

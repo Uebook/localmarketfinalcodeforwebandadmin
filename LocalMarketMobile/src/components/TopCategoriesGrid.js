@@ -1,9 +1,22 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, } from 'react-native';
+import Image from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
+
+// Subtle colored icon backgrounds per category index (Synced with Website)
+const iconColors = [
+  { bg: '#FFF7ED', text: '#F97316' }, // orange
+  { bg: '#EFF6FF', text: '#3B82F6' }, // blue
+  { bg: '#F0FDF4', text: '#16A34A' }, // green
+  { bg: '#FAF5FF', text: '#9333EA' }, // purple
+  { bg: '#FFF1F2', text: '#E11D48' }, // rose
+  { bg: '#FEFCE8', text: '#CA8A04' }, // amber
+  { bg: '#F0FDFA', text: '#0D9488' }, // teal
+  { bg: '#EEF2FF', text: '#4F46E5' }, // indigo
+];
 
 const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   const COLORS = useThemeColors();
@@ -14,7 +27,6 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
 
   const handleCategoryPress = (category) => {
     if (onCategorySelect) {
-      // Pass category object so we can get both name and id
       onCategorySelect(category.name, category.id);
     }
   };
@@ -22,35 +34,41 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Top Categories</Text>
-          <Text style={styles.subtitle}>Most frequent search, daily need, guaranteed usage</Text>
+        <View style={styles.titleContainer}>
+          <View style={styles.orangeLine} />
+          <View>
+            <Text style={styles.title}>All Categories</Text>
+            <Text style={styles.subtitle}>Explore all available categories</Text>
+          </View>
         </View>
       </View>
       <View style={styles.grid}>
-        {displayCategories.map((category, index) => (
-          <TouchableOpacity
-            key={category.id || index}
-            style={styles.categoryCard}
-            onPress={() => handleCategoryPress(category)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.iconContainer, { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#F1F5F9' }]}>
-              {category.iconUrl || category.icon_url ? (
-                <Image
-                  source={{ uri: category.iconUrl || category.icon_url }}
-                  style={{ width: 32, height: 32 }}
-                  resizeMode="contain"
-                />
-              ) : (
-                <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={28} color="#64748B" />
-              )}
-            </View>
-            <Text style={styles.categoryName} numberOfLines={2}>
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {displayCategories.map((category, index) => {
+          const color = iconColors[index % iconColors.length];
+          return (
+            <TouchableOpacity
+              key={category.id || index}
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress(category)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: color.bg }]}>
+                {category.iconUrl || category.icon_url ? (
+                  <Image
+                    source={{ uri: category.iconUrl || category.icon_url }}
+                    style={styles.categoryImage}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={24} color={color.text} />
+                )}
+              </View>
+              <Text style={styles.categoryName} numberOfLines={2}>
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
         {/* View All button as 8th item in grid */}
         {onViewAll && (
           <TouchableOpacity
@@ -73,53 +91,32 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
 
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    paddingHorizontal: 16,
+    marginVertical: 12,
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  orangeLine: {
+    width: 4,
+    height: 24,
+    backgroundColor: COLORS.orange,
+    borderRadius: 2,
+    marginRight: 12,
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 2,
   },
   subtitle: {
     fontSize: 12,
     color: COLORS.textMuted,
-  },
-  viewAllIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    backgroundColor: '#FFF7ED',
-    borderWidth: 2,
-    borderColor: COLORS.orange,
-    borderStyle: 'dashed',
-  },
-  viewAllCategoryText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.orange,
-    textAlign: 'center',
-    lineHeight: 13,
-    maxWidth: '100%',
-    paddingHorizontal: 2,
   },
   grid: {
     flexDirection: 'row',
@@ -127,32 +124,51 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryCard: {
-    width: '22%',
+    width: '23%',
     alignItems: 'center',
-    marginBottom: 16,
-    minHeight: 100,
+    marginBottom: 20,
   },
-  iconContainer: {
+  iconCircle: {
     width: 64,
     height: 64,
-    borderRadius: 12,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  categoryImage: {
+    width: 32,
+    height: 32,
   },
   categoryName: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#334155',
     textAlign: 'center',
-    lineHeight: 13,
-    maxWidth: '100%',
-    paddingHorizontal: 2,
+    lineHeight: 14,
+  },
+  viewAllIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    backgroundColor: '#FFF7ED',
+    borderWidth: 2,
+    borderColor: COLORS.orange,
+    borderStyle: 'dashed',
+  },
+  viewAllCategoryText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.orange,
+    textAlign: 'center',
   },
 });
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet } from '../../../../lib/supabaseAdminFetch';
+import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
 
 // GET /api/analytics/circle - Get circle analytics data
 export async function GET(request) {

@@ -218,22 +218,30 @@ export default function Dashboard({ onNavigate }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="text-sm font-medium text-blue-900 mb-1">High Views, Low Conversions</div>
-                    <div className="text-2xl font-bold text-blue-600">234</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {dashboardData?.insights?.highViewsLowConversions?.toLocaleString() || '0'}
+                    </div>
                     <div className="text-xs text-blue-700 mt-1">Vendors need pricing/display improvements</div>
                   </div>
                   <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div className="text-sm font-medium text-yellow-900 mb-1">High Demand, Low Views</div>
-                    <div className="text-2xl font-bold text-yellow-600">156</div>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {dashboardData?.insights?.highDemandLowViews?.toLocaleString() || '0'}
+                    </div>
                     <div className="text-xs text-yellow-700 mt-1">Listing quality issues detected</div>
                   </div>
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-sm font-medium text-green-900 mb-1">Price Updates Needed</div>
-                    <div className="text-2xl font-bold text-green-600">89</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {dashboardData?.insights?.priceUpdatesNeeded?.toLocaleString() || '0'}
+                    </div>
                     <div className="text-xs text-green-700 mt-1">Vendors haven't updated in 30+ days</div>
                   </div>
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="text-sm font-medium text-purple-900 mb-1">Low Category Demand</div>
-                    <div className="text-2xl font-bold text-purple-600">45</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {dashboardData?.insights?.lowCategoryDemand?.toLocaleString() || '0'}
+                    </div>
                     <div className="text-xs text-purple-700 mt-1">Need popular product suggestions</div>
                   </div>
                 </div>

@@ -30,27 +30,44 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
         const globalThemeRes = await fetch('/api/themes?active=true', { cache: 'no-store' });
         if (globalThemeRes.ok) {
           const globalThemes = await globalThemeRes.json();
-          console.log('[Theme] Global themes found:', globalThemes);
           if (Array.isArray(globalThemes) && globalThemes.length > 0) {
             const activeTheme = globalThemes.find((t: any) => t.is_active);
             if (activeTheme && activeTheme.id) {
-              console.log('[Theme] Applying global active theme:', activeTheme.id);
               themeToUse = activeTheme.id;
               activeThemeFromDB = activeTheme;
-              // Sync localStorage with global default
-              localStorage.setItem('selectedFestivalTheme', themeToUse);
             }
           }
         }
-      } catch (error: any) {
-        if (!error.message?.includes('fetch failed') && !error.message?.includes('ENOTFOUND')) {
-          console.error('Error loading global default theme:', error);
-        }
+      } catch (error) {
+        console.error('Error loading global default theme:', error);
       }
 
-      // Note: Admin's global default theme always takes precedence
-      // When admin changes theme, all users' selected_theme is updated in the database
-      // So we only need to check the global default theme
+      // Step 2: Check for user-specific theme preference if logged in
+      const userId = localStorage.getItem('userId');
+      const phone = localStorage.getItem('userPhone');
+      const email = localStorage.getItem('userEmail');
+
+      if (userId || phone || email) {
+        try {
+          const query = new URLSearchParams();
+          if (userId) query.set('userId', userId);
+          if (phone) query.set('phone', phone);
+          if (email) query.set('email', email);
+
+          const userThemeRes = await fetch(`/api/user/theme?${query.toString()}`);
+          if (userThemeRes.ok) {
+            const data = await userThemeRes.json();
+            if (data.theme && !data.isGlobalDefault) {
+              console.log('[Theme] Applying user-specific theme:', data.theme);
+              themeToUse = data.theme;
+              // If it's a user theme, we might not have the full theme object 
+              // unless it's one of the predefined ones in FESTIVAL_THEMES
+            }
+          }
+        } catch (error) {
+          console.error('Error loading user-specific theme:', error);
+        }
+      }
 
       // Apply the theme
       applyTheme(themeToUse, activeThemeFromDB);

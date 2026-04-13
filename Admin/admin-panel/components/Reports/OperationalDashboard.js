@@ -24,10 +24,10 @@ export default function OperationalDashboard() {
       if (res.ok) {
         const data = await res.json();
         setMetrics([
-          { label: 'Total Vendors Onboarded', value: data.totalVendors?.toLocaleString() || '0', trend: '+12%', icon: '🏪' },
-          { label: 'Daily Active Vendors', value: data.activeVendors?.toLocaleString() || '0', trend: '+5%', icon: '✅' },
-          { label: 'Total Products Listed', value: data.totalProducts?.toLocaleString() || '0', trend: '+18%', icon: '📦' },
-          { label: 'Search Volume (Today)', value: data.searchVolume?.toLocaleString() || '0', trend: '+22%', icon: '🔍' },
+          { label: 'Total Vendors Onboarded', value: data.totalVendors?.toLocaleString() || '0', trend: data.vendorChange || '+0%', icon: '🏪' },
+          { label: 'Daily Active Vendors', value: data.activeVendors?.toLocaleString() || '0', trend: data.activeVendorChange || '+0%', icon: '✅' },
+          { label: 'Total Products Listed', value: data.totalProducts?.toLocaleString() || '0', trend: data.productChange || '+0%', icon: '📦' },
+          { label: 'Search Volume (Today)', value: data.searchVolume?.toLocaleString() || '0', trend: data.searchChange || '+0%', icon: '🔍' },
         ]);
         setSearchVolumeData(data.searchTrends || []);
       }

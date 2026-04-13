@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList,  ActivityIndicator } from 'react-native';
+import Image from './ImageWithFallback';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from './Header';
@@ -93,9 +94,7 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
   };
 
   const renderBusinessCard = ({ item }) => {
-    // Safely determine the best image to show, handling empty strings
     const imgSource = item.profileImageUrl || item.imageUrl || item.shopFrontPhotoUrl;
-    const finalImageUrl = (imgSource && imgSource.trim() !== '') ? imgSource : 'https://via.placeholder.com/150';
 
     return (
       <TouchableOpacity
@@ -104,7 +103,7 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
         activeOpacity={0.7}
       >
         <Image
-          source={{ uri: finalImageUrl }}
+          source={{ uri: imgSource }}
           style={styles.businessImage}
         />
         <View style={styles.businessInfo}>

@@ -50,7 +50,7 @@ async function seed() {
                      pincode: '143001',
                      status: 'Active',
                      kyc_status: 'Approved',
-                     image_url: 'https://images.unsplash.com/photo-1550583724-1255818c053b?auto=format&fit=crop&q=80&w=800'
+                     image_url: 'https://images.unsplash.com/photo-1528750955925-cdb4788d8b6d?auto=format&fit=crop&q=80&w=800'
               },
               {
                      name: 'Digital World',

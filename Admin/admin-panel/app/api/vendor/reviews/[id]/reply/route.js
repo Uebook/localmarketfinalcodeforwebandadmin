@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestPatch } from '../../../../../../lib/supabaseAdminFetch';
+import { supabaseRestPatch } from '@/lib/supabaseAdminFetch';
 
 /**
  * PATCH /api/vendor/reviews/[id]/reply - Submit a vendor reply to a review

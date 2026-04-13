@@ -14,7 +14,7 @@ export default function CategoriesPage() {
   const [locationState, setLocationState] = useState({
     lat: null,
     lng: null,
-    city: 'Delhi, India',
+    city: '',
     loading: true,
     error: null,
   });
@@ -84,23 +84,37 @@ export default function CategoriesPage() {
       />
 
       {/* Page Header */}
-      <div className="border-b border-slate-100 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-md cursor-pointer hover:rotate-6 transition-transform" onClick={() => router.back()}>
-              <ArrowLeft className="text-white" size={22} />
+      <div className="bg-slate-50/50 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <button
+                className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm hover:shadow-md hover:border-primary/20 transition-all active:scale-95 group"
+                onClick={() => router.back()}
+              >
+                <ArrowLeft className="text-slate-600 group-hover:text-primary transition-colors" size={20} />
+              </button>
+              <div>
+                <nav className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Explore</span>
+                  <div className="w-1 h-1 rounded-full bg-slate-300" />
+                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Categories</span>
+                </nav>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                  {showAll ? 'Browse All' : 'Top Categories'}
+                </h1>
+                <p className="text-slate-500 text-sm mt-1 max-w-md font-medium">
+                  {loadingCategories
+                    ? 'Loading categories...'
+                    : 'Find the best local shops and services by their specialty.'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                {showAll ? 'All Categories' : 'Top Categories'}
-              </h1>
-              <p className="text-slate-500 text-sm mt-0.5">
-                {loadingCategories
-                  ? 'Loading categories...'
-                  : showAll
-                    ? `Browse all ${categories.length} categories`
-                    : 'Most popular categories near you'}
-              </p>
+
+            <div className="flex items-center gap-3">
+              <div className="px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-xs font-bold text-slate-600">
+                {categories.length} Total
+              </div>
             </div>
           </div>
         </div>
@@ -112,6 +126,7 @@ export default function CategoriesPage() {
           variant="light"
           showAll={showAll}
           categories={categories}
+          hideButton={true}
         />
 
         {/* View All / Show Less toggle */}

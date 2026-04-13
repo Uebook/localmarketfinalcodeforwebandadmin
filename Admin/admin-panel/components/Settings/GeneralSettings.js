@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FESTIVAL_THEMES } from '../../constants/festivalThemes';
-
-export default function GeneralSettings({ onSwitchToTheme }) {
+export default function GeneralSettings({ user, onSwitchToTheme }) {
   const [currentTheme, setCurrentTheme] = useState('diwali');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -44,6 +43,61 @@ export default function GeneralSettings({ onSwitchToTheme }) {
     localStorage.setItem('refreshInterval', interval.toString());
   };
 
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordMessage({ type: '', text: '' });
+
+    if (!user?.id) {
+      setPasswordMessage({ type: 'error', text: 'User session not found. Please log in again.' });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordMessage({ type: 'error', text: 'New passwords do not match' });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: 'New password must be at least 6 characters' });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+
+    try {
+      const response = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPasswordMessage({ type: 'success', text: 'Password updated successfully!' });
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPasswordMessage({ type: 'error', text: data.error || 'Failed to update password' });
+      }
+    } catch (err) {
+      setPasswordMessage({ type: 'error', text: 'An error occurred. Please try again.' });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Current Theme Display */}
@@ -69,6 +123,61 @@ export default function GeneralSettings({ onSwitchToTheme }) {
             Change Theme
           </button>
         </div>
+      </div>
+
+      {/* Security - Change Password */}
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Security Settings</h2>
+        <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+          {passwordMessage.text && (
+            <div className={`p-3 rounded-lg text-sm font-medium ${
+              passwordMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            }`}>
+              {passwordMessage.text}
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+            <input
+              type="password"
+              value={passwordData.currentPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <input
+              type="password"
+              value={passwordData.newPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <input
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isUpdatingPassword}
+            className="px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50"
+          >
+            {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+          </button>
+        </form>
       </div>
 
       {/* Notification Settings */}

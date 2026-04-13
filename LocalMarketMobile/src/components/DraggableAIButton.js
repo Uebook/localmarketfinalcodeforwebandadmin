@@ -6,19 +6,20 @@ import {
     Animated,
     TouchableOpacity,
     Dimensions,
+    Text,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import LinearGradient from 'react-native-linear-gradient';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const { width, height } = Dimensions.get('window');
-const BUTTON_SIZE = 56;
+const BUTTON_SIZE = 64; // Increased size slightly
 
 const DraggableAIButton = ({ onPress }) => {
     const COLORS = useThemeColors();
 
-    // Initial position: Bottom Right (with some padding)
     const initialX = width - BUTTON_SIZE - 20;
-    const initialY = height - BUTTON_SIZE - 100; // Above bottom tab bar
+    const initialY = height - BUTTON_SIZE - 100;
 
     const pan = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
     const [isDragging, setIsDragging] = useState(false);
@@ -26,7 +27,6 @@ const DraggableAIButton = ({ onPress }) => {
     const panResponder = useRef(
         PanResponder.create({
             onMoveShouldSetPanResponder: (_, gestureState) => {
-                // Only start dragging if moved significantly (avoids accidental drags on tap)
                 return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
             },
             onPanResponderGrant: () => {
@@ -41,11 +41,24 @@ const DraggableAIButton = ({ onPress }) => {
                 [null, { dx: pan.x, dy: pan.y }],
                 { useNativeDriver: false }
             ),
-            onPanResponderRelease: () => {
+            onPanResponderRelease: (e, gestureState) => {
                 pan.flattenOffset();
                 setIsDragging(false);
 
-                // Optional: Add boundary checks here to keep button on screen
+                // Snap to edges if desired
+                let finalX = pan.x._value;
+                let finalY = pan.y._value;
+
+                // Simple boundaries
+                if (finalX < 10) finalX = 10;
+                if (finalX > width - BUTTON_SIZE - 10) finalX = width - BUTTON_SIZE - 10;
+                if (finalY < 60) finalY = 60;
+                if (finalY > height - BUTTON_SIZE - 80) finalY = height - BUTTON_SIZE - 80;
+
+                Animated.spring(pan, {
+                    toValue: { x: finalX, y: finalY },
+                    useNativeDriver: false,
+                }).start();
             },
         })
     ).current;
@@ -56,22 +69,30 @@ const DraggableAIButton = ({ onPress }) => {
                 styles.container,
                 {
                     transform: [{ translateX: pan.x }, { translateY: pan.y }],
-                    backgroundColor: COLORS.primary, // Using primary color (likely orange)
-                    shadowColor: COLORS.shadow,
                 },
             ]}
             {...panResponder.panHandlers}
         >
             <TouchableOpacity
-                style={styles.button}
                 onPress={() => {
                     if (!isDragging && onPress) {
                         onPress();
                     }
                 }}
-                activeOpacity={0.8}
+                activeOpacity={0.9}
+                style={styles.touchable}
             >
-                <Icon name="cpu" size={24} color="#FFF" />
+                <LinearGradient
+                    colors={['#8B5CF6', '#3B82F6']} // Vibrant Purple to Blue
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.gradient}
+                >
+                    <Icon name="sparkles" size={28} color="#FFF" />
+                    <View style={styles.badge}>
+                        <Text style={styles.badgeText}>AI</Text>
+                    </View>
+                </LinearGradient>
             </TouchableOpacity>
         </Animated.View>
     );
@@ -82,20 +103,41 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: BUTTON_SIZE,
         height: BUTTON_SIZE,
+        zIndex: 9999,
+        elevation: 10,
+        shadowColor: '#8B5CF6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+    },
+    touchable: {
+        width: '100%',
+        height: '100%',
+    },
+    gradient: {
+        width: '100%',
+        height: '100%',
         borderRadius: BUTTON_SIZE / 2,
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 9999, // Ensure it floats above everything
-        elevation: 5,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.5)',
     },
-    button: {
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
+    badge: {
+        position: 'absolute',
+        top: -4,
+        right: -4,
+        backgroundColor: '#F97316',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#FFF',
+    },
+    badgeText: {
+        color: '#FFF',
+        fontSize: 8,
+        fontWeight: '900',
     },
 });
 

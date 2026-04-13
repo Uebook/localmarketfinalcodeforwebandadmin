@@ -1,32 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, FlatList, Text, ActivityIndicator, Modal } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, FlatList, Text, ActivityIndicator } from 'react-native';
+import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
-import Voice from '@react-native-voice/voice';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getCategories, getMasterProducts } from '../services/api';
+import { getCategories, getSearchSuggestions } from '../services/api';
 
-const SearchBar = ({ onSearch, navigation }) => {
+
+const SearchBar = ({ onSearch, navigation, currentCity = '' }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const searchTimeoutRef = useRef(null);
 
   useEffect(() => {
-    // Setting up voice listeners
-    Voice.onSpeechStart = onSpeechStart;
-    Voice.onSpeechEnd = onSpeechEnd;
-    Voice.onSpeechResults = onSpeechResults;
-    Voice.onSpeechError = onSpeechError;
-
     return () => {
-      // Cleanup listeners and stop voice recognition if it's running
-      Voice.destroy().then(Voice.removeAllListeners);
-
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
@@ -69,30 +60,27 @@ const SearchBar = ({ onSearch, navigation }) => {
         return;
       }
 
-      // Fetch categories and products in parallel
-      const [categoriesData, productsData] = await Promise.all([
-        getCategories(searchQuery).catch(() => ({ categories: [] })),
-        getMasterProducts({ q: searchQuery, limit: 5 }).catch(() => ({ products: [] }))
-      ]);
+      // Fetch unified suggestions from the new API
+      const data = await getSearchSuggestions(searchQuery, currentCity);
+      
+      let allSuggestions = [];
+      
+      if (data) {
+        // Sort products by ascending price (lowest first), matching website
+        // BUT prioritize items with actual prices over those without
+        const productSugs = (data.products || [])
+          .map(p => ({ 
+            ...p, 
+            type: p.type || 'product' // Respect API type if present 
+          }));
 
-      const categorySuggestions = (categoriesData?.categories || []).slice(0, 5).map(cat => ({
-        id: `category_${cat.id}`,
-        type: 'category',
-        name: cat.name,
-        icon: cat.icon_name || 'grid',
-        data: cat
-      }));
+        const vendorSugs = (data.vendors || []).map(v => ({ ...v, type: 'vendor' }));
+        const categorySugs = (data.categories || []).map(c => ({ ...c, type: 'category' }));
+        
+        // Combine all and ensure products are sorted price low-to-high, but keep them at top
+        allSuggestions = [...productSugs, ...vendorSugs, ...categorySugs].slice(0, 15);
+      }
 
-      const productSuggestions = (productsData?.products || []).slice(0, 5).map(product => ({
-        id: `product_${product.id}`,
-        type: 'product',
-        name: product.name,
-        brand: product.brand,
-        data: product
-      }));
-
-      // Combine and limit total suggestions
-      const allSuggestions = [...categorySuggestions, ...productSuggestions].slice(0, 8);
       setSuggestions(allSuggestions);
     } catch (error) {
       console.error('Error loading suggestions:', error);
@@ -101,6 +89,8 @@ const SearchBar = ({ onSearch, navigation }) => {
       setLoadingSuggestions(false);
     }
   };
+
+
 
   const handleSearch = () => {
     if (query.trim() && onSearch) {
@@ -124,58 +114,10 @@ const SearchBar = ({ onSearch, navigation }) => {
     }
   };
 
-  const onSpeechStart = (e) => {
-    console.log('onSpeechStart: ', e);
-  };
-
-  const onSpeechEnd = (e) => {
-    console.log('onSpeechEnd: ', e);
-    setIsListening(false);
-  };
-
-  const onSpeechResults = (e) => {
-    console.log('onSpeechResults: ', e);
-    if (e.value && e.value.length > 0) {
-      const recognizedText = e.value[0];
-      setQuery(recognizedText);
-      setIsListening(false);
-
-      // Automatically trigger search after a brief delay so user can see what was captured
-      setTimeout(() => {
-        if (onSearch) {
-          onSearch(recognizedText);
-        }
-      }, 500);
-    }
-  };
-
-  const onSpeechError = (e) => {
-    console.log('onSpeechError: ', e);
-    setIsListening(false);
-  };
-
-  const startListening = async () => {
-    try {
-      setQuery('');
-      setIsListening(true);
-      await Voice.start('en-US');
-    } catch (e) {
-      console.error(e);
-      setIsListening(false);
-    }
-  };
-
-  const stopListening = async () => {
-    try {
-      await Voice.stop();
-      setIsListening(false);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const renderSuggestion = ({ item }) => {
     const isCategory = item.type === 'category';
+    const isVendor = item.type === 'vendor';
+    const isProduct = item.type === 'product' || !item.type;
 
     return (
       <TouchableOpacity
@@ -183,60 +125,100 @@ const SearchBar = ({ onSearch, navigation }) => {
         onPress={() => handleSuggestionPress(item)}
         activeOpacity={0.7}
       >
-        <View style={styles.suggestionIconContainer}>
-          <Icon
-            name={getIconName(isCategory ? item.icon : 'Package')}
-            size={18}
-            color={isCategory ? COLORS.orange : COLORS.blue}
-          />
-        </View>
-        <View style={styles.suggestionContent}>
-          <Text style={styles.suggestionName} numberOfLines={1}>{item.name}</Text>
-          {item.brand && (
-            <Text style={styles.suggestionBrand} numberOfLines={1}>{item.brand}</Text>
-          )}
-          {isCategory && (
-            <Text style={styles.suggestionType}>Category</Text>
+        {/* Left: Image/Icon */}
+        <View style={styles.suggestionImageContainer}>
+          {item.image ? (
+            <Image source={{ uri: item.image }} style={styles.suggestionImage} />
+          ) : (
+            <View style={styles.iconPlaceholder}>
+              <Icon 
+                name={getIconName(isCategory ? 'grid' : (isVendor ? 'store' : 'package'))} 
+                size={22} 
+                color="#CBD5E1" 
+              />
+            </View>
           )}
         </View>
-        <Icon name={getIconName('ChevronRight')} size={16} color={COLORS.textMuted} />
+
+        {/* Center: Info */}
+        <View style={styles.suggestionInfo}>
+          <View style={styles.titleRow}>
+            {isVendor && <Text style={styles.tagVendor}>Vendor</Text>}
+            {isCategory && <Text style={styles.tagCategory}>Category</Text>}
+            <Text style={styles.suggestionTitle} numberOfLines={1}>
+              {item.name}
+            </Text>
+          </View>
+
+          {isProduct && (
+            <View style={styles.metaRow}>
+              <Icon name={getIconName('ShoppingBag')} size={12} color="#FF6B00" style={{ marginRight: 4 }} />
+              <Text style={styles.vendorName} numberOfLines={1}>
+                {item.vendor?.name || item.shop_name || 'Local Store'}
+              </Text>
+              <View style={styles.locationSmall}>
+                <Icon name={getIconName('MapPin')} size={10} color="#94A3B8" />
+                <Text style={styles.distanceText}>{item.vendor?.distance || 'Local'}</Text>
+              </View>
+            </View>
+          )}
+
+          {(isVendor || isCategory) && (
+            <Text style={styles.exploreText}>
+              Click to explore {isVendor ? 'store' : 'category'}
+            </Text>
+          )}
+        </View>
+
+        {/* Right: Price/Action */}
+        <View style={styles.suggestionRight}>
+          {item.price > 0 && (
+            <View style={styles.priceColumn}>
+              <View style={styles.pricePill}>
+                <Text style={styles.priceValue}>₹{item.price}</Text>
+              </View>
+              {item.mrp && item.mrp > item.price && (
+                <Text style={styles.mrpText}>₹{item.mrp}</Text>
+              )}
+            </View>
+          )}
+          {isVendor && !item.price && (
+            <View style={styles.enterBadge}>
+              <Text style={styles.enterText}>ENTER</Text>
+            </View>
+          )}
+          <Icon name="chevron-right" size={16} color="#CBD5E1" style={{ marginLeft: 8 }} />
+        </View>
       </TouchableOpacity>
     );
   };
 
+
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        {/* Search Icon */}
-        <View style={styles.iconContainer}>
-          <Icon name={getIconName('Search')} size={22} color={COLORS.orange} />
-        </View>
-
-        {/* Input Field */}
-        <TextInput
-          style={styles.input}
-          placeholder="Search products, markets or shops"
-          placeholderTextColor={COLORS.textMuted}
-          value={query}
-          onChangeText={setQuery}
-          onSubmitEditing={handleSearch}
-          returnKeyType="search"
-          onFocus={() => {
-            if (suggestions.length > 0) {
-              setShowSuggestions(true);
-            }
-          }}
-        />
-
-        {/* Mic Icon */}
-        <TouchableOpacity
-          style={styles.micContainer}
-          activeOpacity={0.7}
-          onPress={startListening}
-        >
-          <View style={styles.micBg}>
-            <Icon name={getIconName('Mic')} size={18} color={COLORS.white} />
+        <View style={styles.inputContainer}>
+          <View style={styles.iconContainer}>
+            <Icon name={getIconName('Search')} size={22} color={COLORS.orange} />
           </View>
+          <TextInput
+            style={styles.input}
+            placeholder="mention name of the article you need"
+            placeholderTextColor={COLORS.textMuted}
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+            onFocus={() => {
+              if (suggestions.length > 0) {
+                setShowSuggestions(true);
+              }
+            }}
+          />
+        </View>
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.8}>
+          <Text style={styles.searchButtonText}>SEARCH</Text>
         </TouchableOpacity>
       </View>
 
@@ -257,19 +239,38 @@ const SearchBar = ({ onSearch, navigation }) => {
       {/* Suggestions Dropdown */}
       {showSuggestions && (query.trim().length >= 2 || suggestions.length > 0) && (
         <View style={styles.suggestionsContainer}>
+          {/* Header: count + Low Price First badge */}
+          <View style={styles.suggestionsHeader}>
+            <Text style={styles.suggestionsHeaderText}>
+              {loadingSuggestions ? 'Searching...' : `${suggestions.length} Results Found`}
+            </Text>
+            {!loadingSuggestions && suggestions.length > 0 && (
+              <View style={styles.lowPriceBadge}>
+                <Icon name="trending-down" size={10} color="#16A34A" />
+                <Text style={styles.lowPriceText}>Low Price First</Text>
+              </View>
+            )}
+          </View>
+
           {loadingSuggestions ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={COLORS.orange} />
-              <Text style={styles.loadingText}>Searching...</Text>
+              <ActivityIndicator size="large" color={COLORS.orange} />
+              <Text style={styles.loadingText}>Finding the best local prices...</Text>
             </View>
           ) : suggestions.length > 0 ? (
-            <FlatList
-              data={suggestions}
-              renderItem={renderSuggestion}
-              keyExtractor={(item) => item.id}
-              keyboardShouldPersistTaps="handled"
-              style={styles.suggestionsList}
-            />
+            <>
+              <FlatList
+                data={suggestions}
+                renderItem={renderSuggestion}
+                keyExtractor={(item, index) => item.id ? String(item.id) : String(index)}
+                keyboardShouldPersistTaps="handled"
+                scrollEnabled={true}
+              />
+              {/* Footer */}
+              <View style={styles.suggestionsFooter}>
+                <Text style={styles.suggestionsFooterText}>Press Search to see all results</Text>
+              </View>
+            </>
           ) : query.trim().length >= 2 ? (
             <View style={styles.noSuggestionsContainer}>
               <Text style={styles.noSuggestionsText}>No suggestions found</Text>
@@ -277,34 +278,6 @@ const SearchBar = ({ onSearch, navigation }) => {
           ) : null}
         </View>
       )}
-      {/* Voice Listening Modal */}
-      <Modal
-        visible={isListening}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setIsListening(false)}
-      >
-        <TouchableOpacity
-          style={styles.voiceOverlay}
-          activeOpacity={1}
-          onPress={() => setIsListening(false)}
-        >
-          <View style={styles.voiceContent}>
-            <View style={styles.pulseRing}>
-              <Icon name={getIconName('Mic')} size={40} color={COLORS.white} />
-            </View>
-            <Text style={styles.listeningText}>Listening...</Text>
-            <Text style={styles.listeningSubtext}>Try saying "Restaurants" or "Plumber"</Text>
-
-            <TouchableOpacity
-              style={styles.closeVoiceButton}
-              onPress={stopListening}
-            >
-              <Icon name={getIconName('X')} size={24} color="rgba(255,255,255,0.7)" />
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 };
@@ -315,32 +288,52 @@ const createStyles = (COLORS) => StyleSheet.create({
     paddingVertical: 16,
   },
   searchContainer: {
+    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
-    height: 60,
+    padding: 6,
     borderRadius: 18,
     backgroundColor: COLORS.white,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#E2E8F0',
-    shadowColor: '#FF6B00',
-    shadowOffset: { width: 0, height: 3 },
+    shadowColor: COLORS.orange,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 4,
   },
+  inputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  searchButton: {
+    backgroundColor: COLORS.orange,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    color: '#FFF',
+    fontWeight: '900',
+    fontSize: 13,
+    letterSpacing: 1,
+  },
   iconContainer: {
-    width: 52,
-    height: '100%',
+    width: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
   input: {
     flex: 1,
-    height: '100%',
     color: COLORS.textPrimary,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.2,
+    paddingVertical: 0,
   },
   micContainer: {
     width: 52,
@@ -379,112 +372,244 @@ const createStyles = (COLORS) => StyleSheet.create({
   suggestionsContainer: {
     marginTop: 8,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    maxHeight: 300,
+    shadowRadius: 20,
+    elevation: 8,
+    maxHeight: 450,
     overflow: 'hidden',
   },
-  suggestionsList: {
-    maxHeight: 300,
+  suggestionsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+    backgroundColor: '#F8FAFC',
   },
+  suggestionsHeaderText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  lowPriceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  lowPriceText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#16A34A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginLeft: 3,
+  },
+  suggestionsFooter: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F8FAFC',
+    backgroundColor: '#F8FAFC',
+  },
+  suggestionsFooterText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  priceColumn: {
+    alignItems: 'flex-end',
+  },
+  mrpText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#94A3B8',
+    textDecorationLine: 'line-through',
+    marginTop: 2,
+    textAlign: 'right',
+  },
+  locationSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+    gap: 3,
+  },
+  pricePill: {
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+
   suggestionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
+    borderBottomColor: '#F8FAFC',
   },
-  suggestionIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: COLORS.highlightBg,
+  suggestionImageContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: '#F1F5F9',
+    marginRight: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
-  suggestionContent: {
+  suggestionImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  iconPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestionInfo: {
     flex: 1,
-    minWidth: 0,
+    justifyContent: 'center',
+    marginRight: 8,
   },
-  suggestionName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: 2,
-  },
-  suggestionBrand: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginBottom: 2,
-  },
-  suggestionType: {
-    fontSize: 11,
-    color: COLORS.orange,
-    fontWeight: '500',
-  },
-  loadingContainer: {
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 4,
+  },
+  suggestionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+    flex: 1,
+  },
+  tagVendor: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: COLORS.orange,
+    backgroundColor: '#FFF7ED',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginRight: 6,
+    textTransform: 'uppercase',
+  },
+  tagCategory: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: COLORS.blue,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginRight: 6,
+    textTransform: 'uppercase',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  vendorName: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+    marginLeft: 4,
+  },
+  dot: {
+    fontSize: 12,
+    color: '#CBD5E1',
+    marginHorizontal: 4,
+  },
+  distanceText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94A3B8',
+  },
+  exploreText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: -0.2,
+  },
+  suggestionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 4,
+  },
+  priceBox: {
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  priceValue: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  enterBadge: {
+    backgroundColor: '#FFF7ED',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#FFEDD5',
+  },
+  enterText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: COLORS.orange,
+  },
+  loadingContainer: {
+    padding: 30,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
   },
   loadingText: {
-    fontSize: 14,
-    color: COLORS.textMuted,
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   noSuggestionsContainer: {
-    paddingVertical: 20,
+    padding: 40,
     alignItems: 'center',
   },
   noSuggestionsText: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-  },
-  voiceOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  voiceContent: {
-    alignItems: 'center',
-    padding: 20,
-  },
-  pulseRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.orange,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    shadowColor: COLORS.orange,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  listeningText: {
-    fontSize: 24,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#FFF',
-    marginBottom: 8,
-  },
-  listeningSubtext: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginBottom: 40,
-  },
-  closeVoiceButton: {
-    padding: 12,
+    color: '#94A3B8',
   },
 });
 

@@ -175,6 +175,26 @@ export const INDIAN_LOCATIONS = {
   },
   "Punjab": {
     cities: {
+      "Amritsar": {
+        towns: {
+          "Amritsar City": {
+            tehsils: {
+              "Amritsar-1": { subTehsils: ["Hall Bazaar", "Katra Ahluwalia", "Town Hall", "Golden Temple Area"] },
+              "Amritsar-2": { subTehsils: ["Block A", "Block B", "District Shopping Center", "Ranjit Avenue"] }
+            }
+          }
+        }
+      },
+      "Ludhiana": {
+        towns: {
+          "Ludhiana West": {
+            tehsils: {
+              "Sarabha Nagar": { subTehsils: ["Kipps Market", "Malhar Road", "Gurdev Nagar"] },
+              "Model Town": { subTehsils: ["Pritam Palace", "Jawaddi", "Atam Nagar"] }
+            }
+          }
+        }
+      },
       "Chandigarh": {
         towns: {
           "Chandigarh": {
