@@ -40,8 +40,13 @@ const COLORS = {
   success: '#16A34A',
 };
 
-// Pure CommonJS export - Metro bundler compatible
-// DO NOT mix CommonJS and ES6 exports - Metro bundler has issues with this
-module.exports = COLORS;
-module.exports.COLORS = COLORS;
-module.exports.default = COLORS;
+// Export COLORS object - use ESM for better compatibility with Metro bundler
+console.log('[COLORS] Module loading... COLORS defined:', !!COLORS);
+
+// Global fallback for legacy/missing import support
+if (typeof global !== 'undefined' && !global.COLORS) {
+  global.COLORS = COLORS;
+}
+
+export { COLORS };
+export default COLORS;

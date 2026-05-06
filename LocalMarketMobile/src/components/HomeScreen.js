@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image as RNImage } from 'react-native';
+import Image from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from './Header';
@@ -164,18 +165,18 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
 
     // START AUTO-DETECTION (GPS -> IP Fallback)
     const hasPermission = await requestLocationPermission();
-    
+
     if (hasPermission) {
       Geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-            try {
-              console.log('Detecting via GPS...', latitude, longitude);
-              const data = await detectLocation(latitude, longitude);
-              if (data && data.success) {
+          try {
+            console.log('Detecting via GPS...', latitude, longitude);
+            const data = await detectLocation(latitude, longitude);
+            if (data && data.success) {
               const displayLabel = data.displayLabel || 'Your Area';
               const city = data.address?.city || data.address?.town || '';
-              
+
               setLocationState({
                 lat: latitude,
                 lng: longitude,
@@ -190,9 +191,9 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
               });
               return;
             } else if (data && data.error === 'International location detected') {
-               console.warn("Detected location is outside India. Falling back to default...");
-               handleFallback();
-               return;
+              console.warn("Detected location is outside India. Falling back to default...");
+              handleFallback();
+              return;
             }
           } catch (geocodeErr) {
             console.warn("GPS Geocoding failed, trying IP fallback...", geocodeErr);
@@ -232,7 +233,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
     } catch (err) {
       console.warn('IP Fallback detection failed:', err);
     }
-    
+
     handleFallback(); // Ultimate fallback (saved or absolute)
   };
 
@@ -259,12 +260,19 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
         getCircles(city).catch(() => ({ circles: [] })),
         getBrands().catch(() => []),
       ]);
+      const DUMMY_BRANDS = [
+        { id: 'b3', name: 'Nike', localSource: require('../assets/nike_logo.jpg'), category: 'Footwear', description: 'Nike Exclusive Store' },
+        { id: 'b5', name: 'Zara', localSource: require('../assets/zara_logo.jpg'), category: 'Clothing', description: 'Zara Fashion Hub' },
+      ];
+
       // Guard: always store arrays to prevent .length crashes in child components
       setMegaSavingsData(Array.isArray(mega) ? mega : []);
       setPriceDropsData(Array.isArray(drops) ? drops : []);
       setVerifiedVendors(verifiedRes?.vendors || []);
       setNearbyCircles(circlesRes?.circles || []);
-      setPremiumBrands(Array.isArray(brandsRes) ? brandsRes : []);
+
+      const brands = Array.isArray(brandsRes) && brandsRes.length > 0 ? brandsRes : DUMMY_BRANDS;
+      setPremiumBrands(brands);
     } catch (error) {
       console.error('Error loading sections data:', error);
       setMegaSavingsData([]);
@@ -309,7 +317,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
 
   const handleSearch = (query) => {
     if (navigation && query) {
-      navigation.navigate('SearchResults', { 
+      navigation.navigate('SearchResults', {
         query,
         locationState: locationState // Pass location context
       });
@@ -361,28 +369,28 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
               </Text>
             </View>
             <View style={styles.heroRight}>
-              <Image 
-                source={require('../assets/lokall_shop_illustration.png')} 
-                style={styles.heroIllustration} 
+              <Image
+                source={require('../assets/lokall_shop_illustration.jpg')}
+                style={styles.heroIllustration}
                 resizeMode="contain"
               />
             </View>
           </View>
-          
-          <SearchBar 
-            onSearch={handleSearch} 
-            navigation={navigation} 
-            currentCity={locationState.city} 
-            locationState={locationState} 
+
+          <SearchBar
+            onSearch={handleSearch}
+            navigation={navigation}
+            currentCity={locationState.city}
+            locationState={locationState}
           />
         </View>
 
         <View style={styles.mainContent}>
           <View style={styles.sectionContainer}>
-            <CheapestMarketCard 
-              navigation={navigation} 
-              city={locationState.city} 
-              circle={locationState.circle} 
+            <CheapestMarketCard
+              navigation={navigation}
+              city={locationState.city}
+              circle={locationState.circle}
             />
           </View>
 
@@ -396,9 +404,9 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
                   <Icon name="arrow-right" size={14} color="#3B82F6" />
                 </TouchableOpacity>
               </View>
-              <NearbySection 
-                vendors={verifiedVendors} 
-                onBusinessClick={handleBusinessClick} 
+              <NearbySection
+                vendors={verifiedVendors}
+                onBusinessClick={handleBusinessClick}
               />
             </View>
           )}
@@ -409,7 +417,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Markets in {locationState.city}</Text>
               </View>
-              <NearbyCirclesSection 
+              <NearbyCirclesSection
                 circles={nearbyCircles}
                 onCircleSelect={(circle) => {
                   setLocationState(prev => ({ ...prev, circle: circle.name }));
@@ -437,29 +445,29 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
 
           {/* 3. Middle Banner */}
           <View style={styles.sectionContainer}>
-             <LinearGradient
-                colors={['#FEF3C7', '#FFFBEB']}
-                style={styles.middleBanner}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-             >
-                <View style={styles.bannerContent}>
-                   <Text style={styles.bannerSub}>Support local shops in</Text>
-                   <Text style={styles.bannerTitle}>{locationState.circle || locationState.town || locationState.city || 'Your Market'}</Text>
-                   <Text style={styles.bannerDesc}>Better prices, better deals!</Text>
-                   <TouchableOpacity 
-                     style={styles.bannerButton}
-                     onPress={() => navigation.navigate('MarketScreen', { circle: locationState.circle, city: locationState.city })}
-                   >
-                      <Text style={styles.bannerButtonText}>Shop Local</Text>
-                      <Icon name="arrow-right" size={14} color="#FFF" />
-                   </TouchableOpacity>
-                </View>
-                <View style={styles.bannerImageContainer}>
-                   {/* This would be the illustration of the man at the shop */}
-                   <Icon name="shopping-bag" size={60} color="#F59E0B" />
-                </View>
-             </LinearGradient>
+            <LinearGradient
+              colors={['#FEF3C7', '#FFFBEB']}
+              style={styles.middleBanner}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.bannerContent}>
+                <Text style={styles.bannerSub}>Support local shops in</Text>
+                <Text style={styles.bannerTitle}>{locationState.circle || locationState.town || locationState.city || 'Your Market'}</Text>
+                <Text style={styles.bannerDesc}>Better prices, better deals!</Text>
+                <TouchableOpacity
+                  style={styles.bannerButton}
+                  onPress={() => navigation.navigate('MarketScreen', { circle: locationState.circle, city: locationState.city })}
+                >
+                  <Text style={styles.bannerButtonText}>Shop Local</Text>
+                  <Icon name="arrow-right" size={14} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.bannerImageContainer}>
+                {/* This would be the illustration of the man at the shop */}
+                <Icon name="shopping-bag" size={60} color="#F59E0B" />
+              </View>
+            </LinearGradient>
           </View>
 
           {/* New Section: All India Mega Sales */}
@@ -472,17 +480,17 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
                   <Icon name="arrow-right" size={14} color="#3B82F6" />
                 </TouchableOpacity>
               </View>
-              <MegaSavingsSection 
-                data={megaSavingsData} 
-                navigation={navigation} 
+              <MegaSavingsSection
+                data={megaSavingsData}
+                navigation={navigation}
               />
             </View>
           )}
 
           {/* 4. Trust Badges */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
             style={styles.trustBadgesScroll}
             contentContainerStyle={styles.trustBadgesContent}
           >
@@ -517,37 +525,43 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.brandsScroll}>
-               {premiumBrands.map((brand, i) => (
-                 <TouchableOpacity 
-                   key={brand.id || i} 
-                   style={styles.brandCard}
-                   activeOpacity={0.8}
-                   onPress={() => navigation.navigate('VendorDetails', { 
-                     business: {
-                       id: brand.id,
-                       shop_name: brand.name,
-                       name: brand.name,
-                       category_name: brand.category,
-                       category: brand.category,
-                       imageUrl: brand.logoUrl || brand.logo_url,
-                       image_url: brand.logoUrl || brand.logo_url,
-                       about: brand.description,
-                       description: brand.description,
-                       address: brand.address || 'Premium Brand Store',
-                       phone: brand.phone || '',
-                       rating: 4.8,
-                       reviewCount: 120,
-                       isVerified: true,
-                       isBrand: true
-                     } 
-                   })}
-                 >
-                    <View style={styles.brandLogoContainer}>
+              {premiumBrands.map((brand, i) => (
+                <TouchableOpacity
+                  key={brand.id || i}
+                  style={styles.brandCard}
+                  activeOpacity={0.8}
+                  onPress={() => navigation.navigate('VendorDetails', {
+                    business: {
+                      id: brand.id,
+                      shop_name: brand.name,
+                      name: brand.name,
+                      category_name: brand.category,
+                      category: brand.category,
+                      imageUrl: brand.logoUrl || brand.logo_url,
+                      image_url: brand.logoUrl || brand.logo_url,
+                      about: brand.description,
+                      description: brand.description,
+                      address: brand.address || 'Premium Brand Store',
+                      phone: brand.phone || '',
+                      rating: 4.8,
+                      reviewCount: 120,
+                      isVerified: true,
+                      isBrand: true
+                    }
+                  })}
+                >
+                  <View style={styles.brandLogoContainer}>
+                    {brand.localSource ? (
+                      <RNImage source={brand.localSource} style={styles.brandLogo} resizeMode="contain" />
+                    ) : (brand.logoUrl || brand.logo_url) ? (
                       <Image source={{ uri: brand.logoUrl || brand.logo_url }} style={styles.brandLogo} />
-                    </View>
-                    <Text style={styles.brandName} numberOfLines={1}>{brand.name}</Text>
-                 </TouchableOpacity>
-               ))}
+                    ) : (
+                      <Icon name="briefcase" size={30} color="#CBD5E1" />
+                    )}
+                  </View>
+                  <Text style={styles.brandName} numberOfLines={1}>{brand.name}</Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
           </View>
 
@@ -757,8 +771,9 @@ const createStyles = (COLORS) => StyleSheet.create({
     overflow: 'hidden',
   },
   brandLogo: {
-    width: '70%',
-    height: '70%',
+    width: '100%',
+    height: '100%',
+    borderRadius: 36,
     resizeMode: 'contain',
   },
   brandName: {

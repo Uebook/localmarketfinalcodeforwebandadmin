@@ -267,7 +267,7 @@ const AIServiceFlow = ({ navigation }) => {
 
                 {isLoading && (
                     <View style={styles.loadingBubble}>
-                        <ActivityIndicator size="small" color={COLORS.primary} />
+                        <ActivityIndicator size="small" color={COLORS.orange} />
                     </View>
                 )}
 
@@ -359,7 +359,7 @@ const AIServiceFlow = ({ navigation }) => {
                                 onSubmitEditing={() => inputValue.trim() && handleUserResponse(inputValue)}
                             />
                             <TouchableOpacity
-                                style={[styles.sendButton, { backgroundColor: inputValue.trim() ? COLORS.primary : '#E5E7EB' }]}
+                                style={[styles.sendButton, { backgroundColor: inputValue.trim() ? COLORS.orange : '#E5E7EB' }]}
                                 disabled={!inputValue.trim()}
                                 onPress={() => handleUserResponse(inputValue)}
                             >
@@ -417,14 +417,14 @@ const createStyles = (COLORS) => StyleSheet.create({
     },
     userBubble: {
         alignSelf: 'flex-end',
-        backgroundColor: COLORS.primary || '#F97316',
+        backgroundColor: COLORS.orange || '#F97316',
         borderBottomRightRadius: 4,
     },
     aiIconContainer: {
         width: 24,
         height: 24,
         borderRadius: 12,
-        backgroundColor: COLORS.primary || '#F97316',
+        backgroundColor: COLORS.orange || '#F97316',
         alignItems: 'center',
         justifyContent: 'center',
     },

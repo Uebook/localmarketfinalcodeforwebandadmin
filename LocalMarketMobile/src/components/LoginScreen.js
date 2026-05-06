@@ -145,7 +145,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           <View style={styles.heroSection}>
             <View style={styles.logoContainer}>
                <Image 
-                 source={require('../assets/lokall_shop_illustration.png')} 
+                 source={require('../assets/lokall_shop_illustration.jpg')} 
                  style={styles.heroImage} 
                  resizeMode="contain"
                />

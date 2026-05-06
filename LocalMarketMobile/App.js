@@ -10,42 +10,51 @@ import { ThemeProvider } from './src/components/ThemeProvider';
 import { useThemeColors } from './src/hooks/useThemeColors';
 import { getSavedVendorIds, clearSavedVendors } from './src/utils/savedVendors';
 
-// Import COLORS with safe fallback - use require to avoid Metro bundler issues
-let COLORS_SAFE = {};
-try {
-  const colorsModule = require('./src/constants/colors');
-  COLORS_SAFE = colorsModule.COLORS || colorsModule.default || {};
-} catch (error) {
-  console.error('Error loading COLORS in App.js:', error);
-  // Fallback colors if import fails
-  COLORS_SAFE = {
-    orange: '#E86A2C',
-    blue: '#4A6CF7',
-    white: '#FFFFFF',
-    textPrimary: '#0F172A',
-    textMuted: '#9CA3AF',
-    textSecondary: '#475569',
-    textLight: '#CBD5E1',
-    divider: '#E5E7EB',
-    darkBg: '#0B1324',
-    primaryGradient: ['#E86A2C', '#4A6CF7'],
-    homeBackground: ['#7A3B1D', '#2B1A14'],
-    highlightBg: '#FFF4EC',
-    primaryOrange: '#E86A2C',
-    primaryOrangeDark: '#E86A2C',
-    primaryBlue: '#4A6CF7',
-    primaryBlueDark: '#4A6CF7',
-    gradientStart: '#E86A2C',
-    gradientEnd: '#4A6CF7',
-    accentRed: '#DC2626',
-    accentOrangeSoft: '#FFF4EC',
-    textWhite: '#FFFFFF',
-    background: '#FFFFFF',
-    backgroundSoft: '#F8FAFC',
-    danger: '#DC2626',
-    success: '#16A34A',
-  };
-}
+import COLORS_IMPORT from './src/constants/colors';
+
+// Debug logging for COLORS import
+console.log('[App] COLORS_IMPORT:', !!COLORS_IMPORT, 'Type:', typeof COLORS_IMPORT);
+
+const DEFAULT_FALLBACK = {
+  orange: '#E86A2C',
+  blue: '#4A6CF7',
+  white: '#FFFFFF',
+  textPrimary: '#0F172A',
+  textMuted: '#9CA3AF',
+  textSecondary: '#475569',
+  textLight: '#CBD5E1',
+  divider: '#E5E7EB',
+  darkBg: '#0B1324',
+  primaryGradient: ['#E86A2C', '#4A6CF7'],
+  homeBackground: ['#7A3B1D', '#2B1A14'],
+  highlightBg: '#FFF4EC',
+  primaryOrange: '#E86A2C',
+  primaryOrangeDark: '#E86A2C',
+  primaryBlue: '#4A6CF7',
+  primaryBlueDark: '#4A6CF7',
+  gradientStart: '#E86A2C',
+  gradientEnd: '#4A6CF7',
+  accentRed: '#DC2626',
+  accentOrangeSoft: '#FFF4EC',
+  textWhite: '#FFFFFF',
+  background: '#FFFFFF',
+  backgroundSoft: '#F8FAFC',
+  danger: '#DC2626',
+  success: '#16A34A',
+};
+
+// Extremely safe initialization to prevent "Property 'COLORS' doesn't exist"
+const COLORS = (function() {
+  try {
+    if (!COLORS_IMPORT) return DEFAULT_FALLBACK;
+    // Handle both default export and named export if present
+    const base = COLORS_IMPORT.COLORS || COLORS_IMPORT.default || COLORS_IMPORT;
+    return { ...DEFAULT_FALLBACK, ...base };
+  } catch (e) {
+    console.error('[App] Error initializing COLORS fallback:', e);
+    return DEFAULT_FALLBACK;
+  }
+})();
 
 // Import screens
 import SplashScreen from './src/components/SplashScreen';
@@ -91,93 +100,89 @@ const Stack = createStackNavigator();
 // Vendor-specific tabs
 function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' }) {
   const insets = useSafeAreaInsets();
+  const themeColors = useThemeColors();
+  
   return (
     <Tab.Navigator
       initialRouteName={initialRouteName}
       screenOptions={({ route }) => {
         let iconName;
-        if (route.name === 'Analytics') {
-          iconName = 'activity';
-        } else if (route.name === 'Catalogue') {
-          iconName = 'package';
-        } else if (route.name === 'Enquiries') {
-          iconName = 'message-square';
-        } else if (route.name === 'Reviews') {
-          iconName = 'star';
-        } else if (route.name === 'Profile') {
-          iconName = 'user';
-        }
+        if (route.name === 'Analytics') iconName = 'activity';
+        else if (route.name === 'Catalogue') iconName = 'package';
+        else if (route.name === 'Enquiries') iconName = 'message-square';
+        else if (route.name === 'Reviews') iconName = 'star';
+        else if (route.name === 'Profile') iconName = 'user';
 
         return {
-          tabBarIcon: ({ focused }) => {
-            return <Icon name={iconName} size={22} color={focused ? COLORS_SAFE.orange : COLORS_SAFE.textMuted} />;
-          },
-          tabBarLabel: route.name,
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '600',
-            marginTop: 2,
-          },
-          tabBarActiveTintColor: COLORS_SAFE.textPrimary,
-          tabBarInactiveTintColor: COLORS_SAFE.textMuted,
+          tabBarIcon: ({ focused, color, size }) => (
+            <View style={[
+              styles.premiumTabIconContainer,
+              focused && { backgroundColor: '#FFF4EC' }
+            ]}>
+              <Icon 
+                name={iconName} 
+                size={20} 
+                color={focused ? '#F97316' : '#94A3B8'} 
+              />
+              {focused && <View style={styles.tabActiveIndicator} />}
+            </View>
+          ),
+          tabBarLabel: ({ focused, color }) => (
+            <Text style={[
+              styles.premiumTabLabel,
+              { color: focused ? '#F97316' : '#94A3B8', fontWeight: focused ? '800' : '600' }
+            ]}>
+              {route.name}
+            </Text>
+          ),
           headerShown: false,
-          tabBarStyle: [
-            styles.tabBar,
-            {
-              paddingBottom: Math.max(insets.bottom, 8),
-              height: 54 + Math.max(insets.bottom, 8)
-            }
-          ],
-          tabBarItemStyle: styles.tabBarItem,
-          tabBarButton: (props) => {
-            const { children, onPress } = props;
-
-            return (
-              <TouchableOpacity
-                {...props}
-                onPress={onPress}
-                style={[styles.tabButton, props.style]}
-                activeOpacity={0.7}
-              >
-                {children}
-              </TouchableOpacity>
-            );
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: 20,
+            left: 16,
+            right: 16,
+            backgroundColor: '#FFFFFF',
+            borderRadius: 24,
+            height: 64,
+            paddingBottom: 0,
+            borderTopWidth: 0,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.1,
+            shadowRadius: 20,
+            elevation: 10,
           },
+          tabBarItemStyle: {
+            height: 64,
+            paddingVertical: 8,
+          },
+          tabBarActiveTintColor: '#F97316',
+          tabBarInactiveTintColor: '#94A3B8',
         };
       }}
     >
       <Tab.Screen name="Analytics">
-        {(props) => (
-          <VendorAnalyticsScreen {...props} vendorData={vendorData} />
-        )}
+        {(props) => <VendorAnalyticsScreen {...props} vendorData={vendorData} />}
       </Tab.Screen>
       <Tab.Screen name="Catalogue">
-        {(props) => (
-          <VendorCatalogScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />
-        )}
+        {(props) => <VendorCatalogScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />}
       </Tab.Screen>
       <Tab.Screen name="Enquiries">
-        {(props) => (
-          <VendorEnquiriesScreen {...props} vendorData={vendorData} />
-        )}
+        {(props) => <VendorEnquiriesScreen {...props} vendorData={vendorData} />}
       </Tab.Screen>
       <Tab.Screen name="Reviews">
-        {(props) => (
-          <VendorReviewsScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />
-        )}
+        {(props) => <VendorReviewsScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />}
       </Tab.Screen>
       <Tab.Screen name="Profile">
-        {(props) => (
-          <VendorProfileScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />
-        )}
+        {(props) => <VendorProfileScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />}
       </Tab.Screen>
     </Tab.Navigator>
   );
 }
 
-function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUserData, savedBusinessIds, setSavedBusinessIds, locationState, onLocationChange, onMenuClick, onProfileClick, onNotificationClick, handleLogout, initialRouteName = 'Home' }) {
+function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUserData, savedBusinessIds, setSavedBusinessIds, locationState, onLocationChange, onRedetect, onMenuClick, onProfileClick, onNotificationClick, handleLogout, initialRouteName = 'Home' }) {
   const insets = useSafeAreaInsets();
-  const COLORS = useThemeColors();
+  const themeColors = useThemeColors();
   const activeRouteName = getFocusedRouteNameFromRoute(route) || initialRouteName;
   const showGlobalHeader = activeRouteName !== 'Profile';
   
@@ -190,6 +195,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
           onProfileClick={onProfileClick}
           onNotificationClick={onNotificationClick}
           onLocationChange={onLocationChange}
+          onRedetect={onRedetect}
         />
       )}
       <Tab.Navigator
@@ -210,7 +216,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
 
           return {
             tabBarIcon: ({ focused }) => {
-              return <Icon name={iconName} size={22} color={focused ? COLORS.orange : '#94A3B8'} />;
+              return <Icon name={iconName} size={22} color={focused ? themeColors.orange : themeColors.textMuted} />;
             },
             tabBarLabel: route.name,
             tabBarLabelStyle: {
@@ -218,17 +224,17 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
               fontWeight: '700',
               marginTop: 2,
             },
-            tabBarActiveTintColor: COLORS.orange,
-            tabBarInactiveTintColor: '#94A3B8',
+            tabBarActiveTintColor: themeColors.orange,
+            tabBarInactiveTintColor: themeColors.textMuted,
             headerShown: false,
             tabBarStyle: [
               styles.tabBar,
               {
                 paddingBottom: Math.max(insets.bottom, 8),
                 height: 56 + Math.max(insets.bottom, 8),
-                backgroundColor: COLORS.white,
+                backgroundColor: themeColors.white,
                 borderTopWidth: 1,
-                borderTopColor: '#F1F5F9',
+                borderTopColor: themeColors.divider,
               }
             ],
             tabBarItemStyle: styles.tabBarItem,
@@ -293,13 +299,13 @@ function App() {
   const [savedBusinessIds, setSavedBusinessIds] = useState([]);
   const [initialRoute, setInitialRoute] = useState('Home');
   const [locationState, setLocationState] = useState({
-    lat: null,
-    lng: null,
-    displayLabel: 'Delhi, India',
-    city: 'Delhi',
+    lat: 31.6340,
+    lng: 74.8723,
+    displayLabel: 'Amritsar, India',
+    city: 'Amritsar',
     circle: '',
     town: '',
-    fullAddress: 'Delhi, India',
+    fullAddress: 'Amritsar, India',
     loading: false,
     error: null,
   });
@@ -603,6 +609,82 @@ function App() {
                     setSavedBusinessIds={setSavedBusinessIds}
                      locationState={locationState}
                      onLocationChange={setLocationState}
+                     onRedetect={() => {
+                       // Safe re-detect: set loading state, then trigger GPS
+                       setLocationState(prev => ({ ...prev, loading: true }));
+                       import('./src/services/locationApi').then(({ detectLocation }) => {
+                         import('react-native').then(({ PermissionsAndroid, Platform }) => {
+                           const doDetect = async () => {
+                             try {
+                               let hasPermission = true;
+                               if (Platform.OS === 'android') {
+                                 const granted = await PermissionsAndroid.request(
+                                   PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+                                 );
+                                 hasPermission = granted === PermissionsAndroid.RESULTS.GRANTED;
+                               }
+                               if (hasPermission) {
+                                 const Geolocation = require('@react-native-community/geolocation').default;
+                                 Geolocation.getCurrentPosition(
+                                   async (pos) => {
+                                     try {
+                                       const data = await detectLocation(pos.coords.latitude, pos.coords.longitude);
+                                       if (data && data.success) {
+                                         setLocationState({
+                                           lat: pos.coords.latitude,
+                                           lng: pos.coords.longitude,
+                                           displayLabel: data.displayLabel || 'Your Area',
+                                           city: data.address?.city || data.address?.town || '',
+                                           circle: data.matchedCircle || '',
+                                           town: data.address?.village || '',
+                                           fullAddress: data.address?.display_name || data.displayLabel || '',
+                                           loading: false,
+                                           error: null,
+                                           state: data.address?.state || '',
+                                         });
+                                         return;
+                                       }
+                                     } catch (e) {}
+                                     // GPS geocoding failed, try IP
+                                     try {
+                                       const ipData = await detectLocation();
+                                       if (ipData && ipData.success) {
+                                         setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
+                                       } else {
+                                         setLocationState(prev => ({ ...prev, loading: false }));
+                                       }
+                                     } catch(e) { setLocationState(prev => ({ ...prev, loading: false })); }
+                                   },
+                                   async () => {
+                                     // GPS signal failed, try IP
+                                     try {
+                                       const ipData = await detectLocation();
+                                       if (ipData && ipData.success) {
+                                         setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
+                                       } else {
+                                         setLocationState(prev => ({ ...prev, loading: false }));
+                                       }
+                                     } catch(e) { setLocationState(prev => ({ ...prev, loading: false })); }
+                                   },
+                                   { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+                                 );
+                               } else {
+                                 // No permission, try IP
+                                 const ipData = await detectLocation().catch(() => null);
+                                 if (ipData && ipData.success) {
+                                   setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
+                                 } else {
+                                   setLocationState(prev => ({ ...prev, loading: false }));
+                                 }
+                               }
+                             } catch(e) {
+                               setLocationState(prev => ({ ...prev, loading: false }));
+                             }
+                           };
+                           doDetect();
+                         });
+                       }).catch(() => setLocationState(prev => ({ ...prev, loading: false })));
+                     }}
                      onMenuClick={() => setIsSidebarOpen(true)}
                      onProfileClick={() => navigationRef.current?.navigate('Settings')}
                      onNotificationClick={() => navigationRef.current?.navigate('Notifications')}
@@ -680,7 +762,7 @@ function App() {
               {(props) => (
                 <SettingsScreen
                    {...props}
-                   currentTheme={COLORS.name || 'default'}
+                   currentTheme="default"
                   userRole={userRole}
                   profileData={userRole === 'vendor' ? vendorData : (userData || { name: 'User', mobile: '', location: '', email: '' })}
                   onUpdateProfile={(data) => {
@@ -742,7 +824,7 @@ function App() {
           userRole={userRole}
           userName={userRole === 'vendor' ? (vendorData?.name || 'Vendor') : (userData?.name || userData?.full_name || 'User')}
           userEmail={userRole === 'vendor' ? (vendorData?.email || '') : (userData?.email || '')}
-          userLocation={userRole === 'vendor' ? (vendorData?.address || '') : (userData?.location || [userData?.city, userData?.state].filter(Boolean).join(', ') || 'Delhi, India')}
+          userLocation={userRole === 'vendor' ? (vendorData?.address || '') : (locationState.displayLabel || locationState.fullAddress || 'Amritsar, India')}
         />
       </SafeAreaProvider>
     </ThemeProvider>
@@ -751,7 +833,7 @@ function App() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: COLORS_SAFE.white,
+    backgroundColor: COLORS.white,
     borderTopWidth: 0,
     paddingTop: 8,
     elevation: 8,
@@ -769,16 +851,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 2,
   },
+  premiumTabIconContainer: {
+    width: 44,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  premiumTabLabel: {
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  tabActiveIndicator: {
+    position: 'absolute',
+    bottom: -6,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#F97316',
+  },
   activeIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS_SAFE.white,
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS_SAFE.orange,
-    shadowColor: COLORS_SAFE.orange,
+    borderColor: COLORS.orange,
+    shadowColor: COLORS.orange,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -788,18 +891,18 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS_SAFE.orange,
+    backgroundColor: COLORS.orange,
     marginTop: 2,
   },
   percentageIcon: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS_SAFE.orange,
+    color: COLORS.orange,
   },
   percentageIconInactive: {
     fontSize: 22,
     fontWeight: '600',
-    color: COLORS_SAFE.textMuted,
+    color: COLORS.textMuted,
   },
 });
 

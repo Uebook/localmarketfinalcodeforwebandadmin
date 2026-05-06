@@ -367,12 +367,12 @@ const SearchResults = ({
         }
     };
 
-    const startListening = async () => {
-        console.warn('Voice search has been removed.');
+    const startListening = () => {
+        // Voice search transitioned to AIServiceFlow from Home SearchBar
     };
 
-    const stopListening = async () => {
-        // Voice search removed
+    const stopListening = () => {
+        // Voice search transitioned to AIServiceFlow from Home SearchBar
     };
 
     const sortOptions = [

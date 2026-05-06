@@ -20,7 +20,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const [locationState] = React.useState({
     lat: null,
     lng: null,
-    city: 'Delhi, India',
+    city: 'Amritsar, India',
     loading: false,
     error: null,
   });
@@ -497,128 +497,144 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           />
         }
       >
-        {/* Shop Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.coverImage}>
-            <Text style={styles.coverText}>Cover</Text>
-            <TouchableOpacity style={styles.cameraButton}>
-              <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
+                {/* Shop Profile Section - Premium Redesign */}
+        <View style={styles.profileSectionWrapper}>
+          <LinearGradient
+            colors={['#1E293B', '#334155']}
+            style={styles.premiumCover}
+          >
+            <View style={styles.coverOverlay} />
+            <TouchableOpacity style={styles.editCoverBtn}>
+              <Icon name="camera" size={14} color="#FFF" />
+              <Text style={styles.editCoverText}>Change Cover</Text>
             </TouchableOpacity>
-          </View>
+          </LinearGradient>
 
-          <View style={styles.profileInfo}>
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImage}>
-                <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
+          <View style={styles.profileCard}>
+            <View style={styles.profileHeaderRow}>
+              <View style={styles.avatarWrapper}>
+                <View style={styles.avatarInner}>
+                  <Icon name="user" size={32} color={COLORS.textMuted} />
+                </View>
+                <View style={styles.onlineBadge} />
+              </View>
+
+              <View style={styles.shopMainDetails}>
+                <View style={styles.nameBadgeRow}>
+                  <Text style={styles.shopNameText}>{vendorData?.name || 'My Shop'}</Text>
+                  <View style={styles.verifiedBadge}>
+                    <Icon name="check" size={10} color="#FFF" />
+                  </View>
+                </View>
+                <View style={styles.subDetailRow}>
+                  <Icon name="map-pin" size={12} color="#64748B" />
+                  <Text style={styles.subDetailText}>{vendorData?.address || 'Shop Address'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.ratingBadgeTop}>
+                <Icon name="star" size={12} color="#F59E0B" fill="#F59E0B" />
+                <Text style={styles.ratingValueText}>{vendorData?.rating || '4.8'}</Text>
               </View>
             </View>
 
-            <View style={styles.shopInfo}>
-              <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
-                <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
+            <View style={styles.completionContainer}>
+              <View style={styles.completionHeader}>
+                <Text style={styles.completionTitle}>Profile Strength</Text>
+                <Text style={styles.completionValue}>{profileCompletion}%</Text>
               </View>
-              <View style={styles.locationRow}>
-                <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Open</Text>
+              <View style={styles.progressTrack}>
+                <LinearGradient
+                  colors={[COLORS.orange, '#F97316']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.progressFill, { width: `${profileCompletion}%` }]}
+                />
               </View>
             </View>
-          </View>
 
-          {/* Profile Completion */}
-          <View style={styles.completionSection}>
-            <Text style={styles.completionLabel}>Profile Completion</Text>
-            <View style={styles.completionBarContainer}>
-              <LinearGradient
-                colors={['#dc2626', '#9333ea']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.completionBar, { width: `${profileCompletion}%` }]}
-              />
+            <View style={styles.quickActionsRow}>
+              <TouchableOpacity style={styles.qActionItem} onPress={() => handleShare(vendorData)}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F0F9FF' }]}>
+                  <Icon name="share-2" size={18} color="#0EA5E9" />
+                </View>
+                <Text style={styles.qActionLabel}>Share</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.qActionItem} onPress={handlePreview}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F5F3FF' }]}>
+                  <Icon name="eye" size={18} color="#8B5CF6" />
+                </View>
+                <Text style={styles.qActionLabel}>Preview</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('VendorOffers')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Icon name="tag" size={18} color="#10B981" />
+                </View>
+                <Text style={styles.qActionLabel}>Offers</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('Settings')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F8FAFC' }]}>
+                  <Icon name="settings" size={18} color="#64748B" />
+                </View>
+                <Text style={styles.qActionLabel}>Settings</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.completionPercent}>{profileCompletion}%</Text>
+          </View>
+        </View>
+         {/* Catalogue Management Section */}
+        <View style={styles.catalogSection}>
+          <View style={styles.catalogHeaderRow}>
+            <View>
+              <Text style={styles.catalogHeading}>Manage Catalogue</Text>
+              <Text style={styles.catalogSubheading}>{products.length} Items listed</Text>
+            </View>
+            <TouchableOpacity style={styles.addMainBtn} onPress={handleAddItem}>
+              <Icon name="plus" size={18} color="#FFF" />
+              <Text style={styles.addMainBtnText}>Add</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Action Buttons */}
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleShare(vendorData)}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Share</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={handlePreview}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Eye')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Preview</Text>
-            </TouchableOpacity>
+          <View style={styles.managementGrid}>
             <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('VendorOffers')}
+              style={styles.manageCard}
+              onPress={handleDownloadCatalogue}
+              activeOpacity={0.7}
             >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.blue }]}>
-                <Icon name={getIconName('Tag')} size={20} color={COLORS.white} />
+              <View style={[styles.manageIconBox, { backgroundColor: '#ECFDF5' }]}>
+                <Icon name="download" size={20} color="#10B981" />
               </View>
-              <Text style={styles.actionText}>Offers</Text>
+              <Text style={styles.manageLabel}>Export Excel</Text>
+              <Text style={styles.manageDesc}>Get full list</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('Settings')}
+              style={styles.manageCard}
+              onPress={() => navigation?.navigate('BulkPriceUpdate')}
+              activeOpacity={0.7}
             >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.textMuted }]}>
-                <Icon name={getIconName('Settings')} size={20} color={COLORS.white} />
+              <View style={[styles.manageIconBox, { backgroundColor: '#F0F9FF' }]}>
+                <Icon name="refresh-cw" size={20} color="#0EA5E9" />
               </View>
-              <Text style={styles.actionText}>Settings</Text>
+              <Text style={styles.manageLabel}>Bulk Update</Text>
+              <Text style={styles.manageDesc}>Edit prices</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.manageCard}
+              onPress={() => setShowAIModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.manageIconBox, { backgroundColor: '#FFF7ED' }]}>
+                <Icon name="zap" size={20} color="#F97316" />
+              </View>
+              <Text style={styles.manageLabel}>AI Smart Add</Text>
+              <Text style={styles.manageDesc}>Auto-fill items</Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Catalogue Section */}
-        <View style={styles.catalogSection}>
-          <View style={styles.catalogHeader}>
-            <Text style={styles.catalogTitle}>Your Catalogue ({products.length})</Text>
-          </View>
-
-          {/* Action Buttons Row */}
-          <View style={styles.catalogButtonsRow}>
-            <TouchableOpacity
-              style={styles.catalogActionButton}
-              onPress={handleDownloadCatalogue}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.catalogButtonIcon, { backgroundColor: '#16a34a' }]}>
-                <Icon name={getIconName('Download')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.catalogButtonText}>Download Excel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.catalogActionButton}
-              onPress={() => navigation?.navigate('BulkPriceUpdate')}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.catalogButtonIcon, { backgroundColor: COLORS.blue }]}>
-                <Icon name={getIconName('Upload')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.catalogButtonText}>Bulk Update</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.catalogActionButton}
-              onPress={handleAddItem}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.catalogButtonIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Plus')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.catalogButtonText}>Add Product</Text>
-            </TouchableOpacity>
-          </View>
 
           {/* Add/Edit Item Modal */}
           <Modal
@@ -884,7 +900,6 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             )}
             scrollEnabled={false}
           />
-        </View>
       </ScrollView>
 
     </View >
@@ -909,186 +924,255 @@ const createStyles = (COLORS) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
-  profileSection: {
-    backgroundColor: COLORS.white,
-    marginBottom: 16,
-  },
-  coverImage: {
-    height: 120,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  coverText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-  },
-  cameraButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: COLORS.textPrimary,
-    padding: 8,
-    borderRadius: 8,
-  },
-  profileInfo: {
-    flexDirection: 'row',
-    padding: 16,
-    paddingTop: 0,
-    marginTop: -40,
-  },
-  profileImageContainer: {
-    marginRight: 16,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.white,
-  },
-  shopInfo: {
-    flex: 1,
-    paddingTop: 40,
-  },
-  shopNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  shopName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#16a34a',
-  },
-  completionSection: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  completionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  completionBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 4,
-  },
-  completionBar: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  completionPercent: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.orange,
-    textAlign: 'right',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    paddingTop: 0,
-  },
-  actionButton: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
   catalogSection: {
-    padding: 16,
-  },
-  catalogHeader: {
-    marginBottom: 16,
-  },
-  catalogTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  catalogButtonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 16,
-  },
-  catalogActionButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  catalogButtonIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  catalogButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    textAlign: 'center',
-  },
+      padding: 16,
+    },
+    catalogHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    catalogHeading: {
+      fontSize: 20,
+      fontWeight: '900',
+      color: '#0F172A',
+    },
+    catalogSubheading: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#64748B',
+    },
+    addMainBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: COLORS.orange,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 12,
+      gap: 6,
+      elevation: 2,
+    },
+    addMainBtnText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#FFF',
+    },
+    managementGrid: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    manageCard: {
+      flex: 1,
+      backgroundColor: '#FFF',
+      padding: 16,
+      borderRadius: 20,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: '#F1F5F9',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    manageIconBox: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    manageLabel: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: '#1E293B',
+      textAlign: 'center',
+      marginBottom: 4,
+    },
+    manageDesc: {
+      fontSize: 9,
+      fontWeight: '500',
+      color: '#94A3B8',
+      textAlign: 'center',
+    },
+    // Premium Profile Styles
+    profileSectionWrapper: {
+      backgroundColor: '#F8FAFC',
+      marginBottom: 24,
+    },
+    premiumCover: {
+      height: 160,
+      justifyContent: 'flex-end',
+      padding: 20,
+    },
+    coverOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+    },
+    editCoverBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+      alignSelf: 'flex-end',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.3)',
+      gap: 6,
+    },
+    editCoverText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: '#FFF',
+      textTransform: 'uppercase',
+    },
+    profileCard: {
+      backgroundColor: '#FFF',
+      marginHorizontal: 16,
+      marginTop: -50,
+      borderRadius: 24,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.1,
+      shadowRadius: 20,
+      elevation: 8,
+    },
+    profileHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    avatarWrapper: {
+      position: 'relative',
+      marginRight: 16,
+    },
+    avatarInner: {
+      width: 64,
+      height: 64,
+      borderRadius: 20,
+      backgroundColor: '#F1F5F9',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+    },
+    onlineBadge: {
+      position: 'absolute',
+      bottom: -2,
+      right: -2,
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: '#10B981',
+      borderWidth: 2,
+      borderColor: '#FFF',
+    },
+    shopMainDetails: {
+      flex: 1,
+    },
+    nameBadgeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 4,
+    },
+    shopNameText: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: '#0F172A',
+    },
+    verifiedBadge: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: '#3B82F6',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    subDetailRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    subDetailText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: '#64748B',
+    },
+    ratingBadgeTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFBEB',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#FEF3C7',
+      gap: 4,
+    },
+    ratingValueText: {
+      fontSize: 12,
+      fontWeight: '800',
+      color: '#B45309',
+    },
+    completionContainer: {
+      marginBottom: 24,
+      backgroundColor: '#F8FAFC',
+      padding: 16,
+      borderRadius: 16,
+    },
+    completionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    completionTitle: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: '#64748B',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    completionValue: {
+      fontSize: 12,
+      fontWeight: '900',
+      color: COLORS.orange,
+    },
+    progressTrack: {
+      height: 6,
+      backgroundColor: '#E2E8F0',
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+    quickActionsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    qActionItem: {
+      alignItems: 'center',
+      gap: 8,
+    },
+    qActionIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    qActionLabel: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: '#475569',
+    },
   productCard: {
     flexDirection: 'row',
     backgroundColor: COLORS.white,

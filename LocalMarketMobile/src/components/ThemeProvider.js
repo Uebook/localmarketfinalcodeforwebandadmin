@@ -4,45 +4,51 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FESTIVAL_THEMES } from '../constants/festivalThemes';
 import { getActiveTheme, getUserTheme, updateUserTheme } from '../services/api';
 
-// Import COLORS with safe fallback
-let COLORS;
-let defaultColors = {};
-try {
-  const colorsModule = require('../constants/colors');
-  COLORS = colorsModule.COLORS || colorsModule.default || {};
-  defaultColors = COLORS;
-} catch (error) {
-  console.error('Error loading COLORS:', error);
-  // Fallback colors if import fails
-  defaultColors = {
-    orange: '#E86A2C',
-    blue: '#4A6CF7',
-    white: '#FFFFFF',
-    textPrimary: '#0F172A',
-    textMuted: '#9CA3AF',
-    textSecondary: '#475569',
-    textLight: '#CBD5E1',
-    divider: '#E5E7EB',
-    darkBg: '#0B1324',
-    primaryGradient: ['#E86A2C', '#4A6CF7'],
-    homeBackground: ['#7A3B1D', '#2B1A14'],
-    highlightBg: '#FFF4EC',
-    primaryOrange: '#E86A2C',
-    primaryOrangeDark: '#E86A2C',
-    primaryBlue: '#4A6CF7',
-    primaryBlueDark: '#4A6CF7',
-    gradientStart: '#E86A2C',
-    gradientEnd: '#4A6CF7',
-    accentRed: '#DC2626',
-    accentOrangeSoft: '#FFF4EC',
-    textWhite: '#FFFFFF',
-    background: '#FFFFFF',
-    backgroundSoft: '#F8FAFC',
-    danger: '#DC2626',
-    success: '#16A34A',
-  };
-  COLORS = defaultColors;
-}
+import COLORS_IMPORT from '../constants/colors';
+
+// Debug logging
+console.log('[ThemeProvider] COLORS_IMPORT:', !!COLORS_IMPORT);
+
+const DEFAULT_FALLBACK = {
+  orange: '#E86A2C',
+  blue: '#4A6CF7',
+  white: '#FFFFFF',
+  textPrimary: '#0F172A',
+  textMuted: '#9CA3AF',
+  textSecondary: '#475569',
+  textLight: '#CBD5E1',
+  divider: '#E5E7EB',
+  darkBg: '#0B1324',
+  primaryGradient: ['#E86A2C', '#4A6CF7'],
+  homeBackground: ['#7A3B1D', '#2B1A14'],
+  highlightBg: '#FFF4EC',
+  primaryOrange: '#E86A2C',
+  primaryOrangeDark: '#E86A2C',
+  primaryBlue: '#4A6CF7',
+  primaryBlueDark: '#4A6CF7',
+  gradientStart: '#E86A2C',
+  gradientEnd: '#4A6CF7',
+  accentRed: '#DC2626',
+  accentOrangeSoft: '#FFF4EC',
+  textWhite: '#FFFFFF',
+  background: '#FFFFFF',
+  backgroundSoft: '#F8FAFC',
+  danger: '#DC2626',
+  success: '#16A34A',
+};
+
+const defaultColors = (function() {
+  try {
+    if (!COLORS_IMPORT) return DEFAULT_FALLBACK;
+    const base = COLORS_IMPORT.COLORS || COLORS_IMPORT.default || COLORS_IMPORT;
+    return { ...DEFAULT_FALLBACK, ...base };
+  } catch (e) {
+    console.error('[ThemeProvider] Error initializing defaultColors:', e);
+    return DEFAULT_FALLBACK;
+  }
+})();
+
+const COLORS = defaultColors;
 
 export const ThemeContext = React.createContext({
   theme: 'default',

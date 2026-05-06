@@ -82,14 +82,14 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   categoryCard: {
     width: '31%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#F1F5F9', 
-    shadowColor: '#000',
+    borderColor: COLORS.divider, 
+    shadowColor: COLORS.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -113,7 +113,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontWeight: '800',
     textAlign: 'center',
     lineHeight: 16,
-    color: '#0F172A',
+    color: COLORS.textPrimary,
   },
 });
 

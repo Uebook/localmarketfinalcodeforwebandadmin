@@ -9,6 +9,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getMarketDetails } from '../services/api';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { saveVendor, removeSavedVendor, getSavedVendorIds } from '../utils/savedVendors';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MarketScreen = ({ navigation, route }) => {
   const { circle, locationState } = route.params;
@@ -26,6 +28,7 @@ const MarketScreen = ({ navigation, route }) => {
   const [filterVerified, setFilterVerified] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(locationState);
+  const [savedIds, setSavedIds] = useState([]);
   
   const sliderTrackRef = useRef(null);
   const [sliderWidth, setSliderWidth] = useState(0);
@@ -33,6 +36,17 @@ const MarketScreen = ({ navigation, route }) => {
   useEffect(() => {
     loadMarketData();
   }, [circle]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadSavedIds();
+    }, [])
+  );
+
+  const loadSavedIds = async () => {
+    const ids = await getSavedVendorIds();
+    setSavedIds(ids || []);
+  };
 
   const loadMarketData = async () => {
     try {
@@ -110,7 +124,7 @@ const MarketScreen = ({ navigation, route }) => {
         {product.image_url || product.imageUrl ? (
           <Image source={{ uri: product.image_url || product.imageUrl }} style={styles.productImage} />
         ) : (
-          <Icon name="shopping-bag" size={20} color="#94A3B8" />
+          <Icon name="shopping-bag" size={20} color={COLORS.textLight} />
         )}
       </View>
       <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
@@ -126,13 +140,14 @@ const MarketScreen = ({ navigation, route }) => {
     </TouchableOpacity>
   );
 
-  const handleShare = async (vendor) => {
-    try {
-      await Share.share({
-        message: `Check out ${vendor.shop_name || vendor.name} on LOKALL!\nLocation: ${vendor.address}\n\nDownload LOKALL app for best local updates.`,
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
+  const handleToggleSave = async (vendor) => {
+    const vid = vendor.id || vendor.vendor_id;
+    if (savedIds.includes(vid)) {
+      await removeSavedVendor(vid);
+      setSavedIds(prev => prev.filter(id => id !== vid));
+    } else {
+      await saveVendor(vendor);
+      setSavedIds(prev => [...prev, vid]);
     }
   };
 
@@ -170,7 +185,7 @@ const MarketScreen = ({ navigation, route }) => {
                   // Call logic here if needed
                 }}
               >
-                <Icon name="phone" size={10} color="#ffffff" fill="#ffffff" />
+                <Icon name="phone" size={10} color={COLORS.white} fill={COLORS.white} />
                 <Text style={styles.callButtonText}>Call</Text>
               </TouchableOpacity>
             </View>
@@ -182,19 +197,30 @@ const MarketScreen = ({ navigation, route }) => {
             <View style={styles.ratingRow}>
               <View style={styles.ratingBadgeGreen}>
                 <Text style={styles.ratingTextGreen}>{rating.toFixed(1)}</Text>
-                <Icon name="star" size={10} color="#16a34a" fill="#16a34a" />
+                <Icon name="star" size={10} color={COLORS.success} fill={COLORS.success} />
               </View>
               <Text style={styles.reviewCount}>({item.reviewCount || 48} Ratings)</Text>
             </View>
 
             <View style={styles.footerRow}>
               <View style={styles.distanceContainer}>
-                <Icon name="map-pin" size={10} color="#ef4444" />
+                <Icon name="map-pin" size={10} color={COLORS.danger} />
                 <Text style={styles.distanceText}>{item.distance}</Text>
               </View>
               <View style={styles.actionButtons}>
-                <TouchableOpacity onPress={(e) => e.stopPropagation()}>
-                  <Icon name="heart" size={16} color="#94A3B8" />
+                <TouchableOpacity 
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleToggleSave(item);
+                  }}
+                  style={styles.actionBtn}
+                >
+                  <Icon 
+                    name="heart" 
+                    size={18} 
+                    color={savedIds.includes(item.id || item.vendor_id) ? '#EF4444' : '#94A3B8'} 
+                    fill={savedIds.includes(item.id || item.vendor_id) ? '#EF4444' : 'transparent'}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity 
                   onPress={(e) => {
@@ -202,7 +228,7 @@ const MarketScreen = ({ navigation, route }) => {
                     handleShare(item);
                   }}
                 >
-                  <Icon name="share-2" size={16} color="#94A3B8" />
+                  <Icon name="share-2" size={16} color={COLORS.textMuted} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -314,7 +340,7 @@ const MarketScreen = ({ navigation, route }) => {
             <View style={styles.sortMenuHeader}>
               <Text style={styles.sortMenuTitle}>Sort By</Text>
               <TouchableOpacity onPress={() => setShowSortMenu(false)}>
-                <Icon name="x" size={20} color="#0F172A" />
+                <Icon name="x" size={20} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
             {sortOptions.map((option) => (
@@ -336,7 +362,7 @@ const MarketScreen = ({ navigation, route }) => {
                   {option.label}
                 </Text>
                 {sortBy === option.value && (
-                  <Icon name="check" size={18} color="#FF6B00" />
+                  <Icon name="check" size={18} color={COLORS.orange} />
                 )}
               </TouchableOpacity>
             ))}
@@ -402,7 +428,7 @@ const MarketScreen = ({ navigation, route }) => {
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.backgroundSoft || '#F8FAFC',
   },
   headerGradient: {
     paddingBottom: 20,
@@ -440,12 +466,12 @@ const createStyles = (COLORS) => StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '900',
-    color: '#FFF',
+    color: COLORS.white,
     letterSpacing: -0.5,
   },
   filterContainer: {
     paddingVertical: 12,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.backgroundSoft || '#F8FAFC',
   },
   filterScroll: {
     paddingHorizontal: 16,
@@ -455,9 +481,9 @@ const createStyles = (COLORS) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.divider,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -478,28 +504,24 @@ const createStyles = (COLORS) => StyleSheet.create({
   filterButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#64748B',
+    color: COLORS.textMuted,
   },
   filterButtonTextActive: {
-    color: '#FFF',
+    color: COLORS.white,
   },
   filterButtonTextWhite: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFF',
+    color: COLORS.white,
   },
   vendorCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 20,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    borderColor: COLORS.divider,
     elevation: 3,
   },
   cardContent: {
@@ -510,7 +532,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     height: 100,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.divider,
     position: 'relative',
   },
   vendorImage: {
@@ -523,14 +545,14 @@ const createStyles = (COLORS) => StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#3B82F6',
+    backgroundColor: COLORS.blue,
     paddingVertical: 4,
     alignItems: 'center',
   },
   verifiedText: {
     fontSize: 8,
     fontWeight: '900',
-    color: '#FFF',
+    color: COLORS.white,
     textTransform: 'uppercase',
   },
   contentContainer: {
@@ -546,7 +568,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   vendorName: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     flex: 1,
     marginRight: 8,
   },
@@ -562,11 +584,11 @@ const createStyles = (COLORS) => StyleSheet.create({
   callButtonText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#FFF',
+    color: COLORS.white,
   },
   categoryText: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -579,7 +601,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   ratingBadgeGreen: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#DCFCE7',
+    backgroundColor: (COLORS.success || '#16a34a') + '15',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -588,11 +610,11 @@ const createStyles = (COLORS) => StyleSheet.create({
   ratingTextGreen: {
     fontSize: 11,
     fontWeight: '900',
-    color: '#16a34a',
+    color: COLORS.success,
   },
   reviewCount: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     fontWeight: '600',
   },
   footerRow: {
@@ -602,7 +624,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
+    borderTopColor: COLORS.backgroundSoft || '#F8FAFC',
   },
   distanceContainer: {
     flexDirection: 'row',
@@ -612,7 +634,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   distanceText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -625,7 +647,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sortMenuContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -640,7 +662,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   sortMenuTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
   },
   sortOption: {
     flexDirection: 'row',
@@ -648,18 +670,18 @@ const createStyles = (COLORS) => StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: COLORS.divider,
   },
   sortOptionActive: {
-    borderBottomColor: '#FF6B00',
+    borderBottomColor: COLORS.orange,
   },
   sortOptionText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#64748B',
+    color: COLORS.textMuted,
   },
   sortOptionTextActive: {
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     fontWeight: '800',
   },
   section: {
@@ -676,11 +698,11 @@ const createStyles = (COLORS) => StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: '#64748B',
+    color: COLORS.textSecondary,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -690,13 +712,13 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   productCard: {
     width: 160,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 12,
     marginRight: 16,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#000',
+    borderColor: COLORS.divider,
+    shadowColor: COLORS.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -705,7 +727,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   productImageContainer: {
     width: '100%',
     height: 110,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.backgroundSoft || '#F8FAFC',
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
@@ -720,7 +742,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   productName: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     marginBottom: 6,
   },
   productPriceRow: {
@@ -736,14 +758,14 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   productMrp: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     textDecorationLine: 'line-through',
     fontWeight: '600',
   },
   productVendor: {
     fontSize: 9,
     fontWeight: '900',
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -760,7 +782,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    color: '#64748B',
+    color: COLORS.textSecondary,
     fontWeight: '800',
     fontSize: 12,
     textTransform: 'uppercase',
@@ -769,31 +791,31 @@ const createStyles = (COLORS) => StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     marginTop: 24,
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 15,
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 32,
     fontWeight: '600',
   },
   backHomeBtn: {
-    backgroundColor: '#0F172A',
+    backgroundColor: COLORS.textPrimary,
     paddingHorizontal: 30,
     paddingVertical: 14,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: COLORS.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 5,
   },
   backHomeText: {
-    color: '#FFF',
+    color: COLORS.white,
     fontWeight: '900',
     fontSize: 15,
     letterSpacing: 0.5,

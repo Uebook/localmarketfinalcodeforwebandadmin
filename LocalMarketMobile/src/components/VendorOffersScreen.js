@@ -16,7 +16,7 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
   const [locationState] = React.useState({
     lat: null,
     lng: null,
-    city: 'Delhi, India',
+    city: 'Amritsar, India',
     loading: false,
     error: null,
   });
@@ -238,95 +238,110 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Shop Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.coverImage}>
-            <Text style={styles.coverText}>Cover</Text>
-            <TouchableOpacity style={styles.cameraButton}>
-              <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
+        {/* Shop Profile Section - Premium Redesign */}
+        <View style={styles.profileSectionWrapper}>
+          <LinearGradient
+            colors={['#1E293B', '#334155']}
+            style={styles.premiumCover}
+          >
+            <View style={styles.coverOverlay} />
+            <TouchableOpacity style={styles.editCoverBtn} onPress={() => navigation.navigate('Profile')}>
+              <Icon name="camera" size={14} color="#FFF" />
+              <Text style={styles.editCoverText}>Change Cover</Text>
             </TouchableOpacity>
-          </View>
+          </LinearGradient>
 
-          <View style={styles.profileInfo}>
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImage}>
-                <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
+          <View style={styles.profileCard}>
+            <View style={styles.profileHeaderRow}>
+              <View style={styles.avatarWrapper}>
+                <View style={styles.avatarInner}>
+                  <Icon name="user" size={32} color={COLORS.textMuted} />
+                </View>
+                <View style={styles.onlineBadge} />
+              </View>
+
+              <View style={styles.shopMainDetails}>
+                <View style={styles.nameBadgeRow}>
+                  <Text style={styles.shopNameText}>{vendorData?.name || 'My Shop'}</Text>
+                  <View style={styles.verifiedBadge}>
+                    <Icon name="check" size={10} color="#FFF" />
+                  </View>
+                </View>
+                <View style={styles.subDetailRow}>
+                  <Icon name="map-pin" size={12} color="#64748B" />
+                  <Text style={styles.subDetailText}>{vendorData?.address || 'Shop Address'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.ratingBadgeTop}>
+                <Icon name="star" size={12} color="#F59E0B" fill="#F59E0B" />
+                <Text style={styles.ratingValueText}>{vendorData?.rating || '4.8'}</Text>
               </View>
             </View>
 
-            <View style={styles.shopInfo}>
-              <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
-                <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
+            <View style={styles.completionContainer}>
+              <View style={styles.completionHeader}>
+                <Text style={styles.completionTitle}>Profile Strength</Text>
+                <Text style={styles.completionValue}>{profileCompletion}%</Text>
               </View>
-              <View style={styles.locationRow}>
-                <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Open</Text>
+              <View style={styles.progressTrack}>
+                <LinearGradient
+                  colors={[COLORS.orange, '#F97316']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.progressFill, { width: `${profileCompletion}%` }]}
+                />
               </View>
             </View>
-          </View>
 
-          <View style={styles.completionSection}>
-            <Text style={styles.completionLabel}>Profile Completion</Text>
-            <View style={styles.completionBarContainer}>
-              <LinearGradient
-                colors={['#dc2626', '#9333ea']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.completionBar, { width: `${profileCompletion}%` }]}
-              />
+            <View style={styles.quickActionsRow}>
+              <TouchableOpacity style={styles.qActionItem} onPress={() => {}}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F0F9FF' }]}>
+                  <Icon name="share-2" size={18} color="#0EA5E9" />
+                </View>
+                <Text style={styles.qActionLabel}>Share</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.qActionItem} onPress={() => {
+                if (navigation) {
+                  const businessData = {
+                    ...vendorData,
+                    id: vendorData?.id || 'v1',
+                    name: vendorData?.name || 'My Awesome Shop',
+                    category: vendorData?.category || 'Grocery',
+                    rating: vendorData?.rating || 4.8,
+                    reviewCount: vendorData?.reviewCount || 12,
+                    address: `${vendorData?.address || 'Shop 12, Main Market'} / ${vendorData?.landmark || 'Near Clock Tower'} / ${vendorData?.city || 'New Delhi'} - ${vendorData?.pincode || '110001'}`,
+                    contactNumber: vendorData?.contactNumber || '9876543210',
+                    whatsappNumber: vendorData?.whatsappNumber || vendorData?.contactNumber || '9876543210',
+                    openTime: vendorData?.openTime || '09:00 AM - 09:00 PM',
+                    about: vendorData?.about || 'Welcome to our shop! We provide high quality products.',
+                    products: vendorData?.products || [],
+                    isVerified: vendorData?.isVerified !== false,
+                  };
+                  navigation.navigate('VendorDetails', { business: businessData });
+                }
+              }}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F5F3FF' }]}>
+                  <Icon name="eye" size={18} color="#8B5CF6" />
+                </View>
+                <Text style={styles.qActionLabel}>Preview</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => {}}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Icon name="tag" size={18} color="#10B981" />
+                </View>
+                <Text style={styles.qActionLabel}>Offers</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('Settings')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F8FAFC' }]}>
+                  <Icon name="settings" size={18} color="#64748B" />
+                </View>
+                <Text style={styles.qActionLabel}>Settings</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.completionPercent}>{profileCompletion}%</Text>
-          </View>
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Share</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => {
-              if (navigation) {
-                const businessData = {
-                  ...vendorData,
-                  id: vendorData?.id || 'v1',
-                  name: vendorData?.name || 'My Awesome Shop',
-                  category: vendorData?.category || 'Grocery',
-                  rating: vendorData?.rating || 4.8,
-                  reviewCount: vendorData?.reviewCount || 12,
-                  address: `${vendorData?.address || 'Shop 12, Main Market'} / ${vendorData?.landmark || 'Near Clock Tower'} / ${vendorData?.city || 'New Delhi'} - ${vendorData?.pincode || '110001'}`,
-                  contactNumber: vendorData?.contactNumber || '9876543210',
-                  whatsappNumber: vendorData?.whatsappNumber || vendorData?.contactNumber || '9876543210',
-                  openTime: vendorData?.openTime || '09:00 AM - 09:00 PM',
-                  about: vendorData?.about || 'Welcome to our shop! We provide high quality products.',
-                  products: vendorData?.products || [],
-                  isVerified: vendorData?.isVerified !== false,
-                };
-                navigation.navigate('VendorDetails', { business: businessData });
-              }
-            }}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Eye')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Preview</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.blue }]}>
-                <Icon name={getIconName('Tag')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Offers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => navigation?.navigate('Settings')}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.textMuted }]}>
-                <Icon name={getIconName('Settings')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Settings</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -522,155 +537,182 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
 };
 
 const createStyles = (COLORS) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
+  // Premium Profile Styles
+  profileSectionWrapper: {
+    backgroundColor: '#F8FAFC',
+    marginBottom: 24,
   },
-  gradientBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 64,
+  premiumCover: {
+    height: 160,
+    justifyContent: 'flex-end',
+    padding: 20,
   },
-  scrollView: {
-    flex: 1,
+  coverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  profileSection: {
-    backgroundColor: COLORS.white,
-    marginBottom: 16,
-  },
-  coverImage: {
-    height: 120,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  coverText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-  },
-  cameraButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: COLORS.textPrimary,
-    padding: 8,
-    borderRadius: 8,
-  },
-  profileInfo: {
+  editCoverBtn: {
     flexDirection: 'row',
-    padding: 16,
-    paddingTop: 0,
-    marginTop: -40,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-end',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    gap: 6,
   },
-  profileImageContainer: {
+  editCoverText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFF',
+    textTransform: 'uppercase',
+  },
+  profileCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 16,
+    marginTop: -50,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  avatarWrapper: {
+    position: 'relative',
     marginRight: 16,
   },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: '#E5E7EB',
+  avatarInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    overflow: 'hidden',
   },
-  shopInfo: {
+  onlineBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  shopMainDetails: {
     flex: 1,
-    paddingTop: 40,
   },
-  shopNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  shopName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  statusRow: {
+  nameBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#16a34a',
-  },
-  completionSection: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  completionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  completionBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
     marginBottom: 4,
   },
-  completionBar: {
-    height: '100%',
-    borderRadius: 4,
+  shopNameText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  completionPercent: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.orange,
-    textAlign: 'right',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    paddingTop: 0,
-  },
-  actionButton: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  verifiedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#3B82F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionText: {
+  subDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  subDetailText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  ratingBadgeTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    gap: 4,
+  },
+  ratingValueText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#B45309',
+  },
+  completionContainer: {
+    marginBottom: 24,
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 16,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  completionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  completionValue: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.orange,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  qActionItem: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  qActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qActionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#475569',
   },
   offersSection: {
     padding: 16,
@@ -679,48 +721,63 @@ const createStyles = (COLORS) => StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   offersTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0F172A',
   },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: COLORS.blue,
+    backgroundColor: '#F97316',
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 10,
+    borderRadius: 14,
+    shadowColor: '#F97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   createButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.white,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFF',
   },
   offerForm: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
   },
   formHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   formTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+    fontWeight: '900',
+    color: '#1E293B',
   },
   closeButton: {
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   formContent: {
     gap: 16,
@@ -729,28 +786,30 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginBottom: 4,
   },
   inputLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 6,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#64748B',
+    marginBottom: 8,
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.divider,
-    borderRadius: 8,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
     padding: 12,
     fontSize: 14,
-    color: COLORS.textPrimary,
-    backgroundColor: COLORS.white,
+    color: '#1E293B',
+    backgroundColor: '#F8FAFC',
   },
   dateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.divider,
-    borderRadius: 8,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
     paddingRight: 12,
+    backgroundColor: '#F8FAFC',
   },
   dateInput: {
     flex: 1,
@@ -768,36 +827,41 @@ const createStyles = (COLORS) => StyleSheet.create({
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#E2E8F0',
   },
   cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#64748B',
   },
   saveOfferButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
-    backgroundColor: COLORS.blue,
+    backgroundColor: '#F97316',
   },
   saveOfferButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFF',
   },
   offerCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.divider,
-    position: 'relative',
+    borderColor: '#F1F5F9',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   deleteButton: {
     position: 'absolute',
@@ -898,7 +962,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     flexWrap: 'wrap',
   },
   calendarWeekday: {
-    width: `${100 / 7}%`,
+    width: '14.28%',
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '700',
@@ -906,13 +970,13 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginBottom: 8,
   },
   calendarDay: {
-    width: `${100 / 7}%`,
+    width: '14.28%',
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   calendarDayEmpty: {
-    width: `${100 / 7}%`,
+    width: '14.28%',
     height: 40,
   },
   calendarDayText: {

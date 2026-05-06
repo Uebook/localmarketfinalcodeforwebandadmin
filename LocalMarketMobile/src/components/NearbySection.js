@@ -7,6 +7,7 @@ import { getVendors } from '../services/api';
 
 const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(!vendors);
 
@@ -153,7 +154,7 @@ const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) =>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   container: {
     paddingVertical: 8,
   },

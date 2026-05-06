@@ -148,7 +148,7 @@ const SalesSection = ({ locationState, navigation }) => {
       {indiaSales.length > 0 && (
         <View style={styles.rowContainer}>
           <View style={styles.rowHeader}>
-            <Icon name="flag" size={16} color={COLORS.primary} />
+            <Icon name="flag" size={16} color={COLORS.orange} />
             <Text style={styles.rowTitle}>All India Mega Sales</Text>
           </View>
           <ScrollView 

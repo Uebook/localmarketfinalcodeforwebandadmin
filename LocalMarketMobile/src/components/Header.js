@@ -14,6 +14,7 @@ const Header = ({
   onProfileClick,
   onNotificationClick,
   onLocationChange,
+  onRedetect,
   notificationCount = 2,
   transparent = false
 }) => {
@@ -54,7 +55,7 @@ const Header = ({
                     : (locationState.circle || locationState.town || locationState.city || locationState.displayLabel || 'Pick Location')}
                 </Text>
               </View>
-              <Icon name="chevron-down" size={12} color="#64748B" />
+              <Icon name="chevron-down" size={12} color={COLORS.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -97,7 +98,7 @@ const Header = ({
           <Pressable style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={styles.modalIconContainer}>
-                <Icon name={getIconName('MapPin')} size={20} color={COLORS.primary} />
+                <Icon name={getIconName('MapPin')} size={20} color={COLORS.orange} />
               </View>
               <View>
                 <Text style={styles.modalTitle}>Current Location</Text>
@@ -115,11 +116,11 @@ const Header = ({
               style={styles.redetectButton}
               onPress={() => {
                 setShowLocationModal(false);
-                if (onLocationChange) onLocationChange();
+                if (onRedetect) onRedetect();
               }}
               activeOpacity={0.8}
             >
-              <Icon name={getIconName('Zap')} size={14} color="#FFF" style={{ marginRight: 6 }} />
+              <Icon name={getIconName('Zap')} size={14} color={COLORS.white} style={{ marginRight: 6 }} />
               <Text style={styles.redetectText}>Re-detect Location</Text>
             </TouchableOpacity>
 
@@ -164,7 +165,7 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
     height: 64,
     backgroundColor: transparent ? 'transparent' : COLORS.white,
     borderBottomWidth: transparent ? 0 : 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: COLORS.divider,
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -199,19 +200,19 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.backgroundSoft || '#F8FAFC',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: COLORS.divider,
   },
   locationTextBlock: {
     marginHorizontal: 6,
   },
   locationCity: {
     fontSize: 14,
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     fontWeight: '700',
   },
   rightSection: {
@@ -233,23 +234,23 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
     right: 8,
     width: 16,
     height: 16,
-    backgroundColor: '#E86A2C',
+    backgroundColor: COLORS.orange,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
   notificationBadgeText: {
     fontSize: 8,
-    color: '#FFF',
+    color: COLORS.white,
     fontWeight: '900',
   },
   profileButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.divider,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -260,10 +261,10 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: COLORS.textPrimary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -275,13 +276,13 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: COLORS.divider,
   },
   modalIconContainer: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#FFF7ED',
+    backgroundColor: COLORS.highlightBg || '#FFF7ED',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -289,45 +290,45 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
   modalTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
   },
   modalSubtitle: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   addressBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.backgroundSoft || '#F8FAFC',
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: COLORS.divider,
   },
   fullAddressText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#334155',
+    color: COLORS.textSecondary,
     lineHeight: 22,
     fontStyle: 'italic',
   },
   redetectButton: {
     flexDirection: 'row',
-    backgroundColor: '#0F172A',
+    backgroundColor: COLORS.textPrimary,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: COLORS.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   redetectText: {
-    color: '#FFF',
+    color: COLORS.white,
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
@@ -335,17 +336,17 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
   },
   manualSelectButton: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.divider,
   },
   manualSelectText: {
-    color: '#64748B',
+    color: COLORS.textSecondary,
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',

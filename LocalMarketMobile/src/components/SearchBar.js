@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, FlatList, Text, ActivityIndicator, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, FlatList, Text, ActivityIndicator, ScrollView, Modal, Animated, Easing } from 'react-native';
 import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
@@ -14,7 +14,45 @@ const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) =>
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const searchTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (showVoiceModal) {
+      startPulseAnimation();
+      // Simulate listening for 3 seconds then redirect to AI
+      const timer = setTimeout(() => {
+        setIsListening(false);
+        setShowVoiceModal(false);
+        if (navigation) {
+          navigation.navigate('AIServiceFlow');
+        }
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [showVoiceModal]);
+
+  const startPulseAnimation = () => {
+    pulseAnim.setValue(1);
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.3,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
 
   useEffect(() => {
     return () => {
@@ -210,13 +248,62 @@ const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) =>
               onSubmitEditing={handleSearch}
               returnKeyType="search"
             />
-            <TouchableOpacity style={styles.micButton}>
+            <TouchableOpacity 
+              style={styles.micButton} 
+              onPress={() => setShowVoiceModal(true)}
+              activeOpacity={0.7}
+            >
               <View style={styles.micIconContainer}>
                 <Icon name="mic" size={18} color="#FFF" />
               </View>
             </TouchableOpacity>
           </View>
       </View>
+
+      {/* Voice Search Modal */}
+      <Modal
+        visible={showVoiceModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowVoiceModal(false)}
+      >
+        <View style={styles.voiceModalOverlay}>
+          <View style={styles.voiceModalContent}>
+            <TouchableOpacity 
+              style={styles.closeVoiceModal}
+              onPress={() => setShowVoiceModal(false)}
+            >
+              <Icon name="x" size={24} color={COLORS.textPrimary} />
+            </TouchableOpacity>
+
+            <View style={styles.voiceIconWrapper}>
+              <Animated.View style={[
+                styles.voicePulseCircle, 
+                { transform: [{ scale: pulseAnim }] }
+              ]} />
+              <View style={styles.voiceMicMain}>
+                <Icon name="mic" size={40} color="#FFF" />
+              </View>
+            </View>
+
+            <Text style={styles.voiceStatusText}>Listening...</Text>
+            <Text style={styles.voiceInstructionText}>
+              Say "Find cheapest AC near me" or "Search for plumbers"
+            </Text>
+
+            <View style={styles.voiceHelperContainer}>
+               <Text style={styles.voiceHelperTitle}>TRY SAYING</Text>
+               <View style={styles.voiceHelperPills}>
+                  {['Plumbers near me', 'Best mobile offers', 'Grocery deals'].map((text, i) => (
+                    <TouchableOpacity key={i} style={styles.voiceHelperPill}>
+                       <Text style={styles.voiceHelperPillText}>{text}</Text>
+                    </TouchableOpacity>
+                  ))}
+               </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Try Searching section */}
       <View style={styles.trySearchingRow}>
@@ -498,6 +585,98 @@ const createStyles = (COLORS) => StyleSheet.create({
       fontSize: 13,
       fontWeight: '700',
       color: '#94A3B8',
+    },
+    // Voice Modal Styles
+    voiceModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(15, 23, 42, 0.8)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    voiceModalContent: {
+      width: '100%',
+      backgroundColor: '#FFF',
+      borderRadius: 32,
+      padding: 40,
+      alignItems: 'center',
+      position: 'relative',
+    },
+    closeVoiceModal: {
+      position: 'absolute',
+      top: 20,
+      right: 20,
+      padding: 10,
+    },
+    voiceIconWrapper: {
+      width: 120,
+      height: 120,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 30,
+    },
+    voicePulseCircle: {
+      position: 'absolute',
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: 'rgba(249, 115, 22, 0.2)',
+    },
+    voiceMicMain: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: '#F97316',
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 5,
+      shadowColor: '#F97316',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+    },
+    voiceStatusText: {
+      fontSize: 24,
+      fontWeight: '900',
+      color: '#0F172A',
+      marginBottom: 10,
+    },
+    voiceInstructionText: {
+      fontSize: 14,
+      color: '#64748B',
+      textAlign: 'center',
+      lineHeight: 20,
+      marginBottom: 40,
+    },
+    voiceHelperContainer: {
+      width: '100%',
+      alignItems: 'center',
+    },
+    voiceHelperTitle: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: '#94A3B8',
+      letterSpacing: 2,
+      marginBottom: 16,
+    },
+    voiceHelperPills: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: 10,
+    },
+    voiceHelperPill: {
+      backgroundColor: '#F8FAFC',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: '#F1F5F9',
+    },
+    voiceHelperPillText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#475569',
     },
   });
 

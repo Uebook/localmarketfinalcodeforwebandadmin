@@ -48,12 +48,12 @@ const Notifications = ({ navigation, onClose }) => {
 
   const transformNotifications = (apiNotifications) => {
     const typeMap = {
-      'info': { icon: 'info', color: '#3b82f6', bg: '#eff6ff' },
-      'success': { icon: 'check-circle', color: '#10b981', bg: '#ecfdf5' },
-      'warning': { icon: 'alert-triangle', color: '#f59e0b', bg: '#fffbeb' },
-      'error': { icon: 'alert-circle', color: '#ef4444', bg: '#fef2f2' },
-      'promo': { icon: 'tag', color: '#8b5cf6', bg: '#f5f3ff' },
-      'price_drop': { icon: 'trending-down', color: '#ec4899', bg: '#fdf2f8' },
+      'info': { icon: 'info', color: COLORS.blue || '#3b82f6', bg: (COLORS.blue || '#3b82f6') + '15' },
+      'success': { icon: 'check-circle', color: COLORS.success || '#10b981', bg: (COLORS.success || '#10b981') + '15' },
+      'warning': { icon: 'alert-triangle', color: COLORS.orange || '#f59e0b', bg: (COLORS.orange || '#f59e0b') + '15' },
+      'error': { icon: 'alert-circle', color: COLORS.danger || '#ef4444', bg: (COLORS.danger || '#ef4444') + '15' },
+      'promo': { icon: 'tag', color: '#8b5cf6', bg: '#8b5cf615' },
+      'price_drop': { icon: 'trending-down', color: '#ec4899', bg: '#ec489915' },
     };
 
     return apiNotifications.map((n, i) => {
@@ -138,7 +138,7 @@ const Notifications = ({ navigation, onClose }) => {
             {item.title}
           </Text>
           <View style={styles.timeRow}>
-            <Icon name="clock" size={10} color="#94A3B8" />
+            <Icon name="clock" size={10} color={COLORS.textMuted} />
             <Text style={styles.notifTime}>{item.timeAgo}</Text>
           </View>
         </View>
@@ -156,7 +156,7 @@ const Notifications = ({ navigation, onClose }) => {
         {/* Modern Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
-            <Icon name={getIconName('ChevronLeft')} size={28} color="#0F172A" />
+            <Icon name={getIconName('ChevronLeft')} size={28} color={COLORS.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <Text style={styles.headerTitle}>Notifications</Text>
@@ -178,11 +178,11 @@ const Notifications = ({ navigation, onClose }) => {
                disabled={markingRead}
              >
                {markingRead ? (
-                 <ActivityIndicator size="small" color="#FF6B00" />
+                  <ActivityIndicator size="small" color={COLORS.orange} />
                ) : (
                  <>
-                   <Icon name="check-square" size={14} color="#FF6B00" style={{marginRight: 4}} />
-                   <Text style={styles.readAllText}>Mark all as read</Text>
+                    <Icon name="check-square" size={14} color={COLORS.orange} style={{marginRight: 4}} />
+                    <Text style={styles.readAllText}>Mark all as read</Text>
                  </>
                )}
              </TouchableOpacity>
@@ -191,7 +191,7 @@ const Notifications = ({ navigation, onClose }) => {
 
         {loading ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#FF6B00" />
+            <ActivityIndicator size="large" color={COLORS.orange} />
             <Text style={styles.loadingText}>Fetching updates...</Text>
           </View>
         ) : (
@@ -204,7 +204,7 @@ const Notifications = ({ navigation, onClose }) => {
             ListEmptyComponent={
               <View style={styles.emptyState}>
                 <View style={styles.emptyIconBox}>
-                  <Icon name="bell-off" size={42} color="#CBD5E1" />
+                  <Icon name="bell-off" size={42} color={COLORS.textLight} />
                 </View>
                 <Text style={styles.emptyTitle}>All caught up!</Text>
                 <Text style={styles.emptySubtitle}>We'll let you know when something important happens.</Text>
@@ -220,7 +220,7 @@ const Notifications = ({ navigation, onClose }) => {
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.backgroundSoft || '#F8FAFC',
   },
   safeArea: {
     flex: 1,
@@ -243,17 +243,17 @@ const createStyles = (COLORS) => StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '900',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     letterSpacing: -0.5,
   },
   unreadTag: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: COLORS.orange,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
   unreadTagText: {
-    color: '#FFF',
+    color: COLORS.white,
     fontSize: 10,
     fontWeight: '900',
   },
@@ -264,11 +264,11 @@ const createStyles = (COLORS) => StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     marginBottom: 12,
     // Shadow
-    shadowColor: '#0F172A',
+    shadowColor: COLORS.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -277,7 +277,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   notifCount: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#64748B',
+    color: COLORS.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -288,7 +288,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   readAllText: {
     fontSize: 12,
     fontWeight: '900',
-    color: '#FF6B00',
+    color: COLORS.orange,
   },
   btnDisabled: {
     opacity: 0.5,
@@ -299,7 +299,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     gap: 12,
   },
   notifCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderRadius: 24,
     padding: 16,
     flexDirection: 'row',
@@ -307,17 +307,17 @@ const createStyles = (COLORS) => StyleSheet.create({
     gap: 16,
     borderWidth: 1,
     borderColor: 'rgba(241, 245, 249, 0.8)',
-    shadowColor: '#0F172A',
+    shadowColor: COLORS.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 5,
     elevation: 2,
   },
   notifUnread: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderColor: 'rgba(255, 107, 0, 0.1)',
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B00',
+    borderLeftColor: COLORS.orange,
   },
   iconBox: {
     width: 48,
@@ -339,7 +339,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   notifTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     flex: 1,
     marginRight: 8,
   },
@@ -349,7 +349,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   notifTime: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: COLORS.textMuted,
     marginLeft: 3,
   },
   timeRow: {
@@ -358,7 +358,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   notifMessage: {
     fontSize: 13,
-    color: '#475569',
+    color: COLORS.textSecondary,
     lineHeight: 18,
     fontWeight: '500',
   },
@@ -369,7 +369,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FF6B00',
+    backgroundColor: COLORS.orange,
   },
   centerContainer: {
     flex: 1,
@@ -381,7 +381,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginTop: 12,
     fontSize: 14,
     fontWeight: '700',
-    color: '#64748B',
+    color: COLORS.textMuted,
     letterSpacing: 0.5,
   },
   emptyState: {
@@ -402,12 +402,12 @@ const createStyles = (COLORS) => StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#0F172A',
+    color: COLORS.textPrimary,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 20,
     fontWeight: '500',

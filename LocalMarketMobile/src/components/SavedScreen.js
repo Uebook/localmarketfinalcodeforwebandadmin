@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList,  ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Image from './ImageWithFallback';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,16 +16,16 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave, locationState })
   const [savedItems, setSavedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load saved vendors from AsyncStorage
-  useEffect(() => {
-    loadSavedVendors();
-  }, []);
+  // Reload when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadSavedVendors();
+    }, [])
+  );
 
   // Reload when savedIds change (from parent)
   useEffect(() => {
-    if (savedIds && savedIds.length > 0) {
-      loadSavedVendors();
-    }
+    loadSavedVendors();
   }, [savedIds]);
 
   const loadSavedVendors = async () => {

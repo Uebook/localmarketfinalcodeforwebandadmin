@@ -87,134 +87,149 @@ const PaymentManagement = ({ navigation, vendorData, onUpdateVendor }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={COLORS.primaryGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.gradientBackground}
-      />
-      
       <SafeAreaView edges={['top']} style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity 
             onPress={() => navigation?.goBack()} 
             style={styles.backButton}
-            activeOpacity={0.7}
           >
-            <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.white} />
+            <Icon name="arrow-left" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Payment & Subscription</Text>
-          <View style={styles.placeholder} />
+          <Text style={styles.headerTitle}>Subscription</Text>
+          <TouchableOpacity style={styles.headerRight}>
+            <Icon name="help-circle" size={22} color={COLORS.textSecondary} />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Payment Status Card */}
-        <View style={styles.statusCard}>
-          <View style={styles.statusHeader}>
-            <Text style={styles.statusTitle}>Current Status</Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(paymentInfo.paymentStatus) + '20' }]}>
-              <View style={[styles.statusDot, { backgroundColor: getStatusColor(paymentInfo.paymentStatus) }]} />
-              <Text style={[styles.statusText, { color: getStatusColor(paymentInfo.paymentStatus) }]}>
-                {paymentInfo.paymentStatus.toUpperCase()}
-              </Text>
-            </View>
-          </View>
-          
-          {paymentInfo.paymentStatus === PAYMENT_STATUS.PAID && (
-            <View style={styles.statusInfo}>
-              <Text style={styles.statusLabel}>Next Payment Due</Text>
-              <Text style={styles.statusValue}>{paymentInfo.paymentDueDate || 'N/A'}</Text>
-            </View>
-          )}
+        <View style={styles.statusSection}>
+          <View style={styles.statusCard}>
+            <LinearGradient
+              colors={['#FFFFFF', '#F8FAFC']}
+              style={styles.statusCardGradient}
+            >
+              <View style={styles.statusTop}>
+                <View>
+                  <Text style={styles.statusLabel}>Current Status</Text>
+                  <Text style={[styles.statusMain, { color: getStatusColor(paymentInfo.paymentStatus) }]}>
+                    {paymentInfo.paymentStatus.toUpperCase()}
+                  </Text>
+                </View>
+                <View style={[styles.statusIconContainer, { backgroundColor: getStatusColor(paymentInfo.paymentStatus) + '15' }]}>
+                  <Icon name="shield" size={24} color={getStatusColor(paymentInfo.paymentStatus)} />
+                </View>
+              </View>
 
-          {paymentInfo.paymentStatus !== PAYMENT_STATUS.PAID && (
-            <View style={styles.warningBox}>
-              <Icon name={getIconName('AlertCircle')} size={20} color="#dc2626" />
-              <Text style={styles.warningText}>
-                {paymentInfo.paymentStatus === PAYMENT_STATUS.OVERDUE 
-                  ? 'Your account will be blocked due to overdue payment'
-                  : 'Please complete payment to continue using the platform'}
-              </Text>
-            </View>
-          )}
+              {paymentInfo.paymentStatus === PAYMENT_STATUS.PAID ? (
+                <View style={styles.statusDetails}>
+                  <View style={styles.detailItem}>
+                    <Icon name="calendar" size={14} color={COLORS.textMuted} />
+                    <Text style={styles.detailText}>Next Due: {paymentInfo.paymentDueDate}</Text>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.alertBox}>
+                  <Icon name="alert-triangle" size={16} color="#DC2626" />
+                  <Text style={styles.alertText}>
+                    {paymentInfo.paymentStatus === PAYMENT_STATUS.OVERDUE 
+                      ? 'Action Required: Account overdue'
+                      : 'Complete payment to unlock all features'}
+                  </Text>
+                </View>
+              )}
+            </LinearGradient>
+          </View>
         </View>
 
-        {/* Subscription Plans */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose Subscription Plan</Text>
-          <Text style={styles.sectionDescription}>Select your preferred billing cycle</Text>
+        <View style={styles.plansSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Choose Your Plan</Text>
+            <Text style={styles.sectionSubtitle}>Select the best billing cycle for you</Text>
+          </View>
 
-          <View style={styles.plansContainer}>
+          <View style={styles.plansList}>
             {Object.values(PAYMENT_PLANS).map((plan) => (
               <TouchableOpacity
                 key={plan}
-                style={[
-                  styles.planCard,
-                  selectedPlan === plan && styles.planCardSelected
-                ]}
                 onPress={() => handlePlanSelect(plan)}
-                activeOpacity={0.7}
+                activeOpacity={0.9}
+                style={[
+                  styles.planItem,
+                  selectedPlan === plan && styles.planItemSelected
+                ]}
               >
-                <View style={styles.planHeader}>
-                  <Text style={styles.planName}>{getPlanDisplayName(plan)}</Text>
-                  {selectedPlan === plan && (
-                    <View style={styles.selectedBadge}>
-                      <Icon name={getIconName('Check')} size={16} color={COLORS.white} />
+                <View style={styles.planInfo}>
+                  <View style={[
+                    styles.planIcon,
+                    selectedPlan === plan ? { backgroundColor: COLORS.orange } : { backgroundColor: '#F1F5F9' }
+                  ]}>
+                    <Icon 
+                      name={plan === PAYMENT_PLANS.YEARLY ? "award" : (plan === PAYMENT_PLANS.SIX_MONTHLY ? "layers" : "clock")} 
+                      size={20} 
+                      color={selectedPlan === plan ? '#FFF' : COLORS.textSecondary} 
+                    />
+                  </View>
+                  <View>
+                    <Text style={[styles.planTitle, selectedPlan === plan && styles.planTitleActive]}>
+                      {getPlanDisplayName(plan)}
+                    </Text>
+                    <Text style={styles.planSub}>
+                      {plan === PAYMENT_PLANS.MONTHLY && 'Billed Monthly'}
+                      {plan === PAYMENT_PLANS.SIX_MONTHLY && 'Billed Half-Yearly'}
+                      {plan === PAYMENT_PLANS.YEARLY && 'Best Value'}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.planPriceSection}>
+                  <Text style={[styles.planPriceText, selectedPlan === plan && styles.planPriceTextActive]}>
+                    ₹{planPrices[plan].toLocaleString()}
+                  </Text>
+                  {plan === PAYMENT_PLANS.YEARLY && (
+                    <View style={styles.promoBadge}>
+                      <Text style={styles.promoText}>-25%</Text>
                     </View>
                   )}
                 </View>
-                <Text style={styles.planPrice}>₹{planPrices[plan].toLocaleString()}</Text>
-                <Text style={styles.planPeriod}>
-                  {plan === PAYMENT_PLANS.MONTHLY && 'per month'}
-                  {plan === PAYMENT_PLANS.SIX_MONTHLY && 'for 6 months'}
-                  {plan === PAYMENT_PLANS.YEARLY && 'per year'}
-                </Text>
-                {plan === PAYMENT_PLANS.YEARLY && (
-                  <View style={styles.savingsBadge}>
-                    <Text style={styles.savingsText}>Save 25%</Text>
-                  </View>
-                )}
               </TouchableOpacity>
             ))}
           </View>
         </View>
+>
 
-        {/* Payment Button */}
-        <TouchableOpacity
-          style={styles.paymentButton}
-          onPress={handleMakePayment}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={COLORS.primaryGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.paymentButtonGradient}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.payBtn}
+            onPress={handleMakePayment}
+            activeOpacity={0.8}
           >
-            <Text style={styles.paymentButtonText}>
-              Pay ₹{planPrices[selectedPlan].toLocaleString()}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={['#F97316', '#EA580C']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.payBtnGradient}
+            >
+              <Text style={styles.payBtnText}>Subscribe Now</Text>
+              <View style={styles.payBtnPrice}>
+                <Text style={styles.payPriceVal}>₹{planPrices[selectedPlan].toLocaleString()}</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
-        {/* Payment History */}
         {paymentInfo.lastPaymentDate && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Payment History</Text>
-            <View style={styles.historyCard}>
-              <View style={styles.historyRow}>
-                <Text style={styles.historyLabel}>Last Payment</Text>
-                <Text style={styles.historyValue}>₹{paymentInfo.amount?.toLocaleString() || '0'}</Text>
+          <View style={styles.historySection}>
+            <Text style={styles.historyTitle}>Payment History</Text>
+            <View style={styles.historyItem}>
+              <View style={styles.historyIcon}>
+                <Icon name="check-circle" size={18} color="#16a34a" />
               </View>
-              <View style={styles.historyRow}>
-                <Text style={styles.historyLabel}>Date</Text>
-                <Text style={styles.historyValue}>{paymentInfo.lastPaymentDate}</Text>
+              <View style={styles.historyMain}>
+                <Text style={styles.historyPlan}>{getPlanDisplayName(paymentInfo.subscriptionPlan)} Plan</Text>
+                <Text style={styles.historyDate}>{paymentInfo.lastPaymentDate}</Text>
               </View>
-              <View style={styles.historyRow}>
-                <Text style={styles.historyLabel}>Plan</Text>
-                <Text style={styles.historyValue}>{getPlanDisplayName(paymentInfo.subscriptionPlan)}</Text>
-              </View>
+              <Text style={styles.historyAmount}>₹{paymentInfo.amount?.toLocaleString()}</Text>
             </View>
           </View>
         )}
@@ -258,17 +273,12 @@ const PaymentManagement = ({ navigation, vendorData, onUpdateVendor }) => {
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  gradientBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 64,
+    backgroundColor: '#F8FAFC',
   },
   header: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   headerContent: {
     flexDirection: 'row',
@@ -276,249 +286,325 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    height: 64,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.white,
-    flex: 1,
-    textAlign: 'center',
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.5,
   },
-  placeholder: {
+  backButton: {
     width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  headerRight: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
-    padding: 16,
+  },
+  statusSection: {
+    padding: 20,
   },
   statusCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: '#FFF',
+    elevation: 4,
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
   },
-  statusHeader: {
+  statusCardGradient: {
+    padding: 20,
+  },
+  statusTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  statusTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  statusInfo: {
-    marginTop: 8,
+    marginBottom: 20,
   },
   statusLabel: {
     fontSize: 12,
-    color: COLORS.textMuted,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 4,
   },
-  statusValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+  statusMain: {
+    fontSize: 24,
+    fontWeight: '900',
   },
-  warningBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fef2f2',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 12,
-    gap: 8,
-  },
-  warningText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#dc2626',
-    fontWeight: '500',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  sectionDescription: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-    marginBottom: 16,
-  },
-  plansContainer: {
-    gap: 12,
-  },
-  planCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: COLORS.divider,
-  },
-  planCardSelected: {
-    borderColor: COLORS.orange,
-    backgroundColor: '#FFF4EC',
-  },
-  planHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  planName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  selectedBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.orange,
+  statusIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  planPrice: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.orange,
+  statusDetails: {
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingTop: 16,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  alertBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF1F2',
+    padding: 12,
+    borderRadius: 12,
+    gap: 10,
+  },
+  alertText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#BE123C',
+    flex: 1,
+  },
+  plansSection: {
+    paddingHorizontal: 20,
+  },
+  sectionHeader: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0F172A',
     marginBottom: 4,
   },
-  planPeriod: {
+  sectionSubtitle: {
     fontSize: 14,
-    color: COLORS.textMuted,
+    color: '#64748B',
+    fontWeight: '500',
   },
-  savingsBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#16a34a',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginTop: 8,
+  plansList: {
+    gap: 12,
   },
-  savingsText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-  paymentButton: {
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 24,
-  },
-  paymentButtonGradient: {
-    paddingVertical: 16,
+  planItem: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
-  paymentButtonText: {
+  planItemSelected: {
+    borderColor: '#F97316',
+    backgroundColor: '#FFF9F5',
+  },
+  planInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  planIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  planTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#334155',
   },
-  historyCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
+  planTitleActive: {
+    color: '#0F172A',
   },
-  historyRow: {
+  planSub: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+  planPriceSection: {
+    alignItems: 'flex-end',
+  },
+  planPriceText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#334155',
+  },
+  planPriceTextActive: {
+    color: '#F97316',
+  },
+  promoBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 4,
+  },
+  promoText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  footer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  payBtn: {
+    borderRadius: 18,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#F97316',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+  },
+  payBtnGradient: {
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
   },
-  historyLabel: {
-    fontSize: 14,
-    color: COLORS.textMuted,
+  payBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFF',
   },
-  historyValue: {
+  payBtnPrice: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  payPriceVal: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFF',
+  },
+  historySection: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  historyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  historyItem: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  historyIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F0FDF4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyMain: {
+    flex: 1,
+  },
+  historyPlan: {
     fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  historyDate: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  historyAmount: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    width: '90%',
-    maxWidth: 400,
+    backgroundColor: '#FFF',
+    borderRadius: 28,
+    width: '100%',
+    padding: 24,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
+    marginBottom: 24,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0F172A',
   },
   modalBody: {
-    padding: 16,
+    gap: 16,
   },
   modalText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 16,
+    color: '#64748B',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   modalAmount: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.orange,
-    marginBottom: 8,
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#0F172A',
+    textAlign: 'center',
   },
   modalPlan: {
     fontSize: 14,
-    color: COLORS.textMuted,
-    marginBottom: 24,
+    color: '#94A3B8',
+    textAlign: 'center',
+    fontWeight: '600',
+    marginBottom: 12,
   },
   confirmButton: {
-    backgroundColor: COLORS.orange,
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: '#0F172A',
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
   },
   confirmButtonText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
+    fontWeight: '800',
+    color: '#FFF',
   },
 });
 

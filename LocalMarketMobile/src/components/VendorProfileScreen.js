@@ -15,7 +15,7 @@ import LocationPicker from './LocationPicker';
 import { formatLocation } from '../constants/locations';
 import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { uploadFile, updateVendorProfile, getVendorProfile } from '../services/api';
+import { uploadFile, updateVendorProfile, getVendorProfile, getCategories } from '../services/api';
 import { ActivityIndicator, } from 'react-native';
 // import Image from './ImageWithFallback';
 const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
@@ -24,7 +24,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const [locationState] = useState({
     lat: vendorData?.location?.lat || null,
     lng: vendorData?.location?.lng || null,
-    city: vendorData?.location?.city || vendorData?.city || 'Delhi, India',
+    city: vendorData?.location?.city || vendorData?.city || 'Amritsar, India',
     loading: false,
     error: null,
   });
@@ -64,6 +64,30 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
     about: normalizedVendor.about || '',
   });
 
+  const [categories, setCategories] = useState([]);
+  const [loadingCats, setLoadingCats] = useState(true);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+
+  const DUMMY_CATEGORIES = ['Grocery', 'Electronics', 'Clothing', 'Footwear', 'Home Decor', 'Food & Cafe', 'Beauty & Salon', 'Automobiles', 'Others'];
+
+  // Load categories on mount
+  React.useEffect(() => {
+    getCategories()
+      .then(data => {
+        const cats = data?.categories || [];
+        if (cats.length > 0) {
+          setCategories(cats.map(c => c.name));
+        } else {
+          setCategories(DUMMY_CATEGORIES);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching categories:', err);
+        setCategories(DUMMY_CATEGORIES);
+      })
+      .finally(() => setLoadingCats(false));
+  }, []);
+
   const handleEditClick = () => {
     setEditFormData({
       name: normalizedVendor.name || '',
@@ -91,7 +115,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
         address: editFormData.address,
         open_time: editFormData.openTime,
         close_time: editFormData.closeTime,
-        about: editFormData.about,
+        description: editFormData.about,
       };
       const res = await updateVendorProfile(vendorData.id, payload);
       if (res && res.success !== false) {
@@ -253,137 +277,138 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Shop Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.coverImage}>
-            {normalizedVendor.imageUrl ? (
-              <Image source={{ uri: normalizedVendor.imageUrl }} style={styles.fullImage} />
-            ) : (
-              <Text style={styles.coverText}>Cover Photo</Text>
-            )}
-            <TouchableOpacity
-              style={styles.cameraButton}
+        {/* Shop Profile Section - Premium Redesign */}
+        <View style={styles.profileSectionWrapper}>
+          <LinearGradient
+            colors={['#1E293B', '#334155']}
+            style={styles.premiumCover}
+          >
+            <View style={styles.coverOverlay} />
+            <TouchableOpacity 
+              style={styles.editCoverBtn} 
               onPress={() => handleImagePick('cover')}
               disabled={uploadingCover}
             >
               {uploadingCover ? (
-                <ActivityIndicator size="small" color={COLORS.white} />
+                <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
+                <>
+                  <Icon name="camera" size={14} color="#FFF" />
+                  <Text style={styles.editCoverText}>Change Cover</Text>
+                </>
               )}
             </TouchableOpacity>
-          </View>
+          </LinearGradient>
 
-          <View style={styles.profileInfo}>
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImage}>
-                {normalizedVendor.profileImageUrl ? (
-                  <Image source={{ uri: normalizedVendor.profileImageUrl }} style={styles.circleImage} />
-                ) : (
-                  <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
-                )}
-                <TouchableOpacity
-                  style={styles.profileCameraButton}
-                  onPress={() => handleImagePick('profile')}
-                  disabled={uploadingProfile}
-                >
-                  {uploadingProfile ? (
-                    <ActivityIndicator size="small" color={COLORS.white} />
+          <View style={styles.profileCard}>
+            <View style={styles.profileHeaderRow}>
+              <View style={styles.avatarWrapper}>
+                <View style={styles.avatarInner}>
+                  {normalizedVendor.profileImageUrl ? (
+                    <Image source={{ uri: normalizedVendor.profileImageUrl }} style={styles.circleImage} />
                   ) : (
-                    <Icon name={getIconName('Camera')} size={10} color={COLORS.white} />
+                    <Icon name="user" size={32} color={COLORS.textMuted} />
                   )}
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.profileCameraButton}
+                    onPress={() => handleImagePick('profile')}
+                    disabled={uploadingProfile}
+                  >
+                    {uploadingProfile ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <Icon name="camera" size={10} color="#FFF" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.onlineBadge} />
+              </View>
+
+              <View style={styles.shopMainDetails}>
+                <View style={styles.nameBadgeRow}>
+                  <Text style={styles.shopNameText}>{normalizedVendor.name || 'My Shop'}</Text>
+                  <View style={styles.verifiedBadge}>
+                    <Icon name="check" size={10} color="#FFF" />
+                  </View>
+                </View>
+                <View style={styles.subDetailRow}>
+                  <Icon name="map-pin" size={12} color="#64748B" />
+                  <Text style={styles.subDetailText}>{normalizedVendor.address || 'Shop Address'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.ratingBadgeTop}>
+                <Icon name="star" size={12} color="#F59E0B" fill="#F59E0B" />
+                <Text style={styles.ratingValueText}>{normalizedVendor.rating || '4.8'}</Text>
               </View>
             </View>
 
-            <View style={styles.shopInfo}>
-              <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>{normalizedVendor.name || 'My Shop'}</Text>
-                <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
+            <View style={styles.completionContainer}>
+              <View style={styles.completionHeader}>
+                <Text style={styles.completionTitle}>Profile Strength</Text>
+                <Text style={styles.completionValue}>{profileCompletion}%</Text>
               </View>
-              <View style={styles.locationRow}>
-                <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>{normalizedVendor.address || 'Shop Address'}</Text>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Open</Text>
+              <View style={styles.progressTrack}>
+                <LinearGradient
+                  colors={[COLORS.orange, '#F97316']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.progressFill, { width: `${profileCompletion}%` }]}
+                />
               </View>
             </View>
-          </View>
 
-          <View style={styles.completionSection}>
-            <Text style={styles.completionLabel}>Profile Completion</Text>
-            <View style={styles.completionBarContainer}>
-              <LinearGradient
-                colors={['#dc2626', '#9333ea']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.completionBar, { width: `${profileCompletion}%` }]}
-              />
+            <View style={styles.quickActionsRow}>
+              <TouchableOpacity style={styles.qActionItem} onPress={() => handleShare(normalizedVendor)}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F0F9FF' }]}>
+                  <Icon name="share-2" size={18} color="#0EA5E9" />
+                </View>
+                <Text style={styles.qActionLabel}>Share</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.qActionItem} onPress={() => handlePreview(navigation, normalizedVendor)}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F5F3FF' }]}>
+                  <Icon name="eye" size={18} color="#8B5CF6" />
+                </View>
+                <Text style={styles.qActionLabel}>Preview</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('VendorOffers')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Icon name="tag" size={18} color="#10B981" />
+                </View>
+                <Text style={styles.qActionLabel}>Offers</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('Settings')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F8FAFC' }]}>
+                  <Icon name="settings" size={18} color="#64748B" />
+                </View>
+                <Text style={styles.qActionLabel}>Settings</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.completionPercent}>{profileCompletion}%</Text>
-          </View>
 
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleShare(normalizedVendor)}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Share</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handlePreview(navigation, normalizedVendor)}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Eye')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Preview</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('VendorOffers')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.blue }]}>
-                <Icon name={getIconName('Tag')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Offers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('Settings')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.textMuted }]}>
-                <Icon name={getIconName('Settings')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Settings</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Payment Status Alert */}
-          {normalizedVendor && shouldBlockVendor(normalizedVendor) && (
-            <View style={styles.paymentAlert}>
-              <Icon name={getIconName('AlertCircle')} size={20} color="#dc2626" />
-              <View style={styles.paymentAlertContent}>
-                <Text style={styles.paymentAlertTitle}>Payment Overdue</Text>
-                <Text style={styles.paymentAlertText}>
-                  Your account will be blocked. Please complete payment to continue.
-                </Text>
+            {/* Payment Status Alert */}
+            {normalizedVendor && shouldBlockVendor(normalizedVendor) && (
+              <View style={styles.paymentAlert}>
+                <View style={styles.alertIconBg}>
+                  <Icon name="alert-circle" size={18} color="#EF4444" />
+                </View>
+                <View style={styles.paymentAlertContent}>
+                  <Text style={styles.paymentAlertTitle}>Payment Overdue</Text>
+                  <Text style={styles.paymentAlertText}>
+                    Complete payment to avoid account suspension.
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.paymentButton}
                   onPress={() => navigation?.navigate('PaymentManagement')}
                 >
-                  <Text style={styles.paymentButtonText}>Pay Now</Text>
+                  <Text style={styles.paymentButtonText}>Pay</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          )}
-
-          {/* Vendor ID Display */}
-          {/* {vendorData?.vendorId && (
-            <View style={styles.vendorIdCard}>
-              <Text style={styles.vendorIdLabel}>Vendor ID</Text>
-              <Text style={styles.vendorIdValue}>{vendorData.vendorId}</Text>
-            </View>
-          )} */}
+            )}
+          </View>
         </View>
 
         {/* Write Review Section */}
@@ -627,12 +652,60 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>CATEGORY</Text>
-                <TextInput
-                  style={styles.input}
-                  value={editFormData.category}
-                  onChangeText={(text) => setEditFormData({ ...editFormData, category: text })}
-                  placeholder="e.g. Grocery, Electronics"
-                />
+                <TouchableOpacity
+                  style={[styles.input, styles.dropdownInput]}
+                  onPress={() => setShowCategoryPicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.inputValue, !editFormData.category && { color: COLORS.textMuted }]}>
+                    {loadingCats ? 'Loading...' : (editFormData.category || 'Select category')}
+                  </Text>
+                  <Icon name="chevron-down" size={18} color={COLORS.textMuted} />
+                </TouchableOpacity>
+
+                {/* Category Selection Modal */}
+                <Modal
+                  visible={showCategoryPicker}
+                  transparent={true}
+                  animationType="slide"
+                  onRequestClose={() => setShowCategoryPicker(false)}
+                >
+                  <TouchableOpacity 
+                    style={styles.sheetOverlay} 
+                    activeOpacity={1} 
+                    onPress={() => setShowCategoryPicker(false)}
+                  >
+                    <View style={styles.bottomSheet}>
+                      <View style={styles.sheetHandle} />
+                      <Text style={styles.sheetTitle}>Select Category</Text>
+                      <ScrollView style={styles.sheetList}>
+                        {categories.map((cat, idx) => (
+                          <TouchableOpacity
+                            key={idx}
+                            style={[
+                              styles.sheetOption,
+                              editFormData.category === cat && styles.sheetOptionActive
+                            ]}
+                            onPress={() => {
+                              setEditFormData({ ...editFormData, category: cat });
+                              setShowCategoryPicker(false);
+                            }}
+                          >
+                            <Text style={[
+                              styles.sheetOptionText,
+                              editFormData.category === cat && styles.sheetOptionTextActive
+                            ]}>
+                              {cat}
+                            </Text>
+                            {editFormData.category === cat && (
+                              <Icon name="check" size={18} color={COLORS.orange} />
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  </TouchableOpacity>
+                </Modal>
               </View>
 
               <View style={styles.inputGroup}>
@@ -721,176 +794,243 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
 };
 
 const createStyles = (COLORS) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
+  // Premium Profile Styles
+  profileSectionWrapper: {
+    backgroundColor: '#F8FAFC',
+    marginBottom: 24,
   },
-  gradientBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 64,
+  premiumCover: {
+    height: 160,
+    justifyContent: 'flex-end',
+    padding: 20,
   },
-  scrollView: {
-    flex: 1,
+  coverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  profileSection: {
-    backgroundColor: COLORS.white,
-    marginBottom: 16,
-  },
-  coverImage: {
-    height: 120,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
+  editCoverBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-end',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    gap: 6,
   },
-  coverText: {
-    fontSize: 16,
+  editCoverText: {
+    fontSize: 10,
     fontWeight: '700',
-    color: COLORS.textMuted,
+    color: '#FFF',
+    textTransform: 'uppercase',
   },
-  cameraButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 8,
-    borderRadius: 8,
+  profileCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 16,
+    marginTop: -50,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
   },
-  profileCameraButton: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    backgroundColor: COLORS.orange,
-    padding: 6,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.white,
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  fullImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+  avatarWrapper: {
+    position: 'relative',
+    marginRight: 16,
+  },
+  avatarInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    overflow: 'hidden',
   },
   circleImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 9,
     resizeMode: 'cover',
   },
-  profileInfo: {
-    flexDirection: 'row',
-    padding: 16,
-    paddingTop: 0,
-    marginTop: -40,
-  },
-  profileImageContainer: {
-    marginRight: 16,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: '#E5E7EB',
+  profileCameraButton: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    backgroundColor: COLORS.orange,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: '#FFF',
   },
-  shopInfo: {
+  onlineBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  shopMainDetails: {
     flex: 1,
-    paddingTop: 40,
   },
-  shopNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  shopName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  statusRow: {
+  nameBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#16a34a',
-  },
-  completionSection: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  completionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  completionBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
     marginBottom: 4,
   },
-  completionBar: {
-    height: '100%',
-    borderRadius: 4,
+  shopNameText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  completionPercent: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.orange,
-    textAlign: 'right',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    paddingTop: 0,
-  },
-  actionButton: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  verifiedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#3B82F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionText: {
+  subDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  subDetailText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  ratingBadgeTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    gap: 4,
+  },
+  ratingValueText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#B45309',
+  },
+  completionContainer: {
+    marginBottom: 24,
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 16,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  completionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  completionValue: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.orange,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  qActionItem: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  qActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qActionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  paymentAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    gap: 12,
+  },
+  alertIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paymentAlertContent: {
+    flex: 1,
+  },
+  paymentAlertTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#991B1B',
+  },
+  paymentAlertText: {
+    fontSize: 11,
+    color: '#B91C1C',
+    fontWeight: '500',
+  },
+  paymentButton: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  paymentButtonText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFF',
   },
   businessProfileSection: {
     backgroundColor: COLORS.white,
@@ -1084,6 +1224,69 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  // Dropdown & Sheet Styles
+  dropdownInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  inputValue: {
+    fontSize: 14,
+    color: '#1E293B',
+    fontWeight: '500',
+  },
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheet: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '60%',
+    paddingBottom: 40,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+  },
+  sheetTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  sheetList: {
+    padding: 10,
+  },
+  sheetOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  sheetOptionActive: {
+    backgroundColor: '#FFF4EC',
+  },
+  sheetOptionText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#0F172A',
+  },
+  sheetOptionTextActive: {
+    fontWeight: '800',
+    color: '#F97316',
   },
 });
 

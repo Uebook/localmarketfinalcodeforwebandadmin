@@ -6,22 +6,29 @@
 
 import { useTheme } from '../components/ThemeProvider';
 
-// Import COLORS with safe fallback
-let DEFAULT_COLORS = {};
-try {
-  const colorsModule = require('../constants/colors');
-  DEFAULT_COLORS = colorsModule.COLORS || colorsModule.default || {};
-} catch (error) {
-  console.error('Error loading DEFAULT_COLORS:', error);
-  // Fallback colors if import fails
-  DEFAULT_COLORS = {
-    orange: '#E86A2C',
-    blue: '#4A6CF7',
-    white: '#FFFFFF',
-    textPrimary: '#0F172A',
-    textMuted: '#9CA3AF',
-  };
-}
+import COLORS_IMPORT from '../constants/colors';
+
+// Debug logging
+console.log('[useThemeColors] COLORS_IMPORT:', !!COLORS_IMPORT);
+
+const DEFAULT_FALLBACK = {
+  orange: '#E86A2C',
+  blue: '#4A6CF7',
+  white: '#FFFFFF',
+  textPrimary: '#0F172A',
+  textMuted: '#9CA3AF',
+};
+
+const DEFAULT_COLORS = (function() {
+  try {
+    if (!COLORS_IMPORT) return DEFAULT_FALLBACK;
+    const base = COLORS_IMPORT.COLORS || COLORS_IMPORT.default || COLORS_IMPORT;
+    return { ...DEFAULT_FALLBACK, ...base };
+  } catch (e) {
+    console.error('[useThemeColors] Error initializing DEFAULT_COLORS:', e);
+    return DEFAULT_FALLBACK;
+  }
+})();
 
 /**
  * Hook to get theme colors

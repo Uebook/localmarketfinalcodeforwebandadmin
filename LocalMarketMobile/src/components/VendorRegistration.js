@@ -174,12 +174,20 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
 
   const update = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
+  const DUMMY_CATEGORIES = ['Grocery', 'Electronics', 'Clothing', 'Footwear', 'Home Decor', 'Food & Cafe', 'Beauty & Salon', 'Automobiles', 'Others'];
+
   // Load categories
   useEffect(() => {
     getCategories().then(data => {
       const cats = data?.categories || [];
-      setCategories(cats.map(c => c.name));
-    }).catch(() => {}).finally(() => setLoadingCats(false));
+      if (cats.length > 0) {
+        setCategories(cats.map(c => c.name));
+      } else {
+        setCategories(DUMMY_CATEGORIES);
+      }
+    }).catch(() => {
+      setCategories(DUMMY_CATEGORIES);
+    }).finally(() => setLoadingCats(false));
 
     // Load states
     setLoadingStates(true);

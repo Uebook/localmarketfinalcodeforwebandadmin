@@ -30,7 +30,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
   const [locationState] = useState({
     lat: null,
     lng: null,
-    city: 'Delhi, India',
+    city: 'Amritsar, India',
     loading: false,
     error: null,
   });
@@ -175,70 +175,69 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
 
   const profileCompletion = 85;
 
-  const renderPerformanceTable = () => (
-    <View style={styles.performanceCard}>
-      <Text style={styles.sectionTitle}>VENDOR PERFORMANCE INSIGHT REPORT</Text>
-      <View style={styles.reportHeader}>
-        <Text style={styles.reportHeaderText}>Market: {vendorData?.town || vendorData?.city || 'Delhi, India'}</Text>
-        <Text style={styles.reportHeaderText}>Vendor: {vendorData?.name || 'My Shop'}</Text>
-        <Text style={styles.reportHeaderText}>Date Range: Last 30 Days</Text>
+  const renderPerformanceDashboard = () => (
+    <View style={styles.dashboardSection}>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Performance Dashboard</Text>
+        <View style={styles.dateBadge}>
+          <Text style={styles.dateBadgeText}>Last 30 Days</Text>
+        </View>
       </View>
 
-      <View style={styles.table}>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Total Users Within 1 KM Radius</Text>
-          <Text style={styles.tableCellValue}>{performanceData.totalUsers1KM.toLocaleString()}</Text>
-          <Text style={styles.tableCellMeaning}>Real users near your shop</Text>
+      <View style={styles.metricsGrid}>
+        <View style={[styles.metricCard, { borderLeftColor: COLORS.orange }]}>
+          <View style={styles.metricIconBox}>
+            <Icon name="users" size={20} color={COLORS.orange} />
+          </View>
+          <Text style={styles.metricValue}>{performanceData.totalUsers1KM.toLocaleString()}</Text>
+          <Text style={styles.metricLabel}>Users Nearby</Text>
+          <Text style={styles.metricInsight}>Within 1 KM radius</Text>
         </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Active Users Searching in This Area</Text>
-          <Text style={styles.tableCellValue}>{performanceData.activeUsersSearching.toLocaleString()}</Text>
-          <Text style={styles.tableCellMeaning}>Users actually browsing</Text>
+
+        <View style={[styles.metricCard, { borderLeftColor: '#3B82F6' }]}>
+          <View style={styles.metricIconBox}>
+            <Icon name="search" size={20} color="#3B82F6" />
+          </View>
+          <Text style={styles.metricValue}>{performanceData.activeUsersSearching.toLocaleString()}</Text>
+          <Text style={styles.metricLabel}>Active Searches</Text>
+          <Text style={styles.metricInsight}>Searching in this area</Text>
         </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Searches in Your Category</Text>
-          <Text style={styles.tableCellValue}>{performanceData.searchesInCategory.toLocaleString()}</Text>
-          <Text style={styles.tableCellMeaning}>Users interested in your category</Text>
+
+        <View style={[styles.metricCard, { borderLeftColor: '#10B981' }]}>
+          <View style={styles.metricIconBox}>
+            <Icon name="eye" size={20} color="#10B981" />
+          </View>
+          <Text style={styles.metricValue}>{performanceData.shopViews}</Text>
+          <Text style={styles.metricLabel}>Shop Views</Text>
+          <Text style={styles.metricInsight}>Opened your listing</Text>
         </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Your Shop Views</Text>
-          <Text style={styles.tableCellValue}>{performanceData.shopViews}</Text>
-          <Text style={styles.tableCellMeaning}>Users who opened your listing</Text>
+
+        <View style={[styles.metricCard, { borderLeftColor: '#8B5CF6' }]}>
+          <View style={styles.metricIconBox}>
+            <Icon name="phone-call" size={20} color="#8B5CF6" />
+          </View>
+          <Text style={styles.metricValue}>{performanceData.usersClickedContact}</Text>
+          <Text style={styles.metricLabel}>Inquiries</Text>
+          <Text style={styles.metricInsight}>Clicks to contact</Text>
         </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Users Who Compared Prices</Text>
-          <Text style={styles.tableCellValue}>{performanceData.usersComparedPrices}</Text>
-          <Text style={styles.tableCellMeaning}>Users shortlisted shops</Text>
+      </View>
+
+      <View style={styles.secondaryStatsRow}>
+        <View style={styles.secondaryStatItem}>
+          <Text style={styles.secondaryStatValue}>{performanceData.searchesInCategory}</Text>
+          <Text style={styles.secondaryStatLabel}>Category Interest</Text>
         </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Users Who Clicked "Navigate / Contact"</Text>
-          <Text style={styles.tableCellValue}>{performanceData.usersClickedContact}</Text>
-          <Text style={styles.tableCellMeaning}>Potential conversions</Text>
+        <View style={styles.statDivider} />
+        <View style={styles.secondaryStatItem}>
+          <Text style={styles.secondaryStatValue}>{performanceData.usersComparedPrices}</Text>
+          <Text style={styles.secondaryStatLabel}>Shortlisted</Text>
         </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Conversion Estimate</Text>
-          <Text style={styles.tableCellValue}>{performanceData.conversionEstimate}</Text>
-          <Text style={styles.tableCellMeaning}>Expected offline visits</Text>
-        </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Your Price Position</Text>
-          <Text style={[styles.tableCellValue, { color: performanceData.pricePosition === 'Higher' ? '#dc2626' : '#16a34a' }]}>
+        <View style={styles.statDivider} />
+        <View style={styles.secondaryStatItem}>
+          <Text style={[styles.secondaryStatValue, { color: performanceData.pricePosition === 'Higher' ? '#EF4444' : '#10B981' }]}>
             {performanceData.pricePosition}
           </Text>
-          <Text style={styles.tableCellMeaning}>Compared to competitors</Text>
-        </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Rating / Feedback</Text>
-          <View style={styles.ratingContainer}>
-            <Text style={styles.tableCellValue}>{performanceData.rating}</Text>
-            <Icon name="star" size={14} color="#fbbf24" />
-          </View>
-          <Text style={styles.tableCellMeaning}>If applicable</Text>
-        </View>
-        <View style={styles.tableRow}>
-          <Text style={styles.tableCellMetric}>Price Updates</Text>
-          <Text style={styles.tableCellValue}>{performanceData.priceUpdates} time in 30 days</Text>
-          <Text style={styles.tableCellMeaning}>Vendor activity level</Text>
+          <Text style={styles.secondaryStatLabel}>Price Status</Text>
         </View>
       </View>
     </View>
@@ -246,35 +245,30 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
 
   const renderCompetitionTable = () => (
     <View style={styles.competitionCard}>
-      <Text style={styles.sectionTitle}>USER CHOICE & COMPETITION ANALYSIS</Text>
-      <Text style={styles.sectionSubtitle}>Shows vendor clearly why or why not users are choosing them</Text>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>User Choice & Competition</Text>
+        <Icon name="help-circle" size={16} color={COLORS.textMuted} />
+      </View>
+      <Text style={styles.sectionSubtitle}>Why users are choosing (or skipping) your products</Text>
 
       <View style={styles.competitionTable}>
         <View style={styles.competitionTableHeader}>
-          <Text style={[styles.competitionHeaderCell, { flex: 2 }]}>Item / Category</Text>
-          <Text style={styles.competitionHeaderCell}>Searches</Text>
-          <Text style={styles.competitionHeaderCell}>Avg Price</Text>
-          <Text style={styles.competitionHeaderCell}>Lowest</Text>
+          <Text style={[styles.competitionHeaderCell, { flex: 2 }]}>Item</Text>
+          <Text style={styles.competitionHeaderCell}>Avg</Text>
           <Text style={styles.competitionHeaderCell}>Your Price</Text>
-          <Text style={styles.competitionHeaderCell}>Status</Text>
+          <Text style={[styles.competitionHeaderCell, { textAlign: 'right' }]}>Status</Text>
         </View>
 
         {competitionData.map((item, index) => (
           <View key={index} style={styles.competitionTableRow}>
-            <Text style={[styles.competitionTableCell, { flex: 2, fontWeight: '600' }]}>{item.item}</Text>
-            <Text style={styles.competitionTableCell}>{item.userSearches}</Text>
+            <Text style={[styles.competitionTableCell, { flex: 2, fontWeight: '700' }]}>{item.item}</Text>
             <Text style={styles.competitionTableCell}>₹{item.avgMarketPrice}</Text>
-            <Text style={styles.competitionTableCell}>₹{item.lowestPriceNearby}</Text>
-            <Text style={styles.competitionTableCell}>₹{item.yourPrice}</Text>
-            <View style={styles.statusCell}>
-              {item.isReasonable ? (
-                <Icon name="check" size={14} color="#16a34a" />
-              ) : (
-                <View style={styles.checkbox} />
-              )}
-              <Text style={[styles.competitionTableCell, {
-                color: item.isReasonable ? '#16a34a' : '#dc2626',
-                marginLeft: 4,
+            <Text style={[styles.competitionTableCell, { fontWeight: '700' }]}>₹{item.yourPrice}</Text>
+            <View style={[styles.statusPill, { 
+              backgroundColor: item.status === 'Higher' ? '#FEF2F2' : (item.status === 'Competitive' ? '#ECFDF5' : '#F0F9FF') 
+            }]}>
+              <Text style={[styles.statusPillText, { 
+                color: item.status === 'Higher' ? '#EF4444' : (item.status === 'Competitive' ? '#10B981' : '#3B82F6') 
               }]}>
                 {item.status}
               </Text>
@@ -285,27 +279,42 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     </View>
   );
 
-  const renderMotivationGraph = () => (
+  const renderMotivationDashboard = () => (
     <View style={styles.motivationCard}>
-      <Text style={styles.sectionTitle}>MOTIVATION GRAPH</Text>
-      <Text style={styles.sectionSubtitle}>Vendor sees improvement → stays motivated instead of quitting</Text>
+      <Text style={styles.sectionTitle}>Growth Trend</Text>
+      <Text style={styles.sectionSubtitle}>Monthly improvement in shop visibility</Text>
 
-      <View style={styles.graphContainer}>
-        <View style={styles.graphHeader}>
-          <Text style={styles.graphHeaderText}>Metric</Text>
-          <Text style={styles.graphHeaderText}>Month 1</Text>
-          <Text style={styles.graphHeaderText}>Month 2</Text>
-        </View>
+      <View style={styles.trendRows}>
+        {[
+          { label: 'Active Users', key: 'users', icon: 'users' },
+          { label: 'Search Visibility', key: 'searches', icon: 'zap' },
+          { label: 'Listing Views', key: 'views', icon: 'eye' },
+        ].map((item) => {
+          const val1 = motivationData[0][item.key];
+          const val2 = motivationData[1][item.key];
+          const diff = val2 - val1;
+          const percent = ((diff / val1) * 100).toFixed(0);
 
-        {Object.keys(motivationData[0]).filter(key => key !== 'month').map((metric) => (
-          <View key={metric} style={styles.graphRow}>
-            <Text style={[styles.graphCell, { flex: 1, textTransform: 'capitalize' }]}>{metric}</Text>
-            <Text style={styles.graphCell}>{motivationData[0][metric]}</Text>
-            <Text style={[styles.graphCell, { color: '#16a34a', fontWeight: '700' }]}>
-              {motivationData[1][metric]}
-            </Text>
-          </View>
-        ))}
+          return (
+            <View key={item.key} style={styles.trendRow}>
+              <View style={styles.trendInfo}>
+                <View style={styles.trendIconBox}>
+                  <Icon name={item.icon} size={16} color="#64748B" />
+                </View>
+                <Text style={styles.trendLabel}>{item.label}</Text>
+              </View>
+              <View style={styles.trendValues}>
+                <Text style={styles.trendPrevValue}>{val1}</Text>
+                <Icon name="arrow-right" size={12} color="#CBD5E1" style={{ marginHorizontal: 8 }} />
+                <Text style={styles.trendCurrValue}>{val2}</Text>
+                <View style={styles.percentBadge}>
+                  <Icon name="trending-up" size={10} color="#10B981" />
+                  <Text style={styles.percentText}>+{percent}%</Text>
+                </View>
+              </View>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
@@ -376,93 +385,102 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Shop Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.coverImage}>
-            <Text style={styles.coverText}>Cover</Text>
-            <TouchableOpacity style={styles.cameraButton}>
-              <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
+        {/* Shop Profile Section - Premium Redesign */}
+        <View style={styles.profileSectionWrapper}>
+          <LinearGradient
+            colors={['#1E293B', '#334155']}
+            style={styles.premiumCover}
+          >
+            <View style={styles.coverOverlay} />
+            <TouchableOpacity style={styles.editCoverBtn}>
+              <Icon name="camera" size={14} color="#FFF" />
+              <Text style={styles.editCoverText}>Change Cover</Text>
             </TouchableOpacity>
-          </View>
+          </LinearGradient>
 
-          <View style={styles.profileInfo}>
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImage}>
-                <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
+          <View style={styles.profileCard}>
+            <View style={styles.profileHeaderRow}>
+              <View style={styles.avatarWrapper}>
+                <View style={styles.avatarInner}>
+                  <Icon name="user" size={32} color={COLORS.textMuted} />
+                </View>
+                <View style={styles.onlineBadge} />
+              </View>
+
+              <View style={styles.shopMainDetails}>
+                <View style={styles.nameBadgeRow}>
+                  <Text style={styles.shopNameText}>{vendorData?.name || 'My Shop'}</Text>
+                  <View style={styles.verifiedBadge}>
+                    <Icon name="check" size={10} color="#FFF" />
+                  </View>
+                </View>
+                <View style={styles.subDetailRow}>
+                  <Icon name="map-pin" size={12} color="#64748B" />
+                  <Text style={styles.subDetailText}>{vendorData?.address || 'Shop Address'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.ratingBadgeTop}>
+                <Icon name="star" size={12} color="#F59E0B" fill="#F59E0B" />
+                <Text style={styles.ratingValueText}>{vendorData?.rating || '4.8'}</Text>
               </View>
             </View>
 
-            <View style={styles.shopInfo}>
-              <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
-                <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
+            <View style={styles.completionContainer}>
+              <View style={styles.completionHeader}>
+                <Text style={styles.completionTitle}>Profile Strength</Text>
+                <Text style={styles.completionValue}>{profileCompletion}%</Text>
               </View>
-              <View style={styles.locationRow}>
-                <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Open</Text>
+              <View style={styles.progressTrack}>
+                <LinearGradient
+                  colors={[COLORS.orange, '#F97316']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.progressFill, { width: `${profileCompletion}%` }]}
+                />
               </View>
             </View>
-          </View>
 
-          <View style={styles.completionSection}>
-            <Text style={styles.completionLabel}>Profile Completion</Text>
-            <View style={styles.completionBarContainer}>
-              <LinearGradient
-                colors={['#dc2626', '#9333ea']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.completionBar, { width: `${profileCompletion}%` }]}
-              />
+            <View style={styles.quickActionsRow}>
+              <TouchableOpacity style={styles.qActionItem} onPress={() => handleShare(vendorData)}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F0F9FF' }]}>
+                  <Icon name="share-2" size={18} color="#0EA5E9" />
+                </View>
+                <Text style={styles.qActionLabel}>Share</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.qActionItem} onPress={() => handlePreview(navigation, vendorData)}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F5F3FF' }]}>
+                  <Icon name="eye" size={18} color="#8B5CF6" />
+                </View>
+                <Text style={styles.qActionLabel}>Preview</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('VendorOffers')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Icon name="tag" size={18} color="#10B981" />
+                </View>
+                <Text style={styles.qActionLabel}>Offers</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('Settings')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F8FAFC' }]}>
+                  <Icon name="settings" size={18} color="#64748B" />
+                </View>
+                <Text style={styles.qActionLabel}>Settings</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.completionPercent}>{profileCompletion}%</Text>
-          </View>
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handleShare(vendorData)}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Share</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => handlePreview(navigation, vendorData)}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Eye')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Preview</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('VendorOffers')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.blue }]}>
-                <Icon name={getIconName('Tag')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Offers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('Settings')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.textMuted }]}>
-                <Icon name={getIconName('Settings')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Settings</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Performance Insight Report */}
-        {renderPerformanceTable()}
+        {/* Performance Dashboard */}
+        {renderPerformanceDashboard()}
 
         {/* Competition Analysis */}
         {renderCompetitionTable()}
 
-        {/* Motivation Graph */}
-        {renderMotivationGraph()}
+        {/* Motivation Dashboard */}
+        {renderMotivationDashboard()}
 
         {/* High Demand Products */}
         {renderHighDemandProducts()}
@@ -528,138 +546,181 @@ const createStyles = (COLORS) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
-  profileSection: {
-    backgroundColor: COLORS.white,
-    marginBottom: 16,
+  // Premium Profile Styles
+  profileSectionWrapper: {
+    backgroundColor: '#F8FAFC',
+    marginBottom: 24,
   },
-  coverImage: {
-    height: 120,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+  premiumCover: {
+    height: 160,
+    justifyContent: 'flex-end',
+    padding: 20,
   },
-  coverText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textMuted,
+  coverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
-  cameraButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: COLORS.textPrimary,
-    padding: 8,
-    borderRadius: 8,
-  },
-  profileInfo: {
+  editCoverBtn: {
     flexDirection: 'row',
-    padding: 16,
-    paddingTop: 0,
-    marginTop: -40,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-end',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    gap: 6,
   },
-  profileImageContainer: {
+  editCoverText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFF',
+    textTransform: 'uppercase',
+  },
+  profileCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 16,
+    marginTop: -50,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  avatarWrapper: {
+    position: 'relative',
     marginRight: 16,
   },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: '#E5E7EB',
+  avatarInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  shopInfo: {
+  onlineBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  shopMainDetails: {
     flex: 1,
-    paddingTop: 40,
   },
-  shopNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  shopName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  statusRow: {
+  nameBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#16a34a',
-  },
-  completionSection: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  completionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  completionBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
     marginBottom: 4,
   },
-  completionBar: {
-    height: '100%',
-    borderRadius: 4,
+  shopNameText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  completionPercent: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.orange,
-    textAlign: 'right',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    paddingTop: 0,
-  },
-  actionButton: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  verifiedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#3B82F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionText: {
+  subDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  subDetailText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  ratingBadgeTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    gap: 4,
+  },
+  ratingValueText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#B45309',
+  },
+  completionContainer: {
+    marginBottom: 24,
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 16,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  completionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  completionValue: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.orange,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  qActionItem: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  qActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qActionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#475569',
   },
   // Performance Table Styles
   performanceCard: {
@@ -934,6 +995,177 @@ const createStyles = (COLORS) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  // New Dashboard Styles
+  dashboardSection: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  dateBadge: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  dateBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748B',
+    textTransform: 'uppercase',
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 20,
+  },
+  metricCard: {
+    width: '48%',
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 16,
+    borderLeftWidth: 4,
+  },
+  metricIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  metricValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  metricLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    marginBottom: 4,
+  },
+  metricInsight: {
+    fontSize: 9,
+    fontWeight: '500',
+    color: '#94A3B8',
+  },
+  secondaryStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    padding: 12,
+    borderRadius: 12,
+  },
+  secondaryStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  secondaryStatValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  secondaryStatLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#CBD5E1',
+  },
+  statusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  trendRows: {
+    marginTop: 16,
+    gap: 12,
+  },
+  trendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 16,
+  },
+  trendInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  trendIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trendLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  trendValues: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trendPrevValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  trendCurrValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  percentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginLeft: 12,
+  },
+  percentText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#10B981',
   },
 });
 

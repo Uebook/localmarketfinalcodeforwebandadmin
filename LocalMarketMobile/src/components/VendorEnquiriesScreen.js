@@ -18,7 +18,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
   const [locationState] = React.useState({
     lat: null,
     lng: null,
-    city: 'Delhi, India',
+    city: 'Amritsar, India',
     loading: false,
     error: null,
   });
@@ -177,99 +177,98 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Shop Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.coverImage}>
-            {vendorData?.image_url || vendorData?.imageUrl ? (
-              <Image 
-                source={{ uri: vendorData.image_url || vendorData.imageUrl }} 
-                style={styles.fullImage} 
-              />
-            ) : (
-              <Text style={styles.coverText}>Cover Photo</Text>
-            )}
-            <TouchableOpacity 
-              style={styles.cameraButton}
-              onPress={() => navigation.navigate('Profile')}
-            >
-              <Icon name={getIconName('Camera')} size={16} color={COLORS.white} />
+        {/* Shop Profile Section - Premium Redesign */}
+        <View style={styles.profileSectionWrapper}>
+          <LinearGradient
+            colors={['#1E293B', '#334155']}
+            style={styles.premiumCover}
+          >
+            <View style={styles.coverOverlay} />
+            <TouchableOpacity style={styles.editCoverBtn} onPress={() => navigation.navigate('Profile')}>
+              <Icon name="camera" size={14} color="#FFF" />
+              <Text style={styles.editCoverText}>Change Cover</Text>
             </TouchableOpacity>
-          </View>
+          </LinearGradient>
 
-          <View style={styles.profileInfo}>
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImage}>
-                {vendorData?.profile_image_url || vendorData?.profileImageUrl ? (
-                  <Image 
-                    source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl }} 
-                    style={styles.circleImage} 
-                  />
-                ) : (
-                  <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
-                )}
+          <View style={styles.profileCard}>
+            <View style={styles.profileHeaderRow}>
+              <View style={styles.avatarWrapper}>
+                <View style={styles.avatarInner}>
+                  {vendorData?.profile_image_url || vendorData?.profileImageUrl ? (
+                    <Image 
+                      source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl }} 
+                      style={styles.circleImage} 
+                    />
+                  ) : (
+                    <Icon name="user" size={32} color={COLORS.textMuted} />
+                  )}
+                </View>
+                <View style={styles.onlineBadge} />
+              </View>
+
+              <View style={styles.shopMainDetails}>
+                <View style={styles.nameBadgeRow}>
+                  <Text style={styles.shopNameText}>{vendorData?.name || 'My Shop'}</Text>
+                  <View style={styles.verifiedBadge}>
+                    <Icon name="check" size={10} color="#FFF" />
+                  </View>
+                </View>
+                <View style={styles.subDetailRow}>
+                  <Icon name="map-pin" size={12} color="#64748B" />
+                  <Text style={styles.subDetailText}>{vendorData?.address || 'Shop Address'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.ratingBadgeTop}>
+                <Icon name="star" size={12} color="#F59E0B" fill="#F59E0B" />
+                <Text style={styles.ratingValueText}>{vendorData?.rating || '4.8'}</Text>
               </View>
             </View>
 
-            <View style={styles.shopInfo}>
-              <View style={styles.shopNameRow}>
-                <Text style={styles.shopName}>{vendorData?.name || 'My Shop'}</Text>
-                <Icon name={getIconName('CheckCircle')} size={20} color={COLORS.blue} />
+            <View style={styles.completionContainer}>
+              <View style={styles.completionHeader}>
+                <Text style={styles.completionTitle}>Profile Strength</Text>
+                <Text style={styles.completionValue}>{profileCompletion}%</Text>
               </View>
-              <View style={styles.locationRow}>
-                <Icon name={getIconName('MapPin')} size={14} color={COLORS.textMuted} />
-                <Text style={styles.locationText}>{vendorData?.address || 'Shop Address'}</Text>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Open</Text>
+              <View style={styles.progressTrack}>
+                <LinearGradient
+                  colors={[COLORS.orange, '#F97316']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.progressFill, { width: `${profileCompletion}%` }]}
+                />
               </View>
             </View>
-          </View>
 
-          <View style={styles.completionSection}>
-            <Text style={styles.completionLabel}>Profile Completion</Text>
-            <View style={styles.completionBarContainer}>
-              <LinearGradient
-                colors={['#dc2626', '#9333ea']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.completionBar, { width: `${profileCompletion}%` }]}
-              />
+            <View style={styles.quickActionsRow}>
+              <TouchableOpacity style={styles.qActionItem} onPress={handleShare}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F0F9FF' }]}>
+                  <Icon name="share-2" size={18} color="#0EA5E9" />
+                </View>
+                <Text style={styles.qActionLabel}>Share</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.qActionItem} onPress={handlePreview}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F5F3FF' }]}>
+                  <Icon name="eye" size={18} color="#8B5CF6" />
+                </View>
+                <Text style={styles.qActionLabel}>Preview</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('VendorOffers')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#ECFDF5' }]}>
+                  <Icon name="tag" size={18} color="#10B981" />
+                </View>
+                <Text style={styles.qActionLabel}>Offers</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.qActionItem} onPress={() => navigation?.navigate('Settings')}>
+                <View style={[styles.qActionIcon, { backgroundColor: '#F8FAFC' }]}>
+                  <Icon name="settings" size={18} color="#64748B" />
+                </View>
+                <Text style={styles.qActionLabel}>Settings</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.completionPercent}>{profileCompletion}%</Text>
-          </View>
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Share</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={handlePreview}>
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.orange }]}>
-                <Icon name={getIconName('Eye')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Preview</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('VendorOffers')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.blue }]}>
-                <Icon name={getIconName('Tag')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Offers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation?.navigate('Settings')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: COLORS.textMuted }]}>
-                <Icon name={getIconName('Settings')} size={20} color={COLORS.white} />
-              </View>
-              <Text style={styles.actionText}>Settings</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -363,273 +362,318 @@ const createStyles = (COLORS) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
-  profileSection: {
-    backgroundColor: COLORS.white,
-    marginBottom: 16,
+  // Premium Profile Styles
+  profileSectionWrapper: {
+    backgroundColor: '#F8FAFC',
+    marginBottom: 24,
   },
-  coverImage: {
-    height: 120,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+  premiumCover: {
+    height: 160,
+    justifyContent: 'flex-end',
+    padding: 20,
   },
-  coverText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textMuted,
+  coverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
-  cameraButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: COLORS.textPrimary,
-    padding: 8,
-    borderRadius: 8,
-  },
-  profileInfo: {
+  editCoverBtn: {
     flexDirection: 'row',
-    padding: 16,
-    paddingTop: 0,
-    marginTop: -40,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-end',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    gap: 6,
   },
-  profileImageContainer: {
+  editCoverText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFF',
+    textTransform: 'uppercase',
+  },
+  profileCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 16,
+    marginTop: -50,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  avatarWrapper: {
+    position: 'relative',
     marginRight: 16,
   },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: '#E5E7EB',
+  avatarInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     overflow: 'hidden',
-  },
-  fullImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
   },
   circleImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  shopInfo: {
+  onlineBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  shopMainDetails: {
     flex: 1,
-    paddingTop: 40,
   },
-  shopNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  shopName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  statusRow: {
+  nameBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#16a34a',
-  },
-  completionSection: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  completionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  completionBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
     marginBottom: 4,
   },
-  completionBar: {
-    height: '100%',
-    borderRadius: 4,
+  shopNameText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  completionPercent: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.orange,
-    textAlign: 'right',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    paddingTop: 0,
-  },
-  actionButton: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  verifiedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#3B82F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionText: {
+  subDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  subDetailText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  ratingBadgeTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    gap: 4,
+  },
+  ratingValueText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#B45309',
+  },
+  completionContainer: {
+    marginBottom: 24,
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 16,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  completionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  completionValue: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: COLORS.orange,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  qActionItem: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  qActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qActionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#475569',
   },
   enquiriesSection: {
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 16,
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginBottom: 20,
   },
   enquiryCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
+    backgroundColor: '#FFF',
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
   enquiryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 12,
   },
   enquiryUser: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     flex: 1,
   },
   userAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#E5E7EB',
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   userInfo: {
     flex: 1,
   },
-  nameDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
   enquiryName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 2,
   },
   enquiryDate: {
-    fontSize: 12,
-    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#94A3B8',
   },
   enquiryActions: {
     flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
+    gap: 4,
   },
   actionButtonSmall: {
-    padding: 8,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F0FDF4',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   enquiryMessage: {
     fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 12,
+    color: '#475569',
+    marginBottom: 16,
     lineHeight: 20,
+    fontStyle: 'italic',
     paddingLeft: 4,
+    borderLeftWidth: 2,
+    borderLeftColor: '#E2E8F0',
   },
   enquiryFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: 8,
   },
   statusBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 4,
+    borderRadius: 10,
   },
   statusBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   replyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: COLORS.white,
-    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: COLORS.blue,
+    borderColor: '#BAE6FD',
   },
   replyButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.blue,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0284C7',
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center', 
     paddingVertical: 60,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#F1F5F9',
     marginTop: 10,
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
+    fontWeight: '800',
+    color: '#1E293B',
     marginTop: 16,
   },
   emptySubText: {
-    fontSize: 14,
-    color: COLORS.textMuted,
+    fontSize: 13,
+    color: '#64748B',
     marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 40,

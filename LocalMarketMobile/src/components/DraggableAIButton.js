@@ -19,7 +19,7 @@ const DraggableAIButton = ({ onPress }) => {
     // 1. Initial Position constants
     const initialPos = {
         x: width - BUTTON_SIZE - 20,
-        y: height - BUTTON_SIZE - 120
+        y: height - BUTTON_SIZE - 160 // Increased margin to clear tab bar
     };
 
     // 2. State & Animated Values
@@ -78,7 +78,7 @@ const DraggableAIButton = ({ onPress }) => {
                 if (finalX < 10) finalX = 10;
                 if (finalX > width - BUTTON_SIZE - 10) finalX = width - BUTTON_SIZE - 10;
                 if (finalY < 60) finalY = 60;
-                if (finalY > height - BUTTON_SIZE - 100) finalY = height - BUTTON_SIZE - 100;
+                if (finalY > height - BUTTON_SIZE - 140) finalY = height - BUTTON_SIZE - 140; // Prevent hiding behind tab bar
 
                 Animated.spring(pan, {
                     toValue: { x: finalX, y: finalY },

@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 
-const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName = 'Guest User', userEmail = '', userLocation = 'Delhi, India' }) => {
+const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName = 'Guest User', userEmail = '', userLocation = 'Amritsar, India' }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [expandedSections, setExpandedSections] = useState({
