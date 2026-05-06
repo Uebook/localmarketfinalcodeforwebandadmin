@@ -26,6 +26,8 @@ const ForgotPasswordScreen = ({ onBack }) => {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -225,13 +227,16 @@ const ForgotPasswordScreen = ({ onBack }) => {
                     style={styles.textInput}
                     placeholder="New Password"
                     placeholderTextColor="#94A3B8"
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
                     value={newPassword}
                     onChangeText={(text) => {
                       setNewPassword(text);
                       setError('');
                     }}
                   />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Icon name={showPassword ? 'eye' : 'eye-off'} size={18} color="#94A3B8" />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.inputBox}>
                   <Icon name="lock" size={18} color="#94A3B8" />
@@ -239,13 +244,16 @@ const ForgotPasswordScreen = ({ onBack }) => {
                     style={styles.textInput}
                     placeholder="Confirm New Password"
                     placeholderTextColor="#94A3B8"
-                    secureTextEntry
+                    secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
                     onChangeText={(text) => {
                       setConfirmPassword(text);
                       setError('');
                     }}
                   />
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <Icon name={showConfirmPassword ? 'eye' : 'eye-off'} size={18} color="#94A3B8" />
+                  </TouchableOpacity>
                 </View>
                 <TouchableOpacity
                   onPress={handleResetPassword}
