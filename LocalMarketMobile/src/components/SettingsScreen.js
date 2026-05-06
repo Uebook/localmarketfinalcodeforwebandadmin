@@ -22,7 +22,7 @@ const SettingsScreen = ({
   onLogout,
   onNavigateToBusiness
 }) => {
-  const { theme, setTheme: setThemeContext } = useTheme();
+  const { theme, themeColors, setTheme: setThemeContext } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [themes, setThemes] = useState([]);
@@ -167,7 +167,7 @@ const SettingsScreen = ({
       >
         {/* Modern Header Section */}
         <LinearGradient
-          colors={['#3B82F6', '#2563EB']}
+          colors={[themeColors.primaryGradient[0], themeColors.primaryGradient[1]]}
           style={styles.header}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -185,7 +185,7 @@ const SettingsScreen = ({
                 <Image source={{ uri: formData.photo }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Icon name="user" size={40} color="#3B82F6" />
+                  <Icon name="user" size={40} color={themeColors.orange} />
                 </View>
               )}
             </View>
@@ -227,7 +227,7 @@ const SettingsScreen = ({
             {showThemePicker && (
               <View style={styles.themePickerContainer}>
                 {loadingThemes ? (
-                  <ActivityIndicator color="#3B82F6" />
+                  <ActivityIndicator color={themeColors.orange} />
                 ) : (
                   themes.map(t => (
                     <TouchableOpacity 
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 2,
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#E86A2C', // Use theme color later via props or dynamic style
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',

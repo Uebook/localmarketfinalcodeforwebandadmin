@@ -17,7 +17,15 @@ const CheapestMarketCard = ({ navigation, city, circle }) => {
   });
 
   useEffect(() => {
+    // Update market data when props change
+    setMarketData(prev => ({
+      ...prev,
+      name: circle || city || 'Your Market',
+      city: city || 'Local'
+    }));
+
     // Simulate fetching data or use actual API
+    setLoading(true);
     const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, [city, circle]);
@@ -25,7 +33,7 @@ const CheapestMarketCard = ({ navigation, city, circle }) => {
   if (loading) {
     return (
       <View style={[styles.wrapper, styles.loadingWrapper]}>
-        <ActivityIndicator size="large" color="#FF6B00" />
+        <ActivityIndicator size="large" color={COLORS.orange} />
       </View>
     );
   }
@@ -130,7 +138,7 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#3B82F6',
+    color: COLORS.blue,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -214,7 +222,7 @@ const styles = StyleSheet.create({
   exploreButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: COLORS.blue,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -232,7 +240,7 @@ const styles = StyleSheet.create({
   locationChangeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#3B82F6',
+    color: COLORS.blue,
     marginLeft: 4,
   },
   rightContent: {

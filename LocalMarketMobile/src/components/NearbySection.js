@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Linking, FlatList } from 'react-native';
 import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendors } from '../services/api';
 
 const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) => {
+  const COLORS = useThemeColors();
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(!vendors);
 
@@ -128,7 +130,7 @@ const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) =>
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#FF6B00" />
+        <ActivityIndicator size="small" color={COLORS.orange} />
       </View>
     );
   }
@@ -206,7 +208,7 @@ const styles = StyleSheet.create({
   categoryLabel: {
     fontSize: 9,
     fontWeight: '900',
-    color: '#FF6B00',
+    color: COLORS.orange,
     letterSpacing: 0.5,
   },
   ratingBox: {

@@ -198,7 +198,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   orangeLine: {
     width: 4,
     height: 20,
-    backgroundColor: '#F97316',
+    backgroundColor: COLORS.orange,
     borderRadius: 2,
     marginRight: 10,
   },

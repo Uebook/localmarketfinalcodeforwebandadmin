@@ -368,7 +368,7 @@ const MarketScreen = ({ navigation, route }) => {
 
       {loading && vendors.length === 0 ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#FF6B00" />
+          <ActivityIndicator size="large" color={COLORS.orange} />
           <Text style={styles.loadingText}>Connecting to {circle} Market...</Text>
         </View>
       ) : vendors.length === 0 ? (
@@ -463,14 +463,14 @@ const createStyles = (COLORS) => StyleSheet.create({
     gap: 6,
   },
   filterButtonActive: {
-    backgroundColor: '#FF6B00',
-    borderColor: '#FF6B00',
+    backgroundColor: COLORS.orange,
+    borderColor: COLORS.orange,
   },
   filterButtonBlue: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#3B82F6',
+    backgroundColor: COLORS.blue,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -553,7 +553,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   callButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
+    backgroundColor: COLORS.blue,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -732,7 +732,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   productPrice: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#FF6B00',
+    color: COLORS.orange,
   },
   productMrp: {
     fontSize: 11,

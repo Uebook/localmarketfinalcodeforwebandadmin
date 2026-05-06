@@ -507,7 +507,10 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
           {/* 5. Premium Brands */}
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Premium Brands</Text>
+              <View>
+                <Text style={styles.sectionTitle}>Premium Brands</Text>
+                <Text style={styles.sectionSubtitle}>Exclusive partnerships with top local brands</Text>
+              </View>
               <TouchableOpacity style={styles.viewAllRow} onPress={() => navigation.navigate('SearchResults', { query: 'premium', locationState })}>
                 <Text style={styles.viewAllText}>View all</Text>
                 <Icon name="arrow-right" size={14} color="#3B82F6" />
@@ -518,23 +521,31 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
                  <TouchableOpacity 
                    key={brand.id || i} 
                    style={styles.brandCard}
+                   activeOpacity={0.8}
                    onPress={() => navigation.navigate('VendorDetails', { 
                      business: {
                        id: brand.id,
                        shop_name: brand.name,
+                       name: brand.name,
                        category_name: brand.category,
+                       category: brand.category,
                        imageUrl: brand.logoUrl || brand.logo_url,
+                       image_url: brand.logoUrl || brand.logo_url,
+                       about: brand.description,
                        description: brand.description,
+                       address: brand.address || 'Premium Brand Store',
+                       phone: brand.phone || '',
                        rating: 4.8,
-                       verified: true,
+                       reviewCount: 120,
+                       isVerified: true,
                        isBrand: true
                      } 
                    })}
                  >
-                    <Image source={{ uri: brand.logoUrl || brand.logo_url }} style={styles.brandImage} />
-                    <View style={styles.brandOverlay}>
-                      <Text style={styles.brandText}>{brand.name}</Text>
+                    <View style={styles.brandLogoContainer}>
+                      <Image source={{ uri: brand.logoUrl || brand.logo_url }} style={styles.brandLogo} />
                     </View>
+                    <Text style={styles.brandName} numberOfLines={1}>{brand.name}</Text>
                  </TouchableOpacity>
                ))}
             </ScrollView>
@@ -622,6 +633,12 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#0F172A',
+  },
+  sectionSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '500',
+    marginTop: 2,
   },
   viewAllRow: {
     flexDirection: 'row',
@@ -718,34 +735,37 @@ const createStyles = (COLORS) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   brandCard: {
-    width: 120,
-    height: 120,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 24,
-    marginRight: 12,
+    width: 84,
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  brandLogoContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: '#F1F5F9',
     overflow: 'hidden',
-    position: 'relative',
   },
-  brandImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+  brandLogo: {
+    width: '70%',
+    height: '70%',
+    resizeMode: 'contain',
   },
-  brandOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  brandText: {
-    fontSize: 12,
-    fontWeight: '900',
-    color: '#FFFFFF',
+  brandName: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#334155',
+    textAlign: 'center',
   },
 });
 

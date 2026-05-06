@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 
 export default function BrandMaster() {
   const [isCreating, setIsCreating] = useState(false);
-  const [newBrand, setNewBrand] = useState({ name: '', category: '', logoUrl: '', description: '', featured: false });
+  const [newBrand, setNewBrand] = useState({ name: '', category: '', logoUrl: '', description: '', address: '', phone: '', featured: false });
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,7 +82,7 @@ export default function BrandMaster() {
       if (!res.ok) throw new Error('Failed to create brand');
       await loadBrands();
       setIsCreating(false);
-      setNewBrand({ name: '', category: '', logoUrl: '', description: '', featured: false });
+      setNewBrand({ name: '', category: '', logoUrl: '', description: '', address: '', phone: '', featured: false });
       alert('Brand created successfully');
     } catch (e) {
       alert(`Error: ${e.message}`);
@@ -158,10 +158,24 @@ export default function BrandMaster() {
           </div>
           <textarea
             className="w-full border p-2 rounded"
-            placeholder="Description"
+            placeholder="Description / About"
             value={newBrand.description}
             onChange={e => setNewBrand({...newBrand, description: e.target.value})}
           />
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              className="border p-2 rounded"
+              placeholder="Address / Location"
+              value={newBrand.address}
+              onChange={e => setNewBrand({...newBrand, address: e.target.value})}
+            />
+            <input
+              className="border p-2 rounded"
+              placeholder="Contact Phone"
+              value={newBrand.phone}
+              onChange={e => setNewBrand({...newBrand, phone: e.target.value})}
+            />
+          </div>
           <div className="flex items-center gap-4">
              <input
                type="file"
@@ -238,8 +252,21 @@ export default function BrandMaster() {
                 />
                 <textarea
                   className="w-full border p-2 rounded"
+                  placeholder="About"
                   value={editingBrand.description}
                   onChange={e => setEditingBrand({...editingBrand, description: e.target.value})}
+                />
+                <input
+                  className="w-full border p-2 rounded"
+                  placeholder="Address"
+                  value={editingBrand.address || ''}
+                  onChange={e => setEditingBrand({...editingBrand, address: e.target.value})}
+                />
+                <input
+                  className="w-full border p-2 rounded"
+                  placeholder="Phone"
+                  value={editingBrand.phone || ''}
+                  onChange={e => setEditingBrand({...editingBrand, phone: e.target.value})}
                 />
                 <div className="flex justify-end gap-2">
                    <button onClick={handleUpdateBrand} className="bg-orange-600 text-white px-4 py-2 rounded">Update</button>

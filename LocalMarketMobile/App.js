@@ -7,6 +7,7 @@ import { StatusBar, View, StyleSheet, Text, TouchableOpacity } from 'react-nativ
 import Icon from 'react-native-vector-icons/Feather';
 import { saveUserData, loadUserData, clearUserData, isUserAuthenticated } from './src/utils/userStorage';
 import { ThemeProvider } from './src/components/ThemeProvider';
+import { useThemeColors } from './src/hooks/useThemeColors';
 import { getSavedVendorIds, clearSavedVendors } from './src/utils/savedVendors';
 
 // Import COLORS with safe fallback - use require to avoid Metro bundler issues
@@ -176,6 +177,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
 
 function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUserData, savedBusinessIds, setSavedBusinessIds, locationState, onLocationChange, onMenuClick, onProfileClick, onNotificationClick, handleLogout, initialRouteName = 'Home' }) {
   const insets = useSafeAreaInsets();
+  const COLORS = useThemeColors();
   const activeRouteName = getFocusedRouteNameFromRoute(route) || initialRouteName;
   const showGlobalHeader = activeRouteName !== 'Profile';
   
@@ -208,7 +210,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
 
           return {
             tabBarIcon: ({ focused }) => {
-              return <Icon name={iconName} size={22} color={focused ? '#F97316' : '#94A3B8'} />;
+              return <Icon name={iconName} size={22} color={focused ? COLORS.orange : '#94A3B8'} />;
             },
             tabBarLabel: route.name,
             tabBarLabelStyle: {
@@ -216,7 +218,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
               fontWeight: '700',
               marginTop: 2,
             },
-            tabBarActiveTintColor: '#F97316',
+            tabBarActiveTintColor: COLORS.orange,
             tabBarInactiveTintColor: '#94A3B8',
             headerShown: false,
             tabBarStyle: [
@@ -224,7 +226,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
               {
                 paddingBottom: Math.max(insets.bottom, 8),
                 height: 56 + Math.max(insets.bottom, 8),
-                backgroundColor: '#FFF',
+                backgroundColor: COLORS.white,
                 borderTopWidth: 1,
                 borderTopColor: '#F1F5F9',
               }
@@ -677,8 +679,8 @@ function App() {
             <Stack.Screen name="Settings">
               {(props) => (
                 <SettingsScreen
-                  {...props}
-                  currentTheme="default"
+                   {...props}
+                   currentTheme={COLORS.name || 'default'}
                   userRole={userRole}
                   profileData={userRole === 'vendor' ? vendorData : (userData || { name: 'User', mobile: '', location: '', email: '' })}
                   onUpdateProfile={(data) => {

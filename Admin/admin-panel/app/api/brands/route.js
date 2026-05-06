@@ -14,6 +14,8 @@ function normalizeBrand(b) {
         websiteUrl: b.websiteUrl ?? b.website_url ?? null,
         featured: b.featured ?? false,
         status: b.status ?? 'active',
+        address: b.address ?? null,
+        phone: b.phone ?? null,
         displayOrder: b.displayOrder ?? b.display_order ?? 0,
         createdAt: b.created_at,
         updatedAt: b.updated_at,
@@ -56,6 +58,8 @@ export async function POST(req) {
                 website_url: body.websiteUrl || body.website_url || null,
                 featured: body.featured === true || body.featured === 'true',
                 status: body.status || 'active',
+                address: body.address || null,
+                phone: body.phone || null,
                 display_order: body.displayOrder || body.display_order || 0,
             };
 
@@ -88,6 +92,8 @@ export async function PATCH(req) {
         if (body.websiteUrl !== undefined || body.website_url !== undefined) updateData.website_url = body.websiteUrl || body.website_url;
         if (body.featured !== undefined) updateData.featured = body.featured === true || body.featured === 'true';
         if (body.status !== undefined) updateData.status = body.status;
+        if (body.address !== undefined) updateData.address = body.address;
+        if (body.phone !== undefined) updateData.phone = body.phone;
         if (body.displayOrder !== undefined || body.display_order !== undefined) updateData.display_order = Number(body.displayOrder || body.display_order);
 
         const result = await supabaseRestPatch(`/rest/v1/brands?id=eq.${id}`, updateData);
