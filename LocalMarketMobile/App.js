@@ -61,6 +61,7 @@ import SplashScreen from './src/components/SplashScreen';
 import WelcomeAnimation from './src/components/WelcomeAnimation';
 import LoginScreen from './src/components/LoginScreen';
 import RegisterScreen from './src/components/RegisterScreen';
+import ForgotPasswordScreen from './src/components/ForgotPasswordScreen';
 import HomeScreen from './src/components/HomeScreen';
 import SearchScreen from './src/components/SearchScreen';
 import SearchResults from './src/components/SearchResults';
@@ -295,6 +296,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isUserRegistering, setIsUserRegistering] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [userData, setUserData] = useState(null);
   const [savedBusinessIds, setSavedBusinessIds] = useState([]);
   const [initialRoute, setInitialRoute] = useState('Home');
@@ -561,12 +563,26 @@ function App() {
   }
 
   if (!isAuthenticated) {
+    if (isForgotPassword) {
+      return (
+        <ThemeProvider>
+          <SafeAreaProvider>
+            <StatusBar barStyle="light-content" />
+            <ForgotPasswordScreen 
+              onBack={() => setIsForgotPassword(false)} 
+            />
+          </SafeAreaProvider>
+        </ThemeProvider>
+      );
+    }
+
     return (
       <ThemeProvider>
         <SafeAreaProvider>
           <StatusBar barStyle="light-content" />
           <LoginScreen
             onLogin={handleLogin}
+            onForgotPassword={() => setIsForgotPassword(true)}
             onRegister={(isVendor) => {
               if (isVendor) {
                 setIsRegistering(true);

@@ -3,7 +3,7 @@
  * Base URL: https://admin-panel-rho-sepia-57.vercel.app
  */
 
-export const API_BASE_URL = 'https://lokall.in/'; // Production LIVE Backend
+export const API_BASE_URL = 'http://localhost:3000/'; // Local Development Backend
 import { Platform } from 'react-native';
 
 /**
@@ -726,6 +726,42 @@ export const registerVendor = async (vendorData) => {
     });
   } catch (error) {
     console.error('Vendor Registration error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Request OTP for password reset (Email only)
+ * @param {string} email - Registered email
+ * @returns {Promise<{success: boolean, message: string, otp?: string}>}
+ */
+export const requestPasswordResetOTP = async (email) => {
+  try {
+    return await apiRequest('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  } catch (error) {
+    console.error('Request Password Reset OTP error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Reset password with OTP
+ * @param {string} email - Registered email
+ * @param {string} otp - Received OTP
+ * @param {string} newPassword - New password
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export const resetPassword = async (email, otp, newPassword) => {
+  try {
+    return await apiRequest('/api/auth/forgot-password', {
+      method: 'PATCH',
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+  } catch (error) {
+    console.error('Reset Password error:', error);
     throw error;
   }
 };

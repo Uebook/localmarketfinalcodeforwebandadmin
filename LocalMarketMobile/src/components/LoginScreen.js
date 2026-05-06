@@ -23,7 +23,7 @@ import { saveUserData } from '../utils/userStorage';
 import PermissionRequestScreen from './PermissionRequestScreen';
 import Logo from './Logo';
 
-const LoginScreen = ({ onLogin, onRegister }) => {
+const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [isLocalPlusMode, setIsLocalPlusMode] = useState(false);
@@ -238,7 +238,10 @@ const LoginScreen = ({ onLogin, onRegister }) => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.forgotBtn}>
+            <TouchableOpacity 
+              style={styles.forgotBtn}
+              onPress={onForgotPassword}
+            >
               <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
 
