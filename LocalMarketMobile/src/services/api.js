@@ -3,7 +3,7 @@
  * Base URL: https://admin-panel-rho-sepia-57.vercel.app
  */
 
-export const API_BASE_URL = 'http://localhost:3000/'; // Local Development Backend
+export const API_BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000/' : 'http://localhost:3000/'; // Local Development Backend
 import { Platform } from 'react-native';
 
 /**
