@@ -7,10 +7,15 @@ export async function POST(req) {
             return Response.json({ error: 'Request body is required' }, { status: 400 });
         }
 
-        const { phone, email } = body;
+        const { phone, email, password } = body;
+        console.log('[Vendor Login] Attempt:', { phone, email, hasPassword: !!password });
 
         if (!phone && !email) {
             return Response.json({ error: 'Phone or email is required' }, { status: 400 });
+        }
+
+        if (!password) {
+            return Response.json({ error: 'Password is required' }, { status: 400 });
         }
 
         let query = '/rest/v1/vendors?select=*&limit=1';
@@ -31,6 +36,16 @@ export async function POST(req) {
         }
 
         const v = results[0];
+
+        // VERIFY PASSWORD
+        if (!v.password) {
+            return Response.json({ error: 'Password not set for this account. Please use Forgot Password.' }, { status: 401 });
+        }
+
+        if (v.password !== password) {
+            return Response.json({ error: 'Invalid password. Please try again.' }, { status: 401 });
+        }
+
         const status = (v.status || '').trim();
         if (status !== 'Active') {
             if (status === 'Blocked') {
