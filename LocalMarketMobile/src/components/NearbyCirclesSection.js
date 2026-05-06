@@ -4,15 +4,22 @@ import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
 import { getCircles } from '../services/api';
 import { useThemeColors } from '../hooks/useThemeColors';
+import Logo from './Logo';
 
-const NearbyCirclesSection = ({ navigation, locationState }) => {
+const NearbyCirclesSection = ({ circles: propsCircles, onCircleSelect, navigation, locationState }) => {
   const COLORS = useThemeColors();
-  const [circles, setCircles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [internalCircles, setInternalCircles] = useState([]);
+  const [loading, setLoading] = useState(!propsCircles);
+
+  const circles = propsCircles || internalCircles;
 
   useEffect(() => {
+    if (propsCircles) {
+      setLoading(false);
+      return;
+    }
+    
     let active = true;
-
     const fetchCircles = async () => {
       setLoading(true);
       if (locationState?.city) {
@@ -23,9 +30,9 @@ const NearbyCirclesSection = ({ navigation, locationState }) => {
           const data = await getCircles(queryParam);
           if (active) {
             if (data && data.circles) {
-               setCircles(data.circles);
+               setInternalCircles(data.circles);
             } else {
-               setCircles([]);
+               setInternalCircles([]);
             }
           }
         } catch (error) {
@@ -37,7 +44,7 @@ const NearbyCirclesSection = ({ navigation, locationState }) => {
 
     fetchCircles();
     return () => { active = false; };
-  }, [locationState?.city]);
+  }, [propsCircles, locationState?.city]);
 
   // Group circles by town/city to match website grouping
   const groupedCircles = useMemo(() => {
@@ -51,7 +58,9 @@ const NearbyCirclesSection = ({ navigation, locationState }) => {
   }, [circles]);
 
   const handleCirclePress = (circle) => {
-    if (navigation) {
+    if (onCircleSelect) {
+      onCircleSelect(circle);
+    } else if (navigation) {
       navigation.navigate('MarketScreen', { 
         circle: circle.name
       });
@@ -99,6 +108,9 @@ const NearbyCirclesSection = ({ navigation, locationState }) => {
                       source={{ uri: imageUrl }}
                       style={styles.circleImage}
                     />
+                    <View style={styles.logoOverlay}>
+                      <Logo size={24} transparent={false} />
+                    </View>
                   </View>
 
                   {/* Title - Bold Uppercase */}
@@ -178,12 +190,21 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    overflow: 'hidden',
-    marginBottom: 10,
-    backgroundColor: '#F1F5F9',
     borderWidth: 2,
     borderColor: '#F8FAFC',
+    position: 'relative',
+  },
+  logoOverlay: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   circleImage: {
     width: '100%',

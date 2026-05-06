@@ -3,7 +3,7 @@
  * Base URL: https://admin-panel-rho-sepia-57.vercel.app
  */
 
-export const API_BASE_URL = 'https://website-rho-six-18.vercel.app'; // Production LIVE Backend
+export const API_BASE_URL = 'https://lokall.in/'; // Production LIVE Backend
 import { Platform } from 'react-native';
 
 /**
@@ -24,7 +24,7 @@ async function apiRequest(endpoint, options = {}) {
 
     const response = await fetch(url, config);
     console.log(`[API Response] <- ${url} status: ${response.status}`);
-    
+
     const contentType = response.headers.get('content-type');
     const isHtml = contentType && contentType.includes('text/html');
     const isJson = contentType && contentType.includes('application/json');
@@ -46,12 +46,18 @@ async function apiRequest(endpoint, options = {}) {
       // Intercept HTML error pages (like Cloudflare 5xx or Vercel errors)
       const htmlSnippet = await response.text();
       console.warn(`[API HTML Response] Intercepted HTML instead of JSON for ${endpoint}. Snippet:`, htmlSnippet.substring(0, 200));
-      
+
       if (response.status === 522 || htmlSnippet.includes('Connection timed out')) {
         throw new Error('Market server is currently unreachable (522). This usually resolves within a few minutes.');
       }
       if (response.status === 504 || htmlSnippet.includes('Gateway Timeout')) {
         throw new Error('Connection timed out. Please check your internet and try again.');
+      }
+      // Handle 404 specifically
+      if (response.status === 404) {
+        const error = new Error(`Endpoint not found (404)`);
+        error.status = 404;
+        throw error;
       }
       throw new Error(`Server error (${response.status}). Please contact support if this persists.`);
     } else {
@@ -60,12 +66,18 @@ async function apiRequest(endpoint, options = {}) {
 
     if (!response.ok) {
       const errorMsg = data.error || data.message || `API Error: ${response.status} ${response.statusText}`;
-      throw new Error(errorMsg);
+      const error = new Error(errorMsg);
+      error.status = response.status;
+      throw error;
     }
 
     return data;
   } catch (error) {
-    console.error(`[API Request Error] ${endpoint}:`, error.message);
+    // Only log actual network errors or critical API failures.
+    // 404s are often handled gracefully by callers (fallbacks).
+    if (error.status !== 404) {
+      console.error(`[API Request Error] ${endpoint}:`, error.message);
+    }
     throw error;
   }
 }
@@ -276,7 +288,7 @@ export const getCircles = async (city) => {
     const params = new URLSearchParams();
     params.set('city', city);
     const response = await apiRequest(`/api/circles?${params.toString()}`);
-    
+
     // Handle both { circles: [] } and { success: true, data: [] } formats
     const circles = response.circles || (response.success && response.data) || response.data || [];
     return { circles: Array.isArray(circles) ? circles : [] };
@@ -310,8 +322,26 @@ export const detectLocation = async (lat = null, lng = null) => {
     const params = new URLSearchParams();
     if (lat) params.set('lat', lat);
     if (lng) params.set('lng', lng);
+
+    const response = await apiRequest(`/api/location/detect${params.toString() ? `?${params.toString()}` : ''}`);
     
-    return await apiRequest(`/api/location/detect${params.toString() ? `?${params.toString()}` : ''}`);
+    // Sanity check: If we're detected outside of India, or data is missing, we might be hitting a default IP location (like America)
+    if (response && response.success && response.address) {
+       const country = (response.address.country || '').toLowerCase();
+       const countryCode = (response.address.country_code || '').toLowerCase();
+       
+       if (country !== 'india' && countryCode !== 'in') {
+         console.warn('Location detected outside India:', country);
+         // Return success: false to trigger client-side fallback to Amritsar
+         return {
+           success: false,
+           error: 'International location detected',
+           detectedCountry: country
+         };
+       }
+    }
+    
+    return response;
   } catch (error) {
     console.error('Error in detectLocation API:', error);
     throw error;
@@ -486,14 +516,15 @@ export const getVendors = async (filters = {}) => {
     if (filters.town) params.set('town', filters.town);
     if (filters.circle) params.set('circle', filters.circle);
     if (filters.category) params.set('category', filters.category);
+    if (filters.verified) params.set('verified', 'true');
     if (filters.page) params.set('page', filters.page.toString());
     if (filters.limit) params.set('limit', Math.min(filters.limit, 100).toString());
     // Note: categoryId is handled client-side by filtering vendors with products in that category
-    
+
     const queryString = params.toString();
     // Using the same search endpoint as the website for vendor listings
     const response = await apiRequest(`/api/search${queryString ? `?${queryString}` : ''}`);
-    
+
     // Transform Search results into Vendor format expected by components
     const transformedVendors = (response.results || []).map(item => ({
       id: item.id,
@@ -506,14 +537,14 @@ export const getVendors = async (filters = {}) => {
       ...item
     }));
 
-    return { 
-      vendors: transformedVendors, 
-      pagination: { 
-        page: filters.page || 1, 
-        limit: filters.limit || 20, 
-        total: transformedVendors.length, 
-        totalPages: 1 
-      } 
+    return {
+      vendors: transformedVendors,
+      pagination: {
+        page: filters.page || 1,
+        limit: filters.limit || 20,
+        total: transformedVendors.length,
+        totalPages: 1
+      }
     };
   } catch (error) {
     console.error('Error getting vendors:', error);
@@ -623,9 +654,8 @@ export const getVendorProductsList = async (filters = {}) => {
  * @param {string} credentials.method - 'email' or 'sms'
  * @param {string} credentials.email - Email (required for email method)
  * @param {string} credentials.phone - Phone number (required for sms method)
- * @param {string} credentials.password - Password (required for email method)
- * @param {string} credentials.otp - OTP (required for sms verification)
- * @returns {Promise<{success: boolean, user?: Object, message?: string, otp?: string}>}
+ * @param {string} credentials.password - Password (required)
+ * @returns {Promise<{success: boolean, user?: Object, message?: string}>}
  */
 export const login = async (credentials) => {
   try {
@@ -645,9 +675,8 @@ export const login = async (credentials) => {
  * @param {string} credentials.method - 'email' or 'sms'
  * @param {string} credentials.email - Email (required for email method)
  * @param {string} credentials.phone - Phone number (required for sms method)
- * @param {string} credentials.password - Password (required for email method)
- * @param {string} credentials.otp - OTP (required for sms verification)
- * @returns {Promise<{success: boolean, user?: Object, message?: string, otp?: string}>}
+ * @param {string} credentials.password - Password (required)
+ * @returns {Promise<{success: boolean, user?: Object, message?: string}>}
  */
 export const vendorLogin = async (credentials) => {
   try {
@@ -667,7 +696,7 @@ export const vendorLogin = async (credentials) => {
  * @param {string} userData.full_name - Full name
  * @param {string} userData.email - Email (optional)
  * @param {string} userData.phone - Phone number
- * @param {string} userData.password - Password (required if email provided)
+ * @param {string} userData.password - Password (required)
  * @param {string} userData.state - State (optional)
  * @param {string} userData.city - City (optional)
  * @returns {Promise<{success: boolean, user: Object, message: string}>}
@@ -767,7 +796,7 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
       console.warn('Error extracting filename:', e);
       filename = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.jpg`;
     }
-    
+
     const fileType = mimeType || 'image/jpeg';
 
     const formData = new FormData();
@@ -931,7 +960,12 @@ export const getSearchReports = async (filters = {}) => {
     const queryString = params.toString();
     return await apiRequest(`/api/reports/search${queryString ? `?${queryString}` : ''}`);
   } catch (error) {
-    console.error('Error getting search reports:', error);
+    // Silence 404 errors for reports as it's an optional analytical feature
+    if (error.status === 404) {
+      console.log('Search reports endpoint not available (404), using fallback data.');
+    } else {
+      console.error('Error getting search reports:', error);
+    }
     return [];
   }
 };
@@ -987,12 +1021,12 @@ export const searchUnified = async ({ q, city, format = 'products' }) => {
     if (q) urlParams.set('q', q);
     if (city) urlParams.set('city', city);
     if (format) urlParams.set('format', format);
-    
+
     const response = await apiRequest(`/api/search?${urlParams.toString()}`);
-    
+
     // Normalize response structure
     const results = response.results || response.data || response;
-    
+
     return {
       products: Array.isArray(results.products) ? results.products.map(p => ({
         id: p.id,
@@ -1058,15 +1092,15 @@ export const getMegaSavings = async (city, circle) => {
     params.set('q', 'megasavings');
     if (city) params.set('city', city);
     if (circle) params.set('circle', circle);
-    
+
     const response = await apiRequest(`/api/search?${params.toString()}`);
-    
+
     // Transform for MegaSavingsSection using website's matching logic
     return (response.results || []).map(item => ({
       id: item.id,
       name: item.matchingProducts?.[0]?.name || item.title || item.name || 'Deal',
-      online: parseFloat(item.avgOnlinePrice || item.mrp || item.online_price || 1000),
-      offline: parseFloat(item.avgOfflinePrice || item.price || item.offline_price || 800),
+      mrp: parseFloat(item.mrp || 0),
+      price: parseFloat(item.price || item.offline_price || 0),
       image: item.matchingProducts?.[0]?.image || item.image || (item.images && item.images[0]) || item.imageUrl || item.image_url,
       ...item
     }));
@@ -1088,9 +1122,9 @@ export const getPriceDrops = async (city, circle) => {
     params.set('q', 'pricedrops');
     if (city) params.set('city', city);
     if (circle) params.set('circle', circle);
-    
+
     const response = await apiRequest(`/api/search?${params.toString()}`);
-    
+
     // Transform for PriceDropAlerts
     return (response.results || []).map(item => ({
       id: item.id,
@@ -1146,10 +1180,10 @@ export const getMarketComparisonStats = async (city, circle) => {
     const params = new URLSearchParams();
     // Use the hierarchical city name if possible (e.g. "All Amritsar")
     params.set('city', circle && circle.startsWith('All ') ? circle : city);
-    
+
     const response = await apiRequest(`/api/circles?${params.toString()}`);
     const circles = response.circles || (response.success && response.data) || response.data || [];
-    
+
     if (Array.isArray(circles) && circles.length > 0) {
       // Return in a format compatible with the card's expectation
       return {
@@ -1342,6 +1376,20 @@ export const getSiteSettings = async () => {
   }
 };
 
+/**
+ * Get all premium brands
+ * @returns {Promise<Array>}
+ */
+export const getBrands = async () => {
+  try {
+    const response = await apiRequest('/api/brands');
+    return response.brands || [];
+  } catch (error) {
+    console.error('Error getting brands:', error);
+    return [];
+  }
+};
+
 export default {
   getCategories,
   getThemes,
@@ -1382,5 +1430,6 @@ export default {
   getMegaSavings,
   getPriceDrops,
   getTodayDeals,
+  getBrands,
 };
 

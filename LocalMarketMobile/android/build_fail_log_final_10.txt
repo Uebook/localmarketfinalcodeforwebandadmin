@@ -1,0 +1,697 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Task :app:generateAutolinkingNewArchitectureFiles UP-TO-DATE
+> Task :app:generateAutolinkingPackageList UP-TO-DATE
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :app:generateReactNativeEntryPoint UP-TO-DATE
+> Task :react-native-async-storage_async-storage:preBuild UP-TO-DATE
+> Task :react-native-community_geolocation:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-image-picker:preBuild UP-TO-DATE
+> Task :react-native-linear-gradient:preBuild UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-safe-area-context:preBuild UP-TO-DATE
+> Task :react-native-screens:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-screens:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-screens:preBuild UP-TO-DATE
+> Task :react-native-vector-icons:preBuild UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app:configureCMakeRelWithDebInfo[x86]
+> Task :app:buildCMakeRelWithDebInfo[x86]
+> Task :app:configureCMakeRelWithDebInfo[x86_64]
+> Task :app:buildCMakeRelWithDebInfo[x86_64]
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-async-storage_async-storage:preReleaseBuild UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-async-storage_async-storage:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-community_geolocation:preReleaseBuild UP-TO-DATE
+> Task :react-native-community_geolocation:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-community_geolocation:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-community_geolocation:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-gesture-handler:preReleaseBuild UP-TO-DATE
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[x86]
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[x86]
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[x86_64]
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[x86_64]
+> Task :react-native-gesture-handler:mergeReleaseJniLibFolders
+> Task :react-native-image-picker:preReleaseBuild UP-TO-DATE
+> Task :react-native-image-picker:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-image-picker:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-image-picker:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-linear-gradient:preReleaseBuild UP-TO-DATE
+> Task :react-native-linear-gradient:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-linear-gradient:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-linear-gradient:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-safe-area-context:preReleaseBuild UP-TO-DATE
+> Task :react-native-safe-area-context:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-safe-area-context:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-safe-area-context:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-screens:preReleaseBuild UP-TO-DATE
+> Task :react-native-gesture-handler:mergeReleaseNativeLibs
+> Task :react-native-screens:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-gesture-handler:copyReleaseJniLibsProjectOnly
+> Task :react-native-screens:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-screens:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-screens:configureCMakeRelWithDebInfo[x86]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86]
+> Task :react-native-screens:configureCMakeRelWithDebInfo[x86_64]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86_64]
+> Task :react-native-screens:mergeReleaseJniLibFolders
+> Task :react-native-vector-icons:preReleaseBuild UP-TO-DATE
+> Task :react-native-vector-icons:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-vector-icons:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-vector-icons:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-gesture-handler:generateReleaseBuildConfig
+> Task :react-native-gesture-handler:generateReleaseResValues
+> Task :react-native-gesture-handler:generateReleaseResources
+> Task :react-native-gesture-handler:packageReleaseResources
+> Task :react-native-screens:mergeReleaseNativeLibs
+> Task :react-native-gesture-handler:parseReleaseLocalResources
+> Task :react-native-gesture-handler:javaPreCompileRelease
+> Task :react-native-screens:copyReleaseJniLibsProjectOnly
+> Task :react-native-gesture-handler:generateReleaseRFile
+> Task :react-native-safe-area-context:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-safe-area-context:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-safe-area-context:generateReleaseResValues UP-TO-DATE
+> Task :react-native-safe-area-context:generateReleaseResources UP-TO-DATE
+> Task :react-native-safe-area-context:packageReleaseResources UP-TO-DATE
+> Task :react-native-safe-area-context:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-safe-area-context:generateReleaseRFile UP-TO-DATE
+> Task :react-native-safe-area-context:compileReleaseKotlin UP-TO-DATE
+> Task :react-native-safe-area-context:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-safe-area-context:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-safe-area-context:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-screens:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-screens:generateReleaseBuildConfig
+> Task :react-native-screens:generateReleaseResValues
+> Task :react-native-screens:generateReleaseResources
+> Task :react-native-screens:packageReleaseResources
+> Task :react-native-async-storage_async-storage:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-async-storage_async-storage:generateReleaseResValues UP-TO-DATE
+> Task :react-native-screens:javaPreCompileRelease
+> Task :react-native-async-storage_async-storage:generateReleaseResources UP-TO-DATE
+> Task :react-native-async-storage_async-storage:packageReleaseResources UP-TO-DATE
+> Task :react-native-async-storage_async-storage:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-async-storage_async-storage:generateReleaseRFile UP-TO-DATE
+> Task :react-native-async-storage_async-storage:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-screens:parseReleaseLocalResources
+> Task :react-native-async-storage_async-storage:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-async-storage_async-storage:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-community_geolocation:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-community_geolocation:generateReleaseResValues UP-TO-DATE
+> Task :react-native-screens:generateReleaseRFile
+> Task :react-native-community_geolocation:generateReleaseResources UP-TO-DATE
+> Task :react-native-community_geolocation:packageReleaseResources UP-TO-DATE
+> Task :react-native-community_geolocation:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-community_geolocation:generateReleaseRFile UP-TO-DATE
+> Task :react-native-community_geolocation:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-community_geolocation:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-community_geolocation:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseResValues UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseResources UP-TO-DATE
+> Task :react-native-image-picker:packageReleaseResources UP-TO-DATE
+> Task :react-native-image-picker:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseRFile UP-TO-DATE
+> Task :react-native-image-picker:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-image-picker:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-image-picker:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseResValues UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseResources UP-TO-DATE
+> Task :react-native-linear-gradient:packageReleaseResources UP-TO-DATE
+> Task :react-native-linear-gradient:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseRFile UP-TO-DATE
+> Task :react-native-linear-gradient:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-linear-gradient:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-linear-gradient:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseResValues UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseResources UP-TO-DATE
+> Task :react-native-vector-icons:packageReleaseResources UP-TO-DATE
+> Task :react-native-vector-icons:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseRFile UP-TO-DATE
+> Task :react-native-vector-icons:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-vector-icons:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-vector-icons:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-async-storage_async-storage:writeReleaseAarMetadata UP-TO-DATE
+> Task :react-native-community_geolocation:writeReleaseAarMetadata UP-TO-DATE
+> Task :react-native-image-picker:writeReleaseAarMetadata UP-TO-DATE
+> Task :react-native-linear-gradient:writeReleaseAarMetadata UP-TO-DATE
+> Task :react-native-safe-area-context:writeReleaseAarMetadata UP-TO-DATE
+> Task :react-native-gesture-handler:writeReleaseAarMetadata
+> Task :react-native-vector-icons:writeReleaseAarMetadata UP-TO-DATE
+> Task :react-native-screens:writeReleaseAarMetadata
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:createBundleReleaseJsAndAssets UP-TO-DATE
+> Task :app:generateReleaseResValues
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:generateReleaseResources
+> Task :app:packageReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:parseReleaseLocalResources
+> Task :app:extractDeepLinksRelease
+> Task :react-native-async-storage_async-storage:extractDeepLinksRelease
+> Task :react-native-community_geolocation:extractDeepLinksRelease
+
+> Task :react-native-async-storage_async-storage:processReleaseManifest
+package="com.reactnativecommunity.asyncstorage" found in source AndroidManifest.xml: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/@react-native-async-storage/async-storage/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.reactnativecommunity.asyncstorage" from the source AndroidManifest.xml: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/@react-native-async-storage/async-storage/android/src/main/AndroidManifest.xml.
+
+> Task :app:mergeReleaseResources
+> Task :app:mergeReleaseNativeLibs
+> Task :react-native-gesture-handler:extractDeepLinksRelease
+
+> Task :react-native-community_geolocation:processReleaseManifest
+package="com.reactnativecommunity.geolocation" found in source AndroidManifest.xml: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/@react-native-community/geolocation/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.reactnativecommunity.geolocation" from the source AndroidManifest.xml: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/@react-native-community/geolocation/android/src/main/AndroidManifest.xml.
+
+> Task :react-native-gesture-handler:compileReleaseKotlin
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:18:19 Argument type mismatch: actual type is 'Array<KClass<RNGestureHandlerModule>>', but 'Array<KClass<out NativeModule>>' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:22:1 Class 'RNGestureHandlerPackage' is not abstract and does not implement abstract members:
+fun getViewManagerNames(reactContext: ReactApplicationContext): Collection<String>
+fun createViewManager(reactContext: ReactApplicationContext, viewManagerName: String): ViewManager<in Nothing, in Nothing>?
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:53 Property delegate must have a 'getValue(RNGestureHandlerPackage, KProperty1<RNGestureHandlerPackage, Map<String, ModuleSpec>>)' method. None of the following functions is applicable:
+fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Not enough information to infer type argument for 'T'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Not enough information to infer type argument for 'T'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:61 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:24:5 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:24:5 Not enough information to infer type argument for 'K'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:24:5 Not enough information to infer type argument for 'V'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:25:7 Argument type mismatch: actual type is 'Pair<String, ModuleSpec>', but 'Pair<K (of fun <K, V> mapOf), V (of fun <K, V> mapOf)>' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:7 Argument type mismatch: actual type is 'Pair<A (of fun <A, B> A.to), B (of fun <A, B> A.to)>', but 'Pair<K (of fun <K, V> mapOf), V (of fun <K, V> mapOf)>' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:41 Unresolved reference 'REACT_CLASS'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:53 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:53 Not enough information to infer type argument for 'B'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:40:3 'getViewManagerNames' overrides nothing. Potential signatures for overriding:
+fun getViewManagerNames(reactContext: ReactApplicationContext): Collection<String>
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:43:3 'getViewManagers' overrides nothing. Potential signatures for overriding:
+fun getViewManagers(reactContext: ReactApplicationContext): List<ModuleSpec>
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:46:3 'createViewManager' overrides nothing. Potential signatures for overriding:
+fun createViewManager(reactContext: ReactApplicationContext, viewManagerName: String): ViewManager<in Nothing, in Nothing>?
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:52:12 Return type mismatch: expected 'NativeModule?', actual 'RNGestureHandlerModule?'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/core/NativeViewGestureHandler.kt:90:51 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:34:77 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:36:55 Unresolved reference 'REACT_CLASS'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:37:60 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:38:46 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:41:17 Unresolved reference 'RNGestureHandlerButtonManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:41:55 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:44:28 Unresolved reference 'REACT_CLASS'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:46:73 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:50:3 'setForeground' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:50:36 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:51:10 Unresolved reference 'useDrawableOnForeground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:55:3 'setBorderless' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:55:36 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:56:10 Unresolved reference 'useBorderlessDrawable'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:60:3 'setEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:60:33 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:61:10 Unresolved reference 'isEnabled'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:65:3 'setBorderRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:65:38 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:66:10 Unresolved reference 'borderRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:70:3 'setBorderTopLeftRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderTopLeftRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:70:45 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:71:10 Unresolved reference 'borderTopLeftRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:75:3 'setBorderTopRightRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderTopRightRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:75:46 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:76:10 Unresolved reference 'borderTopRightRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:80:3 'setBorderBottomLeftRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderBottomLeftRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:80:48 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:81:10 Unresolved reference 'borderBottomLeftRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:85:3 'setBorderBottomRightRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderBottomRightRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:85:49 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:86:10 Unresolved reference 'borderBottomRightRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:90:3 'setBorderWidth' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:90:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:91:10 Unresolved reference 'borderWidth'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:95:3 'setBorderColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:95:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:96:10 Unresolved reference 'borderColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:100:3 'setBorderStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:100:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:101:10 Unresolved reference 'borderStyle'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:105:3 'setRippleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:105:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:106:10 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:110:3 'setRippleRadius' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:110:38 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:111:10 Unresolved reference 'rippleRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:115:3 'setExclusive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:115:35 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:116:10 Unresolved reference 'exclusive'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:120:3 'setTouchSoundDisabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:120:44 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:121:10 Unresolved reference 'isSoundEffectsEnabled'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:124:3 'onAfterUpdateTransaction' overrides nothing. Potential signatures for overriding:
+fun onAfterUpdateTransaction(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:124:47 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:125:10 Unresolved reference 'updateBackground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:7 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:10 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:11 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:16 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:18 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:20 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:41 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:129:41 Function declaration must have a name.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:130:9 Unresolved reference 'field'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:130:17 Unresolved reference 'color'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:144:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:148:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:152:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:156:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:160:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:164:25 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:194:7 Unresolved reference 'setOnClickListener'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:195:7 Unresolved reference 'isClickable'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:196:7 Unresolved reference 'isFocusable'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:198:7 Unresolved reference 'clipChildren'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:230:5 'setBackgroundColor' overrides nothing. Potential signatures for overriding:
+fun setBackgroundColor(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Int): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:234:5 'onInterceptTouchEvent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:235:17 Unresolved reference 'onInterceptTouchEvent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:241:14 Unresolved reference 'isPressed'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:262:5 'onTouchEvent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:274:22 Unresolved reference 'onTouchEvent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:287:7 Unresolved reference 'background'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:298:9 Unresolved reference 'background'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:302:9 Unresolved reference 'foreground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:315:9 Unresolved reference 'foreground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:319:59 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:320:9 Unresolved reference 'background'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:347:11 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:353:32 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:354:33 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:358:9 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:376:5 'onLayout' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:380:5 'drawableHotspotChanged' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:381:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:382:15 Unresolved reference 'drawableHotspotChanged'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:386:5 'canBegin' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:398:5 'afterGestureEnd' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:420:9 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:422:11 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:422:27 Unresolved reference 'exclusive'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:426:64 None of the following candidates is applicable:
+val Menu.children: Sequence<MenuItem>
+val ViewGroup.children: Sequence<View>
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:428:22 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:428:48 Unresolved reference 'isTouched'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:440:5 'onKeyUp' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:442:20 Unresolved reference 'onKeyUp'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:445:5 'performClick' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:450:13 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:451:64 Argument type mismatch: actual type is 'RNGestureHandlerButtonViewManager', but 'View' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:453:64 Argument type mismatch: actual type is 'RNGestureHandlerButtonViewManager', but 'View' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:460:17 Unresolved reference 'performClick'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:469:5 'setPressed' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:482:70 Unresolved reference 'exclusive'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:488:15 Unresolved reference 'setPressed'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:496:5 'dispatchDrawableHotspotChanged' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:502:38 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:517:27 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:518:27 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:523:3 Modifier 'companion' is not applicable inside 'file'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:523:19 Syntax error: Name expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:526:1 Syntax error: Expecting a top level declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:19:37 Unresolved reference 'NativeRNGestureHandlerModuleSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:52:3 Unresolved reference 'NativeRNGestureHandlerModuleSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:340:3 'getName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:357:45 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:371:3 'createGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:382:3 'attachGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:409:3 'updateGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:416:3 'dropGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:423:3 'handleSetJSResponder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:430:3 'handleClearJSResponder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:434:3 'flushOperations' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:450:3 'install' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:451:5 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:454:25 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:455:25 Argument type mismatch: actual type is 'MatchGroup?', but 'Long' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:455:38 No value passed for parameter 'name'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:466:3 'getConstants' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:485:3 'invalidate' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:498:11 Unresolved reference 'invalidate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:516:21 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:628:50 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:640:5 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:645:5 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:650:5 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:28:90 Argument type mismatch: actual type is 'Class<RNGestureHandlerModule>', but 'String!' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:29:27 Unresolved reference 'registry'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:41:5 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:41:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:42:7 Unresolved reference 'registerHandler'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:43:7 Unresolved reference 'attachHandlerToView'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:45:12 Unresolved reference 'registerRootHelper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:53:90 Argument type mismatch: actual type is 'Class<RNGestureHandlerModule>', but 'String!' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:54:5 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:55:7 Unresolved reference 'registry'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootHelper.kt:56:7 Unresolved reference 'unregisterRootHelper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:14:1 Class 'RNGestureHandlerRootViewManager' is not abstract and does not implement abstract base class member:
+fun getName(): String
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:19:17 Unresolved reference 'RNGestureHandlerRootViewManagerDelegate'.
+
+> Task :react-native-gesture-handler:compileReleaseKotlin FAILED
+> Task :react-native-image-picker:extractDeepLinksRelease
+> Task :react-native-gesture-handler:processReleaseManifest
+
+> Task :react-native-image-picker:processReleaseManifest
+package="com.imagepicker" found in source AndroidManifest.xml: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-image-picker/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.imagepicker" from the source AndroidManifest.xml: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-image-picker/android/src/main/AndroidManifest.xml.
+
+> Task :app:stripReleaseDebugSymbols
+
+> Task :react-native-screens:compileReleaseKotlin FAILED
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:20:21 Argument type mismatch: actual type is 'Array<KClass<ScreensModule>>', but 'Array<KClass<out NativeModule>>' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt:66:42 Return type mismatch: expected 'NativeModule?', actual 'ScreensModule'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:11:6 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:11:8 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:11:46 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:11:47 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:11:51 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:11:6 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:11:8 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:11:38 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:11:39 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:11:43 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:29:5 Syntax error: Type expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:29:5 Syntax error: Incomplete code.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:92:5 'setTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:100:5 'setTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:108:5 'setTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:116:5 'setTitleFontWeight' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:124:5 'setTitleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:134:5 'setBackgroundColor' overrides nothing. Potential signatures for overriding:
+fun setBackgroundColor(p0: ScreenStackHeaderConfig, p1: Int): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:142:5 'setHideShadow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:150:5 'setHideBackButton' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:158:5 'setTopInsetEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:166:5 'setColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:174:5 'setHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:182:5 'setTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:190:5 'setBackButtonInCustomView' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:198:5 'setDirection' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:207:5 'setSynchronousShadowStateUpdatesEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:229:5 'setBackTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:236:5 'setBackTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:243:5 'setBackTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:250:5 'setBackTitleVisible' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:257:5 'setLargeTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:264:5 'setLargeTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:271:5 'setLargeTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:278:5 'setLargeTitleFontWeight' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:285:5 'setLargeTitleBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:292:5 'setLargeTitleHideShadow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:299:5 'setLargeTitleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:306:5 'setDisableBackButtonMenu' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:313:5 'setBackButtonDisplayMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:320:5 'setBlurEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:327:5 'setHeaderLeftBarButtonItems' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:334:5 'setHeaderRightBarButtonItems' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:341:5 'setUserInterfaceStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:27:5 'setType' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:43:5 'setHidesSharedBackground' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:52:5 'setSynchronousShadowStateUpdatesEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:75:5 'setIosPreventReattachmentOfDismissedScreens' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:39:5 'setActivityState' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:123:5 'setStackPresentation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:140:5 'setStackAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:160:5 'setGestureEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:168:5 'setReplaceAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:181:5 'setScreenOrientation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:189:5 'setStatusBarAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:198:5 'setStatusBarColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:206:5 'setStatusBarStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:214:5 'setStatusBarTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:222:5 'setStatusBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:230:5 'setNavigationBarColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:238:5 'setNavigationBarTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:246:5 'setNavigationBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:254:5 'setNativeBackButtonDismissalEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:262:5 'setSheetElevation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:270:5 'setSheetShouldOverflowTopInset' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:278:5 'setSheetDefaultResizeAnimationEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:287:5 'setFullScreenSwipeEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:292:5 'setFullScreenSwipeShadowEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:297:5 'setTransitionDuration' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:302:5 'setHideKeyboardOnSwipe' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:307:5 'setCustomAnimationOnSwipe' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:312:5 'setGestureResponseDistance' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:317:5 'setHomeIndicatorHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:322:5 'setPreventNativeDismiss' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:327:5 'setSwipeDirection' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:332:5 'setBottomScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:337:5 'setLeftScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:342:5 'setRightScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:347:5 'setTopScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:352:5 'setSynchronousShadowStateUpdatesEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:357:5 'setIos26AllowInteractionsDuringTransition' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:364:5 'setAndroidResetScreenShadowStateOnOrientationChangeEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:370:5 'setSheetAllowedDetents' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:385:5 'setSheetLargestUndimmedDetent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:394:5 'setSheetGrabberVisible' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:402:5 'setSheetCornerRadius' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:410:5 'setSheetExpandsWhenScrolledToEdge' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:418:5 'setSheetInitialDetent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:425:5 'setScreenId' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:18:5 Unresolved reference 'NativeScreensModuleSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:27:29 Unresolved reference 'reactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:29:41 Unresolved reference 'get'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:42:5 'invalidate' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:43:15 Unresolved reference 'invalidate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:53:5 'initialize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:54:15 Unresolved reference 'initialize'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:74:5 'getName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:38:5 'setAutoCapitalize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:55:5 'setAutoFocus' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:63:5 'setBarTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:71:5 'setDisableBackButtonOverride' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:79:5 'setInputType' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:96:5 'setPlaceholder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:106:5 'setTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:114:5 'setHeaderIconColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:122:5 'setHintTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:130:5 'setShouldShowHintSearchIcon' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:157:5 'blur' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:161:5 'focus' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:165:5 'clearText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:169:5 'toggleCancelButton' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:176:5 'setText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:183:5 'cancelSearch' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:189:5 'setPlacement' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:196:5 'setAllowToolbarIntegration' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:203:5 'setHideWhenScrolling' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:210:5 'setObscureBackground' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:217:5 'setHideNavigationBar' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:224:5 'setCancelButtonText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:231:5 'setTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:6 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:8 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:35 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:36 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:45 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:47 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:67 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:68 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:69 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:13:73 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:6 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:8 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:37 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:38 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:49 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:51 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:73 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:74 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:75 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:19:79 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:45:5 'setActivityMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:56:5 'setScreenKey' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:66:5 'setPreventNativeDismiss' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:6 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:8 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:34 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:35 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:43 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:45 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:64 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:65 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:66 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:15:70 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:67:5 'setTabBarBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:74:5 'setTabBarTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:80:5 'setTabBarItemTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:87:5 'setControlNavigationStateInJS' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:93:5 'setTabBarItemTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:101:5 'setTabBarItemTitleFontWeight' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:109:5 'setTabBarItemTitleFontStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:117:5 'setTabBarItemTitleFontColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:125:5 'setTabBarItemIconColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:132:5 'setTabBarMinimizeBehavior' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:137:5 'setTabBarControllerMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:143:5 'setTabBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:151:5 'setNativeContainerBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:161:5 'setTabBarItemTitleFontColorActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:169:5 'setTabBarItemActiveIndicatorColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:177:5 'setTabBarItemActiveIndicatorEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:185:5 'setTabBarItemIconColorActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:193:5 'setTabBarItemTitleFontSizeActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:201:5 'setTabBarItemRippleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:209:5 'setTabBarItemLabelVisibilityMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:6 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:8 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:36 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:37 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:47 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:49 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:70 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:71 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:72 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:21:76 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:51:5 'setStandardAppearance' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:56:5 'setScrollEdgeAppearance' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:62:5 'setTabBarItemBadgeBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:69:5 'setIconType' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:74:5 'setIconImageSource' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:79:5 'setIconResourceName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:84:5 'setSelectedIconImageSource' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:89:5 'setSelectedIconResourceName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:96:5 'setIsFocused' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:105:5 'setTabKey' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:113:5 'setBadgeValue' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:121:5 'setTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:128:5 'setIsTitleUndefined' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:134:5 'setSpecialEffects' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:156:5 'setOverrideScrollViewContentInsetAdjustmentBehavior' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:161:5 'setBottomScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:166:5 'setLeftScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:171:5 'setRightScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:176:5 'setTopScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:182:5 'setTabBarItemTestID' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:190:5 'setTabBarItemAccessibilityLabel' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:199:5 'setTabBarItemBadgeTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:207:5 'setDrawableIconResourceName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:214:5 'setOrientation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:219:5 'setSystemItem' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:224:5 'setUserInterfaceStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:230:5 'setImageIconResource' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:6 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:8 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:38 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:39 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:51 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:53 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:72 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:73 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:74 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:20:78 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:33:5 'setEdges' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:43:5 'setInsetType' overrides nothing.
+
+[Incubating] Problems report is available at: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':react-native-gesture-handler:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':react-native-screens:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 1s
+164 actionable tasks: 66 executed, 98 up-to-date

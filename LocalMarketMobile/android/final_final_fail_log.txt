@@ -1,0 +1,622 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Task :app:generateAutolinkingNewArchitectureFiles UP-TO-DATE
+> Task :app:generateAutolinkingPackageList UP-TO-DATE
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :app:generateReactNativeEntryPoint UP-TO-DATE
+> Task :react-native-async-storage_async-storage:preBuild UP-TO-DATE
+> Task :react-native-community_geolocation:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-image-picker:preBuild UP-TO-DATE
+> Task :react-native-linear-gradient:preBuild UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript
+
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema
+Skipping Codegen Artifacts generation for legacy bridge stability.
+
+> Task :react-native-safe-area-context:preBuild
+> Task :react-native-screens:preBuild UP-TO-DATE
+> Task :react-native-vector-icons:preBuild UP-TO-DATE
+> Task :app:preBuild
+> Task :app:preReleaseBuild
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app:configureCMakeRelWithDebInfo[x86]
+> Task :app:buildCMakeRelWithDebInfo[x86]
+> Task :app:configureCMakeRelWithDebInfo[x86_64]
+> Task :app:buildCMakeRelWithDebInfo[x86_64]
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-async-storage_async-storage:preReleaseBuild UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-async-storage_async-storage:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-community_geolocation:preReleaseBuild UP-TO-DATE
+> Task :react-native-community_geolocation:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-community_geolocation:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-community_geolocation:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-gesture-handler:preReleaseBuild UP-TO-DATE
+> Task :react-native-gesture-handler:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-gesture-handler:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-gesture-handler:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-image-picker:preReleaseBuild UP-TO-DATE
+> Task :react-native-image-picker:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-image-picker:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-image-picker:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-linear-gradient:preReleaseBuild UP-TO-DATE
+> Task :react-native-linear-gradient:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-linear-gradient:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-linear-gradient:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-safe-area-context:preReleaseBuild
+> Task :react-native-safe-area-context:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-safe-area-context:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-safe-area-context:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-screens:preReleaseBuild UP-TO-DATE
+> Task :react-native-screens:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :react-native-screens:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :react-native-screens:configureCMakeRelWithDebInfo[x86]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86]
+> Task :react-native-screens:configureCMakeRelWithDebInfo[x86_64]
+> Task :react-native-screens:buildCMakeRelWithDebInfo[x86_64]
+> Task :react-native-screens:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-screens:mergeReleaseNativeLibs UP-TO-DATE
+> Task :react-native-screens:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-vector-icons:preReleaseBuild UP-TO-DATE
+> Task :react-native-vector-icons:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-vector-icons:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-vector-icons:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :app:mergeReleaseNativeLibs UP-TO-DATE
+> Task :app:stripReleaseDebugSymbols UP-TO-DATE
+> Task :app:extractReleaseNativeSymbolTables UP-TO-DATE
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-gesture-handler:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseResValues UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseResources UP-TO-DATE
+> Task :react-native-gesture-handler:packageReleaseResources UP-TO-DATE
+> Task :react-native-gesture-handler:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseRFile UP-TO-DATE
+> Task :react-native-gesture-handler:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-safe-area-context:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-safe-area-context:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-safe-area-context:generateReleaseResValues UP-TO-DATE
+> Task :react-native-safe-area-context:generateReleaseResources UP-TO-DATE
+> Task :react-native-safe-area-context:packageReleaseResources UP-TO-DATE
+> Task :react-native-safe-area-context:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-safe-area-context:generateReleaseRFile UP-TO-DATE
+> Task :react-native-safe-area-context:compileReleaseKotlin UP-TO-DATE
+> Task :react-native-safe-area-context:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-safe-area-context:compileReleaseJavaWithJavac
+> Task :react-native-screens:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-screens:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-screens:generateReleaseResValues UP-TO-DATE
+> Task :react-native-screens:generateReleaseResources UP-TO-DATE
+> Task :react-native-screens:packageReleaseResources UP-TO-DATE
+> Task :react-native-screens:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-screens:generateReleaseRFile UP-TO-DATE
+> Task :react-native-safe-area-context:bundleLibRuntimeToDirRelease
+> Task :react-native-screens:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-async-storage_async-storage:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-async-storage_async-storage:generateReleaseResValues UP-TO-DATE
+> Task :react-native-async-storage_async-storage:generateReleaseResources UP-TO-DATE
+> Task :react-native-async-storage_async-storage:packageReleaseResources UP-TO-DATE
+> Task :react-native-async-storage_async-storage:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-async-storage_async-storage:generateReleaseRFile UP-TO-DATE
+> Task :react-native-async-storage_async-storage:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-async-storage_async-storage:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-async-storage_async-storage:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-community_geolocation:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-community_geolocation:generateReleaseResValues UP-TO-DATE
+> Task :react-native-community_geolocation:generateReleaseResources UP-TO-DATE
+> Task :react-native-community_geolocation:packageReleaseResources UP-TO-DATE
+> Task :react-native-community_geolocation:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-community_geolocation:generateReleaseRFile UP-TO-DATE
+> Task :react-native-community_geolocation:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-community_geolocation:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-community_geolocation:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseResValues UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseResources UP-TO-DATE
+> Task :react-native-image-picker:packageReleaseResources UP-TO-DATE
+> Task :react-native-image-picker:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-image-picker:generateReleaseRFile UP-TO-DATE
+> Task :react-native-image-picker:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-image-picker:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-image-picker:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseResValues UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseResources UP-TO-DATE
+> Task :react-native-linear-gradient:packageReleaseResources UP-TO-DATE
+> Task :react-native-linear-gradient:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-linear-gradient:generateReleaseRFile UP-TO-DATE
+> Task :react-native-linear-gradient:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-linear-gradient:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-linear-gradient:bundleLibRuntimeToDirRelease UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseResValues UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseResources UP-TO-DATE
+> Task :react-native-vector-icons:packageReleaseResources UP-TO-DATE
+> Task :react-native-vector-icons:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-vector-icons:generateReleaseRFile UP-TO-DATE
+> Task :react-native-vector-icons:javaPreCompileRelease UP-TO-DATE
+> Task :react-native-vector-icons:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :react-native-vector-icons:bundleLibRuntimeToDirRelease
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateReleaseBuildConfig
+> Task :react-native-async-storage_async-storage:writeReleaseAarMetadata
+> Task :react-native-community_geolocation:writeReleaseAarMetadata
+> Task :react-native-gesture-handler:writeReleaseAarMetadata
+> Task :react-native-image-picker:writeReleaseAarMetadata
+> Task :react-native-linear-gradient:writeReleaseAarMetadata
+> Task :react-native-safe-area-context:writeReleaseAarMetadata
+> Task :react-native-screens:writeReleaseAarMetadata
+> Task :react-native-vector-icons:writeReleaseAarMetadata
+> Task :app:checkReleaseAarMetadata
+
+> Task :react-native-gesture-handler:compileReleaseKotlin
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:5:37 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:8:1 Class 'RNGestureHandlerButtonManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:8:59 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:9:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:10:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:14:1 Class 'RNGestureHandlerRootViewManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:14:61 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:15:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:16:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:61:7 'setBorderRadius' hides member of supertype 'BaseViewManager' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:66:7 'setBorderTopLeftRadius' hides member of supertype 'BaseViewManager' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:71:7 'setBorderTopRightRadius' hides member of supertype 'BaseViewManager' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:76:7 'setBorderBottomLeftRadius' hides member of supertype 'BaseViewManager' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:81:7 'setBorderBottomRightRadius' hides member of supertype 'BaseViewManager' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:231:9 'setBackgroundColor' hides member of supertype 'View' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:470:9 'setPressed' hides member of supertype 'View' and needs an 'override' modifier.
+
+> Task :react-native-gesture-handler:compileReleaseKotlin FAILED
+> Task :app:mergeReleaseNativeDebugMetadata
+
+> Task :app:createBundleReleaseJsAndAssets
+
+                        ▒▒▓▓▓▓▒▒
+                     ▒▓▓▓▒▒░░▒▒▓▓▓▒
+                  ▒▓▓▓▓░░░▒▒▒▒░░░▓▓▓▓▒
+                 ▓▓▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▓▓
+                 ▓▓░░░░░▒▓▓▓▓▓▓▒░░░░░▓▓
+                 ▓▓░░▓▓▒░░░▒▒░░░▒▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▒▒▒▒▓▓▓▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓▓▒░░▓▓
+                 ▓▓▒░░▒▒▓▓▓▓▓▓▓▓▒░░░▒▓▓
+                  ▒▓▓▓▒░░░▒▓▓▒░░░▒▓▓▓▒
+                     ▒▓▓▓▒░░░░▒▓▓▓▒
+                        ▒▒▓▓▓▓▒▒
+
+
+
+> Task :react-native-screens:compileReleaseKotlin FAILED
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:6:37 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:12:1 Class 'RNSSafeAreaViewManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:12:52 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:13:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:14:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:18:1 Class 'RNSScreenStackHeaderSubviewManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:18:64 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:19:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:20:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:24:1 Class 'RNSScreenStackHeaderConfigManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:24:63 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:25:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:26:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:30:1 Class 'RNSTabsScreenManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:30:50 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:31:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:32:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:36:1 Class 'RNSSearchBarManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:36:49 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:37:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:38:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:42:1 Class 'RNSScreenManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:42:46 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:43:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:44:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:48:1 Class 'RNSScreenStackManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:48:51 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:49:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:50:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:54:1 Class 'RNSScreenFooterManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:54:52 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:55:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:56:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:60:1 Class 'RNSScreenContainerManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:60:55 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:61:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:62:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:66:1 Class 'RNSScreenContentWrapperManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:66:60 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:67:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:68:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:72:1 Class 'RNSTabsHostManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:72:48 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:73:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:74:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:78:1 Class 'RNSStackHostManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:78:49 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:79:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:80:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:84:1 Class 'RNSStackScreenManagerDelegate' is not abstract and does not implement abstract members:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:84:51 Unresolved reference 'BaseViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:85:5 'setProperty' overrides nothing. Potential signatures for overriding:
+fun setProperty(view: T, propName: String, value: Any?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/facebook/react/viewmanagers/Stubs.kt:86:5 'receiveCommand' overrides nothing. Potential signatures for overriding:
+fun receiveCommand(view: T, commandName: String, args: ReadableArray): Unit
+fun receiveCommand(view: T, commandName: String, args: ReadableArray?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:304:13 Unresolved reference 'updateScreenSizeFabric'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:444:13 Unresolved reference 'updateScreenSizeFabric'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:678:5 'onTouchEvent' overrides nothing. Potential signatures for overriding:
+fun onTouchEvent(event: MotionEvent): Boolean
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:684:32 Argument type mismatch: actual type is 'MotionEvent?', but 'MotionEvent' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:723:13 Unresolved reference 'updateScreenSizeFabric'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:20:54 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:20:71 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:20:99 Argument type mismatch: actual type is 'ScreenContainerViewManager', but 'U (of class RNSScreenContainerManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:14:71 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:14:110 Argument type mismatch: actual type is 'ScreenContentWrapperManager', but 'U (of class RNSScreenContentWrapperManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:14:63 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:14:94 Argument type mismatch: actual type is 'ScreenFooterManager', but 'U (of class RNSScreenFooterManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:28:5 Unresolved reference 'FabricEnabledHeaderConfigViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:134:9 Unresolved reference 'updateHeaderConfigState'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:142:5 'onLayout' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:150:5 'onAttachedToWindow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:151:15 Unresolved reference 'onAttachedToWindow'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:153:41 None of the following candidates is applicable:
+fun getSurfaceId(view: View): Int
+fun getSurfaceId(context: Context?): Int
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:155:44 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:155:69 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:156:60 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:160:5 'onDetachedFromWindow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:161:15 Unresolved reference 'onDetachedFromWindow'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:163:41 None of the following candidates is applicable:
+fun getSurfaceId(view: View): Int
+fun getSurfaceId(context: Context?): Int
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:165:44 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:165:69 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:166:60 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:170:17 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:177:26 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:189:57 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:198:43 Unresolved reference 'LAYOUT_DIRECTION_RTL'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:200:43 Unresolved reference 'LAYOUT_DIRECTION_LTR'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:211:21 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:212:21 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:277:25 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:319:47 Unresolved reference 'LayoutParams'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:319:74 Unresolved reference 'LayoutParams'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:328:28 Unresolved reference 'gravity'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:331:63 Unresolved reference 'gravity'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:333:28 Unresolved reference 'width'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:333:36 Unresolved reference 'LayoutParams'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:334:28 Unresolved reference 'gravity'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:349:13 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:450:9 Unresolved reference 'visibility'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:450:22 Unresolved reference 'GONE'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:24:22 Type argument is not within its bounds: must be subtype of 'ViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:25:48 Type argument is not within its bounds: must be subtype of 'View'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:26:47 Type argument is not within its bounds: must be subtype of 'View'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:29:62 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:29:87 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:29:123 Argument type mismatch: actual type is 'ScreenStackHeaderConfigViewManager', but 'U (of class RNSScreenStackHeaderConfigManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:58:18 Unresolved reference 'setStateWrapper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:221:63 Type argument is not within its bounds: must be subtype of 'View'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:26:9 'onMeasure' hides member of supertype 'ReactViewGroup' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:46:9 'onLayout' hides member of supertype 'ReactViewGroup' and needs an 'override' modifier.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:63:17 Unresolved reference 'updateSubviewFrameState'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:22:63 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:22:89 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:22:122 Argument type mismatch: actual type is 'ScreenStackHeaderSubviewManager', but 'U (of class RNSScreenStackHeaderSubviewManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:66:18 Unresolved reference 'setStateWrapper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:21:50 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:21:63 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:21:87 Argument type mismatch: actual type is 'ScreenStackViewManager', but 'U (of class RNSScreenStackManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:34:9 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:45:9 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:54:9 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:78:5 'setIosPreventReattachmentOfDismissedScreens' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:35:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:35:53 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:35:72 Argument type mismatch: actual type is 'ScreenViewManager', but 'U (of class RNSScreenManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:42:5 'setActivityState' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:91:18 Unresolved reference 'setStateWrapper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:126:5 'setStackPresentation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:143:5 'setStackAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:163:5 'setGestureEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:171:5 'setReplaceAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:184:5 'setScreenOrientation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:192:5 'setStatusBarAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:201:5 'setStatusBarColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:209:5 'setStatusBarStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:217:5 'setStatusBarTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:225:5 'setStatusBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:233:5 'setNavigationBarColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:241:5 'setNavigationBarTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:249:5 'setNavigationBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:257:5 'setNativeBackButtonDismissalEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:265:5 'setSheetElevation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:273:5 'setSheetShouldOverflowTopInset' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:281:5 'setSheetDefaultResizeAnimationEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:290:5 'setFullScreenSwipeEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:295:5 'setFullScreenSwipeShadowEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:300:5 'setTransitionDuration' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:305:5 'setHideKeyboardOnSwipe' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:310:5 'setCustomAnimationOnSwipe' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:315:5 'setGestureResponseDistance' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:320:5 'setHomeIndicatorHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:325:5 'setPreventNativeDismiss' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:330:5 'setSwipeDirection' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:335:5 'setBottomScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:340:5 'setLeftScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:345:5 'setRightScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:350:5 'setTopScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:355:5 'setSynchronousShadowStateUpdatesEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:360:5 'setIos26AllowInteractionsDuringTransition' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:367:5 'setAndroidResetScreenShadowStateOnOrientationChangeEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:373:5 'setSheetAllowedDetents' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:388:5 'setSheetLargestUndimmedDetent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:397:5 'setSheetGrabberVisible' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:405:5 'setSheetCornerRadius' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:413:5 'setSheetExpandsWhenScrolledToEdge' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:421:5 'setSheetInitialDetent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:428:5 'setScreenId' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:23:24 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:36:20 Unresolved reference 'invalidateNative'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:47:21 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:59:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:59:20 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun <T> T.apply(block: T.() -> Unit): T
+    [R|Contract description]
+     <
+        CallsInPlace(block, EXACTLY_ONCE)
+    >
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:59:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:60:17 Unresolved reference 'nativeAddMutationsListener'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:151:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:151:20 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun <T> T.apply(block: T.() -> Unit): T
+    [R|Contract description]
+     <
+        CallsInPlace(block, EXACTLY_ONCE)
+    >
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:151:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:152:17 Unresolved reference 'cleanupExpiredMountingCoordinators'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:26:48 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:26:63 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:26:81 Argument type mismatch: actual type is 'SearchBarManager', but 'U (of class RNSSearchBarManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:41:5 'setAutoCapitalize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:58:5 'setAutoFocus' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:66:5 'setBarTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:74:5 'setDisableBackButtonOverride' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:82:5 'setInputType' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:99:5 'setPlaceholder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:109:5 'setTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:117:5 'setHeaderIconColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:125:5 'setHintTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:133:5 'setShouldShowHintSearchIcon' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:160:5 'blur' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:164:5 'focus' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:168:5 'clearText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:172:5 'toggleCancelButton' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:179:5 'setText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:186:5 'cancelSearch' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:192:5 'setPlacement' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:199:5 'setAllowToolbarIntegration' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:206:5 'setHideWhenScrolling' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:213:5 'setObscureBackground' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:220:5 'setHideNavigationBar' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:227:5 'setCancelButtonText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:234:5 'setTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:16:99 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:16:121 Argument type mismatch: actual type is 'StackHostViewManager', but 'U (of class RNSStackHostManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:22:105 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:22:129 Argument type mismatch: actual type is 'StackScreenViewManager', but 'U (of class RNSStackScreenManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:48:5 'setActivityMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:59:5 'setScreenKey' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:69:5 'setPreventNativeDismiss' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:18:96 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:18:117 Argument type mismatch: actual type is 'TabsHostViewManager', but 'U (of class RNSTabsHostManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:70:5 'setTabBarBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:77:5 'setTabBarTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:83:5 'setTabBarItemTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:90:5 'setControlNavigationStateInJS' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:96:5 'setTabBarItemTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:104:5 'setTabBarItemTitleFontWeight' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:112:5 'setTabBarItemTitleFontStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:120:5 'setTabBarItemTitleFontColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:128:5 'setTabBarItemIconColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:135:5 'setTabBarMinimizeBehavior' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:140:5 'setTabBarControllerMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:146:5 'setTabBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:154:5 'setNativeContainerBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:164:5 'setTabBarItemTitleFontColorActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:172:5 'setTabBarItemActiveIndicatorColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:180:5 'setTabBarItemActiveIndicatorEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:188:5 'setTabBarItemIconColorActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:196:5 'setTabBarItemTitleFontSizeActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:204:5 'setTabBarItemRippleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:212:5 'setTabBarItemLabelVisibilityMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:24:102 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:24:125 Argument type mismatch: actual type is 'TabsScreenViewManager', but 'U (of class RNSTabsScreenManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:23:108 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:23:129 Argument type mismatch: actual type is 'SafeAreaViewManager', but 'U (of class RNSSafeAreaViewManagerDelegate<T : View, U : <ERROR TYPE REF: Symbol not found for BaseViewManagerInterface>>)' was expected.
+
+> Task :app:createBundleReleaseJsAndAssets
+ WARN  the transform cache was reset.
+                Welcome to Metro v0.83.6
+              Fast - Scalable - Integrated
+
+
+ WARN  Watchman `watch-project` returned a warning: Recrawled this watch 1 time, most recently because:
+MustScanSubDirs UserDroppedTo resolve, please review the information on
+https://facebook.github.io/watchman/docs/troubleshooting.html#recrawl
+To clear this warning, run:
+`watchman watch-del '/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile' ; watchman watch-project '/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile'`
+
+ WARN  Watchman `query` returned a warning: Recrawled this watch 1 time, most recently because:
+MustScanSubDirs UserDroppedTo resolve, please review the information on
+https://facebook.github.io/watchman/docs/troubleshooting.html#recrawl
+To clear this warning, run:
+`watchman watch-del '/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile' ; watchman watch-project '/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile'`
+
+LOG:Writing bundle output to: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/app/build/generated/assets/react/release/index.android.bundle
+LOG:Writing sourcemap output to: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/app/build/generated/sourcemaps/react/release/index.android.bundle.map
+LOG:Done writing bundle output
+LOG:Done writing sourcemap output
+Copying 6 asset files
+Done copying assets
+
+[Incubating] Problems report is available at: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':react-native-gesture-handler:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':react-native-screens:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 30s
+137 actionable tasks: 35 executed, 102 up-to-date

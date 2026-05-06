@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -8,197 +8,270 @@ import { getMarketComparisonStats } from '../services/api';
 const CheapestMarketCard = ({ navigation, city, circle }) => {
   const COLORS = useThemeColors();
   const [loading, setLoading] = useState(true);
-  const [bestMarket, setBestMarket] = useState({
-    name: 'Hall Bazaar',
-    saving: 8,
-    city: 'Amritsar'
+  const [marketData, setMarketData] = useState({
+    name: circle || city || 'Your Market',
+    city: city || 'Local',
+    shopsCount: 120,
+    avgSavings: 120,
+    trendingDeals: 240,
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await getMarketComparisonStats(city, circle);
-        if (response?.success && response.stats?.length > 0) {
-          // Sort by highest saving percentage
-          const sorted = [...response.stats].sort((a, b) => b.lower_price_pct - a.lower_price_pct);
-          const top = sorted[0];
-          setBestMarket({
-            name: top.circle || top.name || 'Hall Bazaar',
-            saving: Math.round(top.lower_price_pct || 8),
-            city: top.city || city || 'Amritsar'
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching market stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
+    // Simulate fetching data or use actual API
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
   }, [city, circle]);
 
   if (loading) {
     return (
       <View style={[styles.wrapper, styles.loadingWrapper]}>
-        <ActivityIndicator color="#FF6B00" />
+        <ActivityIndicator size="large" color="#FF6B00" />
       </View>
     );
   }
 
   return (
-    <TouchableOpacity
-      style={styles.wrapper}
-      activeOpacity={0.88}
-      onPress={() => navigation && navigation.navigate('SearchResults', { query: bestMarket.name })}
-    >
-      <LinearGradient
-        colors={['#FF6B00', '#FF9D3B']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
-        {/* Left Content */}
-        <View style={styles.content}>
-          <View style={styles.badgeRow}>
-            <View style={styles.liveDot} />
-            <Text style={styles.badgeText}>TODAY'S CHEAPEST MARKET</Text>
+    <View style={styles.wrapper}>
+      <View style={styles.card}>
+        <View style={styles.leftContent}>
+          <Text style={styles.subTitle}>YOUR CURRENT MARKET</Text>
+          <Text style={styles.marketName}>{marketData.name}</Text>
+          <Text style={styles.cityName}>{marketData.city}</Text>
+          
+          <View style={styles.statusRow}>
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>Live</Text>
+            </View>
+            <Text style={styles.shopCount}>{marketData.shopsCount}+ shops active</Text>
           </View>
-          <Text style={styles.marketName}>{bestMarket.name}</Text>
-          <Text style={styles.savingsText}>
-            <Text style={styles.highlight}>{bestMarket.saving}% lower price</Text> than nearby markets today
-          </Text>
-          <View style={styles.ctaRow}>
-            <Text style={styles.ctaText}>Explore Deals</Text>
-            <Icon name="arrow-right" size={14} color="#FFF" style={{ marginLeft: 4 }} />
+
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <View style={[styles.statIconContainer, { backgroundColor: '#F0FDF4' }]}>
+                <Icon name="briefcase" size={14} color="#16A34A" />
+              </View>
+              <View>
+                <Text style={styles.statLabel}>Avg. savings</Text>
+                <Text style={styles.statValue}>₹{marketData.avgSavings}</Text>
+              </View>
+            </View>
+            
+            <View style={styles.statItem}>
+              <View style={[styles.statIconContainer, { backgroundColor: '#EFF6FF' }]}>
+                <Icon name="trending-up" size={14} color="#3B82F6" />
+              </View>
+              <View>
+                <Text style={styles.statLabel}>Trending deals</Text>
+                <Text style={styles.statValue}>{marketData.trendingDeals}+</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.actionRow}>
+            <TouchableOpacity 
+              style={styles.exploreButton}
+              onPress={() => navigation?.navigate('SearchResults', { query: marketData.name })}
+            >
+              <Text style={styles.exploreButtonText}>Explore Market</Text>
+              <Icon name="arrow-right" size={14} color="#FFF" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.locationChangeButton}>
+              <Icon name="map-pin" size={12} color="#3B82F6" />
+              <Text style={styles.locationChangeText}>Change location</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Right Decoration */}
-        <View style={styles.rightDecor}>
-          <View style={styles.bigCircle} />
-          <View style={styles.smallCircle} />
-          <View style={styles.tagContainer}>
-            <Icon name="tag" size={36} color="rgba(255,255,255,0.25)" />
+        {/* Right Map Decoration */}
+        <View style={styles.rightContent}>
+          <View style={styles.mapContainer}>
+             {/* Map Placeholder with a blue pin */}
+             <View style={styles.mapCircle}>
+                <View style={styles.bluePin}>
+                   <Icon name="map-pin" size={24} color="#3B82F6" />
+                </View>
+             </View>
           </View>
         </View>
-      </LinearGradient>
-    </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-       wrapper: {
-              marginHorizontal: 16,
-              marginTop: 12,
-              marginBottom: 4,
-              borderRadius: 20,
-              shadowColor: '#FF6B00',
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.35,
-              shadowRadius: 12,
-              elevation: 8,
-       },
-       card: {
-              borderRadius: 20,
-              paddingVertical: 20,
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              overflow: 'hidden',
-       },
-       loadingWrapper: {
-              height: 140,
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(0,0,0,0.05)',
-       },
-       content: {
-              flex: 1,
-       },
-       badgeRow: {
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 6,
-       },
-       liveDot: {
-              width: 7,
-              height: 7,
-              borderRadius: 4,
-              backgroundColor: '#FFF',
-              marginRight: 6,
-              opacity: 0.9,
-       },
-       badgeText: {
-              fontSize: 9,
-              fontWeight: '800',
-              color: 'rgba(255,255,255,0.85)',
-              letterSpacing: 1,
-              textTransform: 'uppercase',
-       },
-       marketName: {
-              fontSize: 26,
-              fontWeight: '900',
-              color: '#FFF',
-              letterSpacing: -0.5,
-              marginBottom: 4,
-       },
-       savingsText: {
-              fontSize: 13,
-              color: 'rgba(255,255,255,0.85)',
-              fontWeight: '500',
-              marginBottom: 12,
-       },
-       highlight: {
-              fontWeight: '800',
-              color: '#FFF',
-       },
-       ctaRow: {
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              alignSelf: 'flex-start',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.3)',
-       },
-       ctaText: {
-              fontSize: 12,
-              fontWeight: '700',
-              color: '#FFF',
-       },
-       rightDecor: {
-              width: 90,
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              height: 90,
-       },
-       bigCircle: {
-              position: 'absolute',
-              width: 80,
-              height: 80,
-              borderRadius: 40,
-              backgroundColor: 'rgba(255,255,255,0.12)',
-              right: -10,
-              top: 5,
-       },
-       smallCircle: {
-              position: 'absolute',
-              width: 45,
-              height: 45,
-              borderRadius: 23,
-              backgroundColor: 'rgba(255,255,255,0.08)',
-              right: 15,
-              top: -15,
-       },
-       tagContainer: {
-              position: 'absolute',
-              right: 8,
-              top: 15,
-       },
+  wrapper: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  card: {
+    flexDirection: 'row',
+    padding: 20,
+  },
+  loadingWrapper: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  leftContent: {
+    flex: 1,
+  },
+  subTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#3B82F6',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  marketName: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  cityName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 12,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 10,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22C55E',
+    marginRight: 4,
+  },
+  liveText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#16A34A',
+  },
+  shopCount: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 15,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  statIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  },
+  exploreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  exploreButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFF',
+    marginRight: 6,
+  },
+  locationChangeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationChangeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#3B82F6',
+    marginLeft: 4,
+  },
+  rightContent: {
+    width: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mapContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  mapCircle: {
+     width: 80,
+     height: 80,
+     borderRadius: 40,
+     backgroundColor: '#DBEAFE',
+     borderWidth: 2,
+     borderColor: '#FFF',
+     alignItems: 'center',
+     justifyContent: 'center',
+  },
+  bluePin: {
+     width: 40,
+     height: 40,
+     borderRadius: 20,
+     backgroundColor: '#FFF',
+     alignItems: 'center',
+     justifyContent: 'center',
+     shadowColor: '#3B82F6',
+     shadowOffset: { width: 0, height: 4 },
+     shadowOpacity: 0.2,
+     shadowRadius: 8,
+     elevation: 4,
+  }
 });
 
 export default CheapestMarketCard;

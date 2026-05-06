@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
     View,
     StyleSheet,
@@ -8,23 +8,49 @@ import {
     Dimensions,
     Text,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const { width, height } = Dimensions.get('window');
-const BUTTON_SIZE = 64; // Increased size slightly
+const BUTTON_SIZE = 64;
 
 const DraggableAIButton = ({ onPress }) => {
-    const COLORS = useThemeColors();
+    // 1. Initial Position constants
+    const initialPos = {
+        x: width - BUTTON_SIZE - 20,
+        y: height - BUTTON_SIZE - 120
+    };
 
-    const initialX = width - BUTTON_SIZE - 20;
-    const initialY = height - BUTTON_SIZE - 100;
-
-    const pan = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
+    // 2. State & Animated Values
     const [isDragging, setIsDragging] = useState(false);
+    
+    // Lazy initialize Animated Values to be safe with React 19 dispatcher
+    const pan = useRef(new Animated.ValueXY(initialPos)).current;
+    const pulseAnim = useRef(new Animated.Value(1)).current;
 
-    const panResponder = useRef(
+    // 3. Pulse Animation
+    useEffect(() => {
+        const pulse = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, {
+                    toValue: 1.12,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(pulseAnim, {
+                    toValue: 1,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+            ])
+        );
+        pulse.start();
+        return () => pulse.stop();
+    }, [pulseAnim]);
+
+    // 4. PanResponder memoized to prevent recreation on every render
+    const panResponder = useMemo(() => 
         PanResponder.create({
             onMoveShouldSetPanResponder: (_, gestureState) => {
                 return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
@@ -45,7 +71,6 @@ const DraggableAIButton = ({ onPress }) => {
                 pan.flattenOffset();
                 setIsDragging(false);
 
-                // Snap to edges if desired
                 let finalX = pan.x._value;
                 let finalY = pan.y._value;
 
@@ -53,22 +78,25 @@ const DraggableAIButton = ({ onPress }) => {
                 if (finalX < 10) finalX = 10;
                 if (finalX > width - BUTTON_SIZE - 10) finalX = width - BUTTON_SIZE - 10;
                 if (finalY < 60) finalY = 60;
-                if (finalY > height - BUTTON_SIZE - 80) finalY = height - BUTTON_SIZE - 80;
+                if (finalY > height - BUTTON_SIZE - 100) finalY = height - BUTTON_SIZE - 100;
 
                 Animated.spring(pan, {
                     toValue: { x: finalX, y: finalY },
                     useNativeDriver: false,
                 }).start();
             },
-        })
-    ).current;
+        }), [pan]);
 
     return (
         <Animated.View
             style={[
                 styles.container,
                 {
-                    transform: [{ translateX: pan.x }, { translateY: pan.y }],
+                    transform: [
+                        { translateX: pan.x }, 
+                        { translateY: pan.y },
+                        { scale: pulseAnim }
+                    ],
                 },
             ]}
             {...panResponder.panHandlers}
@@ -82,17 +110,19 @@ const DraggableAIButton = ({ onPress }) => {
                 activeOpacity={0.9}
                 style={styles.touchable}
             >
-                <LinearGradient
-                    colors={['#8B5CF6', '#3B82F6']} // Vibrant Purple to Blue
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.gradient}
-                >
-                    <Icon name="sparkles" size={28} color="#FFF" />
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>AI</Text>
-                    </View>
-                </LinearGradient>
+                <View style={styles.glowContainer}>
+                     <LinearGradient
+                        colors={['#8B5CF6', '#3B82F6', '#2DD4BF']} 
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.gradient}
+                    >
+                        <Icon name="robot-happy-outline" size={30} color="#FFF" />
+                        <View style={styles.badge}>
+                            <Text style={styles.badgeText}>AI</Text>
+                        </View>
+                    </LinearGradient>
+                </View>
             </TouchableOpacity>
         </Animated.View>
     );
@@ -104,15 +134,19 @@ const styles = StyleSheet.create({
         width: BUTTON_SIZE,
         height: BUTTON_SIZE,
         zIndex: 9999,
-        elevation: 10,
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
+        elevation: 12,
     },
     touchable: {
         width: '100%',
         height: '100%',
+    },
+    glowContainer: {
+        width: '100%',
+        height: '100%',
+        shadowColor: '#3B82F6',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 15,
     },
     gradient: {
         width: '100%',
@@ -121,22 +155,27 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 2,
-        borderColor: 'rgba(255, 255, 255, 0.5)',
+        borderColor: 'rgba(255, 255, 255, 0.6)',
     },
     badge: {
         position: 'absolute',
-        top: -4,
-        right: -4,
+        top: -6,
+        right: -6,
         backgroundColor: '#F97316',
         paddingHorizontal: 6,
         paddingVertical: 2,
         borderRadius: 10,
-        borderWidth: 2,
+        borderWidth: 1.5,
         borderColor: '#FFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+        elevation: 3,
     },
     badgeText: {
         color: '#FFF',
-        fontSize: 8,
+        fontSize: 9,
         fontWeight: '900',
     },
 });

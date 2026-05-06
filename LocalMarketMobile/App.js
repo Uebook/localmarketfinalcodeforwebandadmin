@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -78,6 +78,7 @@ import ProductDetailsScreen from './src/components/ProductDetailsScreen';
 import AIServiceFlow from './src/components/AIServiceFlow';
 import MarketScreen from './src/components/MarketScreen';
 import CartScreen from './src/components/CartScreen';
+import Header from './src/components/Header';
 import { setVendorSidebarControl } from './src/utils/vendorSidebarControl';
 
 import { setSidebarControl } from './src/utils/sidebarControl';
@@ -173,117 +174,108 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
   );
 }
 
-function MainTabs({ userRole, vendorData, setVendorData, savedBusinessIds, setSavedBusinessIds, initialRouteName = 'Home' }) {
+function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUserData, savedBusinessIds, setSavedBusinessIds, locationState, onLocationChange, onMenuClick, onProfileClick, onNotificationClick, handleLogout, initialRouteName = 'Home' }) {
   const insets = useSafeAreaInsets();
+  const activeRouteName = getFocusedRouteNameFromRoute(route) || initialRouteName;
+  const showGlobalHeader = activeRouteName !== 'Profile';
+  
   return (
-    <Tab.Navigator
-      initialRouteName={initialRouteName}
-      screenOptions={({ route }) => {
-        let iconName;
-        if (route.name === 'Home') {
-          iconName = 'home';
-        } else if (route.name === 'Categories') {
-          iconName = 'grid';
-        } else if (route.name === 'Search') {
-          iconName = 'search';
-        } else if (route.name === 'Offers') {
-          iconName = 'tag';
-        } else if (route.name === 'Saved') {
-          iconName = 'bookmark';
-        } else if (route.name === 'Cart') {
-          iconName = 'shopping-cart';
-        } else if (route.name === 'Business') {
-          iconName = 'briefcase';
-        }
-
-
-        return {
-          tabBarIcon: ({ focused }) => {
-            // Special handling for Offers tab with percentage symbol
-            if (route.name === 'Offers') {
-              return <Text style={focused ? styles.percentageIcon : styles.percentageIconInactive}>%</Text>;
-            }
-            return <Icon name={iconName} size={22} color={focused ? COLORS_SAFE.orange : COLORS_SAFE.textMuted} />;
-          },
-          tabBarLabel: route.name,
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '600',
-            marginTop: 2,
-          },
-          tabBarActiveTintColor: COLORS_SAFE.textPrimary,
-          tabBarInactiveTintColor: COLORS_SAFE.textMuted,
-          headerShown: false,
-          tabBarStyle: [
-            styles.tabBar,
-            {
-              paddingBottom: Math.max(insets.bottom, 8),
-              height: 54 + Math.max(insets.bottom, 8)
-            }
-          ],
-          tabBarItemStyle: styles.tabBarItem,
-          tabBarButton: (props) => {
-            const { children, onPress } = props;
-
-            return (
-              <TouchableOpacity
-                {...props}
-                onPress={onPress}
-                style={[styles.tabButton, props.style]}
-                activeOpacity={0.7}
-              >
-                {children}
-              </TouchableOpacity>
-            );
-          },
-        };
-      }}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Categories" component={CategoriesScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} />
-      {userRole === 'vendor' && (
-        <Tab.Screen name="Business">
-          {(props) => {
-            const routeParams = props.route?.params || {};
-            return (
-              <VendorDashboard
-                {...props}
-                vendor={vendorData}
-                onUpdateVendor={setVendorData}
-                isVendor={true}
-                targetTab={routeParams.targetTab}
-                launchAddProduct={routeParams.launchAddProduct}
-                launchAddProductType={routeParams.launchAddProductType}
-              />
-            );
-          }}
-        </Tab.Screen>
+    <View style={{ flex: 1 }}>
+      {showGlobalHeader && (
+        <Header 
+          locationState={locationState}
+          onMenuClick={onMenuClick}
+          onProfileClick={onProfileClick}
+          onNotificationClick={onNotificationClick}
+          onLocationChange={onLocationChange}
+        />
       )}
-      <Tab.Screen name="Offers">
-        {(props) => (
-          <OffersScreen
-            {...props}
-            locationState={{ city: 'Delhi, India', lat: null, lng: null, loading: false, error: null }}
-          />
-        )}
-      </Tab.Screen>
-      <Tab.Screen name="Saved">
-        {(props) => (
-          <SavedScreen
-            {...props}
-            savedIds={savedBusinessIds}
-            onToggleSave={(id) => {
-              setSavedBusinessIds(prev =>
-                prev.includes(id) ? prev.filter(savedId => savedId !== id) : [...prev, id]
-              );
-            }}
-          />
-        )}
-      </Tab.Screen>
-      <Tab.Screen name="Cart" component={CartScreen} />
-    </Tab.Navigator>
+      <Tab.Navigator
+        initialRouteName={initialRouteName}
+        screenOptions={({ route }) => {
+          let iconName;
+          if (route.name === 'Home') {
+            iconName = 'home';
+          } else if (route.name === 'Categories') {
+            iconName = 'grid';
+          } else if (route.name === 'Compare') {
+            iconName = 'shuffle';
+          } else if (route.name === 'Saved') {
+            iconName = 'bookmark';
+          } else if (route.name === 'Profile') {
+            iconName = 'user';
+          }
 
+          return {
+            tabBarIcon: ({ focused }) => {
+              return <Icon name={iconName} size={22} color={focused ? '#F97316' : '#94A3B8'} />;
+            },
+            tabBarLabel: route.name,
+            tabBarLabelStyle: {
+              fontSize: 10,
+              fontWeight: '700',
+              marginTop: 2,
+            },
+            tabBarActiveTintColor: '#F97316',
+            tabBarInactiveTintColor: '#94A3B8',
+            headerShown: false,
+            tabBarStyle: [
+              styles.tabBar,
+              {
+                paddingBottom: Math.max(insets.bottom, 8),
+                height: 56 + Math.max(insets.bottom, 8),
+                backgroundColor: '#FFF',
+                borderTopWidth: 1,
+                borderTopColor: '#F1F5F9',
+              }
+            ],
+            tabBarItemStyle: styles.tabBarItem,
+          };
+        }}
+      >
+        <Tab.Screen name="Home">
+          {(props) => <HomeScreen {...props} locationState={locationState} setLocationState={onLocationChange} />}
+        </Tab.Screen>
+        <Tab.Screen name="Categories">
+          {(props) => <CategoriesScreen {...props} locationState={locationState} />}
+        </Tab.Screen>
+        <Tab.Screen name="Compare">
+          {(props) => <SearchScreen {...props} locationState={locationState} />}
+        </Tab.Screen>
+        <Tab.Screen name="Saved">
+          {(props) => (
+            <SavedScreen
+              {...props}
+              savedIds={savedBusinessIds}
+              onToggleSave={(id) => {
+                setSavedBusinessIds(prev =>
+                  prev.includes(id) ? prev.filter(savedId => savedId !== id) : [...prev, id]
+                );
+              }}
+            />
+          )}
+        </Tab.Screen>
+         <Tab.Screen name="Profile">
+            {(props) => (
+               <SettingsScreen
+                  {...props}
+                  currentTheme="default"
+                  userRole={userRole}
+                  profileData={userRole === 'vendor' ? vendorData : (userData || { name: 'User', mobile: '', location: '', email: '' })}
+                  savedBusinessIds={savedBusinessIds}
+                  onUpdateProfile={(data) => {
+                     if (userRole === 'vendor') {
+                        setVendorData(data);
+                     } else {
+                        setUserData(prev => ({ ...prev, ...data }));
+                     }
+                  }}
+                  onLogout={handleLogout}
+               />
+            )}
+         </Tab.Screen>
+      </Tab.Navigator>
+    </View>
   );
 }
 
@@ -295,9 +287,20 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isUserRegistering, setIsUserRegistering] = useState(false);
+  const [userData, setUserData] = useState(null);
   const [savedBusinessIds, setSavedBusinessIds] = useState([]);
   const [initialRoute, setInitialRoute] = useState('Home');
-  const [userData, setUserData] = useState(null);
+  const [locationState, setLocationState] = useState({
+    lat: null,
+    lng: null,
+    displayLabel: 'Delhi, India',
+    city: 'Delhi',
+    circle: '',
+    town: '',
+    fullAddress: 'Delhi, India',
+    loading: false,
+    error: null,
+  });
   const navigationRef = useRef(null);
 
   // Set sidebar control for all screens - set immediately
@@ -596,7 +599,15 @@ function App() {
                     setVendorData={setVendorData}
                     savedBusinessIds={savedBusinessIds}
                     setSavedBusinessIds={setSavedBusinessIds}
-                    initialRouteName={initialRoute}
+                     locationState={locationState}
+                     onLocationChange={setLocationState}
+                     onMenuClick={() => setIsSidebarOpen(true)}
+                     onProfileClick={() => navigationRef.current?.navigate('Settings')}
+                     onNotificationClick={() => navigationRef.current?.navigate('Notifications')}
+                     userData={userData}
+                     setUserData={setUserData}
+                     handleLogout={handleLogout}
+                     initialRouteName={initialRoute}
                   />
                 )}
               </Stack.Screen>

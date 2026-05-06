@@ -1,0 +1,89 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:preReleaseBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseBuildConfig
+> Task :react-native-gesture-handler:generateReleaseResValues
+> Task :react-native-gesture-handler:generateReleaseResources
+> Task :react-native-gesture-handler:packageReleaseResources
+> Task :react-native-gesture-handler:parseReleaseLocalResources
+> Task :react-native-gesture-handler:generateReleaseRFile
+
+> Task :react-native-gesture-handler:compileReleaseKotlin FAILED
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:51:3 'setForeground' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:56:3 'setBorderless' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:61:3 'setEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:91:3 'setBorderWidth' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:96:3 'setBorderColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:101:3 'setBorderStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:106:3 'setRippleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:111:3 'setRippleRadius' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:116:3 'setExclusive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:121:3 'setTouchSoundDisabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:130:12 Cannot access 'field mDelegate: ViewManagerDelegate<T!>?': it is private in 'com/facebook/react/uimanager/ViewManager'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:130:12 Return type mismatch: expected 'ViewManagerDelegate<RNGestureHandlerButtonViewManager.ButtonViewGroup>?', actual 'ViewManagerDelegate<(T (of class ViewManager<T : View!, C : (ReactShadowNode<(ReactShadowNode<ReactShadowNode<*>!>..ReactShadowNode<*>?)>..ReactShadowNode<*>?)>)..T? (of class ViewManager<T : View!, C : (ReactShadowNode<(ReactShadowNode<ReactShadowNode<*>!>..ReactShadowNode<*>?)>..ReactShadowNode<*>?)>))>?'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:371:3 'createGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:382:3 'attachGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:409:3 'updateGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:416:3 'dropGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:423:3 'handleSetJSResponder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:430:3 'handleClearJSResponder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:434:3 'flushOperations' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:450:3 'install' overrides nothing.
+
+[Incubating] Problems report is available at: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':react-native-gesture-handler:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 7s
+17 actionable tasks: 7 executed, 10 up-to-date

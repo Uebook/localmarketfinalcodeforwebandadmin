@@ -1,0 +1,244 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:preReleaseBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseResValues UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseResources UP-TO-DATE
+> Task :react-native-gesture-handler:packageReleaseResources UP-TO-DATE
+> Task :react-native-gesture-handler:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseRFile UP-TO-DATE
+
+> Task :react-native-gesture-handler:compileReleaseKotlin FAILED
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:53 Property delegate must have a 'getValue(RNGestureHandlerPackage, KProperty1<RNGestureHandlerPackage, Map<String, ModuleSpec>>)' method. None of the following functions is applicable:
+fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Not enough information to infer type argument for 'T'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:56 Not enough information to infer type argument for 'T'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:23:61 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:24:5 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:24:5 Not enough information to infer type argument for 'K'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:24:5 Not enough information to infer type argument for 'V'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:25:7 Argument type mismatch: actual type is 'Pair<String, ModuleSpec>', but 'Pair<K (of fun <K, V> mapOf), V (of fun <K, V> mapOf)>' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:7 Argument type mismatch: actual type is 'Pair<A (of fun <A, B> A.to), B (of fun <A, B> A.to)>', but 'Pair<K (of fun <K, V> mapOf), V (of fun <K, V> mapOf)>' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:41 Unresolved reference 'REACT_CLASS'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:53 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:28:53 Not enough information to infer type argument for 'B'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/core/NativeViewGestureHandler.kt:90:51 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:36:77 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:38:55 Unresolved reference 'REACT_CLASS'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:39:1 Class 'RNGestureHandlerButtonViewManager' is not abstract and does not implement abstract members:
+fun setForeground(view: T!, value: Boolean): Unit
+fun setBorderless(view: T!, value: Boolean): Unit
+fun setEnabled(view: T!, value: Boolean): Unit
+fun setBorderWidth(view: T!, value: Float): Unit
+fun setBorderColor(view: T!, value: Int?): Unit
+fun setBorderStyle(view: T!, value: String?): Unit
+fun setRippleColor(view: T!, value: Int?): Unit
+fun setRippleRadius(view: T!, value: Int): Unit
+fun setExclusive(view: T!, value: Boolean): Unit
+fun setTouchSoundDisabled(view: T!, value: Boolean): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:39:60 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:39:119 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:43:5 Cannot access 'field mDelegate: ViewManagerDelegate<T!>?': it is private in 'com/facebook/react/uimanager/ViewManager'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:43:55 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:43:72 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNGestureHandlerButtonManagerInterface<ERROR CLASS: Symbol not found for ButtonViewGroup>!'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:43:107 Argument type mismatch: actual type is 'RNGestureHandlerButtonViewManager', but 'RNGestureHandlerButtonViewManager!' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:46:28 Unresolved reference 'REACT_CLASS'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:48:73 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:52:3 'setForeground' overrides nothing. Potential signatures for overriding:
+fun setForeground(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Boolean): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:52:36 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:53:10 Unresolved reference 'useDrawableOnForeground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:57:3 'setBorderless' overrides nothing. Potential signatures for overriding:
+fun setBorderless(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Boolean): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:57:36 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:58:10 Unresolved reference 'useBorderlessDrawable'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:62:3 'setEnabled' overrides nothing. Potential signatures for overriding:
+fun setEnabled(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Boolean): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:62:33 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:63:10 Unresolved reference 'isEnabled'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:67:3 'setBorderRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:67:38 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:68:10 Unresolved reference 'borderRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:72:3 'setBorderTopLeftRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderTopLeftRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:72:45 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:73:10 Unresolved reference 'borderTopLeftRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:77:3 'setBorderTopRightRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderTopRightRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:77:46 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:78:10 Unresolved reference 'borderTopRightRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:82:3 'setBorderBottomLeftRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderBottomLeftRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:82:48 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:83:10 Unresolved reference 'borderBottomLeftRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:87:3 'setBorderBottomRightRadius' overrides nothing. Potential signatures for overriding:
+fun setBorderBottomRightRadius(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:87:49 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:88:10 Unresolved reference 'borderBottomRightRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:92:3 'setBorderWidth' overrides nothing. Potential signatures for overriding:
+fun setBorderWidth(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Float): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:92:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:93:10 Unresolved reference 'borderWidth'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:97:3 'setBorderColor' overrides nothing. Potential signatures for overriding:
+fun setBorderColor(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Int?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:97:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:98:10 Unresolved reference 'borderColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:102:3 'setBorderStyle' overrides nothing. Potential signatures for overriding:
+fun setBorderStyle(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: String?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:102:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:103:10 Unresolved reference 'borderStyle'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:107:3 'setRippleColor' overrides nothing. Potential signatures for overriding:
+fun setRippleColor(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Int?): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:107:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:108:10 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:112:3 'setRippleRadius' overrides nothing. Potential signatures for overriding:
+fun setRippleRadius(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Int): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:112:38 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:113:10 Unresolved reference 'rippleRadius'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:117:3 'setExclusive' overrides nothing. Potential signatures for overriding:
+fun setExclusive(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Boolean): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:117:35 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:118:10 Unresolved reference 'exclusive'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:122:3 'setTouchSoundDisabled' overrides nothing. Potential signatures for overriding:
+fun setTouchSoundDisabled(view: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, value: Boolean): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:122:44 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:123:10 Unresolved reference 'isSoundEffectsEnabled'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:126:3 'onAfterUpdateTransaction' overrides nothing. Potential signatures for overriding:
+fun onAfterUpdateTransaction(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:126:47 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:127:10 Unresolved reference 'updateBackground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:7 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:10 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:11 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:16 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:18 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:20 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:41 Syntax error: Expecting member declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:131:41 Function declaration must have a name.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:132:9 Unresolved reference 'field'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:132:17 Unresolved reference 'color'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:146:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:150:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:154:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:158:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:162:26 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:166:25 Unresolved reference 'resources'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:196:7 Unresolved reference 'setOnClickListener'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:197:7 Unresolved reference 'isClickable'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:198:7 Unresolved reference 'isFocusable'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:200:7 Unresolved reference 'clipChildren'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:232:5 'setBackgroundColor' overrides nothing. Potential signatures for overriding:
+fun setBackgroundColor(p0: <ERROR TYPE REF: Symbol not found for ButtonViewGroup>, p1: Int): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:236:5 'onInterceptTouchEvent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:237:17 Unresolved reference 'onInterceptTouchEvent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:243:14 Unresolved reference 'isPressed'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:264:5 'onTouchEvent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:276:22 Unresolved reference 'onTouchEvent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:289:7 Unresolved reference 'background'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:300:9 Unresolved reference 'background'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:304:9 Unresolved reference 'foreground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:317:9 Unresolved reference 'foreground'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:321:59 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:322:9 Unresolved reference 'background'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:349:11 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:355:32 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:356:33 Unresolved reference 'rippleColor'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:360:9 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:378:5 'onLayout' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:382:5 'drawableHotspotChanged' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:383:37 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:384:15 Unresolved reference 'drawableHotspotChanged'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:388:5 'canBegin' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:400:5 'afterGestureEnd' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:422:9 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:424:11 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:424:27 Unresolved reference 'exclusive'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:428:64 None of the following candidates is applicable:
+val Menu.children: Sequence<MenuItem>
+val ViewGroup.children: Sequence<View>
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:430:22 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:430:48 Unresolved reference 'isTouched'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:442:5 'onKeyUp' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:444:20 Unresolved reference 'onKeyUp'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:447:5 'performClick' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:452:13 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:453:64 Argument type mismatch: actual type is 'RNGestureHandlerButtonViewManager', but 'View' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:455:64 Argument type mismatch: actual type is 'RNGestureHandlerButtonViewManager', but 'View' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:462:17 Unresolved reference 'performClick'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:471:5 'setPressed' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:484:70 Unresolved reference 'exclusive'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:490:15 Unresolved reference 'setPressed'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:498:5 'dispatchDrawableHotspotChanged' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:504:38 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:519:27 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:520:27 Unresolved reference 'ButtonViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:525:3 Modifier 'companion' is not applicable inside 'file'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:525:19 Syntax error: Name expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:528:1 Syntax error: Expecting a top level declaration.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:16:1 Class 'RNGestureHandlerRootViewManager' is not abstract and does not implement abstract base class member:
+fun getName(): String
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:22:5 Cannot access 'field mDelegate: ViewManagerDelegate<T!>?': it is private in 'com/facebook/react/uimanager/ViewManager'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:22:17 Assignment type mismatch: actual type is 'RNGestureHandlerRootViewManagerDelegate<RNGestureHandlerRootView, RNGestureHandlerRootViewManager>', but 'ViewManagerDelegate<(T (of class ViewManager<T : View!, C : (ReactShadowNode<(ReactShadowNode<ReactShadowNode<*>!>..ReactShadowNode<*>?)>..ReactShadowNode<*>?)>)..T? (of class ViewManager<T : View!, C : (ReactShadowNode<(ReactShadowNode<ReactShadowNode<*>!>..ReactShadowNode<*>?)>..ReactShadowNode<*>?)>))>?' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:22:83 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNGestureHandlerRootViewManagerInterface<RNGestureHandlerRootView!>!'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:22:116 Argument type mismatch: actual type is 'RNGestureHandlerRootViewManager', but 'RNGestureHandlerRootViewManager!' was expected.
+
+[Incubating] Problems report is available at: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':react-native-gesture-handler:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 6s
+17 actionable tasks: 1 executed, 16 up-to-date

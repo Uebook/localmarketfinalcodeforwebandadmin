@@ -1,0 +1,140 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Task :app:generateAutolinkingNewArchitectureFiles UP-TO-DATE
+> Task :app:generateAutolinkingPackageList UP-TO-DATE
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :app:generateReactNativeEntryPoint UP-TO-DATE
+> Task :react-native-async-storage_async-storage:preBuild UP-TO-DATE
+> Task :react-native-community_geolocation:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenSchemaFromJavaScript
+
+> Task :react-native-gesture-handler:generateCodegenArtifactsFromSchema
+Skipping Codegen Artifacts generation for legacy bridge stability.
+
+> Task :react-native-gesture-handler:preBuild
+> Task :react-native-image-picker:preBuild UP-TO-DATE
+> Task :react-native-linear-gradient:preBuild UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-safe-area-context:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-safe-area-context:preBuild UP-TO-DATE
+> Task :react-native-screens:generateCodegenSchemaFromJavaScript
+
+> Task :react-native-screens:generateCodegenArtifactsFromSchema
+Skipping Codegen Artifacts generation for legacy bridge stability.
+
+> Task :react-native-screens:preBuild
+> Task :react-native-vector-icons:preBuild UP-TO-DATE
+> Task :app:preBuild
+> Task :app:preReleaseBuild
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a]
+> Task :app:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app:buildCMakeRelWithDebInfo[armeabi-v7a]
+> Task :app:configureCMakeRelWithDebInfo[x86]
+> Task :app:buildCMakeRelWithDebInfo[x86]
+> Task :app:configureCMakeRelWithDebInfo[x86_64]
+> Task :app:buildCMakeRelWithDebInfo[x86_64]
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-async-storage_async-storage:preReleaseBuild UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-async-storage_async-storage:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-community_geolocation:preReleaseBuild UP-TO-DATE
+> Task :react-native-community_geolocation:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :react-native-community_geolocation:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-community_geolocation:copyReleaseJniLibsProjectOnly UP-TO-DATE
+> Task :react-native-gesture-handler:preReleaseBuild
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[arm64-v8a]
+
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[arm64-v8a] FAILED
+C/C++: ninja: Entering directory `/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/.cxx/RelWithDebInfo/4s3cs6o1/arm64-v8a'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android24 --sysroot=/Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dgesturehandler_EXPORTS -I/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native/ReactCommon -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/reactnative/include -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/jsi/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -O2 -frtti -fexceptions -Wall -Werror -std=c++20 -DANDROID -O2 -g -DNDEBUG -fPIC -DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_MOBILE=1 -DFOLLY_HAVE_RECVMMSG=1 -DFOLLY_HAVE_PTHREAD=1 -DFOLLY_HAVE_XSI_STRERROR_R=1 -MD -MT CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -MF CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o.d -o CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -c /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:22:35: error: use of undeclared identifier 'shadowNodeFromValue'; did you mean 'shadowNodeListFromValue'?
+C/C++:    22 |                 auto shadowNode = shadowNodeFromValue(runtime, arguments[0]);
+C/C++:       |                                   ^~~~~~~~~~~~~~~~~~~
+C/C++:       |                                   shadowNodeListFromValue
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native/ReactCommon/react/renderer/uimanager/primitives.h:51:48: note: 'shadowNodeListFromValue' declared here
+C/C++:    51 | inline static ShadowNode::UnsharedListOfShared shadowNodeListFromValue(jsi::Runtime &runtime, const jsi::Value &value)
+C/C++:       |                                                ^
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:23:59: error: no member named 'getTraits' in 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>'
+C/C++:    23 |                 bool isFormsStackingContext = shadowNode->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+C/C++:       |                                               ~~~~~~~~~~~~^
+C/C++: 2 errors generated.
+
+[Incubating] Problems report is available at: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':react-native-gesture-handler:buildCMakeRelWithDebInfo[arm64-v8a]'.
+> com.android.ide.common.process.ProcessException: ninja: Entering directory `/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/.cxx/RelWithDebInfo/4s3cs6o1/arm64-v8a'
+  [1/2] Building CXX object CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o
+  FAILED: CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o 
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android24 --sysroot=/Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dgesturehandler_EXPORTS -I/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native/ReactCommon -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/reactnative/include -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/jsi/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -O2 -frtti -fexceptions -Wall -Werror -std=c++20 -DANDROID -O2 -g -DNDEBUG -fPIC -DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_MOBILE=1 -DFOLLY_HAVE_RECVMMSG=1 -DFOLLY_HAVE_PTHREAD=1 -DFOLLY_HAVE_XSI_STRERROR_R=1 -MD -MT CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -MF CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o.d -o CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -c /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:22:35: error: use of undeclared identifier 'shadowNodeFromValue'; did you mean 'shadowNodeListFromValue'?
+     22 |                 auto shadowNode = shadowNodeFromValue(runtime, arguments[0]);
+        |                                   ^~~~~~~~~~~~~~~~~~~
+        |                                   shadowNodeListFromValue
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native/ReactCommon/react/renderer/uimanager/primitives.h:51:48: note: 'shadowNodeListFromValue' declared here
+     51 | inline static ShadowNode::UnsharedListOfShared shadowNodeListFromValue(jsi::Runtime &runtime, const jsi::Value &value)
+        |                                                ^
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:23:59: error: no member named 'getTraits' in 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>'
+     23 |                 bool isFormsStackingContext = shadowNode->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+        |                                               ~~~~~~~~~~~~^
+  2 errors generated.
+  ninja: build stopped: subcommand failed.
+  
+  C++ build system [build] failed while executing:
+      /Users/vansh/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+        -C \
+        /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/.cxx/RelWithDebInfo/4s3cs6o1/arm64-v8a \
+        gesturehandler
+    from /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 12s
+34 actionable tasks: 14 executed, 20 up-to-date

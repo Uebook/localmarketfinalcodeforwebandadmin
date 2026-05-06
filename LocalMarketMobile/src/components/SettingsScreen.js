@@ -1,22 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,  ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, ActivityIndicator, StatusBar, Platform } from 'react-native';
 import Image from './ImageWithFallback';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
-// Import COLORS with safe fallback - SettingsScreen uses themeColors from context, not COLORS directly
-let COLORS = {};
-try {
-  const colorsModule = require('../constants/colors');
-  COLORS = colorsModule.COLORS || colorsModule.default || {};
-} catch (error) {
-  console.error('Error loading COLORS:', error);
-  COLORS = { orange: '#E86A2C', blue: '#4A6CF7', white: '#FFFFFF' };
-}
 import FeedbackForm from './FeedbackForm';
 import { FESTIVAL_THEMES } from '../constants/festivalThemes';
-import { getThemes, getUserTheme, updateUserTheme, getUser, updateUser } from '../services/api';
+import { getThemes, updateUserTheme, updateUser } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserId, updateUserData as updateStorageUserData } from '../utils/userStorage';
 import { useTheme } from './ThemeProvider';
@@ -32,151 +22,57 @@ const SettingsScreen = ({
   onLogout,
   onNavigateToBusiness
 }) => {
-  const { theme, themeColors, setTheme: setThemeContext } = useTheme();
+  const { theme, setTheme: setThemeContext } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [themes, setThemes] = useState([]);
   const [selectedTheme, setSelectedTheme] = useState(theme || currentTheme);
-  const [loadingThemes, setLoadingThemes] = useState(true);
+  const [loadingThemes, setLoadingThemes] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
-  const [apiProfileData, setApiProfileData] = useState(null);
-
-  // Use themeColors from context instead of COLORS constant
-  const COLORS = themeColors;
-  const styles = createStyles(COLORS);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [showThemePicker, setShowThemePicker] = useState(false);
 
   useEffect(() => {
-    // loadProfileFromAPI();
     loadThemes();
     loadUserTheme();
   }, []);
 
-  // Sync selected theme when theme changes from context
   useEffect(() => {
-    setSelectedTheme(theme || 'default');
-  }, [theme]);
-
-  useEffect(() => {
-    // Merge API data with passed profileData for completeness
-    const dataToUse = {
-      ...(profileData || {}),
-      ...(apiProfileData || {})
-    };
-
-    if (userRole === 'vendor') {
+    if (profileData) {
       setFormData({
-        name: dataToUse?.ownerName || dataToUse?.name || dataToUse?.full_name || '',
-        mobile: dataToUse?.contactNumber || dataToUse?.phone || dataToUse?.mobile || '',
-        location: dataToUse?.address || dataToUse?.location || '',
-        email: dataToUse?.email || '',
-        photo: dataToUse?.ownerPhotoUrl || dataToUse?.profilePhotoUrl || dataToUse?.imageUrl || ''
-      });
-    } else {
-      setFormData({
-        name: dataToUse?.name || dataToUse?.full_name || '',
-        mobile: dataToUse?.phone || dataToUse?.mobile || '',
-        location: dataToUse?.location || `${dataToUse?.city || ''}${dataToUse?.state ? `, ${dataToUse.state}` : ''}`.trim(),
-        email: dataToUse?.email || '',
-        photo: dataToUse?.profilePhotoUrl || ''
+        name: profileData.name || profileData.full_name || profileData.ownerName || 'User',
+        mobile: profileData.mobile || profileData.phone || profileData.contactNumber || '',
+        location: profileData.location || profileData.address || '',
+        email: profileData.email || '',
+        photo: profileData.profilePhotoUrl || profileData.ownerPhotoUrl || profileData.imageUrl || ''
       });
     }
-  }, [apiProfileData, profileData, userRole]);
-
-  const loadProfileFromAPI = async () => {
-    try {
-      setLoadingProfile(true);
-      const userId = await getUserId();
-
-      if (!userId) {
-        console.log('No user ID found in storage');
-        setLoadingProfile(false);
-        return;
-      }
-
-      const userData = await getUser({ userId });
-
-      if (userData) {
-        setApiProfileData(userData);
-        // Update AsyncStorage with latest data
-        await updateStorageUserData(userData);
-      }
-    } catch (error) {
-      console.error('Error loading profile from API:', error);
-    } finally {
-      setLoadingProfile(false);
-    }
-  };
+  }, [profileData]);
 
   const loadThemes = async () => {
     try {
       setLoadingThemes(true);
       const apiThemes = await getThemes();
-
-      // Transform API themes to app format
-      const transformedThemes = [];
-
-      // Add default theme first
-      transformedThemes.push({
+      const transformedThemes = [{
         id: 'default',
-        name: 'Red & Orange (Default)',
+        name: 'Default (Red & Orange)',
         icon: '🎨',
-        description: 'Default theme',
-        color: COLORS.orange,
-        secondaryColor: COLORS.blue,
-        gradient: [COLORS.orange, COLORS.blue],
-      });
+        color: '#F97316',
+      }];
 
-      // Add API themes
       if (Array.isArray(apiThemes)) {
-        apiThemes.forEach(theme => {
+        apiThemes.forEach(t => {
           transformedThemes.push({
-            id: theme.id,
-            name: theme.name || theme.id,
-            icon: theme.icon || '🎨',
-            description: theme.description || '',
-            color: theme.colors?.primary || COLORS.orange,
-            secondaryColor: theme.colors?.secondary || COLORS.blue,
-            gradient: theme.colors ? [theme.colors.primary, theme.colors.secondary] : [COLORS.orange, COLORS.blue],
-          });
-        });
-      } else {
-        // Fallback to constants if API fails
-        Object.values(FESTIVAL_THEMES).forEach(theme => {
-          transformedThemes.push({
-            id: theme.id,
-            name: theme.name,
-            icon: theme.icon,
-            description: theme.description,
-            color: theme.colors.primary,
-            secondaryColor: theme.colors.secondary,
-            gradient: [theme.colors.primary, theme.colors.secondary],
+            id: t.id,
+            name: t.name || t.id,
+            icon: t.icon || '🎨',
+            color: t.colors?.primary || '#F97316',
           });
         });
       }
-
       setThemes(transformedThemes);
     } catch (error) {
       console.error('Error loading themes:', error);
-      // Fallback to constants
-      const fallbackThemes = Object.values(FESTIVAL_THEMES).map(theme => ({
-        id: theme.id,
-        name: theme.name,
-        icon: theme.icon,
-        description: theme.description,
-        color: theme.colors.primary,
-        secondaryColor: theme.colors.secondary,
-        gradient: [theme.colors.primary, theme.colors.secondary],
-      }));
-      fallbackThemes.unshift({
-        id: 'default',
-        name: 'Red & Orange (Default)',
-        icon: '🎨',
-        description: 'Default theme',
-        color: COLORS.orange,
-        secondaryColor: COLORS.blue,
-        gradient: [COLORS.orange, COLORS.blue],
-      });
-      setThemes(fallbackThemes);
     } finally {
       setLoadingThemes(false);
     }
@@ -184,594 +80,347 @@ const SettingsScreen = ({
 
   const loadUserTheme = async () => {
     try {
-      // Load theme from AsyncStorage to show what user has selected
       const savedTheme = await AsyncStorage.getItem('selectedFestivalTheme');
-      const themeToShow = savedTheme || theme || currentTheme || 'default';
-      setSelectedTheme(themeToShow);
-      console.log('✅ Loaded theme for Settings display:', themeToShow);
+      setSelectedTheme(savedTheme || theme || 'default');
     } catch (error) {
       console.error('Error loading user theme:', error);
-      // Fallback to theme from context
-      setSelectedTheme(theme || currentTheme || 'default');
     }
   };
-
-  // Sync selected theme when theme changes from context
-  useEffect(() => {
-    setSelectedTheme(theme || 'default');
-  }, [theme]);
 
   const handleThemeSelect = async (themeId) => {
     setSelectedTheme(themeId);
-
-    // Save theme to AsyncStorage FIRST (for immediate persistence)
     try {
       await AsyncStorage.setItem('selectedFestivalTheme', themeId);
-      console.log('✅ Theme saved to AsyncStorage:', themeId);
-    } catch (error) {
-      console.error('Error saving theme to AsyncStorage:', error);
-    }
-
-    // Update theme in context (this will update all components)
-    setThemeContext(themeId);
-
-    // Update theme in database (for sync across devices)
-    try {
+      setThemeContext(themeId);
       const userId = await AsyncStorage.getItem('userId');
-      const phone = await AsyncStorage.getItem('userPhone');
-      const email = await AsyncStorage.getItem('userEmail');
-
-      if (userId || phone || email) {
-        const response = await updateUserTheme({
-          userId,
-          phone,
-          email,
-          theme: themeId, // Use 'theme' instead of 'themeId' to match API
-        });
-
-        if (response && response.success !== false) {
-          console.log('✅ Theme updated in database:', themeId);
-        } else {
-          console.warn('Theme update response:', response);
-        }
+      if (userId) {
+        await updateUserTheme({ userId, theme: themeId });
       }
     } catch (error) {
-      console.error('Error updating user theme in database:', error);
-      // Still allow theme change even if API fails - theme is already saved locally
+      console.error('Error updating user theme:', error);
     }
-
-    // Notify parent component if callback provided
-    if (onThemeChange) {
-      onThemeChange(themeId);
-    }
+    if (onThemeChange) onThemeChange(themeId);
   };
 
-  const handleSave = async () => {
+  const handleSaveProfile = async () => {
     try {
+      setLoadingProfile(true);
       const userId = await getUserId();
+      if (!userId) return;
 
-      if (!userId) {
-        console.error('No user ID found');
-        setIsEditing(false);
-        return;
-      }
-
-      // Prepare update data based on role
-      let updateData = {
+      const updateData = {
         id: userId,
+        full_name: formData.name,
+        phone: formData.mobile,
+        email: formData.email,
       };
 
-      if (userRole === 'vendor') {
-        updateData.full_name = formData.name;
-        updateData.phone = formData.mobile;
-        updateData.email = formData.email;
-        // Note: Address/location might need separate handling for vendors
-      } else {
-        updateData.full_name = formData.name;
-        updateData.phone = formData.mobile;
-        updateData.email = formData.email;
-
-        // Parse location to extract state and city if possible
-        if (formData.location) {
-          const locationParts = formData.location.split(',').map(s => s.trim());
-          if (locationParts.length >= 2) {
-            updateData.city = locationParts[0];
-            updateData.state = locationParts.slice(1).join(', ');
-          } else if (locationParts.length === 1) {
-            updateData.city = locationParts[0];
-          }
-        }
-      }
-
-      // Update in API
       const response = await updateUser(updateData);
-
       if (response && response.user) {
-        // Update local state
-        setApiProfileData(response.user);
-
-        // Update AsyncStorage
-        await updateStorageUserData({
-          id: response.user.id,
-          name: response.user.full_name || response.user.name,
-          email: response.user.email,
-          phone: response.user.phone,
-          state: response.user.state,
-          city: response.user.city,
-        });
-
-        // Update parent component if callback provided
-        if (onUpdateProfile) {
-          if (userRole === 'vendor') {
-            onUpdateProfile({
-              ...profileData,
-              ownerName: formData.name,
-              contactNumber: formData.mobile,
-              address: formData.location,
-              email: formData.email,
-              ownerPhotoUrl: formData.photo
-            });
-          } else {
-            onUpdateProfile({
-              ...profileData,
-              name: formData.name,
-              mobile: formData.mobile,
-              location: formData.location,
-              email: formData.email,
-              profilePhotoUrl: formData.photo
-            });
-          }
-        }
+        await updateStorageUserData(response.user);
+        if (onUpdateProfile) onUpdateProfile(response.user);
       }
     } catch (error) {
       console.error('Error saving profile:', error);
-      // Still allow editing to close even if API fails
-    }
-
-    setIsEditing(false);
-  };
-
-  const getDisplayImage = () => {
-    if (formData.photo) return formData.photo;
-    if (userRole === 'vendor') {
-      return profileData?.ownerPhotoUrl || profileData?.imageUrl;
-    } else {
-      return profileData?.profilePhotoUrl;
+    } finally {
+      setLoadingProfile(false);
+      setIsEditing(false);
     }
   };
 
-  const displayImageUrl = getDisplayImage();
+  const renderInfoItem = (icon, label, value) => (
+    <View style={styles.infoItem}>
+      <View style={styles.infoIconContainer}>
+        <Icon name={icon} size={18} color="#64748B" />
+      </View>
+      <View style={styles.infoContent}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue}>{value || 'Not provided'}</Text>
+      </View>
+    </View>
+  );
 
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const renderActionItem = (icon, title, color, onPress) => (
+    <TouchableOpacity style={styles.actionItem} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.actionItemLeft}>
+        <View style={[styles.actionIconContainer, { backgroundColor: color + '10' }]}>
+          <Icon name={icon} size={20} color={color} />
+        </View>
+        <Text style={styles.actionTitle}>{title}</Text>
+      </View>
+      <Icon name="chevron-right" size={20} color="#CBD5E1" />
+    </TouchableOpacity>
+  );
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else if (navigation) {
-      navigation.goBack();
-    }
-  };
+  if (showFeedbackForm) {
+    return <FeedbackForm onBack={() => setShowFeedbackForm(false)} userRole={userRole} />;
+  }
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-            <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Profile & Settings</Text>
-          {isEditing ? (
-            <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.7}>
-              <Text style={styles.saveButtonText}>Save</Text>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Modern Header Section */}
+        <LinearGradient
+          colors={['#3B82F6', '#2563EB']}
+          style={styles.header}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.headerTop}>
+            <View />
+            <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.iconButton}>
+              <Icon name="edit-3" size={20} color="#FFF" />
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.editButton} activeOpacity={0.7}>
-              <Icon name={getIconName('Edit')} size={20} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </SafeAreaView>
-
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Loading Indicator */}
-        {loadingProfile && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.orange} />
-            <Text style={styles.loadingText}>Loading profile...</Text>
           </View>
-        )}
-
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <LinearGradient
-            colors={COLORS.primaryGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.profileHeader}
-          >
-            <View style={styles.profileImageContainer}>
-              {displayImageUrl ? (
-                <Image source={{ uri: displayImageUrl }} style={styles.profileImage} />
-              ) : (
-                <View style={styles.profileImagePlaceholder}>
-                  <Icon name={getIconName('User')} size={40} color={COLORS.textMuted} />
-                </View>
-              )}
-              {isEditing && (
-                <TouchableOpacity style={styles.cameraButton} activeOpacity={0.7}>
-                  <Icon name={getIconName('Camera')} size={12} color={COLORS.white} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </LinearGradient>
 
           <View style={styles.profileInfo}>
-            {!isEditing ? (
-              <>
-                <Text style={styles.profileName}>{formData.name || 'User'}</Text>
-                <View style={styles.roleBadge}>
-                  <Icon
-                    name={userRole === 'vendor' ? getIconName('Store') : getIconName('User')}
-                    size={12}
-                    color="#6b7280"
-                  />
-                  <Text style={styles.roleText}>
-                    {userRole === 'vendor' ? 'Local+ Account' : 'Customer Account'}
-                  </Text>
+            <View style={styles.avatarContainer}>
+              {formData.photo ? (
+                <Image source={{ uri: formData.photo }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Icon name="user" size={40} color="#3B82F6" />
                 </View>
+              )}
+            </View>
+            <View style={styles.nameSection}>
+              <Text style={styles.nameText}>{formData.name}</Text>
+              <View style={styles.roleContainer}>
+                 <Icon name={userRole === 'vendor' ? 'shopping-bag' : 'user'} size={12} color="rgba(255,255,255,0.7)" />
+                 <Text style={styles.roleText}>
+                   {userRole === 'vendor' ? 'Local+ Account' : 'Customer Account'}
+                 </Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* Profile Details Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Profile Details</Text>
+          <View style={styles.card}>
+            {renderInfoItem('phone', 'Mobile Number', formData.mobile)}
+            <View style={styles.divider} />
+            {renderInfoItem('mail', 'Email Address', formData.email)}
+            <View style={styles.divider} />
+            {renderInfoItem('map-pin', 'Location', formData.location)}
+          </View>
+        </View>
+
+        {/* Actions Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account Actions</Text>
+          <View style={styles.card}>
+            {userRole === 'vendor' && onNavigateToBusiness && (
+              <>
+                {renderActionItem('shopping-bag', 'Manage Business Profile', '#EF4444', onNavigateToBusiness)}
+                <View style={styles.divider} />
               </>
-            ) : (
-              <TextInput
-                style={styles.nameInput}
-                value={formData.name || ''}
-                onChangeText={(text) => setFormData({ ...formData, name: text })}
-                placeholder="Enter Name"
-                placeholderTextColor="#9ca3af"
-              />
             )}
-          </View>
-
-          {/* Personal Info Fields */}
-          <View style={styles.infoSection}>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIcon}>
-                <Icon name={getIconName('Phone')} size={16} color={COLORS.textMuted} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>MOBILE NUMBER</Text>
-                {isEditing ? (
-                  <TextInput
-                    style={styles.infoInput}
-                    value={formData.mobile || ''}
-                    onChangeText={(text) => setFormData({ ...formData, mobile: text })}
-                    keyboardType="phone-pad"
-                  />
+            {renderActionItem('palette', 'Festival Themes', '#F97316', () => setShowThemePicker(!showThemePicker))}
+            {showThemePicker && (
+              <View style={styles.themePickerContainer}>
+                {loadingThemes ? (
+                  <ActivityIndicator color="#3B82F6" />
                 ) : (
-                  <Text style={[styles.infoValue, !formData.mobile && styles.infoValueMissing]}>{formData.mobile || 'Not provided'}</Text>
+                  themes.map(t => (
+                    <TouchableOpacity 
+                      key={t.id} 
+                      style={[styles.themeItem, selectedTheme === t.id && styles.themeItemActive]}
+                      onPress={() => handleThemeSelect(t.id)}
+                    >
+                      <View style={[styles.themeColor, { backgroundColor: t.color }]} />
+                      <Text style={styles.themeName}>{t.name}</Text>
+                    </TouchableOpacity>
+                  ))
                 )}
               </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIcon}>
-                <Icon name={getIconName('Mail')} size={16} color={COLORS.textMuted} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>EMAIL ADDRESS</Text>
-                {isEditing ? (
-                  <TextInput
-                    style={styles.infoInput}
-                    value={formData.email || ''}
-                    onChangeText={(text) => setFormData({ ...formData, email: text })}
-                    keyboardType="email-address"
-                    placeholder="Add Email"
-                    placeholderTextColor={COLORS.textMuted}
-                  />
-                ) : (
-                  <Text style={[styles.infoValue, !formData.email && styles.infoValueMissing]}>{formData.email || 'Not provided'}</Text>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIcon}>
-                <Icon name={getIconName('MapPin')} size={16} color={COLORS.textMuted} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>LOCATION</Text>
-                {isEditing ? (
-                  <TextInput
-                    style={styles.infoInput}
-                    value={formData.location || ''}
-                    onChangeText={(text) => setFormData({ ...formData, location: text })}
-                  />
-                ) : (
-                  <Text style={[styles.infoValue, !formData.location && styles.infoValueMissing]}>{formData.location || 'Not provided'}</Text>
-                )}
-              </View>
-            </View>
+            )}
+            <View style={styles.divider} />
+            {renderActionItem('message-circle', 'Give Feedback', '#3B82F6', () => setShowFeedbackForm(true))}
           </View>
-
-          {userRole === 'vendor' && onNavigateToBusiness && (
-            <TouchableOpacity
-              style={styles.businessButton}
-              onPress={onNavigateToBusiness}
-              activeOpacity={0.7}
-            >
-              <Icon name={getIconName('Store')} size={16} color="#dc2626" />
-              <Text style={styles.businessButtonText}>Manage Business Profile</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Feedback Section */}
-        <View style={styles.settingsCard}>
-          <TouchableOpacity
-            style={styles.settingsItem}
-            onPress={() => setShowFeedbackForm(true)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.settingsItemLeft}>
-              <View style={[styles.settingsIcon, { backgroundColor: '#FFF4EC' }]}>
-                <Icon name="message-circle" size={20} color={COLORS.orange} />
-              </View>
-              <View style={styles.settingsText}>
-                <Text style={styles.settingsLabel}>Give Feedback</Text>
-                <Text style={styles.settingsDescription}>Share your thoughts and suggestions</Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Theme Settings */}
-        <View style={styles.themeCard}>
-          <View style={styles.themeHeader}>
-            <Icon name={getIconName('Palette')} size={20} color={COLORS.textMuted} />
-            <Text style={styles.themeTitle}>Festival Themes</Text>
-          </View>
-
-          {loadingThemes ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={COLORS.orange} />
-              <Text style={styles.loadingText}>Loading themes...</Text>
-            </View>
-          ) : (
-            <View style={styles.themeList}>
-              {themes.map(theme => (
-                <TouchableOpacity
-                  key={theme.id}
-                  onPress={() => handleThemeSelect(theme.id)}
-                  style={[
-                    styles.themeItem,
-                    selectedTheme === theme.id && styles.themeItemActive
-                  ]}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.themeItemContent}>
-                    {theme.gradient ? (
-                      <LinearGradient
-                        colors={theme.gradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.themeColorCircle}
-                      />
-                    ) : (
-                      <View style={[styles.themeColorCircle, { backgroundColor: theme.color }]} />
-                    )}
-                    <View style={styles.themeTextContainer}>
-                      <Text style={[
-                        styles.themeName,
-                        currentTheme === theme.id && styles.themeNameActive
-                      ]}>
-                        {theme.icon} {theme.name}
-                      </Text>
-                      {theme.description && (
-                        <Text style={styles.themeDescription}>{theme.description}</Text>
-                      )}
-                    </View>
-                  </View>
-                  {selectedTheme === theme.id && (
-                    <View style={styles.checkCircle}>
-                      <Icon name={getIconName('Check')} size={12} color={COLORS.textPrimary} />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={onLogout}
-          activeOpacity={0.7}
-        >
-          <Icon name={getIconName('LogOut')} size={18} color={COLORS.orange} />
+        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+          <Icon name="log-out" size={20} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
-        {/* App Info Section */}
-        <View style={styles.appInfoCard}>
-          <View style={styles.appIconContainer}>
-            <View style={styles.appIconWrapper}>
-              <Icon name="shopping-bag" size={48} color={COLORS.orange} />
-              <View style={styles.appIconBadge}>
-                <Icon name="check" size={14} color={COLORS.white} />
-              </View>
-            </View>
-          </View>
-          <Text style={styles.appName}>LOCAL</Text>
-          <Text style={styles.appTagline}>Your City, Your Market</Text>
-          <Text style={styles.versionText}>Version 1.0.3</Text>
+        {/* App Info */}
+        <View style={styles.appInfo}>
+           <Text style={styles.appName}>LOCAL MARKET</Text>
+           <Text style={styles.versionText}>Version 1.0.3</Text>
         </View>
       </ScrollView>
 
-      {/* Feedback Form Modal */}
-      {showFeedbackForm && (
-        <FeedbackForm
-          navigation={navigation}
-          onBack={() => setShowFeedbackForm(false)}
-          userRole={userRole}
-          onSubmit={(feedbackData) => {
-            console.log('Feedback submitted:', feedbackData);
-            setShowFeedbackForm(false);
-          }}
-        />
+      {/* Edit Profile Overlay */}
+      {isEditing && (
+        <View style={styles.editOverlay}>
+          <View style={styles.editCard}>
+            <Text style={styles.editTitle}>Edit Information</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.name}
+              onChangeText={(t) => setFormData({...formData, name: t})}
+              placeholder="Full Name"
+              placeholderTextColor="#94A3B8"
+            />
+            <TextInput
+              style={styles.input}
+              value={formData.mobile}
+              onChangeText={(t) => setFormData({...formData, mobile: t})}
+              placeholder="Mobile Number"
+              placeholderTextColor="#94A3B8"
+              keyboardType="phone-pad"
+            />
+            <TextInput
+              style={styles.input}
+              value={formData.email}
+              onChangeText={(t) => setFormData({...formData, email: t})}
+              placeholder="Email Address"
+              placeholderTextColor="#94A3B8"
+              keyboardType="email-address"
+            />
+            <View style={styles.editButtons}>
+              <TouchableOpacity onPress={() => setIsEditing(false)} style={styles.cancelButton}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSaveProfile} style={styles.saveButton}>
+                {loadingProfile ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.saveText}>Save Changes</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       )}
     </View>
   );
 };
 
-const createStyles = (COLORS) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6', // Light gray background
-  },
-  header: {
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
-  },
-  headerContent: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  saveButton: {
-    backgroundColor: COLORS.highlightBg,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.orange,
-  },
-  editButton: {
-    padding: 8,
+    backgroundColor: '#F8FAFC',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingTop: 16,
-    paddingBottom: 100,
-    gap: 24,
+    paddingBottom: 40,
   },
-  profileCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  profileHeader: {
-    height: 96,
-    position: 'relative',
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    marginBottom: 20,
   },
-  profileImageContainer: {
-    position: 'absolute',
-    bottom: -48,
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 4,
-    borderColor: COLORS.white,
-    backgroundColor: '#E5E7EB', // Light gray
-    overflow: 'hidden',
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-  },
-  profileImagePlaceholder: {
-    width: '100%',
-    height: '100%',
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#1e293b',
-    padding: 6,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
   profileInfo: {
-    paddingTop: 60,
-    paddingBottom: 24,
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  profileName: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 6,
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FFF',
+    padding: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  roleBadge: {
+  avatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 35,
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 35,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nameSection: {
+    marginLeft: 16,
+  },
+  nameText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFF',
+    marginBottom: 4,
+  },
+  roleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   roleText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+  },
+  section: {
+    marginTop: 24,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
     fontSize: 14,
-    color: COLORS.textMuted,
-    fontWeight: '500',
+    fontWeight: '800',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+    marginLeft: 4,
   },
-  nameInput: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e293b',
-    textAlign: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#d1d5db',
-    paddingBottom: 4,
-    minWidth: 200,
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
-  infoSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    gap: 16,
-  },
-  infoRow: {
+  infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    padding: 16,
   },
-  infoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: COLORS.divider,
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 16,
   },
   infoContent: {
     flex: 1,
@@ -779,275 +428,165 @@ const createStyles = (COLORS) => StyleSheet.create({
   infoLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textMuted,
-    textTransform: 'uppercase',
-    marginBottom: 4,
-    letterSpacing: 0.5,
+    color: '#94A3B8',
+    marginBottom: 2,
   },
   infoValue: {
     fontSize: 15,
-    fontWeight: '500',
-    color: COLORS.textPrimary,
+    fontWeight: '600',
+    color: '#1E293B',
   },
-  infoValueMissing: {
-    color: COLORS.textMuted,
-    fontStyle: 'italic',
-  },
-  infoInput: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1e293b',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingBottom: 4,
-  },
-  businessButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginHorizontal: 24,
-    marginBottom: 24,
-    paddingVertical: 12,
-    backgroundColor: '#fee2e2',
-    borderRadius: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-  },
-  businessButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#dc2626',
-  },
-  themeCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  themeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
-  },
-  themeTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  themeList: {
-    gap: 8,
-  },
-  themeItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: COLORS.white,
-  },
-  themeItemActive: {
-    backgroundColor: '#F3F4F6', // Light gray background
-    borderWidth: 1,
-    borderColor: COLORS.textMuted, // Dark gray border
-  },
-  themeItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  themeColorCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  themeName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  themeNameActive: {
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  themeTextContainer: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  themeDescription: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 2,
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  settingsCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    overflow: 'hidden',
-    marginBottom: 24,
-  },
-  settingsItem: {
+  actionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
   },
-  settingsItemLeft: {
+  actionItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
-  settingsIcon: {
+  actionIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
-  settingsText: {
-    flex: 1,
-  },
-  settingsLabel: {
-    fontSize: 16,
+  actionTitle: {
+    fontSize: 15,
     fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: 2,
+    color: '#334155',
   },
-  settingsDescription: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-  },
-  checkCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.textMuted, // Dark gray circle
-    alignItems: 'center',
-    justifyContent: 'center',
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginLeft: 72,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.orange,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: '#FFF',
+    marginHorizontal: 20,
+    marginTop: 32,
+    paddingVertical: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
   logoutText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.orange,
+    color: '#EF4444',
+    marginLeft: 8,
   },
-  versionText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 8,
-  },
-  appInfoCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    padding: 24,
+  appInfo: {
     alignItems: 'center',
-    marginTop: 8,
-  },
-  appIconContainer: {
-    marginBottom: 16,
-  },
-  appIconWrapper: {
-    width: 96,
-    height: 96,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 2,
-    borderColor: COLORS.divider,
-    position: 'relative',
-  },
-  appIconBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.orange,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.white,
+    marginTop: 32,
   },
   appName: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: '800',
-    color: COLORS.textPrimary,
+    color: '#CBD5E1',
     letterSpacing: 2,
-    marginBottom: 4,
   },
-  appTagline: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textMuted,
-    marginBottom: 12,
+  versionText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 4,
   },
-  loadingContainer: {
+  themePickerContainer: {
+    padding: 12,
+    backgroundColor: '#F8FAFC',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  themeItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    marginBottom: 16,
+    backgroundColor: '#FFF',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  loadingText: {
-    marginTop: 12,
+  themeItemActive: {
+    borderColor: '#3B82F6',
+    backgroundColor: '#EFF6FF',
+  },
+  themeColor: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 6,
+  },
+  themeName: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  editOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  editCard: {
+    width: '90%',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+  },
+  editTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
     fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+    color: '#1E293B',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  editButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: '#64748B',
+    fontWeight: '700',
+  },
+  saveButton: {
+    flex: 2,
+    backgroundColor: '#3B82F6',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  saveText: {
+    color: '#FFF',
+    fontWeight: '800',
   },
 });
 
 export default SettingsScreen;
-
-
-

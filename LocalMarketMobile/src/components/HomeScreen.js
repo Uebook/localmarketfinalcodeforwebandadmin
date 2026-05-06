@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from './Header';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -8,11 +9,12 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { setSidebarControl, getSidebarControl } from '../utils/sidebarControl';
 import { loadUserData, updateUserData } from '../utils/userStorage';
 import SearchBar from './SearchBar';
+import Icon from 'react-native-vector-icons/Feather';
 import TopCategoriesGrid from './TopCategoriesGrid';
 import NearbySection from './NearbySection';
 import HorizontalSection from './HorizontalSection';
 import PromoCarousel from './PromoCarousel';
-import { getCategories, detectLocation, getMegaSavings, getPriceDrops } from '../services/api';
+import { getCategories, detectLocation, getMegaSavings, getPriceDrops, getBrands } from '../services/api';
 
 import DraggableAIButton from './DraggableAIButton';
 
@@ -30,23 +32,16 @@ import SalesSection from './SalesSection';
 
 
 
-const HomeScreen = ({ navigation, route }) => {
+const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
-  const [locationState, setLocationState] = useState({
-    lat: null,
-    lng: null,
-    displayLabel: '', // UI string
-    city: '', // Technical city name
-    circle: '', // Technical circle name
-    town: '', // Technical town name
-    fullAddress: '',
-    loading: true,
-    error: null,
-  });
+
   const [categories, setCategories] = useState([]);
   const [megaSavingsData, setMegaSavingsData] = useState([]);
   const [priceDropsData, setPriceDropsData] = useState([]);
+  const [verifiedVendors, setVerifiedVendors] = useState([]);
+  const [nearbyCircles, setNearbyCircles] = useState([]);
+  const [premiumBrands, setPremiumBrands] = useState([]);
   const [loadingSections, setLoadingSections] = useState(false);
 
   // --- Fallback helpers defined at component scope so all functions can access them ---
@@ -174,10 +169,10 @@ const HomeScreen = ({ navigation, route }) => {
       Geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          try {
-            console.log('Detecting via GPS...', latitude, longitude);
-            const data = await detectLocation(latitude, longitude);
-            if (data && data.success) {
+            try {
+              console.log('Detecting via GPS...', latitude, longitude);
+              const data = await detectLocation(latitude, longitude);
+              if (data && data.success) {
               const displayLabel = data.displayLabel || 'Your Area';
               const city = data.address?.city || data.address?.town || '';
               
@@ -194,6 +189,10 @@ const HomeScreen = ({ navigation, route }) => {
                 state: data.address?.state || '',
               });
               return;
+            } else if (data && data.error === 'International location detected') {
+               console.warn("Detected location is outside India. Falling back to default...");
+               handleFallback();
+               return;
             }
           } catch (geocodeErr) {
             console.warn("GPS Geocoding failed, trying IP fallback...", geocodeErr);
@@ -252,17 +251,27 @@ const HomeScreen = ({ navigation, route }) => {
   const loadSectionsData = async (city, circle) => {
     setLoadingSections(true);
     try {
-      const [mega, drops] = await Promise.all([
+      const { getVendors, getCircles } = require('../services/api');
+      const [mega, drops, verifiedRes, circlesRes, brandsRes] = await Promise.all([
         getMegaSavings(city, circle).catch(() => []),
         getPriceDrops(city, circle).catch(() => []),
+        getVendors({ city, circle, verified: true, limit: 10 }).catch(() => ({ vendors: [] })),
+        getCircles(city).catch(() => ({ circles: [] })),
+        getBrands().catch(() => []),
       ]);
       // Guard: always store arrays to prevent .length crashes in child components
       setMegaSavingsData(Array.isArray(mega) ? mega : []);
       setPriceDropsData(Array.isArray(drops) ? drops : []);
+      setVerifiedVendors(verifiedRes?.vendors || []);
+      setNearbyCircles(circlesRes?.circles || []);
+      setPremiumBrands(Array.isArray(brandsRes) ? brandsRes : []);
     } catch (error) {
       console.error('Error loading sections data:', error);
       setMegaSavingsData([]);
       setPriceDropsData([]);
+      setVerifiedVendors([]);
+      setNearbyCircles([]);
+      setPremiumBrands([]);
     } finally {
       setLoadingSections(false);
     }
@@ -287,6 +296,7 @@ const HomeScreen = ({ navigation, route }) => {
         query: categoryName,
         categoryId: categoryId,
         isCategorySearch: true,
+        locationState: locationState, // Pass location context
       });
     }
   };
@@ -299,7 +309,10 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleSearch = (query) => {
     if (navigation && query) {
-      navigation.navigate('SearchResults', { query });
+      navigation.navigate('SearchResults', { 
+        query,
+        locationState: locationState // Pass location context
+      });
     }
   };
 
@@ -332,68 +345,203 @@ const HomeScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.whiteBackground} />
 
-      <Header
-        locationState={locationState}
-        onMenuClick={handleMenuClick}
-        onProfileClick={handleProfileClick}
-        onNotificationClick={handleNotificationClick}
-        onLocationRedetect={(manualResult) => {
-           if (manualResult && manualResult.city) {
-              fetchLocation(manualResult);
-           } else {
-              fetchLocation(null, true);
-           }
-        }}
-      />
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. Today's Cheapest Market — Hero Intelligence Card */}
-        <CheapestMarketCard 
-          navigation={navigation} 
-          city={locationState.city} 
-          circle={locationState.circle} 
-        />
+        {/* New Premium Hero Section */}
+        <View style={styles.premiumHero}>
+          <View style={styles.heroContent}>
+            <View style={styles.heroLeft}>
+              <Text style={styles.heroTitleMain}>Best Deals,</Text>
+              <Text style={styles.heroTitleAccent}>Nearby.</Text>
+              <Text style={styles.heroSubtitle}>
+                Compare prices from{"\n"}trusted local shops instantly.
+              </Text>
+            </View>
+            <View style={styles.heroRight}>
+              <Image 
+                source={require('../assets/lokall_shop_illustration.png')} 
+                style={styles.heroIllustration} 
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+          
+          <SearchBar 
+            onSearch={handleSearch} 
+            navigation={navigation} 
+            currentCity={locationState.city} 
+            locationState={locationState} 
+          />
+        </View>
 
-        {/* 2. Large Smart Search Bar */}
-        <SearchBar onSearch={handleSearch} navigation={navigation} currentCity={locationState.city} />
+        <View style={styles.mainContent}>
+          <View style={styles.sectionContainer}>
+            <CheapestMarketCard 
+              navigation={navigation} 
+              city={locationState.city} 
+              circle={locationState.circle} 
+            />
+          </View>
 
-        {/* 3. Nearby Circles */}
-        <NearbyCirclesSection locationState={locationState} navigation={navigation} />
+          {/* New Section: Verified Shops Nearby You */}
+          {verifiedVendors.length > 0 && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Verified Shops Nearby You</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('SearchResults', { verified: true, locationState })} style={styles.viewAllRow}>
+                  <Text style={styles.viewAllText}>View all</Text>
+                  <Icon name="arrow-right" size={14} color="#3B82F6" />
+                </TouchableOpacity>
+              </View>
+              <NearbySection 
+                vendors={verifiedVendors} 
+                onBusinessClick={handleBusinessClick} 
+              />
+            </View>
+          )}
 
-        {/* 4. Quick Category Icons */}
-        <TopCategoriesGrid
-          categories={categories.length > 0 ? categories.slice(0, 8) : []}
-          onCategorySelect={handleCategorySelect}
-          onViewAll={handleViewAllCategories}
-        />
+          {/* New Section: Nearby Markets (Circles) */}
+          {nearbyCircles.length > 0 && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Markets in {locationState.city}</Text>
+              </View>
+              <NearbyCirclesSection 
+                circles={nearbyCircles}
+                onCircleSelect={(circle) => {
+                  setLocationState(prev => ({ ...prev, circle: circle.name }));
+                  navigation.navigate('MarketScreen', { circle: circle.name, city: locationState.city });
+                }}
+              />
+            </View>
+          )}
 
-        {/* 5. Active Offer & Sale */}
-        <SalesSection locationState={locationState} navigation={navigation} />
+          {/* 2. Shop by Categories */}
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Shop by Categories</Text>
+              <TouchableOpacity onPress={handleViewAllCategories} style={styles.viewAllRow}>
+                <Text style={styles.viewAllText}>View all</Text>
+                <Icon name="arrow-right" size={14} color="#3B82F6" />
+              </TouchableOpacity>
+            </View>
+            <TopCategoriesGrid
+              categories={categories.length > 0 ? categories.slice(0, 8) : []}
+              onCategorySelect={handleCategorySelect}
+              onViewAll={handleViewAllCategories}
+            />
+          </View>
 
-        {/* 6. Trending Deals */}
-        <TodayDeals navigation={navigation} />
+          {/* 3. Middle Banner */}
+          <View style={styles.sectionContainer}>
+             <LinearGradient
+                colors={['#FEF3C7', '#FFFBEB']}
+                style={styles.middleBanner}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+             >
+                <View style={styles.bannerContent}>
+                   <Text style={styles.bannerSub}>Support local shops in</Text>
+                   <Text style={styles.bannerTitle}>{locationState.circle || locationState.town || locationState.city || 'Your Market'}</Text>
+                   <Text style={styles.bannerDesc}>Better prices, better deals!</Text>
+                   <TouchableOpacity 
+                     style={styles.bannerButton}
+                     onPress={() => navigation.navigate('MarketScreen', { circle: locationState.circle, city: locationState.city })}
+                   >
+                      <Text style={styles.bannerButtonText}>Shop Local</Text>
+                      <Icon name="arrow-right" size={14} color="#FFF" />
+                   </TouchableOpacity>
+                </View>
+                <View style={styles.bannerImageContainer}>
+                   {/* This would be the illustration of the man at the shop */}
+                   <Icon name="shopping-bag" size={60} color="#F59E0B" />
+                </View>
+             </LinearGradient>
+          </View>
 
-        {/* 7. Promo Carousel */}
-        <PromoCarousel />
+          {/* New Section: All India Mega Sales */}
+          {megaSavingsData.length > 0 && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>All India Mega Sales</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('SearchResults', { query: 'megasavings', locationState })} style={styles.viewAllRow}>
+                  <Text style={styles.viewAllText}>View all</Text>
+                  <Icon name="arrow-right" size={14} color="#3B82F6" />
+                </TouchableOpacity>
+              </View>
+              <MegaSavingsSection 
+                data={megaSavingsData} 
+                navigation={navigation} 
+              />
+            </View>
+          )}
 
-        {/* 8. Verified Nearby Shops */}
-        <NearbySection
-          onBusinessClick={handleBusinessClick}
-          onSeeAll={() => navigation.navigate('SearchResults', { query: 'Verified Shops' })}
-          locationState={locationState}
-        />
+          {/* 4. Trust Badges */}
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            style={styles.trustBadgesScroll}
+            contentContainerStyle={styles.trustBadgesContent}
+          >
+            {[
+              { icon: 'home', title: '100% Local Shops', desc: 'Direct from nearby stores' },
+              { icon: 'check-circle', title: 'Best Price Guarantee', desc: 'We show you the lowest price' },
+              { icon: 'shopping-cart', title: 'Save More', desc: 'Compare & save instantly' },
+              { icon: 'shield', title: 'Trusted & Verified', desc: 'Verified shops & reviews' },
+            ].map((badge, i) => (
+              <View key={i} style={styles.trustBadgeItem}>
+                <View style={styles.trustIconContainer}>
+                  <Icon name={badge.icon} size={20} color="#16A34A" />
+                </View>
+                <View>
+                  <Text style={styles.trustTitle}>{badge.title}</Text>
+                  <Text style={styles.trustDesc}>{badge.desc}</Text>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
 
-        {/* 9. Price Drop Alerts */}
-        <PriceDropAlerts data={priceDropsData} navigation={navigation} />
+          {/* 5. Premium Brands */}
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Premium Brands</Text>
+              <TouchableOpacity style={styles.viewAllRow} onPress={() => navigation.navigate('SearchResults', { query: 'premium', locationState })}>
+                <Text style={styles.viewAllText}>View all</Text>
+                <Icon name="arrow-right" size={14} color="#3B82F6" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.brandsScroll}>
+               {premiumBrands.map((brand, i) => (
+                 <TouchableOpacity 
+                   key={brand.id || i} 
+                   style={styles.brandCard}
+                   onPress={() => navigation.navigate('VendorDetails', { 
+                     business: {
+                       id: brand.id,
+                       shop_name: brand.name,
+                       category_name: brand.category,
+                       imageUrl: brand.logoUrl || brand.logo_url,
+                       description: brand.description,
+                       rating: 4.8,
+                       verified: true,
+                       isBrand: true
+                     } 
+                   })}
+                 >
+                    <Image source={{ uri: brand.logoUrl || brand.logo_url }} style={styles.brandImage} />
+                    <View style={styles.brandOverlay}>
+                      <Text style={styles.brandText}>{brand.name}</Text>
+                    </View>
+                 </TouchableOpacity>
+               ))}
+            </ScrollView>
+          </View>
 
-        {/* 10. Mega Savings: Local vs Online */}
-        <MegaSavingsSection data={megaSavingsData} navigation={navigation} />
+        </View>
       </ScrollView>
-
 
       <DraggableAIButton onPress={() => navigation.navigate('AIServiceFlow')} />
     </View>
@@ -403,19 +551,201 @@ const HomeScreen = ({ navigation, route }) => {
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
-    position: 'relative',
+    backgroundColor: '#FFFFFF',
   },
   whiteBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
   scrollView: {
     flex: 1,
-    backgroundColor: 'transparent',
   },
   scrollContent: {
     paddingBottom: 100,
-    backgroundColor: 'transparent',
+  },
+  premiumHero: {
+    backgroundColor: '#EFF6FF', // Light blue background
+    paddingBottom: 20,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  heroContent: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  heroLeft: {
+    flex: 1,
+  },
+  heroTitleMain: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#0F172A',
+    lineHeight: 36,
+  },
+  heroTitleAccent: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#F97316',
+    lineHeight: 36,
+    marginBottom: 10,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  heroRight: {
+    width: 140,
+    height: 140,
+  },
+  heroIllustration: {
+    width: '100%',
+    height: '100%',
+  },
+  mainContent: {
+    paddingTop: 10,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  viewAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#3B82F6',
+    marginRight: 4,
+  },
+  middleBanner: {
+    marginHorizontal: 16,
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bannerContent: {
+    flex: 1,
+  },
+  bannerSub: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  bannerTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginVertical: 4,
+  },
+  bannerDesc: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#B45309',
+    marginBottom: 15,
+  },
+  bannerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  bannerButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFF',
+    marginRight: 6,
+  },
+  bannerImageContainer: {
+    padding: 10,
+  },
+  trustBadgesScroll: {
+    marginBottom: 24,
+  },
+  trustBadgesContent: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  trustBadgeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    width: 200,
+  },
+  trustIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  trustTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  trustDesc: {
+    fontSize: 9,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  brandsScroll: {
+    paddingHorizontal: 16,
+  },
+  brandCard: {
+    width: 120,
+    height: 120,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 24,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  brandImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  brandOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  brandText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
 });
 

@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView,  TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
+import Logo from './Logo';
 
 const MegaSavingsSection = ({ data = [], navigation }) => {
   const COLORS = useThemeColors();
@@ -19,11 +20,11 @@ const MegaSavingsSection = ({ data = [], navigation }) => {
             <Icon name="trending-up" size={20} color="#16A34A" />
             <Text style={styles.title}>Mega Savings</Text>
           </View>
-          <Text style={styles.subtitle}>Local vs Online Price Comparison</Text>
+          <Text style={styles.subtitle}>Best Local Deals vs MRP</Text>
         </View>
         <View style={styles.verifiedBadge}>
           <Icon name="shield" size={12} color="#16A34A" />
-          <Text style={styles.verifiedText}>VERIFIED</Text>
+          <Text style={styles.verifiedText}>LOKALL VERIFIED</Text>
         </View>
       </View>
 
@@ -33,8 +34,9 @@ const MegaSavingsSection = ({ data = [], navigation }) => {
         contentContainerStyle={styles.scrollContent}
       >
         {safeData.map((item) => {
-          const savings = (item.online || 0) - (item.offline || 0);
-          const savingsPct = item.online > 0 ? Math.round((savings / item.online) * 100) : 0;
+          const savings = (item.mrp || 0) - (item.price || item.offline || 0);
+          const savingsPct = item.mrp > 0 ? Math.round((savings / item.mrp) * 100) : 0;
+          const displayImage = item.image || item.imageUrl || item.image_url || item.profile_image_url;
 
           return (
             <TouchableOpacity
@@ -44,15 +46,20 @@ const MegaSavingsSection = ({ data = [], navigation }) => {
               onPress={() => navigation?.navigate('VendorDetails', { business: item })}
             >
               <View style={styles.imageContainer}>
-                {item.image ? (
-                  <Image source={{ uri: item.image }} style={styles.image} />
+                {displayImage ? (
+                  <Image source={{ uri: displayImage }} style={styles.image} />
                 ) : (
                   <View style={styles.placeholderImage}>
                     <Icon name="image" size={24} color="#CBD5E1" />
                   </View>
                 )}
-                <View style={styles.savingsBadge}>
-                  <Text style={styles.savingsPct}>-{savingsPct}%</Text>
+                {savingsPct > 0 && (
+                  <View style={styles.savingsBadge}>
+                    <Text style={styles.savingsPct}>-{savingsPct}%</Text>
+                  </View>
+                )}
+                <View style={styles.vendorIconOverlay}>
+                    <Logo size={28} transparent={false} />
                 </View>
               </View>
 
@@ -60,25 +67,23 @@ const MegaSavingsSection = ({ data = [], navigation }) => {
                 <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
                 
                 <View style={styles.comparisonContainer}>
-                  {/* Online Price */}
+                  {/* MRP */}
                   <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Online</Text>
-                    <Text style={styles.onlinePrice}>₹{item.online}</Text>
+                    <Text style={styles.priceLabel}>MRP</Text>
+                    <Text style={styles.onlinePrice}>₹{item.mrp || '--'}</Text>
                   </View>
                   
-                  {/* Offline Price (Local) */}
+                  {/* Local Price */}
                   <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Local</Text>
-                    <Text style={styles.offlinePrice}>₹{item.offline}</Text>
-                  </View>
-
-                  {/* Comparison Bar */}
-                  <View style={styles.barContainer}>
-                    <View style={[styles.barOnline, { width: '100%' }]} />
-                    <View style={[styles.barOffline, { width: `${(item.offline / item.online) * 100}%` }]} />
+                    <Text style={styles.priceLabel}>Local Price</Text>
+                    <Text style={styles.offlinePrice}>₹{item.price || item.offline || '--'}</Text>
                   </View>
                   
-                  <Text style={styles.saveText}>Save ₹{savings} buying locally</Text>
+                  {savings > 0 ? (
+                    <Text style={styles.saveText}>Save ₹{savings} at local shop</Text>
+                  ) : (
+                    <Text style={styles.saveText}>Verified Local Deal</Text>
+                  )}
                 </View>
               </View>
             </TouchableOpacity>
@@ -171,17 +176,31 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   savingsBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 10,
+    left: 10,
     backgroundColor: '#16A34A',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
+    zIndex: 2,
   },
   savingsPct: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '900',
+  },
+  vendorIconOverlay: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    padding: 2,
+    zIndex: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   info: {
     padding: 16,
@@ -220,32 +239,12 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontWeight: '900',
     color: '#16A34A',
   },
-  barContainer: {
-    height: 6,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 3,
-    marginVertical: 8,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  barOnline: {
-    position: 'absolute',
-    height: '100%',
-    backgroundColor: '#CBD5E1',
-    borderRadius: 3,
-  },
-  barOffline: {
-    position: 'absolute',
-    height: '100%',
-    backgroundColor: '#16A34A',
-    borderRadius: 3,
-  },
   saveText: {
     fontSize: 10,
     fontWeight: '800',
     color: '#16A34A',
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 8,
     textTransform: 'uppercase',
   },
 });

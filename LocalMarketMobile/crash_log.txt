@@ -1,0 +1,57 @@
+--------- beginning of system
+--------- beginning of main
+04-20 21:06:45.199  6648  6648 E d.configupdate: Not starting debugger since process cannot load the jdwp agent.
+04-20 21:06:45.211  6659  6659 E oid.apps.photo: Not starting debugger since process cannot load the jdwp agent.
+04-20 21:06:49.325  6734  6734 E calmarketmobil: Not starting debugger since process cannot load the jdwp agent.
+04-20 21:06:49.603  6734  6734 E SoLoader: Checking /data/app missing libraries.
+04-20 21:06:49.603  6734  6734 E SoLoader: Successfully recovered from /data/app disk failure.
+04-20 21:06:49.603  6734  6734 E SoLoader: Checking /data/data missing libraries.
+04-20 21:06:49.603  6734  6734 E SoLoader: No libraries missing from unpacking so paths while recovering /data/data failure
+--------- beginning of crash
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: FATAL EXCEPTION: main
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: Process: com.localmarketmobile, PID: 6734
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: com.facebook.soloader.SoLoaderDSONotFoundError: couldn't find DSO to load: libhermestooling.so
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	existing SO sources: 
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 		SoSource 0: ApplicationSoSource[DirectorySoSource[root = /data/app/~~evVUOroSi_7C_PqYoOAvNQ==/com.localmarketmobile-L88Le1T5DubHWcxLE1e4_Q==/lib/arm64 flags = 0]]
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 		SoSource 1: DirectApkSoSource[root = [/data/app/~~evVUOroSi_7C_PqYoOAvNQ==/com.localmarketmobile-L88Le1T5DubHWcxLE1e4_Q==/base.apk!/lib/arm64-v8a]]
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 		SoSource 2: DirectorySoSource[root = /system/lib64 flags = 3]
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 		SoSource 3: DirectorySoSource[root = /vendor/lib64 flags = 3]
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	Native lib dir: /data/app/~~evVUOroSi_7C_PqYoOAvNQ==/com.localmarketmobile-L88Le1T5DubHWcxLE1e4_Q==/lib/arm64
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.soloader.SoLoader.doLoadLibraryBySoName(SoLoader.java:1216)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.soloader.SoLoader.loadLibraryBySoNameImpl(SoLoader.java:1078)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.soloader.SoLoader.loadLibraryBySoName(SoLoader.java:943)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.soloader.SoLoader.loadLibraryOnAndroid(SoLoader.java:859)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.soloader.SoLoader.loadLibrary(SoLoader.java:842)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.soloader.SoLoader.loadLibrary(SoLoader.java:812)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.runtime.hermes.HermesInstance.<clinit>(HermesInstance.kt:26)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost(DefaultReactHost.kt:93)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost$default(DefaultReactHost.kt:60)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.localmarketmobile.MainApplication.reactHost_delegate$lambda$1(MainApplication.kt:13)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.localmarketmobile.MainApplication.$r8$lambda$D5ZjafFp_d8yYZ0Jr8I0NreaYho(Unknown Source:0)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.localmarketmobile.MainApplication$$ExternalSyntheticLambda0.invoke(D8$$SyntheticClass:0)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:83)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.localmarketmobile.MainApplication.getReactHost(MainApplication.kt:12)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.ReactActivityDelegate.getReactHost(ReactActivityDelegate.java:109)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.ReactActivityDelegate.lambda$onCreate$0(ReactActivityDelegate.java:152)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.ReactActivityDelegate.$r8$lambda$HPdXfLmAU1y4Wc1XbwAHziPP2WA(Unknown Source:0)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.ReactActivityDelegate$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.systrace.Systrace.traceSection(Systrace.kt:35)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.ReactActivityDelegate.onCreate(ReactActivityDelegate.java:132)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.facebook.react.ReactActivity.onCreate(ReactActivity.java:61)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.localmarketmobile.MainActivity.onCreate(MainActivity.kt:18)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.Activity.performCreate(Activity.java:7994)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.Activity.performCreate(Activity.java:7978)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1309)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3422)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3601)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:85)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:135)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:95)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2066)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:223)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:7656)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)
+04-20 21:06:49.604  6734  6734 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)

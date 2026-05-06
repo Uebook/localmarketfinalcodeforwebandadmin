@@ -9,16 +9,9 @@ import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getSavedVendors, removeSavedVendor } from '../utils/savedVendors';
 
-const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
+const SavedScreen = ({ navigation, savedIds = [], onToggleSave, locationState }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
-  const [locationState] = useState({
-    lat: null,
-    lng: null,
-    city: 'Delhi, India',
-    loading: false,
-    error: null,
-  });
   const [savedItems, setSavedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -153,18 +146,8 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <LinearGradient
-          colors={COLORS.primaryGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientBackground}
-        />
-        <Header
-          locationState={locationState}
-          onMenuClick={handleMenuClick}
-          onProfileClick={handleProfileClick}
-          onNotificationClick={handleNotificationClick}
-        />
+
+
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.orange} />
           <Text style={styles.loadingText}>Loading saved items...</Text>
@@ -176,20 +159,9 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
   if (savedItems.length === 0) {
     return (
       <View style={styles.container}>
-        {/* Gradient Background */}
-        <LinearGradient
-          colors={COLORS.primaryGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientBackground}
-        />
 
-        <Header
-          locationState={locationState}
-          onMenuClick={handleMenuClick}
-          onProfileClick={handleProfileClick}
-          onNotificationClick={handleNotificationClick}
-        />
+
+
 
         <View style={styles.emptyContainer}>
           <View style={styles.emptyCard}>
@@ -215,20 +187,9 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave }) => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient Background */}
-      <LinearGradient
-        colors={COLORS.primaryGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.gradientBackground}
-      />
 
-      <Header
-        locationState={locationState}
-        onMenuClick={handleMenuClick}
-        onProfileClick={handleProfileClick}
-        onNotificationClick={handleNotificationClick}
-      />
+
+
 
       <FlatList
         data={savedItems}

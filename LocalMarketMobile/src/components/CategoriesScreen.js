@@ -2,27 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import Header from './Header';
 import CategoryGrid from './CategoryGrid';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getIconName } from '../utils/iconMapping';
 import Icon from 'react-native-vector-icons/Feather';
 import { getCategories } from '../services/api';
 
-const CategoriesScreen = ({ navigation, route }) => {
+const CategoriesScreen = ({ navigation, route, locationState }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [locationState] = React.useState({
-    lat: null,
-    lng: null,
-    city: 'Delhi, India',
-    loading: false,
-    error: null,
-  });
 
   useEffect(() => {
     loadCategories();
@@ -89,45 +81,34 @@ const CategoriesScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient Background */}
-      <LinearGradient
-        colors={COLORS.primaryGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.gradientBackground}
-      />
 
-      <Header
-        locationState={locationState}
-        onMenuClick={handleMenuClick}
-        onProfileClick={handleProfileClick}
-        onNotificationClick={handleNotificationClick}
-      />
 
-      <View style={styles.searchContainer}>
-        <Icon name="search" size={20} color={COLORS.textMuted} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search categories..."
-          placeholderTextColor={COLORS.textMuted}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Icon name="x" size={18} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        )}
-      </View>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroSection}>
+          <Text style={styles.heroTitle}>Discover Categories</Text>
+          <Text style={styles.heroSubtitle}>Find the best local products and services near you</Text>
+        </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search categories..."
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Icon name="x" size={18} color="#94A3B8" />
+            </TouchableOpacity>
+          )}
+        </View>
+
         <View style={styles.sectionHeader}>
           <View style={styles.orangeLine} />
           <Text style={styles.sectionTitle}>
-            {searchQuery ? 'Search Results' : 'All Categories'}
-          </Text>
-          <Text style={styles.sectionSubtitle}>
-            {searchQuery ? `Showing results for "${searchQuery}"` : 'Explore all available categories'}
+            {searchQuery ? 'Search Results' : 'Explore All'}
           </Text>
         </View>
 
@@ -188,33 +169,43 @@ const createStyles = (COLORS) => StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   scrollContent: {
-    paddingTop: 24,
+    paddingTop: 10,
     paddingBottom: 100,
     paddingHorizontal: 16,
+  },
+  heroSection: {
+    paddingVertical: 20,
+    paddingHorizontal: 4,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: -0.5,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 4,
+    fontWeight: '500',
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    paddingLeft: 4,
+    marginTop: 8,
+    marginBottom: 20,
   },
   orangeLine: {
     width: 4,
-    height: 24,
-    backgroundColor: COLORS.orange,
+    height: 20,
+    backgroundColor: '#F97316',
     borderRadius: 2,
-    marginRight: 12,
+    marginRight: 10,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 4,
-    marginLeft: 8,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E293B',
   },
   personalizationSection: {
     backgroundColor: COLORS.white,
@@ -258,14 +249,18 @@ const createStyles = (COLORS) => StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    marginHorizontal: 16,
-    marginVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    height: 48,
+    backgroundColor: '#FFF',
+    marginVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    height: 56,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
   },
   searchIcon: {
     marginRight: 8,

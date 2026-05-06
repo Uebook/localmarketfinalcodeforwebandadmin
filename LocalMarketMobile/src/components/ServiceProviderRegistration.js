@@ -25,6 +25,8 @@ const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
     alternateMobile: '',
     whatsappNumber: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     address: '',
     location: null,
     pincode: '',
@@ -33,6 +35,9 @@ const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
     idProofType: '',
     idProofUrl: '',
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const updateField = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -70,6 +75,18 @@ const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
         Alert.alert('Error', 'Please fill required fields (Service Type, Name, Mobile)');
         return;
       }
+      if (!formData.password) {
+        Alert.alert('Error', 'Password is required');
+        return;
+      }
+      if (formData.password.length < 6) {
+        Alert.alert('Error', 'Password must be at least 6 characters');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        Alert.alert('Error', 'Passwords do not match');
+        return;
+      }
     }
     if (step === 2) {
       if (!formData.address || !formData.pincode) {
@@ -92,12 +109,14 @@ const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
       id: `sp${Date.now()}`,
       vendorId: vendorId,
       category: formData.serviceType,
+      password: formData.password,
       rating: 0,
       reviewCount: 0,
       isServiceProvider: true,
       activationStatus: 'Pending',
       kycStatus: 'Pending',
     };
+
 
     if (onComplete) {
       onComplete(finalData);
@@ -211,6 +230,46 @@ const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
                 keyboardType="email-address"
                 placeholderTextColor={COLORS.textMuted}
               />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password *</Text>
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                  value={formData.password}
+                  onChangeText={(v) => updateField('password', v)}
+                  placeholder="At least 6 characters"
+                  secureTextEntry={!showPassword}
+                  placeholderTextColor={COLORS.textMuted}
+                />
+                <TouchableOpacity
+                  style={styles.passwordToggleButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Icon name={getIconName(showPassword ? 'EyeOff' : 'Eye')} size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Confirm Password *</Text>
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                  value={formData.confirmPassword}
+                  onChangeText={(v) => updateField('confirmPassword', v)}
+                  placeholder="Re-enter password"
+                  secureTextEntry={!showConfirmPassword}
+                  placeholderTextColor={COLORS.textMuted}
+                />
+                <TouchableOpacity
+                  style={styles.passwordToggleButton}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Icon name={getIconName(showConfirmPassword ? 'EyeOff' : 'Eye')} size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}
@@ -561,6 +620,26 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
   },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  passwordToggleButton: {
+    paddingHorizontal: 12,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    borderLeftWidth: 0,
+    backgroundColor: COLORS.white,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+  },
 });
 
 export default ServiceProviderRegistration;
+

@@ -10,6 +10,7 @@ const menuItems = [
   { id: 'price-verification', label: 'Price Verification', icon: '💰' },
   { id: 'payment-fees', label: 'Payment & Fees', icon: '💳' },
   { id: 'festive-offers', label: 'Festive Offers', icon: '🎉' },
+  { id: 'brands', label: 'Premium Brands', icon: '🏷️' },
   { id: 'banners', label: 'Banner Management', icon: '🖼️' },
   { id: 'featured', label: 'Home Featured', icon: '✨' },
   { id: 'e-auction', label: 'E-Auction & Draw', icon: '🎲' },

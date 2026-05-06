@@ -22,7 +22,8 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const allCategories = categories && categories.length > 0 ? categories : [];
-  // Show only 7 categories + View All button (8 items total)
+  
+  // Show only 8 items total (including View All)
   const displayCategories = allCategories.slice(0, 7);
 
   const handleCategoryPress = (category) => {
@@ -33,15 +34,6 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.titleContainer}>
-          <View style={styles.orangeLine} />
-          <View>
-            <Text style={styles.title}>All Categories</Text>
-            <Text style={styles.subtitle}>Explore all available categories</Text>
-          </View>
-        </View>
-      </View>
       <View style={styles.grid}>
         {displayCategories.map((category, index) => {
           const color = iconColors[index % iconColors.length];
@@ -60,27 +52,27 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
                     resizeMode="contain"
                   />
                 ) : (
-                  <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={24} color={color.text} />
+                  <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={22} color={color.text} />
                 )}
               </View>
-              <Text style={styles.categoryName} numberOfLines={2}>
+              <Text style={styles.categoryName} numberOfLines={1}>
                 {category.name}
               </Text>
             </TouchableOpacity>
           );
         })}
-        {/* View All button as 8th item in grid */}
-        {onViewAll && (
+        
+        {onViewAll && displayCategories.length > 0 && (
           <TouchableOpacity
             style={styles.categoryCard}
             onPress={onViewAll}
             activeOpacity={0.7}
           >
             <View style={styles.viewAllIconContainer}>
-              <Icon name={getIconName('ChevronRight')} size={24} color={COLORS.orange} />
+              <Icon name={getIconName('ChevronRight')} size={22} color={COLORS.orange} />
             </View>
-            <Text style={styles.viewAllCategoryText} numberOfLines={2}>
-              View All
+            <Text style={styles.viewAllCategoryText} numberOfLines={1}>
+              More
             </Text>
           </TouchableOpacity>
         )}
@@ -92,31 +84,7 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    marginVertical: 12,
-  },
-  header: {
-    marginBottom: 20,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  orangeLine: {
-    width: 4,
-    height: 24,
-    backgroundColor: COLORS.orange,
-    borderRadius: 2,
-    marginRight: 12,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 2,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: COLORS.textMuted,
+    paddingTop: 8,
   },
   grid: {
     flexDirection: 'row',
@@ -124,22 +92,24 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryCard: {
-    width: '23%',
+    width: '23%', // Slightly less than 25% for spacing
     alignItems: 'center',
     marginBottom: 20,
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 24,
+    width: 68,
+    height: 68,
+    borderRadius: 16, // Square with rounded corners
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   categoryImage: {
     width: 32,
@@ -148,26 +118,24 @@ const createStyles = (COLORS) => StyleSheet.create({
   categoryName: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#334155',
+    color: '#475569',
     textAlign: 'center',
-    lineHeight: 14,
   },
   viewAllIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 24,
+    width: 68,
+    height: 68,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
-    backgroundColor: '#FFF7ED',
-    borderWidth: 2,
-    borderColor: COLORS.orange,
-    borderStyle: 'dashed',
+    marginBottom: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   viewAllCategoryText: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.orange,
+    color: '#3B82F6',
     textAlign: 'center',
   },
 });

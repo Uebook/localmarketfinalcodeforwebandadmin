@@ -50,11 +50,11 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
       Alert.alert('Rating Required', 'Please select a rating before submitting.');
       return;
     }
-    if (!comment.trim()) {
+    if (!comment?.trim()) {
       Alert.alert('Comment Required', 'Please write a comment before submitting.');
       return;
     }
-    if (!userName.trim()) {
+    if (!userName?.trim()) {
       Alert.alert('Name Required', 'Please enter your name before submitting.');
       return;
     }
@@ -63,8 +63,8 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
     try {
       const reviewData = {
         rating,
-        comment: comment.trim(),
-        userName: userName.trim(),
+        comment: comment?.trim(),
+        userName: userName?.trim(),
         userId: userId || `guest_${Date.now()}`, // Ensure we have a user ID
         date: new Date().toISOString(),
         vendorId: vendorId, // Include vendorId for API call
@@ -197,9 +197,9 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
 
             {/* Submit Button */}
             <TouchableOpacity
-              style={[styles.submitButton, (!rating || !comment.trim() || !userName.trim() || loading) && styles.submitButtonDisabled]}
+              style={[styles.submitButton, (!rating || !comment?.trim() || !userName?.trim() || loading) && styles.submitButtonDisabled]}
               onPress={handleSubmit}
-              disabled={!rating || !comment.trim() || !userName.trim() || loading}
+              disabled={!rating || !comment?.trim() || !userName?.trim() || loading}
               activeOpacity={0.8}
             >
               <LinearGradient

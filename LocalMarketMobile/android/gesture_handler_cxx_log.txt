@@ -1,0 +1,439 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Task :react-native-gesture-handler:generateCodegenSchemaFromJavaScript UP-TO-DATE
+> Task :react-native-gesture-handler:generateCodegenArtifactsFromSchema UP-TO-DATE
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:preReleaseBuild UP-TO-DATE
+> Task :react-native-gesture-handler:configureCMakeRelWithDebInfo[arm64-v8a]
+
+> Task :react-native-gesture-handler:buildCMakeRelWithDebInfo[arm64-v8a] FAILED
+C/C++: ninja: Entering directory `/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/.cxx/RelWithDebInfo/4s3cs6o1/arm64-v8a'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android24 --sysroot=/Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dgesturehandler_EXPORTS -I/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native/ReactCommon -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/reactnative/include -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/jsi/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -O2 -frtti -fexceptions -Wall -Werror -std=c++20 -DANDROID -O2 -g -DNDEBUG -fPIC -DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_MOBILE=1 -DFOLLY_HAVE_RECVMMSG=1 -DFOLLY_HAVE_PTHREAD=1 -DFOLLY_HAVE_XSI_STRERROR_R=1 -MD -MT CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -MF CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o.d -o CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -c /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:23:33: error: no member named 'empty' in 'std::shared_ptr<std::vector<std::shared_ptr<const facebook::react::ShadowNode>>>'; did you mean to use '->' instead of '.'?
+C/C++:    23 |                 if (!shadowNodes.empty()) {
+C/C++:       |                                 ^
+C/C++:       |                                 ->
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:25:36: error: invalid operands to binary expression ('std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' and 'std::nullptr_t')
+C/C++:    25 |                     if (shadowNode != nullptr) {
+C/C++:       |                         ~~~~~~~~~~ ^  ~~~~~~~
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__variant/monostate.h:28:45: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'monostate' for 1st argument
+C/C++:    28 | _LIBCPP_HIDE_FROM_ABI inline constexpr bool operator==(monostate, monostate) noexcept { return true; }
+C/C++:       |                                             ^          ~~~~~~~~~
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_condition.h:96:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_condition' for 1st argument
+C/C++:    96 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_condition& __x, const error_condition& __y) _NOEXCEPT {
+C/C++:       |                                   ^          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_code.h:92:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_code' for 1st argument
+C/C++:    92 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_code& __x, const error_code& __y) _NOEXCEPT {
+C/C++:       |                                   ^          ~~~~~~~~~~~~~~~~~~~~~
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_code.h:96:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_code' for 1st argument
+C/C++:    96 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_code& __x, const error_condition& __y) _NOEXCEPT {
+C/C++:       |                                   ^          ~~~~~~~~~~~~~~~~~~~~~
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_code.h:96:35: note: candidate function (with reversed parameter order) not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_condition' for 1st argument
+C/C++:    96 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_code& __x, const error_condition& __y) _NOEXCEPT {
+C/C++:       |                                   ^          ~~~~~~~~~~~~~~~~~~~~~
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__thread/id.h:78:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to '__thread_id' for 1st argument
+C/C++:    78 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(__thread_id __x, __thread_id __y) _NOEXCEPT {
+C/C++:       |                                   ^          ~~~~~~~~~~~~~~~
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__utility/pair.h:515:1: note: candidate template ignored: could not match 'pair' against 'vector'
+C/C++:   515 | operator==(const pair<_T1, _T2>& __x, const pair<_U1, _U2>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__utility/pair.h:515:1: note: candidate template ignored: could not match 'pair<_T1, _T2>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/tuple:1206:1: note: candidate template ignored: could not match 'tuple' against 'vector'
+C/C++:  1206 | operator==(const tuple<_Tp...>& __x, const tuple<_Up...>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/tuple:1206:1: note: candidate template ignored: could not match 'tuple<_Tp...>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/allocator.h:249:1: note: candidate template ignored: could not match 'allocator' against 'vector'
+C/C++:   249 | operator==(const allocator<_Tp>&, const allocator<_Up>&) _NOEXCEPT {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/allocator.h:249:1: note: candidate template ignored: could not match 'allocator<_Tp>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/reverse_iterator.h:207:1: note: candidate template ignored: could not match 'reverse_iterator' against 'vector'
+C/C++:   207 | operator==(const reverse_iterator<_Iter1>& __x, const reverse_iterator<_Iter2>& __y)
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/reverse_iterator.h:231:1: note: candidate template ignored: could not match 'reverse_iterator' against 'vector'
+C/C++:   231 | operator!=(const reverse_iterator<_Iter1>& __x, const reverse_iterator<_Iter2>& __y)
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:463:1: note: candidate template ignored: could not match 'unique_ptr' against 'vector'
+C/C++:   463 | operator==(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:463:1: note: candidate template ignored: could not match 'unique_ptr<_T1, _D1>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:509:1: note: candidate template ignored: could not match 'unique_ptr' against 'vector'
+C/C++:   509 | operator==(const unique_ptr<_T1, _D1>& __x, nullptr_t) _NOEXCEPT {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:509:1: note: candidate template ignored: could not match 'unique_ptr<_T1, _D1>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1098:35: note: candidate template ignored: could not match 'shared_ptr' against 'vector'
+C/C++:  1098 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const shared_ptr<_Tp>& __x, const shared_ptr<_Up>& __y) _NOEXCEPT {
+C/C++:       |                                   ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1098:35: note: candidate template ignored: could not match 'shared_ptr<_Tp>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1144:35: note: candidate template ignored: could not match 'shared_ptr' against 'vector'
+C/C++:  1144 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const shared_ptr<_Tp>& __x, nullptr_t) _NOEXCEPT {
+C/C++:       |                                   ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1144:35: note: candidate template ignored: could not match 'shared_ptr<_Tp>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/array:381:1: note: candidate template ignored: could not match 'array' against 'vector'
+C/C++:   381 | operator==(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:988:1: note: candidate template ignored: could not match 'optional' against 'vector'
+C/C++:   988 | operator==(const optional<_Tp>& __x, const optional<_Up>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1000:1: note: candidate template ignored: could not match 'optional' against 'vector'
+C/C++:  1000 | operator!=(const optional<_Tp>& __x, const optional<_Up>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1070:38: note: candidate template ignored: could not match 'optional' against 'vector'
+C/C++:  1070 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator==(const optional<_Tp>& __x, nullopt_t) noexcept {
+C/C++:       |                                      ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1070:38: note: candidate template ignored: could not match 'optional<_Tp>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1145:1: note: candidate template ignored: could not match 'optional' against 'vector'
+C/C++:  1145 | operator==(const optional<_Tp>& __x, const _Up& __v) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1153:1: note: candidate template ignored: could not match 'optional<_Up>' against 'std::nullptr_t'
+C/C++:  1153 | operator==(const _Tp& __v, const optional<_Up>& __x) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1161:1: note: candidate template ignored: could not match 'optional' against 'vector'
+C/C++:  1161 | operator!=(const optional<_Tp>& __x, const _Up& __v) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1169:1: note: candidate template ignored: could not match 'optional<_Up>' against 'std::nullptr_t'
+C/C++:  1169 | operator!=(const _Tp& __v, const optional<_Up>& __x) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/variant:1409:38: note: candidate template ignored: could not match 'variant' against 'vector'
+C/C++:  1409 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator==(const variant<_Types...>& __lhs, const variant<_Types...>& __rhs) {
+C/C++:       |                                      ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/variant:1441:38: note: candidate template ignored: could not match 'variant' against 'vector'
+C/C++:  1441 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator!=(const variant<_Types...>& __lhs, const variant<_Types...>& __rhs) {
+C/C++:       |                                      ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/istream_iterator.h:86:35: note: candidate template ignored: could not match 'istream_iterator' against 'vector'
+C/C++:    86 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const istream_iterator<_Tp, _CharT, _Traits, _Distance>& __x,
+C/C++:       |                                   ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/istreambuf_iterator.h:95:1: note: candidate template ignored: could not match 'istreambuf_iterator' against 'vector'
+C/C++:    95 | operator==(const istreambuf_iterator<_CharT, _Traits>& __a, const istreambuf_iterator<_CharT, _Traits>& __b) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/move_iterator.h:256:1: note: candidate template ignored: could not match 'move_iterator' against 'vector'
+C/C++:   256 | operator==(const move_iterator<_Iter1>& __x, const move_iterator<_Iter2>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/move_iterator.h:256:1: note: candidate template ignored: could not match 'move_iterator<_Iter1>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:108:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+C/C++:   108 | operator==(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter1>& __y) _NOEXCEPT {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:114:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+C/C++:   114 | operator==(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter2>& __y) _NOEXCEPT {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:132:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+C/C++:   132 | operator!=(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter1>& __y) _NOEXCEPT {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:138:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+C/C++:   138 | operator!=(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter2>& __y) _NOEXCEPT {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_map:1809:28: note: candidate template ignored: could not match 'unordered_map' against 'vector'
+C/C++:  1809 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_map<_Key, _Tp, _Hash, _Pred, _Alloc>& __x,
+C/C++:       |                            ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_map:2504:28: note: candidate template ignored: could not match 'unordered_multimap' against 'vector'
+C/C++:  2504 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_multimap<_Key, _Tp, _Hash, _Pred, _Alloc>& __x,
+C/C++:       |                            ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string_view:701:38: note: candidate template ignored: could not match 'basic_string_view' against 'vector'
+C/C++:   701 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator==(basic_string_view<_CharT, _Traits> __lhs,
+C/C++:       |                                      ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string_view:701:38: note: candidate template ignored: could not match 'basic_string_view<_CharT, _Traits>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__ios/fpos.h:65:35: note: candidate template ignored: could not match 'fpos' against 'vector'
+C/C++:    65 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const fpos<_StateT>& __x, const fpos<_StateT>& __y) {
+C/C++:       |                                   ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__ios/fpos.h:70:35: note: candidate template ignored: could not match 'fpos' against 'vector'
+C/C++:    70 | inline _LIBCPP_HIDE_FROM_ABI bool operator!=(const fpos<_StateT>& __x, const fpos<_StateT>& __y) {
+C/C++:       |                                   ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3697:1: note: candidate template ignored: could not match 'basic_string' against 'vector'
+C/C++:  3697 | operator==(const basic_string<_CharT, _Traits, _Allocator>& __lhs,
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3709:1: note: candidate template ignored: could not match 'basic_string' against 'vector'
+C/C++:  3709 | operator==(const basic_string<char, char_traits<char>, _Allocator>& __lhs,
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3739:1: note: candidate template ignored: could not match 'basic_string' against 'vector'
+C/C++:  3739 | operator==(const basic_string<_CharT, _Traits, _Allocator>& __lhs, const _CharT* __rhs) _NOEXCEPT {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3739:1: note: candidate template ignored: could not match 'basic_string<_CharT, _Traits, _Allocator>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/vector:2861:1: note: candidate template ignored: could not match 'vector<_Tp, _Allocator>' against 'std::nullptr_t'
+C/C++:  2861 | operator==(const vector<_Tp, _Allocator>& __x, const vector<_Tp, _Allocator>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__functional/function.h:1003:35: note: candidate template ignored: could not match 'function' against 'vector'
+C/C++:  1003 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const function<_Rp(_ArgTypes...)>& __f, nullptr_t) _NOEXCEPT {
+C/C++:       |                                   ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__functional/function.h:1003:35: note: candidate template ignored: could not match 'function<_Rp (_ArgTypes...)>' against 'std::nullptr_t'
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_set:1159:28: note: candidate template ignored: could not match 'unordered_set' against 'vector'
+C/C++:  1159 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_set<_Value, _Hash, _Pred, _Alloc>& __x,
+C/C++:       |                            ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_set:1771:28: note: candidate template ignored: could not match 'unordered_multiset' against 'vector'
+C/C++:  1771 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_multiset<_Value, _Hash, _Pred, _Alloc>& __x,
+C/C++:       |                            ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/deque:2509:35: note: candidate template ignored: could not match 'deque' against 'vector'
+C/C++:  2509 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const deque<_Tp, _Allocator>& __x, const deque<_Tp, _Allocator>& __y) {
+C/C++:       |                                   ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/map:1582:1: note: candidate template ignored: could not match 'map' against 'vector'
+C/C++:  1582 | operator==(const map<_Key, _Tp, _Compare, _Allocator>& __x, const map<_Key, _Tp, _Compare, _Allocator>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/map:2102:1: note: candidate template ignored: could not match 'multimap' against 'vector'
+C/C++:  2102 | operator==(const multimap<_Key, _Tp, _Compare, _Allocator>& __x, const multimap<_Key, _Tp, _Compare, _Allocator>& __y) {
+C/C++:       | ^
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/forward_list:1490:28: note: candidate template ignored: could not match 'forward_list' against 'vector'
+C/C++:  1490 | _LIBCPP_HIDE_FROM_ABI bool operator==(const forward_list<_Tp, _Alloc>& __x, const forward_list<_Tp, _Alloc>& __y) {
+C/C++:       |                            ^
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:26:60: error: member reference type 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' is not a pointer; did you mean to use '.'?
+C/C++:    26 |                         isFormsStackingContext = shadowNode->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+C/C++:       |                                                  ~~~~~~~~~~^~
+C/C++:       |                                                            .
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:26:62: error: no member named 'getTraits' in 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>'
+C/C++:    26 |                         isFormsStackingContext = shadowNode->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+C/C++:       |                                                  ~~~~~~~~~~  ^
+C/C++: In file included from /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:2:
+C/C++: In file included from /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/jsi/include/jsi/jsi.h:13:
+C/C++: In file included from /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/functional:526:
+C/C++: In file included from /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__functional/boyer_moore_searcher.h:22:
+C/C++: /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:744:19: error: static assertion failed due to requirement 'is_array<std::vector<std::shared_ptr<const facebook::react::ShadowNode>, std::allocator<std::shared_ptr<const facebook::react::ShadowNode>>>>::value': std::shared_ptr<T>::operator[] is only valid when T is an array type.
+C/C++:   744 |     static_assert(is_array<_Tp>::value, "std::shared_ptr<T>::operator[] is only valid when T is an array type.");
+C/C++:       |                   ^~~~~~~~~~~~~~~~~~~~
+C/C++: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:24:50: note: in instantiation of member function 'std::shared_ptr<std::vector<std::shared_ptr<const facebook::react::ShadowNode>>>::operator[]' requested here
+C/C++:    24 |                     auto shadowNode = shadowNodes[0];
+C/C++:       |                                                  ^
+C/C++: 5 errors generated.
+
+[Incubating] Problems report is available at: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':react-native-gesture-handler:buildCMakeRelWithDebInfo[arm64-v8a]'.
+> com.android.ide.common.process.ProcessException: ninja: Entering directory `/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/.cxx/RelWithDebInfo/4s3cs6o1/arm64-v8a'
+  [1/2] Building CXX object CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o
+  FAILED: CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o 
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android24 --sysroot=/Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dgesturehandler_EXPORTS -I/Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native/ReactCommon -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/reactnative/include -isystem /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/jsi/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -O2 -frtti -fexceptions -Wall -Werror -std=c++20 -DANDROID -O2 -g -DNDEBUG -fPIC -DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_MOBILE=1 -DFOLLY_HAVE_RECVMMSG=1 -DFOLLY_HAVE_PTHREAD=1 -DFOLLY_HAVE_XSI_STRERROR_R=1 -MD -MT CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -MF CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o.d -o CMakeFiles/gesturehandler.dir/cpp-adapter.cpp.o -c /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:23:33: error: no member named 'empty' in 'std::shared_ptr<std::vector<std::shared_ptr<const facebook::react::ShadowNode>>>'; did you mean to use '->' instead of '.'?
+     23 |                 if (!shadowNodes.empty()) {
+        |                                 ^
+        |                                 ->
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:25:36: error: invalid operands to binary expression ('std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' and 'std::nullptr_t')
+     25 |                     if (shadowNode != nullptr) {
+        |                         ~~~~~~~~~~ ^  ~~~~~~~
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__variant/monostate.h:28:45: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'monostate' for 1st argument
+     28 | _LIBCPP_HIDE_FROM_ABI inline constexpr bool operator==(monostate, monostate) noexcept { return true; }
+        |                                             ^          ~~~~~~~~~
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_condition.h:96:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_condition' for 1st argument
+     96 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_condition& __x, const error_condition& __y) _NOEXCEPT {
+        |                                   ^          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_code.h:92:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_code' for 1st argument
+     92 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_code& __x, const error_code& __y) _NOEXCEPT {
+        |                                   ^          ~~~~~~~~~~~~~~~~~~~~~
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_code.h:96:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_code' for 1st argument
+     96 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_code& __x, const error_condition& __y) _NOEXCEPT {
+        |                                   ^          ~~~~~~~~~~~~~~~~~~~~~
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__system_error/error_code.h:96:35: note: candidate function (with reversed parameter order) not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to 'const error_condition' for 1st argument
+     96 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const error_code& __x, const error_condition& __y) _NOEXCEPT {
+        |                                   ^          ~~~~~~~~~~~~~~~~~~~~~
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__thread/id.h:78:35: note: candidate function not viable: no known conversion from 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' to '__thread_id' for 1st argument
+     78 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(__thread_id __x, __thread_id __y) _NOEXCEPT {
+        |                                   ^          ~~~~~~~~~~~~~~~
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__utility/pair.h:515:1: note: candidate template ignored: could not match 'pair' against 'vector'
+    515 | operator==(const pair<_T1, _T2>& __x, const pair<_U1, _U2>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__utility/pair.h:515:1: note: candidate template ignored: could not match 'pair<_T1, _T2>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/tuple:1206:1: note: candidate template ignored: could not match 'tuple' against 'vector'
+   1206 | operator==(const tuple<_Tp...>& __x, const tuple<_Up...>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/tuple:1206:1: note: candidate template ignored: could not match 'tuple<_Tp...>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/allocator.h:249:1: note: candidate template ignored: could not match 'allocator' against 'vector'
+    249 | operator==(const allocator<_Tp>&, const allocator<_Up>&) _NOEXCEPT {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/allocator.h:249:1: note: candidate template ignored: could not match 'allocator<_Tp>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/reverse_iterator.h:207:1: note: candidate template ignored: could not match 'reverse_iterator' against 'vector'
+    207 | operator==(const reverse_iterator<_Iter1>& __x, const reverse_iterator<_Iter2>& __y)
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/reverse_iterator.h:231:1: note: candidate template ignored: could not match 'reverse_iterator' against 'vector'
+    231 | operator!=(const reverse_iterator<_Iter1>& __x, const reverse_iterator<_Iter2>& __y)
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:463:1: note: candidate template ignored: could not match 'unique_ptr' against 'vector'
+    463 | operator==(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:463:1: note: candidate template ignored: could not match 'unique_ptr<_T1, _D1>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:509:1: note: candidate template ignored: could not match 'unique_ptr' against 'vector'
+    509 | operator==(const unique_ptr<_T1, _D1>& __x, nullptr_t) _NOEXCEPT {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/unique_ptr.h:509:1: note: candidate template ignored: could not match 'unique_ptr<_T1, _D1>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1098:35: note: candidate template ignored: could not match 'shared_ptr' against 'vector'
+   1098 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const shared_ptr<_Tp>& __x, const shared_ptr<_Up>& __y) _NOEXCEPT {
+        |                                   ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1098:35: note: candidate template ignored: could not match 'shared_ptr<_Tp>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1144:35: note: candidate template ignored: could not match 'shared_ptr' against 'vector'
+   1144 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const shared_ptr<_Tp>& __x, nullptr_t) _NOEXCEPT {
+        |                                   ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:1144:35: note: candidate template ignored: could not match 'shared_ptr<_Tp>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/array:381:1: note: candidate template ignored: could not match 'array' against 'vector'
+    381 | operator==(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:988:1: note: candidate template ignored: could not match 'optional' against 'vector'
+    988 | operator==(const optional<_Tp>& __x, const optional<_Up>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1000:1: note: candidate template ignored: could not match 'optional' against 'vector'
+   1000 | operator!=(const optional<_Tp>& __x, const optional<_Up>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1070:38: note: candidate template ignored: could not match 'optional' against 'vector'
+   1070 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator==(const optional<_Tp>& __x, nullopt_t) noexcept {
+        |                                      ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1070:38: note: candidate template ignored: could not match 'optional<_Tp>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1145:1: note: candidate template ignored: could not match 'optional' against 'vector'
+   1145 | operator==(const optional<_Tp>& __x, const _Up& __v) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1153:1: note: candidate template ignored: could not match 'optional<_Up>' against 'std::nullptr_t'
+   1153 | operator==(const _Tp& __v, const optional<_Up>& __x) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1161:1: note: candidate template ignored: could not match 'optional' against 'vector'
+   1161 | operator!=(const optional<_Tp>& __x, const _Up& __v) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional:1169:1: note: candidate template ignored: could not match 'optional<_Up>' against 'std::nullptr_t'
+   1169 | operator!=(const _Tp& __v, const optional<_Up>& __x) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/variant:1409:38: note: candidate template ignored: could not match 'variant' against 'vector'
+   1409 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator==(const variant<_Types...>& __lhs, const variant<_Types...>& __rhs) {
+        |                                      ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/variant:1441:38: note: candidate template ignored: could not match 'variant' against 'vector'
+   1441 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator!=(const variant<_Types...>& __lhs, const variant<_Types...>& __rhs) {
+        |                                      ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/istream_iterator.h:86:35: note: candidate template ignored: could not match 'istream_iterator' against 'vector'
+     86 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const istream_iterator<_Tp, _CharT, _Traits, _Distance>& __x,
+        |                                   ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/istreambuf_iterator.h:95:1: note: candidate template ignored: could not match 'istreambuf_iterator' against 'vector'
+     95 | operator==(const istreambuf_iterator<_CharT, _Traits>& __a, const istreambuf_iterator<_CharT, _Traits>& __b) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/move_iterator.h:256:1: note: candidate template ignored: could not match 'move_iterator' against 'vector'
+    256 | operator==(const move_iterator<_Iter1>& __x, const move_iterator<_Iter2>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/move_iterator.h:256:1: note: candidate template ignored: could not match 'move_iterator<_Iter1>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:108:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+    108 | operator==(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter1>& __y) _NOEXCEPT {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:114:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+    114 | operator==(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter2>& __y) _NOEXCEPT {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:132:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+    132 | operator!=(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter1>& __y) _NOEXCEPT {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__iterator/wrap_iter.h:138:1: note: candidate template ignored: could not match '__wrap_iter' against 'vector'
+    138 | operator!=(const __wrap_iter<_Iter1>& __x, const __wrap_iter<_Iter2>& __y) _NOEXCEPT {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_map:1809:28: note: candidate template ignored: could not match 'unordered_map' against 'vector'
+   1809 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_map<_Key, _Tp, _Hash, _Pred, _Alloc>& __x,
+        |                            ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_map:2504:28: note: candidate template ignored: could not match 'unordered_multimap' against 'vector'
+   2504 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_multimap<_Key, _Tp, _Hash, _Pred, _Alloc>& __x,
+        |                            ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string_view:701:38: note: candidate template ignored: could not match 'basic_string_view' against 'vector'
+    701 | _LIBCPP_HIDE_FROM_ABI constexpr bool operator==(basic_string_view<_CharT, _Traits> __lhs,
+        |                                      ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string_view:701:38: note: candidate template ignored: could not match 'basic_string_view<_CharT, _Traits>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__ios/fpos.h:65:35: note: candidate template ignored: could not match 'fpos' against 'vector'
+     65 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const fpos<_StateT>& __x, const fpos<_StateT>& __y) {
+        |                                   ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__ios/fpos.h:70:35: note: candidate template ignored: could not match 'fpos' against 'vector'
+     70 | inline _LIBCPP_HIDE_FROM_ABI bool operator!=(const fpos<_StateT>& __x, const fpos<_StateT>& __y) {
+        |                                   ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3697:1: note: candidate template ignored: could not match 'basic_string' against 'vector'
+   3697 | operator==(const basic_string<_CharT, _Traits, _Allocator>& __lhs,
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3709:1: note: candidate template ignored: could not match 'basic_string' against 'vector'
+   3709 | operator==(const basic_string<char, char_traits<char>, _Allocator>& __lhs,
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3739:1: note: candidate template ignored: could not match 'basic_string' against 'vector'
+   3739 | operator==(const basic_string<_CharT, _Traits, _Allocator>& __lhs, const _CharT* __rhs) _NOEXCEPT {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/string:3739:1: note: candidate template ignored: could not match 'basic_string<_CharT, _Traits, _Allocator>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/vector:2861:1: note: candidate template ignored: could not match 'vector<_Tp, _Allocator>' against 'std::nullptr_t'
+   2861 | operator==(const vector<_Tp, _Allocator>& __x, const vector<_Tp, _Allocator>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__functional/function.h:1003:35: note: candidate template ignored: could not match 'function' against 'vector'
+   1003 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const function<_Rp(_ArgTypes...)>& __f, nullptr_t) _NOEXCEPT {
+        |                                   ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__functional/function.h:1003:35: note: candidate template ignored: could not match 'function<_Rp (_ArgTypes...)>' against 'std::nullptr_t'
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_set:1159:28: note: candidate template ignored: could not match 'unordered_set' against 'vector'
+   1159 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_set<_Value, _Hash, _Pred, _Alloc>& __x,
+        |                            ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_set:1771:28: note: candidate template ignored: could not match 'unordered_multiset' against 'vector'
+   1771 | _LIBCPP_HIDE_FROM_ABI bool operator==(const unordered_multiset<_Value, _Hash, _Pred, _Alloc>& __x,
+        |                            ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/deque:2509:35: note: candidate template ignored: could not match 'deque' against 'vector'
+   2509 | inline _LIBCPP_HIDE_FROM_ABI bool operator==(const deque<_Tp, _Allocator>& __x, const deque<_Tp, _Allocator>& __y) {
+        |                                   ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/map:1582:1: note: candidate template ignored: could not match 'map' against 'vector'
+   1582 | operator==(const map<_Key, _Tp, _Compare, _Allocator>& __x, const map<_Key, _Tp, _Compare, _Allocator>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/map:2102:1: note: candidate template ignored: could not match 'multimap' against 'vector'
+   2102 | operator==(const multimap<_Key, _Tp, _Compare, _Allocator>& __x, const multimap<_Key, _Tp, _Compare, _Allocator>& __y) {
+        | ^
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/forward_list:1490:28: note: candidate template ignored: could not match 'forward_list' against 'vector'
+   1490 | _LIBCPP_HIDE_FROM_ABI bool operator==(const forward_list<_Tp, _Alloc>& __x, const forward_list<_Tp, _Alloc>& __y) {
+        |                            ^
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:26:60: error: member reference type 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>' is not a pointer; did you mean to use '.'?
+     26 |                         isFormsStackingContext = shadowNode->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+        |                                                  ~~~~~~~~~~^~
+        |                                                            .
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:26:62: error: no member named 'getTraits' in 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>'
+     26 |                         isFormsStackingContext = shadowNode->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+        |                                                  ~~~~~~~~~~  ^
+  In file included from /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:2:
+  In file included from /Users/vansh/.gradle/caches/9.0.0/transforms/58f2f9416a0ec47d3bdbca5937f81659/transformed/jetified-react-android-0.83.0-release/prefab/modules/jsi/include/jsi/jsi.h:13:
+  In file included from /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/functional:526:
+  In file included from /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__functional/boyer_moore_searcher.h:22:
+  /Users/vansh/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__memory/shared_ptr.h:744:19: error: static assertion failed due to requirement 'is_array<std::vector<std::shared_ptr<const facebook::react::ShadowNode>, std::allocator<std::shared_ptr<const facebook::react::ShadowNode>>>>::value': std::shared_ptr<T>::operator[] is only valid when T is an array type.
+    744 |     static_assert(is_array<_Tp>::value, "std::shared_ptr<T>::operator[] is only valid when T is an array type.");
+        |                   ^~~~~~~~~~~~~~~~~~~~
+  /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:24:50: note: in instantiation of member function 'std::shared_ptr<std::vector<std::shared_ptr<const facebook::react::ShadowNode>>>::operator[]' requested here
+     24 |                     auto shadowNode = shadowNodes[0];
+        |                                                  ^
+  5 errors generated.
+  ninja: build stopped: subcommand failed.
+  
+  C++ build system [build] failed while executing:
+      /Users/vansh/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+        -C \
+        /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/.cxx/RelWithDebInfo/4s3cs6o1/arm64-v8a \
+        gesturehandler
+    from /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 3s
+14 actionable tasks: 2 executed, 12 up-to-date

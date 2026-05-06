@@ -264,7 +264,10 @@ const CartScreen = ({ navigation }) => {
                         )}
                         <View style={styles.itemDetails}>
                           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-                          <Text style={styles.itemPrice}>₹{item.price}</Text>
+                          <View style={styles.itemPriceRow}>
+                            <Text style={styles.unitPrice}>₹{item.price} × {item.quantity}</Text>
+                            <Text style={styles.totalPrice}>₹{item.price * item.quantity}</Text>
+                          </View>
                         </View>
                         <View style={styles.rightActions}>
                           <View style={styles.quantityControls}>
@@ -315,31 +318,41 @@ const CartScreen = ({ navigation }) => {
             {/* Price Summary */}
             <View style={styles.summaryCard}>
               <View style={styles.summaryHeader}>
-                <Text style={styles.summaryTitle}>Order Value</Text>
-                <Text style={styles.itemCountText}>{cartItems.length} ITEMS</Text>
+                <Text style={styles.summaryTitle}>Basket Breakdown</Text>
+                <View style={styles.itemCountBadge}>
+                   <Text style={styles.itemCountText}>{cartItems.length} ITEMS</Text>
+                </View>
               </View>
               
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Items Total</Text>
+                <Text style={styles.summaryLabel}>Subtotal</Text>
                 <Text style={styles.summaryValueText}>₹{calculateTotal()}</Text>
               </View>
               
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Visit & Pickup</Text>
+                <Text style={styles.summaryLabel}>Platform Fee</Text>
+                <Text style={styles.freeText}>FREE</Text>
+              </View>
+              
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Delivery/Pickup</Text>
                 <Text style={styles.savingsLabel}>LOCAL PRICE</Text>
               </View>
 
               <View style={styles.divider} />
               
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total</Text>
+                <View>
+                   <Text style={styles.totalLabel}>Grand Total</Text>
+                   <Text style={styles.taxNote}>Inclusive of all taxes</Text>
+                </View>
                 <Text style={styles.totalValueText}>₹{calculateTotal()}</Text>
               </View>
 
               <View style={styles.infoBox}>
-                <Icon name="info" size={16} color="#9A3412" />
+                <Icon name="shield-check" size={18} color="#16A34A" />
                 <Text style={styles.infoText}>
-                  LOKALL doesn't handle payments. Contact the vendors above directly to confirm availability and pick up your items.
+                  Pay directly to vendors at the shop. LOKALL helps you build your basket for a faster local shopping experience.
                 </Text>
               </View>
 
@@ -347,7 +360,7 @@ const CartScreen = ({ navigation }) => {
                 style={styles.addMoreBtn}
                 onPress={() => navigation.navigate('Home')}
               >
-                <Text style={styles.addMoreText}>ADD MORE ITEMS</Text>
+                <Text style={styles.addMoreText}>CONTINUE SHOPPING</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -360,9 +373,9 @@ const CartScreen = ({ navigation }) => {
             </View>
             <TouchableOpacity 
               style={styles.contactVendorsBtn}
-              onPress={() => {/* Scroll logic if needed or just alert */}}
+              onPress={() => Alert.alert('Connect with Vendor', 'Click the Call or WhatsApp buttons above to talk to individual shop owners.')}
             >
-              <Text style={styles.contactVendorsText}>CONTACT VENDORS</Text>
+              <Text style={styles.contactVendorsText}>PROCEED</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -507,9 +520,19 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  itemPrice: {
+  itemPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+  },
+  unitPrice: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+  },
+  totalPrice: {
     fontSize: 16,
     fontWeight: '900',
     color: '#FF6B00',
@@ -620,11 +643,22 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontWeight: '900',
     color: '#0F172A',
   },
+  itemCountBadge: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
   itemCountText: {
     fontSize: 10,
-    fontWeight: '800',
-    color: '#CBD5E1',
-    letterSpacing: 1,
+    fontWeight: '900',
+    color: '#64748B',
+    letterSpacing: 0.5,
+  },
+  freeText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#16A34A',
   },
   summaryRow: {
     flexDirection: 'row',
@@ -662,10 +696,17 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontWeight: '900',
     color: '#0F172A',
   },
+  taxNote: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#94A3B8',
+    marginTop: 2,
+  },
   totalValueText: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '900',
     color: '#0F172A',
+    letterSpacing: -0.5,
   },
   infoBox: {
     backgroundColor: '#FFF7ED',

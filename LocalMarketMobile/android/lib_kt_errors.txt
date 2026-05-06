@@ -1,0 +1,423 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :
+********************************************************************************
+
+WARNING: Setting `newArchEnabled=false` in your `gradle.properties` file is not
+supported anymore since React Native 0.82.
+
+You can remove the line from your `gradle.properties` file.
+
+The application will run with the New Architecture enabled by default.
+
+********************************************************************************
+
+
+> Task :react-native-gesture-handler:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-gesture-handler:preBuild UP-TO-DATE
+> Task :react-native-gesture-handler:preReleaseBuild UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseResValues UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseResources UP-TO-DATE
+> Task :react-native-gesture-handler:packageReleaseResources UP-TO-DATE
+> Task :react-native-gesture-handler:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-gesture-handler:generateReleaseRFile UP-TO-DATE
+> Task :react-native-screens:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-screens:preBuild UP-TO-DATE
+> Task :react-native-screens:preReleaseBuild UP-TO-DATE
+> Task :react-native-screens:generateReleaseBuildConfig UP-TO-DATE
+> Task :react-native-screens:generateReleaseResValues UP-TO-DATE
+> Task :react-native-screens:generateReleaseResources UP-TO-DATE
+> Task :react-native-screens:packageReleaseResources UP-TO-DATE
+> Task :react-native-screens:parseReleaseLocalResources UP-TO-DATE
+> Task :react-native-screens:generateReleaseRFile UP-TO-DATE
+
+> Task :react-native-gesture-handler:compileReleaseKotlin
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:10:1 Class 'RNGestureHandlerPackage' is not abstract and does not implement abstract member:
+fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<in Nothing, in Nothing>>
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:12:3 'createViewManagers' overrides nothing. Potential signatures for overriding:
+fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<in Nothing, in Nothing>>
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:12:49 Unresolved reference 'ReactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:18:3 'createNativeModules' overrides nothing. Potential signatures for overriding:
+fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule>
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt:18:50 Unresolved reference 'ReactApplicationContext'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:33:40 Unresolved reference 'RNGestureHandlerButtonManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerButtonViewManager.kt:34:40 Unresolved reference 'RNGestureHandlerButtonManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:32:37 Unresolved reference 'dispatchEvent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:371:3 'createGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:382:3 'attachGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:409:3 'updateGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:416:3 'dropGestureHandler' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:423:3 'handleSetJSResponder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:430:3 'handleClearJSResponder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:434:3 'flushOperations' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:450:3 'install' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:640:29 Unresolved reference 'dispatchEvent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt:645:29 Unresolved reference 'dispatchEvent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:7:40 Unresolved reference 'RNGestureHandlerRootViewManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerRootViewManager.kt:8:40 Unresolved reference 'RNGestureHandlerRootViewManagerInterface'.
+
+> Task :react-native-gesture-handler:compileReleaseKotlin FAILED
+
+> Task :react-native-screens:compileReleaseKotlin FAILED
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:304:13 Unresolved reference 'updateScreenSizeFabric'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:444:13 Unresolved reference 'updateScreenSizeFabric'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:678:5 'onTouchEvent' overrides nothing. Potential signatures for overriding:
+fun onTouchEvent(event: MotionEvent): Boolean
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:684:32 Argument type mismatch: actual type is 'MotionEvent?', but 'MotionEvent' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt:723:13 Unresolved reference 'updateScreenSizeFabric'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:10:40 Unresolved reference 'RNSScreenContainerManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:11:40 Unresolved reference 'RNSScreenContainerManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:16:5 Unresolved reference 'RNSScreenContainerManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:20:20 Unresolved reference 'RNSScreenContainerManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:7:40 Unresolved reference 'RNSScreenContentWrapperManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:8:40 Unresolved reference 'RNSScreenContentWrapperManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:13:5 Unresolved reference 'RNSScreenContentWrapperManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContentWrapperManager.kt:14:71 Unresolved reference 'RNSScreenContentWrapperManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:7:40 Unresolved reference 'RNSScreenFooterManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:8:40 Unresolved reference 'RNSScreenFooterManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:13:5 Unresolved reference 'RNSScreenFooterManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFooterManager.kt:14:63 Unresolved reference 'RNSScreenFooterManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:28:5 Unresolved reference 'FabricEnabledHeaderConfigViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:126:92 Unresolved reference 'left'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:134:9 Unresolved reference 'updateHeaderConfigState'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:142:5 'onLayout' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:150:5 'onAttachedToWindow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:151:15 Unresolved reference 'onAttachedToWindow'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:153:41 None of the following candidates is applicable:
+fun getSurfaceId(view: View): Int
+fun getSurfaceId(context: Context?): Int
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:155:44 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:155:69 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:156:60 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:160:5 'onDetachedFromWindow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:161:15 Unresolved reference 'onDetachedFromWindow'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:163:41 None of the following candidates is applicable:
+fun getSurfaceId(view: View): Int
+fun getSurfaceId(context: Context?): Int
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:165:44 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:165:69 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:166:60 Unresolved reference 'id'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:170:17 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:177:26 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:189:57 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:198:43 Unresolved reference 'LAYOUT_DIRECTION_RTL'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:200:43 Unresolved reference 'LAYOUT_DIRECTION_LTR'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:211:21 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:212:21 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:277:25 Unresolved reference 'context'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:311:26 Unresolved reference 'getChildAt'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:319:47 Unresolved reference 'LayoutParams'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:319:74 Unresolved reference 'LayoutParams'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:328:28 Unresolved reference 'gravity'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:331:63 Unresolved reference 'gravity'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:333:28 Unresolved reference 'width'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:333:36 Unresolved reference 'LayoutParams'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:334:28 Unresolved reference 'gravity'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:340:18 Unresolved reference 'layoutParams'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:341:29 Argument type mismatch: actual type is 'ScreenStackHeaderSubview', but 'View!' was expected.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:349:13 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:450:9 Unresolved reference 'visibility'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt:450:22 Unresolved reference 'GONE'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:16:40 Unresolved reference 'RNSScreenStackHeaderConfigManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:17:40 Unresolved reference 'RNSScreenStackHeaderConfigManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:24:22 Type argument is not within its bounds: must be subtype of 'ViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:25:5 Unresolved reference 'RNSScreenStackHeaderConfigManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:26:47 Type argument is not within its bounds: must be subtype of 'View'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:29:20 Unresolved reference 'RNSScreenStackHeaderConfigManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:58:18 Unresolved reference 'setStateWrapper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:85:15 Return type mismatch: expected 'View', actual 'ScreenStackHeaderSubview'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:95:5 'setTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:103:5 'setTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:111:5 'setTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:119:5 'setTitleFontWeight' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:127:5 'setTitleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:137:5 'setBackgroundColor' overrides nothing. Potential signatures for overriding:
+fun setBackgroundColor(p0: ScreenStackHeaderConfig, p1: Int): Unit
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:145:5 'setHideShadow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:153:5 'setHideBackButton' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:161:5 'setTopInsetEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:169:5 'setColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:177:5 'setHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:185:5 'setTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:193:5 'setBackButtonInCustomView' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:201:5 'setDirection' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:210:5 'setSynchronousShadowStateUpdatesEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:221:63 Type argument is not within its bounds: must be subtype of 'View'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:232:5 'setBackTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:239:5 'setBackTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:246:5 'setBackTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:253:5 'setBackTitleVisible' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:260:5 'setLargeTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:267:5 'setLargeTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:274:5 'setLargeTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:281:5 'setLargeTitleFontWeight' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:288:5 'setLargeTitleBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:295:5 'setLargeTitleHideShadow' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:302:5 'setLargeTitleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:309:5 'setDisableBackButtonMenu' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:316:5 'setBackButtonDisplayMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:323:5 'setBlurEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:330:5 'setHeaderLeftBarButtonItems' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:337:5 'setHeaderRightBarButtonItems' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:344:5 'setUserInterfaceStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:10:5 Unresolved reference 'FabricEnabledHeaderSubviewViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:24:18 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:26:5 'onMeasure' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:30:13 Unresolved reference 'MeasureSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:30:54 Unresolved reference 'MeasureSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:31:13 Unresolved reference 'MeasureSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:31:55 Unresolved reference 'MeasureSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:34:26 Unresolved reference 'MeasureSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:35:27 Unresolved reference 'MeasureSpec'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:37:26 Unresolved reference 'parent'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:39:17 Unresolved reference 'forceLayout'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:43:9 Unresolved reference 'setMeasuredDimension'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:46:5 'onLayout' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt:63:17 Unresolved reference 'updateSubviewFrameState'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:12:40 Unresolved reference 'RNSScreenStackHeaderSubviewManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:13:40 Unresolved reference 'RNSScreenStackHeaderSubviewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:17:22 Type argument is not within its bounds: must be subtype of 'ViewGroup'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:18:5 Unresolved reference 'RNSScreenStackHeaderSubviewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:19:47 Type argument is not within its bounds: must be subtype of 'View'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:22:20 Unresolved reference 'RNSScreenStackHeaderSubviewManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:30:5 'setType' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:46:5 'setHidesSharedBackground' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:55:5 'setSynchronousShadowStateUpdatesEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:66:18 Unresolved reference 'setStateWrapper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:71:63 Type argument is not within its bounds: must be subtype of 'View'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:10:40 Unresolved reference 'RNSScreenStackManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:11:40 Unresolved reference 'RNSScreenStackManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:17:5 Unresolved reference 'RNSScreenStackManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:21:20 Unresolved reference 'RNSScreenStackManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:34:9 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:45:9 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:54:9 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:78:5 'setIosPreventReattachmentOfDismissedScreens' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:15:40 Unresolved reference 'RNSScreenManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:16:40 Unresolved reference 'RNSScreenManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:31:5 Unresolved reference 'RNSScreenManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:35:20 Unresolved reference 'RNSScreenManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:42:5 'setActivityState' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:91:18 Unresolved reference 'setStateWrapper'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:126:5 'setStackPresentation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:143:5 'setStackAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:163:5 'setGestureEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:171:5 'setReplaceAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:184:5 'setScreenOrientation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:192:5 'setStatusBarAnimation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:201:5 'setStatusBarColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:209:5 'setStatusBarStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:217:5 'setStatusBarTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:225:5 'setStatusBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:233:5 'setNavigationBarColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:241:5 'setNavigationBarTranslucent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:249:5 'setNavigationBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:257:5 'setNativeBackButtonDismissalEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:265:5 'setSheetElevation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:273:5 'setSheetShouldOverflowTopInset' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:281:5 'setSheetDefaultResizeAnimationEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:290:5 'setFullScreenSwipeEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:295:5 'setFullScreenSwipeShadowEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:300:5 'setTransitionDuration' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:305:5 'setHideKeyboardOnSwipe' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:310:5 'setCustomAnimationOnSwipe' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:315:5 'setGestureResponseDistance' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:320:5 'setHomeIndicatorHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:325:5 'setPreventNativeDismiss' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:330:5 'setSwipeDirection' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:335:5 'setBottomScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:340:5 'setLeftScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:345:5 'setRightScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:350:5 'setTopScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:355:5 'setSynchronousShadowStateUpdatesEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:360:5 'setIos26AllowInteractionsDuringTransition' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:367:5 'setAndroidResetScreenShadowStateOnOrientationChangeEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:373:5 'setSheetAllowedDetents' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:388:5 'setSheetLargestUndimmedDetent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:397:5 'setSheetGrabberVisible' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:405:5 'setSheetCornerRadius' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:413:5 'setSheetExpandsWhenScrolledToEdge' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:421:5 'setSheetInitialDetent' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:428:5 'setScreenId' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:23:24 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:36:20 Unresolved reference 'invalidateNative'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:47:21 Unresolved reference 'NativeProxy'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:59:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:59:20 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun <T> T.apply(block: T.() -> Unit): T
+    [R|Contract description]
+     <
+        CallsInPlace(block, EXACTLY_ONCE)
+    >
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:59:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:60:17 Unresolved reference 'nativeAddMutationsListener'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:151:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:151:20 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun <T> T.apply(block: T.() -> Unit): T
+    [R|Contract description]
+     <
+        CallsInPlace(block, EXACTLY_ONCE)
+    >
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:151:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt:152:17 Unresolved reference 'cleanupExpiredMountingCoordinators'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:10:40 Unresolved reference 'RNSSearchBarManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:11:40 Unresolved reference 'RNSSearchBarManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:22:5 Unresolved reference 'RNSSearchBarManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:26:20 Unresolved reference 'RNSSearchBarManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:41:5 'setAutoCapitalize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:58:5 'setAutoFocus' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:66:5 'setBarTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:74:5 'setDisableBackButtonOverride' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:82:5 'setInputType' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:99:5 'setPlaceholder' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:109:5 'setTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:117:5 'setHeaderIconColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:125:5 'setHintTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:133:5 'setShouldShowHintSearchIcon' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:160:5 'blur' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:164:5 'focus' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:168:5 'clearText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:172:5 'toggleCancelButton' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:179:5 'setText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:186:5 'cancelSearch' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:192:5 'setPlacement' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:199:5 'setAllowToolbarIntegration' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:206:5 'setHideWhenScrolling' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:213:5 'setObscureBackground' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:220:5 'setHideNavigationBar' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:227:5 'setCancelButtonText' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:234:5 'setTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarView.kt:167:26 Unresolved reference 'visibility'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:8:40 Unresolved reference 'RNSStackHostManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:9:40 Unresolved reference 'RNSStackHostManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:15:5 Unresolved reference 'RNSStackHostManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/host/StackHostViewManager.kt:16:60 Unresolved reference 'RNSStackHostManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:8:40 Unresolved reference 'RNSStackScreenManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:9:40 Unresolved reference 'RNSStackScreenManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:21:5 Unresolved reference 'RNSStackScreenManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:22:62 Unresolved reference 'RNSStackScreenManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:48:5 'setActivityMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:59:5 'setScreenKey' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/stack/screen/StackScreenViewManager.kt:69:5 'setPreventNativeDismiss' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:9:40 Unresolved reference 'RNSTabsHostManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:10:40 Unresolved reference 'RNSTabsHostManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:17:5 Unresolved reference 'RNSTabsHostManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:18:59 Unresolved reference 'RNSTabsHostManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:70:5 'setTabBarBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:77:5 'setTabBarTintColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:83:5 'setTabBarItemTitleFontSize' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:90:5 'setControlNavigationStateInJS' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:96:5 'setTabBarItemTitleFontFamily' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:104:5 'setTabBarItemTitleFontWeight' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:112:5 'setTabBarItemTitleFontStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:120:5 'setTabBarItemTitleFontColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:128:5 'setTabBarItemIconColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:135:5 'setTabBarMinimizeBehavior' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:140:5 'setTabBarControllerMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:146:5 'setTabBarHidden' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:154:5 'setNativeContainerBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:164:5 'setTabBarItemTitleFontColorActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:172:5 'setTabBarItemActiveIndicatorColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:180:5 'setTabBarItemActiveIndicatorEnabled' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:188:5 'setTabBarItemIconColorActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:196:5 'setTabBarItemTitleFontSizeActive' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:204:5 'setTabBarItemRippleColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostViewManager.kt:212:5 'setTabBarItemLabelVisibilityMode' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:10:40 Unresolved reference 'RNSTabsScreenManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:11:40 Unresolved reference 'RNSTabsScreenManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:23:5 Unresolved reference 'RNSTabsScreenManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:24:61 Unresolved reference 'RNSTabsScreenManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:54:5 'setStandardAppearance' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:59:5 'setScrollEdgeAppearance' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:65:5 'setTabBarItemBadgeBackgroundColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:72:5 'setIconType' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:77:5 'setIconImageSource' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:82:5 'setIconResourceName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:87:5 'setSelectedIconImageSource' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:92:5 'setSelectedIconResourceName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:99:5 'setIsFocused' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:108:5 'setTabKey' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:116:5 'setBadgeValue' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:124:5 'setTitle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:131:5 'setIsTitleUndefined' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:137:5 'setSpecialEffects' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:159:5 'setOverrideScrollViewContentInsetAdjustmentBehavior' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:164:5 'setBottomScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:169:5 'setLeftScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:174:5 'setRightScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:179:5 'setTopScrollEdgeEffect' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:185:5 'setTabBarItemTestID' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:193:5 'setTabBarItemAccessibilityLabel' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:202:5 'setTabBarItemBadgeTextColor' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:210:5 'setDrawableIconResourceName' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:217:5 'setOrientation' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:222:5 'setSystemItem' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:227:5 'setUserInterfaceStyle' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsScreenViewManager.kt:233:5 'setImageIconResource' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:14:40 Unresolved reference 'RNSSafeAreaViewManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:15:40 Unresolved reference 'RNSSafeAreaViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:22:5 Unresolved reference 'RNSSafeAreaViewManagerInterface'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:23:63 Unresolved reference 'RNSSafeAreaViewManagerDelegate'.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:36:5 'setEdges' overrides nothing.
+e: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/safearea/SafeAreaViewManager.kt:46:5 'setInsetType' overrides nothing.
+
+[Incubating] Problems report is available at: file:///Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/android/build/reports/problems/problems-report.html
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':react-native-gesture-handler:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':react-native-screens:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 16s
+24 actionable tasks: 2 executed, 22 up-to-date

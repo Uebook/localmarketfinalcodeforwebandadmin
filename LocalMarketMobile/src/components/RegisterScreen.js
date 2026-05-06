@@ -25,7 +25,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [formData, setFormData] = useState({
-    full_name: '',
+    name: '',
     email: '',
     phone: '',
     password: '',
@@ -55,12 +55,12 @@ const RegisterScreen = ({ onRegister, onBack }) => {
   };
 
   const validateForm = () => {
-    if (!formData.full_name.trim()) {
+    if (!formData.name?.trim()) {
       setError('Full name is required');
       return false;
     }
 
-    if (!formData.phone.trim()) {
+    if (!formData.phone?.trim()) {
       setError('Phone number is required');
       return false;
     }
@@ -88,7 +88,7 @@ const RegisterScreen = ({ onRegister, onBack }) => {
     }
 
     // Validate email format if provided
-    if (formData.email.trim() && !formData.email.includes('@')) {
+    if (formData.email?.trim() && !formData.email.includes('@')) {
       setError('Please enter a valid email address');
       return false;
     }
@@ -106,9 +106,9 @@ const RegisterScreen = ({ onRegister, onBack }) => {
 
     try {
       const registrationData = {
-        full_name: formData.full_name.trim(),
+        name: formData.name?.trim(),
         phone: formData.phone.replace(/\D/g, ''),
-        email: formData.email.trim() || null,
+        email: formData.email?.trim() || null,
         password: formData.password, // Password is always required now
         state: formData.state || null,
         city: formData.city || null,
@@ -116,16 +116,28 @@ const RegisterScreen = ({ onRegister, onBack }) => {
 
       const response = await register(registrationData);
 
-      if (response.success && response.user) {
+      console.log('[Register] API Response:', response);
+
+      const userData = response.user || response.customer || (response.id ? response : null);
+
+      if (userData) {
         // Save user data to AsyncStorage
         try {
-          await saveUserData(response.user, 'customer');
+          await saveUserData(userData, 'customer');
         } catch (error) {
           console.error('Error saving user data:', error);
         }
 
-        setSuccessUserData(response.user);
+        setSuccessUserData(userData);
         setShowSuccessModal(true);
+      } else {
+        console.warn('[Register] Response received but missing user data', response);
+        // Fallback: if status was 201/200, assume success but maybe display a standard message
+        if (response.message) {
+           setError(response.message);
+        } else {
+           setError('Registration successful, but user data was not returned. Please try logging in.');
+        }
       }
     } catch (err) {
       const errorMessage = err.message || 'Registration failed. Please try again.';
@@ -182,8 +194,8 @@ const RegisterScreen = ({ onRegister, onBack }) => {
                 style={styles.input}
                 placeholder="Enter your full name"
                 placeholderTextColor={COLORS.textMuted}
-                value={formData.full_name}
-                onChangeText={(text) => handleChange('full_name', text)}
+                value={formData.name}
+                onChangeText={(text) => handleChange('name', text)}
               />
               <Icon name={getIconName('User')} size={18} color={COLORS.orange} />
             </View>

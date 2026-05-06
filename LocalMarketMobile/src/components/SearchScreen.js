@@ -8,18 +8,11 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 
-const SearchScreen = ({ navigation, route }) => {
+const SearchScreen = ({ navigation, route, locationState }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [searchQuery, setSearchQuery] = useState(route?.params?.query || null);
   const [savedIds, setSavedIds] = useState([]);
-  const [locationState] = useState({
-    lat: null,
-    lng: null,
-    city: 'Delhi, India',
-    loading: false,
-    error: null,
-  });
 
   const handleSearch = (query) => {
     if (query && query.trim()) {
@@ -73,20 +66,9 @@ const SearchScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient Background */}
-      <LinearGradient
-        colors={COLORS.primaryGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.gradientBackground}
-      />
 
-      <Header
-        locationState={locationState}
-        onMenuClick={handleMenuClick}
-        onProfileClick={handleProfileClick}
-        onNotificationClick={handleNotificationClick}
-      />
+
+
 
       <ScrollView
         style={styles.scrollView}

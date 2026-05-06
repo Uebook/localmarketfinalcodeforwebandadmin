@@ -32,6 +32,10 @@ const SearchResults = ({
     const categoryId = route?.params?.categoryId;
     const circle = route?.params?.circle;
     const isCategorySearch = route?.params?.isCategorySearch || false; 
+    
+    // Get locationState from params or props
+    const [currentLocation, setCurrentLocation] = useState(route?.params?.locationState || locationState);
+    
     const COLORS = useThemeColors();
     const styles = createStyles(COLORS);
 
@@ -44,14 +48,37 @@ const SearchResults = ({
     const [showSortMenu, setShowSortMenu] = useState(false);
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
-    const sliderTrackRef = useRef(null);
     const [sliderWidth, setSliderWidth] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
 
+    // -- Refs --
+    const sliderTrackRef = useRef(null);
+    const sliderWidthRef = useRef(0);
+    const maxDistanceRef = useRef(maxDistance);
+    const handleMoveRef = useRef(null);
+    
+    // -- Effects --
     useEffect(() => {
         loadSearchData();
-    }, [query, categoryId, circle, locationState?.city]);
+    }, [query, categoryId, circle, currentLocation?.city]);
 
+    useEffect(() => {
+        if (!currentLocation && route?.params?.locationState) {
+            setCurrentLocation(route.params.locationState);
+        } else if (!currentLocation && locationState) {
+            setCurrentLocation(locationState);
+        }
+    }, [route?.params?.locationState, locationState]);
+
+    useEffect(() => {
+        sliderWidthRef.current = sliderWidth;
+    }, [sliderWidth]);
+
+    useEffect(() => {
+        maxDistanceRef.current = maxDistance;
+    }, [maxDistance]);
+
+    // -- Logic Functions --
     const loadSearchData = async () => {
         try {
             setLoading(true);
@@ -68,10 +95,10 @@ const SearchResults = ({
             // Handle City
             if (locationState?.city) {
                 // If "All Amritsar", use Amritsar for hierarchical search
-                if (locationState.city.startsWith('All ')) {
-                    filters.city = locationState.city.replace('All ', '').trim();
+                if (locationState.city?.startsWith('All ')) {
+                    filters.city = locationState.city?.replace('All ', '').trim();
                 } else {
-                    filters.city = locationState.city.split(',')[0].trim();
+                    filters.city = locationState.city?.split(',')[0].trim();
                 }
             }
 
@@ -133,12 +160,12 @@ const SearchResults = ({
         let distanceStr = 'Nearby';
         let distanceValue = 0;
 
-        if (locationState?.lat && locationState?.lng && vendor.latitude && vendor.longitude) {
+        if (currentLocation?.lat && currentLocation?.lng && (vendor.latitude || vendor.lat) && (vendor.longitude || vendor.lng)) {
             const dist = calculateDistance(
-                locationState.lat,
-                locationState.lng,
-                parseFloat(vendor.latitude),
-                parseFloat(vendor.longitude)
+                currentLocation.lat,
+                currentLocation.lng,
+                parseFloat(vendor.latitude || vendor.lat),
+                parseFloat(vendor.longitude || vendor.lng)
             );
             if (dist !== null) {
                 distanceValue = dist;
@@ -160,7 +187,7 @@ const SearchResults = ({
             distance: distanceStr,
             distanceValue: distanceValue, // Store raw value for sorting/filtering
             imageUrl: vendor.imageUrl || vendor.image_url,
-            address: vendor.address || `${vendor.city || ''} ${vendor.state || ''}`.trim() || 'Nearby',
+            address: vendor.address || `${vendor.city || ''} ${vendor.state || ''}`?.trim() || 'Nearby',
             isVerified: vendor.kycStatus === 'Approved' || vendor.kyc_status === 'Approved',
             matchingProducts: vendor.matchingProducts || vendor.products || [],
             products: vendor.matchingProducts || vendor.products || [],
@@ -173,7 +200,7 @@ const SearchResults = ({
     const allBusinesses = useMemo(() => {
         // Use database vendors only - no static fallback
         return vendors.map(transformVendorToBusiness);
-    }, [vendors]);
+    }, [vendors, currentLocation]);
 
     const baseResults = propResults || allBusinesses;
 
@@ -261,14 +288,19 @@ const SearchResults = ({
         });
     };
 
+
+
     const handleSliderMoveFromLocation = (locationX) => {
-        if (sliderWidth === 0) return;
-        const percentage = Math.max(0, Math.min(1, locationX / sliderWidth));
+        const width = sliderWidthRef.current;
+        if (width === 0) return;
+        const percentage = Math.max(0, Math.min(1, locationX / width));
         const newDistance = Math.round(1 + percentage * 49);
-        if (newDistance !== maxDistance) {
+        if (newDistance !== maxDistanceRef.current) {
             setMaxDistance(newDistance);
         }
     };
+
+    handleMoveRef.current = handleSliderMoveFromLocation;
 
     const panResponder = useRef(
         PanResponder.create({
@@ -279,7 +311,7 @@ const SearchResults = ({
                 if (sliderTrackRef.current) {
                     sliderTrackRef.current.measure((x, y, width, height, pageX, pageY) => {
                         const touchX = evt.nativeEvent.pageX - pageX;
-                        handleSliderMoveFromLocation(touchX);
+                        handleMoveRef.current(touchX);
                     });
                 }
             },
@@ -287,7 +319,7 @@ const SearchResults = ({
                 if (sliderTrackRef.current) {
                     sliderTrackRef.current.measure((x, y, width, height, pageX, pageY) => {
                         const touchX = evt.nativeEvent.pageX - pageX;
-                        handleSliderMoveFromLocation(touchX);
+                        handleMoveRef.current(touchX);
                     });
                 }
             },
@@ -351,15 +383,15 @@ const SearchResults = ({
 
     const renderBusinessCard = ({ item, index }) => {
         const isSaved = savedIds.includes(item.id);
-        const matchingProducts = item.matchingProducts || [];
-
+        
         return (
             <TouchableOpacity
                 style={styles.businessCard}
                 onPress={() => handleBusinessClick(item)}
-                activeOpacity={0.8}
+                activeOpacity={0.9}
             >
                 <View style={styles.cardContent}>
+                    {/* Left: Product/Store Image */}
                     <View style={styles.imageContainer}>
                         <ImageWithFallback
                             source={{ uri: item.imageUrl }}
@@ -367,110 +399,63 @@ const SearchResults = ({
                             resizeMode="cover"
                         />
                         {item.isVerified && (
-                            <View style={styles.verifiedBadge}>
-                                <Text style={styles.verifiedText}>Verified Partner</Text>
+                            <View style={styles.bestPriceBadge}>
+                                <Icon name="check-circle" size={10} color="#ffffff" />
+                                <Text style={styles.bestPriceText}>Best Price</Text>
                             </View>
                         )}
                     </View>
 
+                    {/* Right: Details */}
                     <View style={styles.contentContainer}>
                         <View style={styles.headerRow}>
-                            <Text style={styles.businessName} numberOfLines={1}>{item.name}</Text>
-                            <TouchableOpacity style={styles.callButton} activeOpacity={0.7}>
-                                <Icon name={getIconName('Phone')} size={12} color="#ffffff" />
-                                <Text style={styles.callButtonText}>Call</Text>
+                            <Text style={styles.businessName} numberOfLines={2}>{item.name}</Text>
+                            <TouchableOpacity 
+                                onPress={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleSave(item.id);
+                                }}
+                                style={styles.wishlistBtn}
+                            >
+                                <Icon
+                                    name="heart"
+                                    size={20}
+                                    color={isSaved ? "#EF4444" : "#CBD5E1"}
+                                    fill={isSaved ? "#EF4444" : "none"}
+                                />
                             </TouchableOpacity>
                         </View>
 
-                        <Text style={styles.categoryText} numberOfLines={1}>
-                            {item.category} • {item.address}
-                        </Text>
-
                         <View style={styles.ratingRow}>
                             <View style={styles.ratingBadge}>
+                                <Icon name="star" size={10} color="#16A34A" fill="#16A34A" />
                                 <Text style={styles.ratingText}>{item.rating}</Text>
-                                <Icon name={getIconName('Star')} size={10} color="#16a34a" />
                             </View>
-                            <Text style={styles.reviewCount}>({item.reviewCount} Ratings)</Text>
+                            <Text style={styles.reviewCount}>({item.reviewCount} reviews)</Text>
                         </View>
 
+                        {/* Store & Distance Info */}
+                        <Text style={styles.categoryText} numberOfLines={1}>
+                            {item.category}
+                        </Text>
+                        
                         <View style={styles.footerRow}>
                             <View style={styles.distanceContainer}>
-                                <Icon name={getIconName('MapPin')} size={12} color="#ef4444" />
+                                <Icon name="map-pin" size={12} color="#64748B" />
                                 <Text style={styles.distanceText}>{item.distance}</Text>
                             </View>
+                            
                             <View style={styles.actionButtons}>
-                                <TouchableOpacity
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        handleToggleSave(item.id);
-                                    }}
-                                    activeOpacity={0.7}
-                                >
-                                    <Icon
-                                        name={getIconName('Heart')}
-                                        size={16}
-                                        color={isSaved ? COLORS.orange : COLORS.textMuted}
-                                    />
-                                </TouchableOpacity>
                                 <TouchableOpacity 
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        handleBusinessShare(item);
-                                    }}
-                                    activeOpacity={0.7}
+                                    style={styles.callButton}
+                                    onPress={() => handleBusinessClick(item)}
                                 >
-                                    <Icon name={getIconName('Share2')} size={16} color="#9ca3af" />
+                                    <Text style={styles.callButtonText}>Compare Prices</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </View>
                 </View>
-
-                {/* Matching Products Section (Website-style) */}
-                {matchingProducts.length > 0 && query && (
-                    <View style={styles.matchingSection}>
-                        <Text style={styles.matchingSectionLabel}>MATCHING ITEMS</Text>
-                        <View style={styles.matchingList}>
-                            {matchingProducts.slice(0, 2).map((prod, idx) => {
-                                const isMatch = query && prod.name.toLowerCase().includes(query.toLowerCase());
-                                return (
-                                    <View 
-                                        key={prod.id || idx} 
-                                        style={[
-                                            styles.matchingItem,
-                                            isMatch && styles.matchingItemActive
-                                        ]}
-                                    >
-                                        <View style={styles.matchingItemInfo}>
-                                            <Image 
-                                                source={{ uri: prod.image }} 
-                                                style={styles.matchingItemImage} 
-                                            />
-                                            <View>
-                                                <Text style={styles.matchingItemName} numberOfLines={1}>
-                                                    {prod.name}
-                                                </Text>
-                                                <Text style={styles.matchingItemPrice}>₹{prod.price}</Text>
-                                            </View>
-                                        </View>
-                                        <TouchableOpacity 
-                                            style={styles.basketBtn}
-                                            activeOpacity={0.7}
-                                        >
-                                            <Icon name={getIconName('ShoppingBag')} size={14} color="#64748B" />
-                                        </TouchableOpacity>
-                                    </View>
-                                );
-                            })}
-                            {matchingProducts.length > 2 && (
-                                <Text style={styles.moreMatchingText}>
-                                    + {matchingProducts.length - 2} more matching items
-                                </Text>
-                            )}
-                        </View>
-                    </View>
-                )}
             </TouchableOpacity>
         );
     };
@@ -495,21 +480,18 @@ const SearchResults = ({
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-                        <Icon name={getIconName('ArrowLeft')} size={24} color={COLORS.white} />
+                        <Icon name="arrow-left" size={24} color={COLORS.textPrimary} />
                     </TouchableOpacity>
 
                     <View style={styles.searchContainer}>
-                        <Icon name={getIconName('Search')} size={20} color="rgba(255, 255, 255, 0.7)" style={styles.searchIcon} />
-                        <View style={styles.searchInputContainer}>
-                            <Text style={styles.searchInput}>{query || 'Search local stores...'}</Text>
-                            <Text style={styles.locationText}>{locationState?.city || 'Nearby'}</Text>
-                        </View>
+                        <Icon name="search" size={18} color="#94A3B8" />
+                        <Text style={styles.searchInput} numberOfLines={1}>
+                            {query || 'Search local stores...'}
+                        </Text>
                     </View>
-
-                    <TouchableOpacity onPress={handleShare} style={styles.shareButton} activeOpacity={0.7}>
-                        <Icon name={getIconName('Share2')} size={20} color={COLORS.white} />
-                    </TouchableOpacity>
                 </View>
+
+
             </SafeAreaView>
 
             <View style={styles.filterContainer}>
@@ -518,53 +500,37 @@ const SearchResults = ({
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.filterScroll}
                 >
-                    <TouchableOpacity
+                    <TouchableOpacity 
                         style={[styles.filterButton, showFilterPanel && styles.filterButtonActive]}
                         onPress={() => setShowFilterPanel(!showFilterPanel)}
-                        activeOpacity={0.7}
                     >
-                        <Icon name={getIconName('Sliders')} size={16} color={showFilterPanel ? COLORS.white : COLORS.textSecondary} />
+                        <Icon name="sliders" size={14} color={showFilterPanel ? "#FFF" : "#64748B"} />
+                        <Text style={[styles.filterButtonText, showFilterPanel && styles.filterButtonTextActive]}>Filters</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.filterButton, sortBy !== 'default' && styles.filterButtonActive]}
+                    <TouchableOpacity 
+                        style={[styles.filterButton, styles.filterPillWithArrow]}
                         onPress={() => setShowSortMenu(true)}
-                        activeOpacity={0.7}
                     >
-                        <Text style={[styles.filterButtonText, sortBy !== 'default' && styles.filterButtonTextActive]}>
-                            Sort by {sortBy !== 'default' ? `(${sortOptions.find(o => o.value === sortBy)?.label.split(' ')[0]})` : ''}
-                        </Text>
+                        <Text style={styles.filterButtonText}>Sort by</Text>
+                        <Icon name="chevron-down" size={14} color="#64748B" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.filterButtonBlue}
+                    <TouchableOpacity 
+                        style={[styles.filterButton, maxDistance < 50 && styles.filterButtonActive]}
                         onPress={() => setShowFilterPanel(true)}
-                        activeOpacity={0.7}
                     >
-                        <Icon name={getIconName('MapPin')} size={14} color={COLORS.white} />
-                        <Text style={styles.filterButtonTextWhite}>Within {maxDistance} km</Text>
+                        <Text style={[styles.filterButtonText, maxDistance < 50 && styles.filterButtonTextActive]}>
+                            {maxDistance} km
+                        </Text>
+                        <Icon name="chevron-down" size={14} color={maxDistance < 50 ? "#FFF" : "#64748B"} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity
+                    <TouchableOpacity 
                         style={[styles.filterButton, filterTopRated && styles.filterButtonActive]}
                         onPress={() => setFilterTopRated(!filterTopRated)}
-                        activeOpacity={0.7}
                     >
-                        <Icon name={getIconName('Star')} size={14} color={filterTopRated ? COLORS.white : COLORS.textSecondary} />
-                        <Text style={[styles.filterButtonText, filterTopRated && styles.filterButtonTextActive]}>
-                            Top Rated
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.filterButton, filterVerified && styles.filterButtonBlue]}
-                        onPress={() => setFilterVerified(!filterVerified)}
-                        activeOpacity={0.7}
-                    >
-                        <Icon name={getIconName('CheckCircle')} size={14} color={filterVerified ? COLORS.white : COLORS.textSecondary} />
-                        <Text style={[styles.filterButtonText, filterVerified && styles.filterButtonTextWhite]}>
-                            Verified
-                        </Text>
+                        <Text style={[styles.filterButtonText, filterTopRated && styles.filterButtonTextActive]}>4.0+</Text>
                     </TouchableOpacity>
                 </ScrollView>
 
@@ -572,62 +538,72 @@ const SearchResults = ({
                     <View style={styles.filterPanel}>
                         <View style={styles.filterPanelHeader}>
                             <View style={styles.filterPanelHeaderLeft}>
-                                <TouchableOpacity
-                                    onPress={() => setShowFilterPanel(false)}
-                                    style={styles.closeButton}
-                                    activeOpacity={0.7}
-                                >
-                                    <Icon name={getIconName('X')} size={18} color={COLORS.white} />
-                                </TouchableOpacity>
-                                <Text style={styles.filterPanelTitle}>DISTANCE RANGE</Text>
+                                <Icon name="sliders" size={16} color={COLORS.textPrimary} />
+                                <Text style={styles.filterPanelTitle}>Advanced Filters</Text>
                             </View>
-                            <View style={styles.distanceBadge}>
-                                <Text style={styles.distanceBadgeText}>0 - {maxDistance} km</Text>
-                            </View>
+                            <TouchableOpacity onPress={() => setShowFilterPanel(false)}>
+                                <Icon name="x" size={20} color={COLORS.textPrimary} />
+                            </TouchableOpacity>
                         </View>
-                        <View style={styles.sliderContainer}>
-                            <Text style={styles.sliderLabel}>1 km</Text>
-                            <View
-                                style={styles.sliderTrack}
-                                ref={sliderTrackRef}
-                                onLayout={(event) => {
-                                    const { width } = event.nativeEvent.layout;
-                                    setSliderWidth(width);
-                                }}
-                            >
-                                {/* Background track */}
-                                <View style={styles.sliderTrackBackground} />
-                                {/* Filled portion */}
-                                <View
-                                    style={[
-                                        styles.sliderFill,
-                                        {
-                                            width: `${((maxDistance - 1) / 49) * 100}%`
-                                        }
-                                    ]}
-                                />
-                                {/* Touchable area for tap */}
-                                <TouchableOpacity
-                                    activeOpacity={1}
-                                    onPress={handleSliderPress}
-                                    style={StyleSheet.absoluteFill}
-                                />
-                                {/* Thumb - draggable */}
-                                <View
-                                    style={[
-                                        styles.sliderThumb,
-                                        {
-                                            left: `${((maxDistance - 1) / 49) * 100}%`,
-                                            marginLeft: -8, // Half of thumb width (16/2)
-                                        }
-                                    ]}
+
+                        <View style={styles.filterItem}>
+                            <View style={styles.filterItemHeader}>
+                                <Text style={styles.filterLabel}>Distance Range</Text>
+                                <View style={styles.distanceBadge}>
+                                    <Text style={styles.distanceBadgeText}>{maxDistance} km</Text>
+                                </View>
+                            </View>
+                            <View style={styles.sliderContainer}>
+                                <Text style={styles.sliderLabel}>1km</Text>
+                                <View 
+                                    style={styles.sliderTrack}
+                                    onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}
+                                    ref={sliderTrackRef}
                                     {...panResponder.panHandlers}
-                                />
+                                >
+                                    <View style={styles.sliderTrackBackground} />
+                                    <View style={[styles.sliderFill, { width: `${(maxDistance - 1) / 49 * 100}%` }]} />
+                                    <View style={[styles.sliderThumb, { left: `${(maxDistance - 1) / 49 * 100}%`, marginLeft: -8 }]} />
+                                </View>
+                                <Text style={styles.sliderLabel}>50km</Text>
                             </View>
-                            <Text style={styles.sliderLabel}>50 km</Text>
                         </View>
+
+                        <View style={styles.filterToggles}>
+                            <TouchableOpacity 
+                                style={[styles.filterToggle, filterTopRated && styles.filterToggleActive]}
+                                onPress={() => setFilterTopRated(!filterTopRated)}
+                            >
+                                <Icon name="star" size={14} color={filterTopRated ? "#FFF" : "#64748B"} />
+                                <Text style={[styles.filterToggleText, filterTopRated && styles.filterToggleTextActive]}>
+                                    Top Rated
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                style={[styles.filterToggle, filterVerified && styles.filterToggleActive]}
+                                onPress={() => setFilterVerified(!filterVerified)}
+                            >
+                                <Icon name="check-circle" size={14} color={filterVerified ? "#FFF" : "#64748B"} />
+                                <Text style={[styles.filterToggleText, filterVerified && styles.filterToggleTextActive]}>
+                                    Verified
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity 
+                            style={styles.applyButton}
+                            onPress={() => setShowFilterPanel(false)}
+                        >
+                            <Text style={styles.applyButtonText}>Apply Filters</Text>
+                        </TouchableOpacity>
                     </View>
                 )}
+
+                <View style={styles.resultsSummaryRow}>
+                    <Text style={styles.resultCountText}>{filteredResults.length}+ results found</Text>
+                </View>
+            </View>
 
                 {/* Sort By Menu Modal */}
                 <Modal
@@ -678,7 +654,6 @@ const SearchResults = ({
                         </View>
                     </TouchableOpacity>
                 </Modal>
-            </View>
 
             {loading ? (
                 <View style={styles.loadingContainer}>
@@ -757,24 +732,27 @@ const createStyles = (COLORS) => StyleSheet.create({
     },
     header: {
         paddingHorizontal: 16,
-        height: 64,
+        height: 80,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: 16,
     },
     backButton: {
         padding: 4,
     },
     searchContainer: {
         flex: 1,
-        height: 44,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 8,
+        height: 48,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
+        paddingHorizontal: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 2,
     },
     searchIcon: {
         marginRight: 8,
@@ -784,10 +762,11 @@ const createStyles = (COLORS) => StyleSheet.create({
         justifyContent: 'center',
     },
     searchInput: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
-        color: COLORS.white,
+        color: COLORS.textPrimary,
         padding: 0,
+        marginLeft: 8,
     },
     locationText: {
         fontSize: 10,
@@ -1240,6 +1219,107 @@ const createStyles = (COLORS) => StyleSheet.create({
         marginTop: 16,
         fontSize: 14,
         color: COLORS.textSecondary,
+    },
+    filterPillWithArrow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    filterItem: {
+        marginTop: 20,
+    },
+    filterItemHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    filterLabel: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: COLORS.textPrimary,
+    },
+    filterToggles: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 24,
+    },
+    filterToggle: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: COLORS.divider,
+        backgroundColor: COLORS.white,
+    },
+    filterToggleActive: {
+        backgroundColor: COLORS.textPrimary,
+        borderColor: COLORS.textPrimary,
+    },
+    filterToggleText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: COLORS.textSecondary,
+    },
+    filterToggleTextActive: {
+        color: COLORS.white,
+    },
+    applyButton: {
+        backgroundColor: COLORS.orange,
+        marginTop: 24,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: COLORS.orange,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    applyButtonText: {
+        color: COLORS.white,
+        fontSize: 14,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    resultsSummaryRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        marginTop: 12,
+        paddingHorizontal: 4,
+    },
+    resultCountText: {
+        fontSize: 12,
+        color: COLORS.textSecondary,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+    wishlistBtn: {
+        padding: 4,
+    },
+    bestPriceBadge: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#16a34a',
+        paddingVertical: 2,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
+    },
+    bestPriceText: {
+        fontSize: 8,
+        fontWeight: '900',
+        color: '#ffffff',
+        textTransform: 'uppercase',
     },
     scrollView: {
         flex: 1,

@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
   Modal,
+  Image,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -30,10 +31,8 @@ const LoginScreen = ({ onLogin, onRegister }) => {
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showOtpScreen, setShowOtpScreen] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '']);
-  const [resendTimer, setResendTimer] = useState(24);
   const [error, setError] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -42,23 +41,22 @@ const LoginScreen = ({ onLogin, onRegister }) => {
   const [showPermissions, setShowPermissions] = useState(false);
   const [pendingLoginData, setPendingLoginData] = useState(null);
 
-  const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
-  // Timer for resend OTP
-  useEffect(() => {
-    if (showOtpScreen && resendTimer > 0) {
-      const timer = setInterval(() => {
-        setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [showOtpScreen, resendTimer]);
-
-  const handleGetOtp = async () => {
-    console.log('[Login] handleGetOtp called', { loginMethod, isLocalPlusMode, mobile, email });
+  const handleLogin = async () => {
+    console.log('[Login] handleLogin called', { loginMethod, isLocalPlusMode, mobile, email });
+    
     if (loginMethod === 'mobile' && mobile.length < 10) {
-
       setError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    if (loginMethod === 'email' && !email.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter your password');
       return;
     }
 
@@ -71,63 +69,14 @@ const LoginScreen = ({ onLogin, onRegister }) => {
         method: loginMethod === 'email' ? 'email' : 'sms',
         phone: loginMethod === 'mobile' ? mobile : undefined,
         email: loginMethod === 'email' ? email.toLowerCase() : undefined,
+        password: password,
       });
-
 
       console.log('[Login] API Response Body:', response);
 
-      if (response.success || response.user || response.vendor || response.otp || response.message) {
-        setShowOtpScreen(true);
-        setResendTimer(24);
-        // In development, show OTP (remove in production)
-        if (response.otp) {
-          Alert.alert('OTP Sent', `Your OTP is: ${response.otp}`, [{ text: 'OK' }]);
-        }
-      } else {
-        console.warn('[Login] Response received but missing success indicator', response);
-        setError('Unexpected server response. Please try again.');
-      }
+      const userData = response.user || response.vendor || (response.id ? response : null);
 
-    } catch (err) {
-      console.error('[Login] handleGetOtp Error:', err);
-      const errorMsg = err.message || 'Login failed. Please try again.';
-      setError(errorMsg);
-      setErrorMessage(errorMsg);
-      setShowErrorModal(true);
-      // Fallback alert to be absolutely sure the error is visible
-      Alert.alert('Login Error', errorMsg, [{ text: 'OK' }]);
-    } finally {
-
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    console.log('[Login] handleVerifyOtp called', { mobile, isLocalPlusMode, otp: otp.join('') });
-    const otpString = otp.join('');
-    if (otpString.length !== 4) {
-
-      setError('Please enter 4-digit OTP');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const loginFn = isLocalPlusMode ? vendorLogin : login;
-      const response = await loginFn({
-        method: 'sms',
-        phone: mobile, // Send clean number
-        otp: otpString,
-      });
-
-      console.log('[Login] Verify OTP Response Body:', response);
-
-      const userData = response.user || response.vendor;
-
-      if ((response.success || response.user || response.vendor) && userData) {
-
+      if (userData && (response.success || response.user || response.vendor || response.id)) {
         // Save user data to AsyncStorage
         try {
           await saveUserData(userData, isLocalPlusMode ? 'vendor' : 'customer');
@@ -135,107 +84,36 @@ const LoginScreen = ({ onLogin, onRegister }) => {
           console.error('Error saving user data:', error);
         }
 
-        // Show permissions before completing login
-        setPendingLoginData({
-          role: isLocalPlusMode ? 'vendor' : 'customer',
-          user: userData
-        });
-        setShowPermissions(true);
+        // Directly complete login if permissions logic isn't needed or to avoid race conditions
+        if (onLogin) {
+          onLogin(isLocalPlusMode ? 'vendor' : 'customer', userData);
+        }
+      } else {
+        console.warn('[Login] Response received but missing user data', response);
+        setError(response.message || 'Login failed. Please check your credentials.');
       }
 
     } catch (err) {
-      const errorMsg = err.message || 'Invalid OTP. Please try again.';
+      console.error('[Login] handleLogin Error:', err);
+      const errorMsg = err.message || 'Login failed. Please try again.';
       setError(errorMsg);
       setErrorMessage(errorMsg);
       setShowErrorModal(true);
-      // Clear OTP on error
-      setOtp(['', '', '', '']);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleEditNumber = () => {
-    setShowOtpScreen(false);
-    setOtp(['', '', '', '']);
-    setResendTimer(24);
-    setError('');
   };
 
   const handleMethodChange = (method) => {
     setLoginMethod(method);
     setError('');
-    setShowOtpScreen(false);
-    setOtp(['', '', '', '']);
     setMobile('');
     setEmail('');
     setPassword('');
   };
 
-  const handleResendOtp = async () => {
-    if (resendTimer > 0) return;
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const loginFn = isLocalPlusMode ? vendorLogin : login;
-      const response = await loginFn({
-        method: 'sms',
-        phone: mobile, // Send clean number
-      });
 
 
-      if (response.success) {
-        setResendTimer(24);
-        // In development, show OTP (remove in production)
-        if (response.otp) {
-          Alert.alert('OTP Resent', `Your OTP is: ${response.otp}`, [{ text: 'OK' }]);
-        }
-      }
-    } catch (err) {
-      const errorMsg = err.message || 'Failed to resend OTP';
-      setError(errorMsg);
-      setErrorMessage(errorMsg);
-      setShowErrorModal(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOtpChange = (index, value) => {
-    if (value.match(/[0-9]/)) {
-      const newOtp = [...otp];
-      newOtp[index] = value;
-      setOtp(newOtp);
-      if (index < 3 && value) {
-        otpRefs[index + 1].current?.focus();
-      }
-    } else if (value === '') {
-      const newOtp = [...otp];
-      newOtp[index] = '';
-      setOtp(newOtp);
-    }
-  };
-
-  const handleOtpKeyPress = (index, key) => {
-    if (key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs[index - 1].current?.focus();
-    }
-  };
-
-  const handleGoogleLogin = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      // Simulate successful Google login
-      setPendingLoginData({
-        role: isLocalPlusMode ? 'vendor' : 'customer',
-        user: null // In real app, would get user data from Google
-      });
-      setShowPermissions(true);
-    }, 1500);
-  };
 
   const handleLocalPlusLogin = () => {
     setIsLocalPlusMode(true);
@@ -248,313 +126,175 @@ const LoginScreen = ({ onLogin, onRegister }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      {/* Dynamic gradient background */}
-      <LinearGradient
-        colors={COLORS.homeBackground || COLORS.primaryGradient || ['#7A3B1D', '#581c87']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={styles.container}>
+      <View style={styles.backgroundLayer}>
+        <View style={styles.circle1} />
+        <View style={styles.circle2} />
+      </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Light pinkish-beige card */}
-        <View style={[styles.card, isLocalPlusMode && styles.cardLocalPlus]}>
-          {/* Icon overlapping the card */}
-          <View style={styles.iconWrapper}>
-            <View style={styles.iconContainer}>
-              {isLocalPlusMode ? (
-                <Icon
-                  name={getIconName('Briefcase')}
-                  size={48}
-                  color={COLORS.textPrimary}
-                />
-              ) : (
-                <Logo size={48} />
-              )}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Hero Branding */}
+          <View style={styles.heroSection}>
+            <View style={styles.logoContainer}>
+               <Image 
+                 source={require('../assets/lokall_shop_illustration.png')} 
+                 style={styles.heroImage} 
+                 resizeMode="contain"
+               />
             </View>
+            <Text style={styles.brandName}>LOKALL</Text>
+            <Text style={styles.brandTagline}>Your Market, Digitized.</Text>
           </View>
 
-          {/* Welcome section */}
-          <Text style={styles.welcomeText}>
-            {isLocalPlusMode ? 'Local+ Login' : 'Welcome'}
-          </Text>
-          <Text style={styles.subtitleText}>
-            {isLocalPlusMode ? 'Manage your Local+ business' : 'Login to access your local market'}
-          </Text>
+          {/* Role Toggle */}
+          <View style={styles.roleToggleContainer}>
+            <TouchableOpacity 
+              style={[styles.roleTab, !isLocalPlusMode && styles.roleTabActive]}
+              onPress={handleCustomerLogin}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.roleTabText, !isLocalPlusMode && styles.roleTabTextActive]}>Customer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.roleTab, isLocalPlusMode && styles.roleTabActive]}
+              onPress={handleLocalPlusLogin}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.roleTabText, isLocalPlusMode && styles.roleTabTextActive]}>Partner</Text>
+            </TouchableOpacity>
+          </View>
 
-          {/* OTP Screen */}
-          {showOtpScreen && loginMethod === 'mobile' ? (
-            <View style={styles.otpContainer}>
-              <Text style={styles.otpInstructionText}>
-                We've sent a 4-digit code to{'\n'}
-                <Text style={styles.otpPhoneNumber}>+91 {mobile}</Text>
-                <TouchableOpacity onPress={handleEditNumber} style={styles.editButton}>
-                  <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-              </Text>
+          <View style={styles.formContainer}>
+            <Text style={styles.formTitle}>
+              {isLocalPlusMode ? 'Partner Login' : 'Welcome Back'}
+            </Text>
+            <Text style={styles.formSubtitle}>
+              {isLocalPlusMode ? 'Manage your shop and orders' : 'Access your favorite local deals'}
+            </Text>
 
-              <View style={styles.otpInputsContainer}>
-                {[0, 1, 2, 3].map((idx) => (
-                  <TextInput
-                    key={idx}
-                    ref={otpRefs[idx]}
-                    style={styles.otpInput}
-                    value={otp[idx]}
-                    onChangeText={(value) => handleOtpChange(idx, value)}
-                    onKeyPress={({ nativeEvent }) => handleOtpKeyPress(idx, nativeEvent.key)}
-                    keyboardType="number-pad"
-                    maxLength={1}
-                    selectTextOnFocus
-                  />
-                ))}
+            {/* Method Selector (Mobile/Email) */}
+            <View style={styles.methodContainer}>
+               {['mobile', 'email'].map((method) => (
+                 <TouchableOpacity
+                   key={method}
+                   onPress={() => handleMethodChange(method)}
+                   style={[styles.methodItem, loginMethod === method && styles.methodItemActive]}
+                 >
+                   <Text style={[styles.methodText, loginMethod === method && styles.methodTextActive]}>
+                     {method.charAt(0).toUpperCase() + method.slice(1)}
+                   </Text>
+                 </TouchableOpacity>
+               ))}
+            </View>
+
+            {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
+
+            {/* Input Group */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputBox}>
+                <Icon name={loginMethod === 'mobile' ? 'phone' : 'mail'} size={18} color="#94A3B8" />
+                {loginMethod === 'mobile' && <Text style={styles.prefix}>+91</Text>}
+                <TextInput
+                  style={styles.textInput}
+                  placeholder={loginMethod === 'mobile' ? "Mobile Number" : "Email Address"}
+                  placeholderTextColor="#94A3B8"
+                  keyboardType={loginMethod === 'mobile' ? "phone-pad" : "email-address"}
+                  value={loginMethod === 'mobile' ? mobile : email}
+                  onChangeText={(text) => {
+                    if (loginMethod === 'mobile') {
+                      setMobile(text.replace(/\D/g, '').slice(0, 10));
+                    } else {
+                      setEmail(text);
+                    }
+                    setError('');
+                  }}
+                />
               </View>
 
-              <TouchableOpacity
-                style={[styles.verifyButton, (isLoading || otp.join('').length < 4) && styles.verifyButtonDisabled]}
-                onPress={handleVerifyOtp}
-                disabled={isLoading || otp.join('').length < 4}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={COLORS.primaryGradient || ['#fb923c', '#ec4899']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.gradientButton}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color={COLORS.white} size="small" style={styles.buttonContent} />
-                  ) : (
-                    <View style={styles.buttonContent}>
-                      <Text style={styles.verifyButtonText}>Verify & Login</Text>
-                      <Icon name={getIconName('CheckCircle')} size={18} color={COLORS.white} />
-                    </View>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
+              <View style={styles.inputBox}>
+                <Icon name="lock" size={18} color="#94A3B8" />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Password"
+                  placeholderTextColor="#94A3B8"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    setError('');
+                  }}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Icon name={showPassword ? 'eye' : 'eye-off'} size={18} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
+            </View>
 
-              <TouchableOpacity
-                style={styles.resendButton}
-                onPress={handleResendOtp}
-                disabled={resendTimer > 0}
-                activeOpacity={0.7}
+            <TouchableOpacity style={styles.forgotBtn}>
+              <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleLogin}
+              disabled={isLoading}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['#F97316', '#EA580C']}
+                style={styles.loginBtn}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
               >
-                <Text style={[styles.resendText, resendTimer > 0 && styles.resendTextDisabled]}>
-                  Resend OTP {resendTimer > 0 ? `in ${resendTimer}s` : ''}
+                {isLoading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <>
+                    <Text style={styles.loginBtnText}>Login Now</Text>
+                    <Icon name="arrow-right" size={18} color="#FFF" />
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {!isLocalPlusMode && (
+              <TouchableOpacity 
+                style={styles.registerBtn}
+                onPress={() => onRegister && onRegister(false)}
+              >
+                <Text style={styles.registerText}>
+                  Don't have an account? <Text style={styles.registerTextBold}>Create One</Text>
                 </Text>
               </TouchableOpacity>
-            </View>
-          ) : (
-            <>
+            )}
 
-              {/* Mobile/Email selector */}
-              <View style={styles.methodSelector}>
-                <TouchableOpacity
-                  style={[styles.methodTab, loginMethod === 'mobile' && styles.methodTabActive]}
-                  onPress={() => handleMethodChange('mobile')}
-                  activeOpacity={0.7}
-                >
-                  {loginMethod === 'mobile' ? (
-                    <View style={styles.methodTabContent}>
-                      <Icon name={getIconName('Phone')} size={16} color={COLORS.textPrimary} />
-                      <Text style={styles.methodTabTextActive}>Mobile</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.methodTabContent}>
-                      <Icon name={getIconName('Phone')} size={16} color={COLORS.textMuted} />
-                      <Text style={styles.methodTabText}>Mobile</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.methodTab, loginMethod === 'email' && styles.methodTabActive]}
-                  onPress={() => handleMethodChange('email')}
-                  activeOpacity={0.7}
-                >
-                  {loginMethod === 'email' ? (
-                    <View style={styles.methodTabContent}>
-                      <Icon name={getIconName('Mail')} size={16} color={COLORS.textPrimary} />
-                      <Text style={styles.methodTabTextActive}>Email</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.methodTabContent}>
-                      <Icon name={getIconName('Mail')} size={16} color={COLORS.textMuted} />
-                      <Text style={styles.methodTabText}>Email</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              {/* Error message */}
-              {error ? (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              ) : null}
-
-              {/* Mobile number input */}
-              {loginMethod === 'mobile' && (
-                <View style={styles.inputSection}>
-                  <Text style={styles.inputLabel}>MOBILE NUMBER</Text>
-                  <View style={[styles.inputWrapper, isLocalPlusMode && styles.inputWrapperLocalPlus]}>
-                    <Text style={styles.countryCode}>+91</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter 10 digit number"
-                      placeholderTextColor={COLORS.textMuted}
-                      keyboardType="phone-pad"
-                      value={mobile}
-                      onChangeText={(text) => setMobile(text.replace(/\D/g, '').slice(0, 10))}
-                      maxLength={10}
-                    />
-                    <Icon name={getIconName('Phone')} size={18} color={isLocalPlusMode ? COLORS.textMuted : COLORS.orange} />
-                  </View>
-                </View>
-              )}
-
-              {/* Email input (if email method is selected) */}
-              {loginMethod === 'email' && (
-                <View style={styles.inputSection}>
-                  <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
-                  <View style={[styles.inputWrapper, isLocalPlusMode && styles.inputWrapperLocalPlus]}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter your email"
-                      placeholderTextColor={COLORS.textMuted}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      value={email}
-                      onChangeText={(text) => {
-                        setEmail(text);
-                        setError('');
-                      }}
-                    />
-                    <Icon name={getIconName('Mail')} size={18} color={isLocalPlusMode ? COLORS.textMuted : COLORS.orange} />
-                  </View>
-                </View>
-              )}
-
-              {/* Get OTP / Login button with gradient or dark grey for Local+ */}
-              <TouchableOpacity
-                style={[
-                  styles.otpButton,
-                  (isLoading ||
-                    (loginMethod === 'mobile' && mobile.length < 10) ||
-                    (loginMethod === 'email' && (!email || !password))
-                  ) && styles.otpButtonDisabled,
-                  isLocalPlusMode && styles.otpButtonLocalPlus
-                ]}
-                onPress={handleGetOtp}
-                disabled={
-                  isLoading ||
-                  (loginMethod === 'mobile' && mobile.length < 10) ||
-                  (loginMethod === 'email' && (!email || !password))
-                }
-                activeOpacity={0.8}
+            {isLocalPlusMode && (
+              <TouchableOpacity 
+                style={styles.registerBtn}
+                onPress={() => onRegister && onRegister(true)}
               >
-                {isLocalPlusMode ? (
-                  <View style={styles.darkGreyButton}>
-                    {isLoading ? (
-                      <ActivityIndicator color={COLORS.white} size="small" style={styles.buttonContent} />
-                    ) : (
-                      <View style={styles.buttonContent}>
-                        <Text style={styles.otpButtonText}>
-                          {loginMethod === 'email' ? 'Login' : 'Get OTP'}
-                        </Text>
-                        <Icon name={getIconName('ArrowRight')} size={18} color={COLORS.white} />
-                      </View>
-                    )}
-                  </View>
-                ) : (
-                  <LinearGradient
-                    colors={COLORS.primaryGradient || ['#fb923c', '#ec4899']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.gradientButton}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color={COLORS.white} size="small" style={styles.buttonContent} />
-                    ) : (
-                      <View style={styles.buttonContent}>
-                        <Text style={styles.otpButtonText}>
-                          Get OTP
-                        </Text>
-                        <Icon name={getIconName('ArrowRight')} size={18} color={COLORS.white} />
-                      </View>
-                    )}
-                  </LinearGradient>
-                )}
+                <Text style={styles.registerText}>
+                  New Partner? <Text style={styles.registerTextBold}>Register Shop</Text>
+                </Text>
               </TouchableOpacity>
-
-
-
-              {/* Register link for regular users */}
-              {!isLocalPlusMode && (
-                <View style={styles.registerLinkSection}>
-                  <Text style={styles.registerLinkText}>
-                    Don't have an account?{' '}
-                    <TouchableOpacity
-                      onPress={() => onRegister && onRegister(false)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.registerLinkBold}>Register Now</Text>
-                    </TouchableOpacity>
-                  </Text>
-                </View>
-              )}
-
-              {/* Partners section */}
-              <View style={styles.partnersSection}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.partnersLabel}>PARTNERS & LOCAL+</Text>
-                <View style={styles.partnersButtons}>
-                  <TouchableOpacity style={styles.localPlusButton} onPress={handleLocalPlusLogin} activeOpacity={0.7}>
-                    <Icon name={getIconName('Briefcase')} size={20} color={COLORS.textSecondary} />
-                    <Text style={styles.localPlusButtonText}>Login to Local+</Text>
-                  </TouchableOpacity>
-                  {onRegister && (
-                    <TouchableOpacity style={styles.registerButton} onPress={() => onRegister(true)} activeOpacity={0.7}>
-                      <Icon name={getIconName('Store')} size={20} color={COLORS.orange} />
-                      <Text style={styles.registerButtonText}>Register as Local+</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-              {isLocalPlusMode && (
-                <View style={styles.notLocalPlusSection}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.notLocalPlusLabel}>NOT ON LOCAL+?</Text>
-                  <TouchableOpacity style={styles.customerLoginButton} onPress={handleCustomerLogin} activeOpacity={0.7}>
-                    <Icon name={getIconName('User')} size={16} color="#475569" />
-                    <Text style={styles.customerLoginButtonText}>Login as Customer</Text>
-                  </TouchableOpacity>
-                  {onRegister && (
-                    <TouchableOpacity style={styles.registerLink} onPress={onRegister} activeOpacity={0.7}>
-                      <Text style={styles.registerLinkText}>
-                        Don't have a Local+ account?{' '}
-                        <Text style={styles.registerLinkBold}>Register New</Text>
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </>
-          )}
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Icon name={getIconName('Shield')} size={14} color={COLORS.textMuted} />
-            <Text style={styles.footerText}>SECURE & TRUSTED MARKETPLACE</Text>
+            )}
           </View>
-        </View>
-      </ScrollView>
+
+
+
+          <View style={styles.footer}>
+             <Text style={styles.footerText}>Secure Login Powered by</Text>
+             <Text style={styles.footerBrand}>LOKALL CLOUD</Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Error Modal */}
       <Modal
@@ -613,7 +353,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
 
             {/* Action Buttons */}
             <View style={styles.errorButtonContainer}>
-              {errorMessage.includes('not registered') ? (
+              {errorMessage?.includes('not registered') ? (
                 <>
                   <TouchableOpacity
                     style={styles.errorButtonSecondary}
@@ -670,320 +410,305 @@ const LoginScreen = ({ onLogin, onRegister }) => {
         visible={showPermissions}
         onComplete={() => {
           setShowPermissions(false);
+          // Safety fallback if onLogin wasn't called directly
           if (onLogin && pendingLoginData) {
             onLogin(pendingLoginData.role, pendingLoginData.user);
           }
         }}
       />
-    </KeyboardAvoidingView >
+    </View>
   );
 };
 
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  backgroundLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#EFF6FF', // Light blue background
+    overflow: 'hidden',
+  },
+  circle1: {
+    position: 'absolute',
+    top: -100,
+    right: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: '#DBEAFE',
+    opacity: 0.5,
+  },
+  circle2: {
+    position: 'absolute',
+    bottom: -50,
+    left: -50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: '#F97316',
+    opacity: 0.05,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-    minHeight: '100%',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-  card: {
-    backgroundColor: '#faf5f0', // Light beige/pinkish-white
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
     borderRadius: 24,
-    padding: 28,
-    shadowColor: '#000',
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#3B82F6',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
-  },
-  cardLocalPlus: {
-    backgroundColor: '#f3f4f6', // Light grey-purple
-  },
-  iconWrapper: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  iconContainer: {
-    width: 96,
-    height: 96,
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -48,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
-  welcomeText: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    textAlign: 'center',
-    marginBottom: 8,
+  heroImage: {
+    width: 80,
+    height: 80,
   },
-  subtitleText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    marginBottom: 24,
+  brandName: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: 2,
   },
-  methodSelector: {
-    flexDirection: 'row',
-    backgroundColor: '#E5E7EB', // Light gray
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 24,
-  },
-  methodTab: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  methodTabActive: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.textPrimary,
-  },
-  methodTabContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  methodTabText: {
-    fontSize: 13,
+  brandTagline: {
+    fontSize: 12,
     fontWeight: '600',
-    color: COLORS.textMuted,
-  },
-  methodTabTextActive: {
-    color: COLORS.textPrimary,
-    fontWeight: '700',
-  },
-  inputSection: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
+    color: '#64748B',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 8,
-    marginLeft: 4,
+    marginTop: 4,
   },
-  inputWrapper: {
+  roleToggleContainer: {
     flexDirection: 'row',
+    backgroundColor: '#E2E8F0',
+    borderRadius: 16,
+    padding: 6,
+    marginBottom: 30,
+  },
+  roleTab: {
+    flex: 1,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: COLORS.orange, // Orange border
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: COLORS.white, // White background
+  },
+  roleTabActive: {
+    backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  roleTabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  roleTabTextActive: {
+    color: '#0F172A',
+  },
+  formContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 6,
+  },
+  formSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+    marginBottom: 24,
+  },
+  methodContainer: {
+    flexDirection: 'row',
+    marginBottom: 24,
     gap: 12,
   },
-  inputWrapperLocalPlus: {
-    borderColor: COLORS.divider, // Grey border for Local+
+  methodItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
   },
-  countryCode: {
+  methodItemActive: {
+    backgroundColor: '#F97316',
+  },
+  methodText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  methodTextActive: {
+    color: '#FFF',
+  },
+  errorBanner: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '600',
+    backgroundColor: '#FEF2F2',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  inputGroup: {
+    gap: 16,
+    marginBottom: 12,
+  },
+  inputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  prefix: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#0F172A',
+    marginLeft: 12,
+    marginRight: 4,
   },
-  input: {
+  textInput: {
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.textPrimary,
-    padding: 0,
+    color: '#0F172A',
+    marginLeft: 12,
   },
-  otpButton: {
-    borderRadius: 12,
+  forgotBtn: {
+    alignSelf: 'flex-end',
     marginBottom: 24,
-    overflow: 'hidden',
   },
-  otpButtonLocalPlus: {
-    backgroundColor: COLORS.textPrimary, // Dark grey
+  forgotText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#3B82F6',
   },
-  gradientButton: {
-    borderRadius: 12,
-    paddingVertical: 16,
-  },
-  darkGreyButton: {
-    backgroundColor: COLORS.textPrimary, // Dark grey
-    borderRadius: 12,
-    paddingVertical: 16,
-  },
-  buttonContent: {
+  loginBtn: {
+    height: 56,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
+    shadowColor: '#F97316',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  otpButtonDisabled: {
-    opacity: 0.6,
-  },
-  otpButtonText: {
+  loginBtnText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontWeight: '800',
+    color: '#FFF',
   },
-  dividerSection: {
+  registerBtn: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  registerText: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  registerTextBold: {
+    color: '#F97316',
+    fontWeight: '800',
+  },
+  socialSection: {
+    marginTop: 32,
+  },
+  dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
     gap: 12,
+    marginBottom: 24,
   },
-  dividerLine: {
+  line: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.divider,
+    backgroundColor: '#E2E8F0',
   },
-  dividerText: {
+  dividerLabel: {
     fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    fontWeight: '800',
+    color: '#94A3B8',
+    letterSpacing: 1,
   },
-  googleButton: {
+  googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: '#FFF',
+    height: 56,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.divider,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderColor: '#E2E8F0',
     gap: 12,
-    marginBottom: 24,
   },
-  googleIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
+  googleIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   googleG: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#4285F4',
   },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  partnersSection: {
-    marginTop: 8,
-    paddingTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-  },
-  partnersLabel: {
-    fontSize: 10,
+  googleBtnText: {
+    fontSize: 15,
     fontWeight: '700',
-    color: COLORS.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    textAlign: 'center',
-    marginBottom: 16,
+    color: '#0F172A',
   },
-  partnersButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  localPlusButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    borderRadius: 12,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  localPlusButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  registerButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff7ed', // Light orange background
-    borderWidth: 1,
-    borderColor: '#fed7aa', // Light orange border
-    borderRadius: 12,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  registerButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.orange,
-  },
-  notLocalPlusSection: {
-    marginTop: 8,
-    paddingTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  notLocalPlusLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  customerLoginButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 12,
-    paddingVertical: 14,
-    gap: 8,
-    marginBottom: 12,
-  },
-  customerLoginButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#475569',
-  },
-  registerLink: {
+  footer: {
+    marginTop: 40,
     alignItems: 'center',
   },
-  registerLinkText: {
-    fontSize: 13,
+  footerText: {
+    fontSize: 12,
+    color: '#94A3B8',
     fontWeight: '500',
-    color: '#64748b',
-    textAlign: 'center',
   },
-  registerLinkBold: {
-    fontWeight: '700',
-    color: '#ea580c',
-    textDecorationLine: 'underline',
+  footerBrand: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginTop: 2,
   },
   // Error Modal Styles
   errorModalOverlay: {
@@ -994,7 +719,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     padding: 20,
   },
   errorModalContent: {
-    backgroundColor: COLORS.white,
+    backgroundColor: '#FFF',
     borderRadius: 24,
     padding: 32,
     width: '100%',
@@ -1013,26 +738,21 @@ const createStyles = (COLORS) => StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#ef4444', // Red color for error
+    backgroundColor: '#ef4444',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
   },
   errorModalTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: COLORS.textPrimary,
+    color: '#0F172A',
     textAlign: 'center',
     marginBottom: 12,
   },
   errorModalMessage: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.textSecondary,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 20,
@@ -1072,7 +792,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   errorButtonSecondaryText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#0F172A',
   },
   errorButtonPrimary: {
     flex: 1,
@@ -1089,126 +809,7 @@ const createStyles = (COLORS) => StyleSheet.create({
   errorButtonPrimaryText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-    gap: 6,
-  },
-  footerText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  otpContainer: {
-    marginTop: 8,
-  },
-  otpInstructionText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#64748b',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  otpPhoneNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  editButton: {
-    marginLeft: 8,
-    backgroundColor: '#fff7ed',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#fed7aa',
-  },
-  editButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#ea580c',
-  },
-  otpInputsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 24,
-  },
-  otpInput: {
-    width: 56,
-    height: 64,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    textAlign: 'center',
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  verifyButton: {
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  verifyButtonDisabled: {
-    opacity: 0.6,
-  },
-  verifyButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  resendButton: {
-    alignItems: 'center',
-  },
-  resendText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  resendTextDisabled: {
-    color: '#94a3b8',
-  },
-  errorContainer: {
-    backgroundColor: '#fee2e2',
-    borderWidth: 1,
-    borderColor: '#fca5a5',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  registerLinkSection: {
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  registerLinkText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-  },
-  registerLinkBold: {
-    fontWeight: '700',
-    color: COLORS.orange,
-    textDecorationLine: 'underline',
+    color: '#FFF',
   },
 });
 

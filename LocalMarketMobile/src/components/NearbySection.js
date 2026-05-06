@@ -1,300 +1,252 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Linking, FlatList } from 'react-native';
 import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
-// Static vendor data removed - using database only
-import { getIconName } from '../utils/iconMapping';
 import { getVendors } from '../services/api';
 
-const NearbySection = ({ onBusinessClick, onSeeAll, locationState }) => {
+const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) => {
   const [businesses, setBusinesses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!vendors);
 
   useEffect(() => {
-    loadNearbyVendors();
-  }, [locationState?.city]);
+    if (vendors) {
+      const transformedBusinesses = vendors.map(vendor => ({
+        id: vendor.id,
+        name: vendor.shop_name || vendor.name,
+        category: vendor.category_name || vendor.category || 'General',
+        rating: parseFloat(vendor.rating) || 4.2,
+        reviewCount: vendor.reviewCount || 48,
+        distance: 'Near you',
+        imageUrl: vendor.imageUrl || vendor.image_url || (vendor.images && vendor.images[0]),
+        address: vendor.address || '',
+        phone: vendor.contactNumber || vendor.phone || '',
+      }));
+      setBusinesses(transformedBusinesses);
+      setLoading(false);
+    } else {
+      loadNearbyVendors();
+    }
+  }, [vendors, locationState?.city]);
 
   const loadNearbyVendors = async () => {
     try {
       setLoading(true);
-      // Fetch active vendors, optionally filtered by city
-      const filters = {
-        status: 'Active',
-        limit: 10,
-      };
-
-      if (locationState?.city) {
-        filters.city = locationState.city;
+      // Try fetching verified vendors by city first
+      let filters = { status: 'Active', limit: 12, verified: true };
+      
+      // Handle "All Punjab" or similar by stripping "All " prefix
+      let searchCity = locationState?.city;
+      if (searchCity && searchCity.startsWith('All ')) {
+        // If it's "All [State]", we might want to fetch everything in that state or just use as is
+        // For now, let's try without a city filter if "All " is selected to show global verified shops
+        searchCity = null; 
       }
 
-      const data = await getVendors(filters);
+      if (searchCity) {
+        filters.city = searchCity;
+      }
 
-      if (data && data.vendors && data.vendors.length > 0) {
-        // Transform vendors to business format
+      let data = await getVendors(filters);
+
+      // If no vendors in city, try without city filter as fallback
+      if ((!data || !data.vendors || data.vendors.length === 0) && locationState?.city) {
+        console.log('No vendors in city, falling back to all active vendors');
+        data = await getVendors({ status: 'Active', limit: 12 });
+      }
+
+      if (data && data.vendors) {
         const transformedBusinesses = data.vendors.map(vendor => ({
           id: vendor.id,
-          name: vendor.name,
-          category: vendor.category || 'General',
-          rating: vendor.rating || 4.0,
-          reviewCount: vendor.reviewCount || 0,
-          distance: vendor.city ? `${vendor.city}` : 'Nearby',
-          imageUrl: vendor.imageUrl,
+          name: vendor.shop_name || vendor.name,
+          category: vendor.category_name || vendor.category || 'General',
+          rating: parseFloat(vendor.rating) || 4.2,
+          reviewCount: vendor.reviewCount || 48,
+          distance: 'Near you',
+          imageUrl: vendor.imageUrl || vendor.image_url || (vendor.images && vendor.images[0]),
           address: vendor.address || '',
-          phone: vendor.phone || vendor.contactNumber || '',
+          phone: vendor.contactNumber || vendor.phone || '',
         }));
         setBusinesses(transformedBusinesses);
       } else {
-        // No fallback - show empty state if no vendors found
         setBusinesses([]);
       }
     } catch (error) {
       console.error('Error loading nearby vendors:', error);
-      // No fallback - show empty state on error
       setBusinesses([]);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Shops Near You</Text>
-        <TouchableOpacity activeOpacity={0.7} onPress={onSeeAll}>
-          <View style={styles.seeAllButton}>
-            <Text style={styles.seeAllText}>See All</Text>
-            <Icon name={getIconName('ChevronRight')} size={16} color="#fbbf24" />
+  const renderBusinessCard = ({ item: business }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onBusinessClick && onBusinessClick(business)}
+      activeOpacity={0.9}
+    >
+      <View style={styles.imageContainer}>
+        {business.imageUrl ? (
+          <Image
+            source={{ uri: business.imageUrl }}
+            style={styles.image}
+          />
+        ) : (
+          <View style={styles.placeholderImg}>
+            <Icon name="shopping-bag" size={24} color="#CBD5E1" />
           </View>
-        </TouchableOpacity>
+        )}
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#fbbf24" />
-          <Text style={styles.loadingText}>Loading nearby shops...</Text>
+      <View style={styles.infoContainer}>
+        <View style={styles.categoryRow}>
+          <Text style={styles.categoryLabel}>{business.category.toUpperCase()}</Text>
+          <View style={styles.ratingBox}>
+            <Icon name="star" size={10} color="#F59E0B" fill="#F59E0B" />
+            <Text style={styles.ratingText}>{business.rating.toFixed(1)}</Text>
+          </View>
         </View>
-      ) : businesses.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No shops found nearby</Text>
+
+        <Text style={styles.businessName} numberOfLines={1}>{business.name}</Text>
+        
+        <View style={styles.metaRow}>
+          <View style={styles.metaItem}>
+            <Icon name="map-pin" size={10} color="#94A3B8" />
+            <Text style={styles.metaText}>{business.distance}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Text style={styles.metaText}>{business.reviewCount} Reviews</Text>
+          </View>
         </View>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {businesses.map((business) => (
-            <TouchableOpacity
-              key={business.id}
-              style={styles.businessCard}
-              onPress={() => onBusinessClick && onBusinessClick(business)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: business.imageUrl }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-                <View style={styles.ratingBadge}>
-                  <Icon name={getIconName('Star')} size={12} color="#fbbf24" />
-                  <Text style={styles.ratingText}>{business.rating}</Text>
-                </View>
-              </View>
+      </View>
 
-              <View style={styles.cardContent}>
-                <View style={styles.businessHeader}>
-                  <View style={styles.businessInfo}>
-                    <Text style={styles.businessName} numberOfLines={1}>{business.name}</Text>
-                    <Text style={styles.businessCategory} numberOfLines={1}>{business.category}</Text>
-                  </View>
-                  <View style={styles.distanceBadge}>
-                    <Icon name={getIconName('MapPin')} size={14} color="#ea580c" />
-                    <Text style={styles.distanceText}>{business.distance}</Text>
-                  </View>
-                </View>
+      <View style={styles.arrowContainer}>
+        <Icon name="chevron-right" size={16} color="#E2E8F0" />
+      </View>
+    </TouchableOpacity>
+  );
 
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={styles.viewButton}
-                    activeOpacity={0.7}
-                    onPress={() => onBusinessClick && onBusinessClick(business)}
-                  >
-                    <Text style={styles.viewButtonText}>View Details</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.callButton}
-                    activeOpacity={0.7}
-                    onPress={() => {
-                      if (business.phone) {
-                        Linking.openURL(`tel:${business.phone}`);
-                      } else {
-                        alert('Phone number not available');
-                      }
-                    }}
-                  >
-                    <Icon name={getIconName('Phone')} size={18} color="#ffffff" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#FF6B00" />
+      </View>
+    );
+  }
+
+  if (businesses.length === 0) return null;
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        horizontal
+        data={businesses}
+        renderItem={renderBusinessCard}
+        keyExtractor={item => item.id.toString()}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        snapToInterval={280 + 16}
+        decelerationRate="fast"
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 24,
-    paddingTop: 8,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A', // Dark text for white background
-  },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#ea580c', // Orange color
-    marginRight: 4,
+    paddingVertical: 8,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    gap: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
   },
-  businessCard: {
-    width: 288,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden',
+  card: {
+    width: 280,
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 12,
+    marginRight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
   imageContainer: {
-    height: 160,
-    position: 'relative',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#F8FAFC',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
-  ratingBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    flexDirection: 'row',
+  placeholderImg: {
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Changed from brown to semi-transparent black
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
   },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#ffffff', // Keep white for rating badge (dark background)
-    marginLeft: 4,
+  infoContainer: {
+    flex: 1,
+    marginLeft: 14,
   },
-  cardContent: {
-    padding: 12,
-  },
-  businessHeader: {
+  categoryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 6,
   },
-  businessInfo: {
-    flex: 1,
-    marginRight: 8,
+  categoryLabel: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#FF6B00',
+    letterSpacing: 0.5,
+  },
+  ratingBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#0F172A',
   },
   businessName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A', // Dark text for white background
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginBottom: 8,
   },
-  businessCategory: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-  distanceBadge: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
-  distanceText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#0F172A', // Dark text for white background
-    marginLeft: 4,
-  },
-  actionButtons: {
+  metaItem: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  viewButton: {
-    flex: 1,
-    backgroundColor: '#F1F5F9',
-    paddingVertical: 10,
-    borderRadius: 8,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    gap: 4,
   },
-  viewButtonText: {
-    fontSize: 12,
+  metaText: {
+    fontSize: 10,
+    color: '#94A3B8',
     fontWeight: '700',
-    color: '#0F172A', // Dark text for white background
   },
-  callButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#22c55e', // Green
-    borderRadius: 8,
+  arrowContainer: {
+    marginLeft: 8,
   },
   loadingContainer: {
-    padding: 40,
-    alignItems: 'center',
+    height: 100,
     justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#475569', // Dark text for white background
-    opacity: 0.7,
-  },
-  emptyContainer: {
-    padding: 40,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#475569', // Dark text for white background
-    opacity: 0.7,
   },
 });
 

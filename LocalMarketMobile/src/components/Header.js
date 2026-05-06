@@ -13,42 +13,29 @@ const Header = ({
   onMenuClick,
   onProfileClick,
   onNotificationClick,
-  onLocationRedetect,
-  notificationCount = 2
+  onLocationChange,
+  notificationCount = 2,
+  transparent = false
 }) => {
   const COLORS = useThemeColors();
-  const styles = createStyles(COLORS);
+  const styles = createStyles(COLORS, transparent);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
-  const handleManualLocationSelect = (location) => {
-    // We could pass this up, but for now we'll just close it
-    // Wait, the parent needs to know! Since Header didn't originally receive an onLocationSelect,
-    // we should see if we can trigger something or if the parent reload will fetch from storage.
-    // Let's pass it up if we can, else just redetect. We'll add onLocationSelect to props.
-  };
+  const iconColor = transparent ? COLORS.white : COLORS.textPrimary;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.header}>
-        {/* Content */}
         <View style={styles.headerContent}>
-          {/* Left: Hamburger & Brand */}
+          {/* Left: Drawer */}
           <View style={styles.leftSection}>
             <TouchableOpacity
               onPress={onMenuClick}
               style={styles.menuButton}
               activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Icon name={getIconName('Menu')} size={26} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={() => onLocationRedetect && onLocationRedetect()}
-              activeOpacity={0.8}
-              style={styles.logoWrapper}
-            >
-              <Logo size={34} />
+              <Icon name="menu" size={24} color={iconColor} />
             </TouchableOpacity>
           </View>
 
@@ -58,24 +45,16 @@ const Header = ({
               style={styles.locationButton}
               activeOpacity={0.7}
               onPress={() => setShowLocationModal(true)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <View style={styles.locationIconBg}>
-                <Icon name={getIconName('MapPin')} size={12} color={COLORS.orange} />
-              </View>
+              <Icon name="map-pin" size={16} color={COLORS.orange} />
               <View style={styles.locationTextBlock}>
                 <Text style={styles.locationCity} numberOfLines={1}>
                   {locationState.loading
                     ? 'Detecting...'
-                    : (locationState.displayLabel || 'Your Area')}
-                </Text>
-                <Text style={styles.locationArea} numberOfLines={1}>
-                  {locationState.loading 
-                    ? 'Searching...' 
-                    : (locationState.city || 'Tap to Select')}
+                    : (locationState.circle || locationState.town || locationState.city || locationState.displayLabel || 'Pick Location')}
                 </Text>
               </View>
-              <Icon name={getIconName('ChevronDown')} size={14} color={COLORS.textMuted} />
+              <Icon name="chevron-down" size={12} color="#64748B" />
             </TouchableOpacity>
           </View>
 
@@ -86,9 +65,11 @@ const Header = ({
               style={styles.notificationButton}
               activeOpacity={0.7}
             >
-              <Icon name={getIconName('Bell')} size={22} color={COLORS.textPrimary} />
+              <Icon name="bell" size={24} color={iconColor} />
               {notificationCount > 0 && (
-                <View style={styles.notificationBadge} />
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>{notificationCount}</Text>
+                </View>
               )}
             </TouchableOpacity>
             <TouchableOpacity
@@ -96,9 +77,7 @@ const Header = ({
               style={styles.profileButton}
               activeOpacity={0.7}
             >
-              <View style={styles.profileIconContainer}>
-                <Icon name={getIconName('User')} size={20} color={COLORS.textPrimary} />
-              </View>
+              <Icon name="user" size={22} color={iconColor} />
             </TouchableOpacity>
           </View>
         </View>
@@ -136,7 +115,7 @@ const Header = ({
               style={styles.redetectButton}
               onPress={() => {
                 setShowLocationModal(false);
-                if (onLocationRedetect) onLocationRedetect();
+                if (onLocationChange) onLocationChange();
               }}
               activeOpacity={0.8}
             >
@@ -168,12 +147,8 @@ const Header = ({
         }}
         onClose={() => setShowLocationPicker(false)}
         onSelect={(loc) => {
-           // Provide a way to inform the parent component that a manual location was picked
-           if (onLocationRedetect) {
-             // For now we just trigger redetect as a fallback, 
-             // but ideally the parent needs an onManualLocationSelect handler
-             // Let's call the redetect trigger, but later this can be expanded.
-             onLocationRedetect(loc);
+           if (onLocationChange) {
+             onLocationChange(loc);
            }
         }}
       />
@@ -181,21 +156,21 @@ const Header = ({
   );
 };
 
-const createStyles = (COLORS) => StyleSheet.create({
+const createStyles = (COLORS, transparent) => StyleSheet.create({
   safeArea: {
-    backgroundColor: COLORS.white,
+    backgroundColor: transparent ? 'transparent' : COLORS.white,
   },
   header: {
-    height: 70,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
+    height: 64,
+    backgroundColor: transparent ? 'transparent' : COLORS.white,
+    borderBottomWidth: transparent ? 0 : 1,
     borderBottomColor: '#F1F5F9',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: transparent ? 0 : 0.05,
     shadowRadius: 10,
-    elevation: 3,
+    elevation: transparent ? 0 : 3,
   },
   headerContent: {
     flexDirection: 'row',
@@ -207,89 +182,73 @@ const createStyles = (COLORS) => StyleSheet.create({
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   menuButton: {
-    padding: 6,
-    marginRight: 2,
-  },
-  logoWrapper: {
-    padding: 2,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   centerSection: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: '#F1F5F9',
-    maxWidth: '100%',
-  },
-  locationIconBg: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    backgroundColor: '#FFF7ED',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
   },
   locationTextBlock: {
-    flexDirection: 'column',
-    marginRight: 6,
-    maxWidth: 100,
+    marginHorizontal: 6,
   },
   locationCity: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#0F172A',
-    fontWeight: '800',
-    lineHeight: 14,
-  },
-  locationArea: {
-    fontSize: 9,
-    color: '#94A3B8',
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.2,
-    lineHeight: 11,
   },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 4,
   },
   notificationButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
   notificationBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 8,
-    height: 8,
-    backgroundColor: COLORS.orange,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: COLORS.white,
+    width: 16,
+    height: 16,
+    backgroundColor: '#E86A2C',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationBadgeText: {
+    fontSize: 8,
+    color: '#FFF',
+    fontWeight: '900',
   },
   profileButton: {
-    padding: 2,
-    backgroundColor: '#F1F5F9',
+    width: 40,
+    height: 40,
     borderRadius: 20,
-  },
-  profileIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
     backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',

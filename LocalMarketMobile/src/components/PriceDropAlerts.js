@@ -1,16 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-
-const PRICE_DROPS = [
-       { id: 1, name: 'Amul Butter 500g', oldPrice: '₹245', newPrice: '₹230', drop: '6%' },
-       { id: 2, name: 'Basmati Rice 5kg', oldPrice: '₹600', newPrice: '₹550', drop: '8%' },
-       { id: 3, name: 'Surf Excel 1kg', oldPrice: '₹340', newPrice: '₹310', drop: '9%' },
-       { id: 4, name: 'Sunflower Oil 1L', oldPrice: '₹175', newPrice: '₹158', drop: '10%' },
-       { id: 5, name: 'Dettol Soap 75g', oldPrice: '₹48', newPrice: '₹42', drop: '13%' },
-];
+import { useNavigation } from '@react-navigation/native';
 
 const PriceDropAlerts = ({ data = [] }) => {
+  const navigation = useNavigation();
   const safeData = Array.isArray(data) ? data : [];
   if (safeData.length === 0) return null;
 
@@ -33,7 +27,12 @@ const PriceDropAlerts = ({ data = [] }) => {
         contentContainerStyle={styles.scrollContent}
       >
         {safeData.map((item) => (
-          <View key={item.id} style={styles.card}>
+          <TouchableOpacity 
+            key={item.id} 
+            style={styles.card}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('VendorDetails', { business: item.vendors || item.vendor || item })}
+          >
             <View style={styles.dropBadge}>
               <Icon name="trending-down" size={11} color="#DC2626" />
               <Text style={styles.dropPct}> {item.pct || 'Sale'}</Text>
@@ -46,7 +45,7 @@ const PriceDropAlerts = ({ data = [] }) => {
               <Icon name="arrow-right" size={12} color="#94A3B8" style={styles.arrow} />
               <Text style={styles.newPrice}>₹{item.new || item.price}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>

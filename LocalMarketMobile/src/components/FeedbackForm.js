@@ -42,7 +42,7 @@ const FeedbackForm = ({
       Alert.alert('Error', 'Please provide a rating');
       return;
     }
-    if (!formData.comment.trim()) {
+    if (!formData.comment?.trim()) {
       Alert.alert('Error', 'Please provide your feedback');
       return;
     }
@@ -216,10 +216,10 @@ const FeedbackForm = ({
           <TouchableOpacity
             style={[
               styles.submitButton,
-              ((!formData.category || formData.rating === 0 || !formData.comment.trim()) || submitting) && styles.submitButtonDisabled
+              ((!formData.category || formData.rating === 0 || !formData.comment?.trim()) || submitting) && styles.submitButtonDisabled
             ]}
             onPress={handleSubmit}
-            disabled={!formData.category || formData.rating === 0 || !formData.comment.trim() || submitting}
+            disabled={!formData.category || formData.rating === 0 || !formData.comment?.trim() || submitting}
             activeOpacity={0.8}
           >
             {submitting ? (

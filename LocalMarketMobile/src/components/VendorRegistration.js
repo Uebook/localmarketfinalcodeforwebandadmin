@@ -25,7 +25,7 @@ const ORANGE = '#EA580C';
 const BLUE = '#4A6CF7';
 
 // ─── Reusable Focused Input ────────────────────────────────────────────────
-const FocusedInput = ({ label, required, placeholder, value, onChangeText, keyboardType, multiline, numberOfLines, prefix }) => {
+const FocusedInput = ({ label, required, placeholder, value, onChangeText, keyboardType, multiline, numberOfLines, prefix, secureTextEntry, rightElement }) => {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
   return (
@@ -52,11 +52,14 @@ const FocusedInput = ({ label, required, placeholder, value, onChangeText, keybo
           onBlur={() => setFocused(false)}
           autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
           underlineColorAndroid="transparent"
+          secureTextEntry={secureTextEntry}
         />
+        {rightElement}
       </Pressable>
     </View>
   );
 };
+
 
 // ─── Dropdown (Sheet Modal) ────────────────────────────────────────────────
 const DropdownPicker = ({ label, required, value, options, onSelect, loading, disabled, placeholder }) => {
@@ -159,11 +162,15 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
 
   const [formData, setFormData] = useState({
     businessName: '', ownerName: '', category: '', subCategory: '',
-    mobile: '', email: '',
+    mobile: '', email: '', password: '', confirmPassword: '',
     address: '', state: '', city: '', area: '', circle: '', pincode: '',
     latitude: null, longitude: null,
     idProofUrl: '', businessPhotoUrl: '', shopDocumentUrl: '',
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const update = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
@@ -211,18 +218,21 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   const validate = () => {
     setError('');
     if (step === 1) {
-      if (!formData.businessName.trim()) { setError('Business Name is required'); return false; }
-      if (!formData.ownerName.trim()) { setError('Owner Name is required'); return false; }
+      if (!formData.businessName?.trim()) { setError('Business Name is required'); return false; }
+      if (!formData.ownerName?.trim()) { setError('Owner Name is required'); return false; }
       if (!formData.category) { setError('Please select a category'); return false; }
     } else if (step === 2) {
       if (!formData.mobile || formData.mobile.length < 10) { setError('Valid 10-digit mobile number is required'); return false; }
+      if (!formData.password) { setError('Password is required'); return false; }
+      if (formData.password.length < 6) { setError('Password must be at least 6 characters'); return false; }
+      if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return false; }
     } else if (step === 3) {
       if (!formData.state) { setError('State is required'); return false; }
       if (!formData.city) { setError('City is required'); return false; }
       if (!formData.area) { setError('Circle / Area is required'); return false; }
       if (!formData.circle) { setError('Specific Market is required'); return false; }
     } else if (step === 4) {
-      if (!formData.address.trim()) { setError('Full address is required'); return false; }
+      if (!formData.address?.trim()) { setError('Full address is required'); return false; }
       if (!formData.pincode || formData.pincode.length < 6) { setError('Valid 6-digit pincode is required'); return false; }
     } else if (step === 5) {
       if (!formData.idProofUrl) { setError('ID Proof photo is required'); return false; }
@@ -302,12 +312,13 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
         pincode: formData.pincode,
         latitude: formData.latitude,
         longitude: formData.longitude,
+        password: formData.password,
         idProofUrl, businessPhotoUrl, shopDocumentUrl,
       });
 
       if (response?.vendor) {
-        setStep(6);
-        if (onComplete) onComplete(response.vendor);
+        setShowSuccessModal(true);
+        // if (onComplete) onComplete(response.vendor); 
       } else {
         throw new Error('Registration failed. No vendor data returned.');
       }
@@ -405,6 +416,32 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
             <Text style={styles.stepTitle}>Contact Information</Text>
             <FocusedInput label="Mobile Number" required value={formData.mobile} onChangeText={v => update('mobile', v.replace(/\D/g, '').slice(0, 10))} keyboardType="phone-pad" placeholder="Enter 10-digit number" prefix="+91" />
             <FocusedInput label="Email Address" value={formData.email} onChangeText={v => update('email', v)} keyboardType="email-address" placeholder="Enter email address" />
+            <FocusedInput
+              label="Password"
+              required
+              value={formData.password}
+              onChangeText={v => update('password', v)}
+              secureTextEntry={!showPassword}
+              placeholder="At least 6 characters"
+              rightElement={
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Icon name={showPassword ? 'eye-off' : 'eye'} size={18} color="#94A3B8" />
+                </TouchableOpacity>
+              }
+            />
+            <FocusedInput
+              label="Confirm Password"
+              required
+              value={formData.confirmPassword}
+              onChangeText={v => update('confirmPassword', v)}
+              secureTextEntry={!showConfirmPassword}
+              placeholder="Re-enter password"
+              rightElement={
+                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <Icon name={showConfirmPassword ? 'eye-off' : 'eye'} size={18} color="#94A3B8" />
+                </TouchableOpacity>
+              }
+            />
           </View>
         )}
 
@@ -428,16 +465,17 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
             <FocusedInput label="Full Address" required value={formData.address} onChangeText={v => update('address', v)} placeholder="Shop No, Building Name, Street..." multiline numberOfLines={3} />
             <FocusedInput label="Pincode" required value={formData.pincode} onChangeText={v => update('pincode', v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" placeholder="e.g. 110001" />
             
+            {/* Hiding Detect Location for now as per request
             <TouchableOpacity 
               style={styles.locationDetectionBtn}
               onPress={() => {
-                // Future: Use Geolocation API to detect lat/lng
                 Alert.alert('Coming Soon', 'GPS detection will be available in the next update.');
               }}
             >
               <Icon name="navigation" size={16} color={ORANGE} />
               <Text style={styles.locationDetectionText}>Detect Current Location</Text>
             </TouchableOpacity>
+            */}
           </View>
         )}
 
@@ -461,6 +499,40 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
           </View>
         )}
       </ScrollView>
+      
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowSuccessModal(false);
+          handleBack();
+        }}
+      >
+        <View style={successModalStyles.overlay}>
+          <View style={successModalStyles.content}>
+            <View style={successModalStyles.iconCircle}>
+              <Icon name="check-circle" size={48} color="#16A34A" />
+            </View>
+            <Text style={successModalStyles.title}>Success</Text>
+            <Text style={successModalStyles.message}>
+              Account created and under review
+            </Text>
+            <TouchableOpacity
+              style={successModalStyles.button}
+              onPress={() => {
+                setShowSuccessModal(false);
+                if (onCancel) onCancel();
+                else navigation?.goBack();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={successModalStyles.buttonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Footer Buttons */}
       <View style={styles.footer}>
@@ -584,6 +656,70 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: ORANGE,
+  },
+});
+
+const successModalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  content: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+    fontWeight: '500',
+  },
+  button: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: ORANGE,
+    alignItems: 'center',
+    shadowColor: ORANGE,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });
 
