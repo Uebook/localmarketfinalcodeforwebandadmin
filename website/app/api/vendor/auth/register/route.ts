@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
+import bcrypt from 'bcryptjs';
 
 // POST /api/vendor/auth/register
 export async function POST(request: NextRequest) {
@@ -8,10 +9,13 @@ export async function POST(request: NextRequest) {
         const { 
             businessName, ownerName, category, subCategory, mobile, email, 
             address, city, pincode, idProofUrl, businessPhotoUrl,
-            latitude, longitude, circle 
+            latitude, longitude, circle, password
         } = body;
 
         // Required fields
+        if (!password || password.length < 6) {
+            return NextResponse.json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
+        }
         if (!businessName?.trim()) return NextResponse.json({ error: 'Business name is required' }, { status: 400 });
         if (!ownerName?.trim()) return NextResponse.json({ error: 'Owner name is required' }, { status: 400 });
         if (!category) return NextResponse.json({ error: 'Category is required' }, { status: 400 });
@@ -57,6 +61,7 @@ export async function POST(request: NextRequest) {
 
         const displayId = generateDisplayId();
         const finalCategory = category === 'Services' && subCategory ? subCategory : category;
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const vendor = {
             name: businessName.trim(),
@@ -64,6 +69,7 @@ export async function POST(request: NextRequest) {
             owner: ownerName.trim(),
             category: finalCategory,
             contact_number: standardizedPhone,
+            password: hashedPassword,
 
             email: email?.trim().toLowerCase() || null,
             address: address?.trim() || null,

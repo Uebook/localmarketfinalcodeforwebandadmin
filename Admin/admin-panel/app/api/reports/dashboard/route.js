@@ -22,19 +22,8 @@ export async function GET() {
         let activeVendors = 0;
         let pendingApprovals = 0;
         try {
-            // Try with specific columns first
-            let vendorsResult;
-            try {
-                vendorsResult = await supabaseRestGet('/rest/v1/vendors?select=id,status,kyc_status,created_at,last_active_at');
-            } catch (e) {
-                // If that fails, try with last_active instead of last_active_at
-                try {
-                    vendorsResult = await supabaseRestGet('/rest/v1/vendors?select=id,status,kyc_status,created_at,last_active');
-                } catch (e2) {
-                    // If that also fails, just get id and status
-                    vendorsResult = await supabaseRestGet('/rest/v1/vendors?select=id,status,kyc_status,created_at');
-                }
-            }
+            // Use standardized last_active_at column
+            const vendorsResult = await supabaseRestGet('/rest/v1/vendors?select=id,status,kyc_status,created_at,last_active_at');
 
             vendors = Array.isArray(vendorsResult) ? vendorsResult : [];
             totalVendors = vendors.length;

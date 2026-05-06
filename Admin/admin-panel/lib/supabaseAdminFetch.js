@@ -12,8 +12,8 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 function getKey() {
-  // Service role is recommended for admin routes (keep server-side only).
-  return SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+  // Using anon key as requested
+  return SUPABASE_ANON_KEY;
 }
 
 export function assertSupabaseEnv() {
@@ -21,7 +21,7 @@ export function assertSupabaseEnv() {
   if (!SUPABASE_URL || !key) {
     const missing = [];
     if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-    if (!key) missing.push('SUPABASE_SERVICE_ROLE_KEY/ANON_KEY');
+    if (!key) missing.push('SUPABASE_ANON_KEY');
     
     const errorMsg = `[Supabase] Configuration error: Missing environment variables (${missing.join(', ')}).`;
     console.error(errorMsg);
@@ -69,6 +69,9 @@ export async function supabaseRestGet(pathWithQuery) {
   } catch (err) {
     if (err.message && (err.message.includes('fetch failed') || err.message.includes('ENOTFOUND'))) {
       console.error(`[Supabase] Network Error during GET ${url}:`, err.message);
+      if (err.message.includes('timeout') || err.message.includes('TIMEOUT')) {
+        console.error('💡 Suggestion: Check if your VPS firewall allows outgoing traffic to Supabase (Port 443) and verify your SUPABASE_URL.');
+      }
     } else {
       console.error(`[Supabase] Unexpected Error during GET ${url}:`, err);
     }

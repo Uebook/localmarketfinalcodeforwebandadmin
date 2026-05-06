@@ -396,9 +396,7 @@ export default function HomeClient({ initialCategories }: HomeClientProps) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {verifiedShops.map((shop) => (
-              <Link key={shop.id} href={`/vendor/${shop.id}`}>
-                <BusinessCardCompact business={{ ...shop, name: shop.shop_name || shop.name, isVerified: true }} />
-              </Link>
+              <BusinessCardCompact key={shop.id} business={{ ...shop, name: shop.shop_name || shop.name, isVerified: true }} />
             ))}
           </div>
         </section>

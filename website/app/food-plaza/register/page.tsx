@@ -27,6 +27,7 @@ export default function FoodPlazaRegisterPage() {
               pincode: '',
               openingTime: '09:00',
               closingTime: '22:00',
+              password: '',
        });
 
        const CUISINE_TYPES = [
@@ -58,7 +59,8 @@ export default function FoodPlazaRegisterPage() {
                                    city: formData.city,
                                    pincode: formData.pincode,
                                    isFoodPlaza: true,
-                                   timings: `${formData.openingTime} - ${formData.closingTime}`
+                                   timings: `${formData.openingTime} - ${formData.closingTime}`,
+                                   password: formData.password
                             }),
                      });
 
@@ -161,6 +163,11 @@ export default function FoodPlazaRegisterPage() {
                                                                              <input type="tel" required value={formData.mobile} onChange={(e) => handleChange('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
                                                                                     className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" />
                                                                       </div>
+                                                               </div>
+                                                               <div>
+                                                                      <label className="block text-sm font-black text-slate-700 mb-2">Create Password</label>
+                                                                      <input type="password" required value={formData.password} onChange={(e) => handleChange('password', e.target.value)}
+                                                                             placeholder="Min. 6 characters" className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" />
                                                                </div>
                                                                <div className="flex gap-4">
                                                                       <button type="button" onClick={() => setStep(1)} className="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-black hover:bg-slate-200 transition-all">Back</button>

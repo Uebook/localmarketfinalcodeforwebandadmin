@@ -34,8 +34,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'http',
-        hostname: 'localhost',
+        protocol: 'https',
+        hostname: 'db.lokall.in',
         port: '',
         pathname: '/**',
       },

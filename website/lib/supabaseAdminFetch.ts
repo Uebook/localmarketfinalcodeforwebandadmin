@@ -12,15 +12,15 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 function getKey() {
-  // Service role is recommended for server-side routes.
-  return SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+  // Using anon key as requested
+  return SUPABASE_ANON_KEY;
 }
 
 export function assertSupabaseEnv() {
   const key = getKey();
   if (!SUPABASE_URL || !key) {
     throw new Error(
-      'Missing SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) environment variables.'
+      'Missing SUPABASE_URL and/or SUPABASE_ANON_KEY environment variables.'
     );
   }
 }

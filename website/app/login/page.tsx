@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShoppingBag, Briefcase, HelpCircle, ArrowRight, ArrowLeft, User, Phone, Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { ShoppingBag, Briefcase, HelpCircle, ArrowRight, ArrowLeft, User, Phone, Mail, CheckCircle, AlertCircle, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { useLocation } from '@/lib/hooks';
 import WelcomeAnimation from '@/components/WelcomeAnimation';
 
@@ -20,6 +20,8 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,6 +35,7 @@ export default function LoginPage() {
     setName('');
     setPhone('');
     setEmail('');
+    setPassword('');
     setError('');
     setSuccess('');
   };
@@ -54,6 +57,10 @@ export default function LoginPage() {
       setError('Please enter a valid email address.');
       return;
     }
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
 
     // Business users
     if (userType === 'business') {
@@ -64,7 +71,7 @@ export default function LoginPage() {
       // Business login — call the real vendor auth API
       setIsLoading(true);
       try {
-        const payload: any = {};
+        const payload: any = { password: password.trim() };
         if (method === 'mobile') payload.phone = phone.trim();
         if (method === 'email') payload.email = email.trim().toLowerCase();
 
@@ -98,7 +105,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const payload: any = {};
+      const payload: any = { password: password.trim() };
       if (mode === 'register') payload.name = name.trim();
       if (method === 'mobile') payload.phone = phone.trim();
       if (method === 'email') payload.email = email.trim().toLowerCase();
@@ -283,6 +290,30 @@ export default function LoginPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Password field */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={mode === 'login' ? "Enter your password" : "Create a password (min. 6 chars)"}
+                className="w-full pl-9 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder:text-gray-400 text-base"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {/* Error / Success */}

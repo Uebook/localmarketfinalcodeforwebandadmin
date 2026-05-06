@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { phone, email } = body;
+        const { phone, email, password } = body;
 
-        if (!phone && !email) {
-            return NextResponse.json({ error: 'Phone or email is required' }, { status: 400 });
+        if ((!phone && !email) || !password) {
+            return NextResponse.json({ error: 'Credentials and password are required' }, { status: 400 });
         }
 
         let filter = '';
@@ -31,6 +32,15 @@ export async function POST(req: NextRequest) {
         }
 
         const user = rows[0];
+
+        if (!user.password) {
+            return NextResponse.json({ error: 'Account exists but no password is set. Please contact support.' }, { status: 403 });
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (!isPasswordCorrect) {
+            return NextResponse.json({ error: 'Incorrect password. Please try again.' }, { status: 401 });
+        }
 
         if (user.status === 'Blocked') {
             return NextResponse.json({ error: 'Your account has been blocked. Contact support.' }, { status: 403 });

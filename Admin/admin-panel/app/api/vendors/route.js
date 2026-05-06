@@ -21,7 +21,7 @@ function normalizeVendor(v) {
         subTehsil: v.subTehsil ?? v.sub_tehsil ?? '',
         circle: v.circle ?? '',
         joinedDate: v.joinedDate ?? v.joined_date ?? v.created_at ?? '',
-        lastActive: v.lastActive ?? v.last_active ?? '',
+        lastActive: v.last_active_at ?? v.last_active ?? '',
         category: v.category ?? '',
         rating: v.rating ?? 0,
         reviewCount: v.reviewCount ?? v.review_count ?? 0,

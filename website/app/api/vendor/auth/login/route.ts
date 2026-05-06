@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import bcrypt from 'bcryptjs';
 
 // POST /api/vendor/auth/login
 export async function POST(request: NextRequest) {
     try {
-        const { phone, email } = await request.json();
+        const { phone, email, password } = await request.json();
 
-        if (!phone && !email) {
-            return NextResponse.json({ error: 'Phone or email is required' }, { status: 400 });
+        if ((!phone && !email) || !password) {
+            return NextResponse.json({ error: 'Credentials and password are required' }, { status: 400 });
         }
 
         let query = '/rest/v1/vendors?select=*&limit=1';
@@ -32,6 +33,16 @@ export async function POST(request: NextRequest) {
         }
 
         const v = results[0];
+
+        if (!v.password) {
+            return NextResponse.json({ error: 'Account exists but no password is set. Use Forgot Password or contact support.' }, { status: 403 });
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(password, v.password);
+        if (!isPasswordCorrect) {
+            return NextResponse.json({ error: 'Incorrect password. Please try again.' }, { status: 401 });
+        }
+
         const status = (v.status ?? '').trim();
         if (status === 'Blocked') {
             return NextResponse.json({

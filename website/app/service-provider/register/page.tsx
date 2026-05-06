@@ -26,6 +26,7 @@ export default function ServiceProviderRegisterPage() {
               city: '',
               pincode: '',
               basePrice: '',
+              password: '',
        });
 
        const SERVICE_TYPES = [
@@ -58,7 +59,8 @@ export default function ServiceProviderRegisterPage() {
                                    city: formData.city,
                                    pincode: formData.pincode,
                                    isServiceProvider: true,
-                                   basePrice: formData.basePrice
+                                   basePrice: formData.basePrice,
+                                   password: formData.password
                             }),
                      });
 
@@ -139,6 +141,11 @@ export default function ServiceProviderRegisterPage() {
                                                                              <input type="number" required value={formData.experience} onChange={(e) => handleChange('experience', e.target.value)}
                                                                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
                                                                       </div>
+                                                               </div>
+                                                               <div>
+                                                                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Create Password</label>
+                                                                      <input type="password" required value={formData.password} onChange={(e) => handleChange('password', e.target.value)}
+                                                                             placeholder="Min. 6 characters" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
                                                                </div>
                                                                <button type="button" onClick={() => setStep(2)} className="w-full py-4 bg-gradient-primary text-white rounded-xl font-bold shadow-lg hover:opacity-90 transition-all">
                                                                       Next Step

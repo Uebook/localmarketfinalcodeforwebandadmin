@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseRestGet, supabaseRestUpsert } from '@/lib/supabaseAdminFetch';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { name, phone, email } = body;
+        const { name, phone, email, password } = body;
 
         if (!name?.trim()) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+        }
+
+        if (!password || password.length < 6) {
+            return NextResponse.json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
         }
 
         // Database has phone as NULLABLE (requires manual SQL change). 
@@ -54,8 +59,11 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const newUser: any = {
             full_name: name.trim(),
+            password: hashedPassword,
             status: 'Active'
         };
         

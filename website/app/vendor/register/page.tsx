@@ -26,6 +26,7 @@ export default function VendorRegisterPage() {
     idProof: null as File | null,
     businessPhoto: null as File | null,
     shopDocument: null as File | null,
+    password: '',
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -186,6 +187,7 @@ export default function VendorRegisterPage() {
       if (formData.category === 'Services' && !formData.subCategory) { setError('Please select a specialization'); return false; }
     } else if (currentStep === 2) {
       if (!formData.mobile || formData.mobile.length < 10) { setError('Valid 10-digit mobile number is required'); return false; }
+      if (!formData.password || formData.password.length < 6) { setError('Password must be at least 6 characters long'); return false; }
     } else if (currentStep === 3) {
       if (!formData.latitude || !formData.longitude) { setError('Please pin your business location on the map'); return false; }
       if (!formData.address.trim()) { setError('Full address is required'); return false; }
@@ -593,6 +595,20 @@ export default function VendorRegisterPage() {
                     onChange={(e) => handleChange('email', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-400"
                     placeholder="Enter email address"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Create Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => handleChange('password', e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-400"
+                    placeholder="Minimum 6 characters"
                   />
                 </div>
                 <div className="flex gap-3">

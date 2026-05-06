@@ -42,7 +42,7 @@ export async function GET(req) {
       'Status': vendor.status || '',
       'KYC Status': vendor.kyc_status || vendor.kycStatus || '',
       'Created At': vendor.created_at ? new Date(vendor.created_at).toLocaleString() : '',
-      'Last Active': vendor.last_active ? new Date(vendor.last_active).toLocaleString() : '',
+      'Last Active': (vendor.last_active_at || vendor.last_active) ? new Date(vendor.last_active_at || vendor.last_active).toLocaleString() : '',
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
