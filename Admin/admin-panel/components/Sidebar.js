@@ -17,6 +17,7 @@ const menuItems = [
   { id: 'reports', label: 'Reports & Analytics', icon: '📈' },
   { id: 'notifications', label: 'Notifications', icon: '🔔' },
   { id: 'locations', label: 'Location Management', icon: '📍' },
+  { id: 'brands', label: 'Brand Management', icon: '🏷️' },
   { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 

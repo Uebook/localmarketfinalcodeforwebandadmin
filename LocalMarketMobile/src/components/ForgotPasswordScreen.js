@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
   Image,
+  Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -31,6 +32,9 @@ const ForgotPasswordScreen = ({ onBack }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [receivedOtp, setReceivedOtp] = useState(''); // Store received OTP for validation
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusConfig, setStatusConfig] = useState({ type: 'success', title: '', message: '', buttonText: 'OK', onConfirm: null });
 
   const handleRequestOTP = async () => {
     if (!email || !email.includes('@')) {
@@ -46,9 +50,19 @@ const ForgotPasswordScreen = ({ onBack }) => {
       if (response.success) {
         setStep(2);
         setSuccess('OTP sent to your email');
-        // For development, we show the OTP in the message if available
+        
+        // Show success modal without exposing the OTP in the UI
+        setStatusConfig({
+          type: 'success',
+          title: 'OTP Sent',
+          message: `A verification code has been sent to ${email}. Please check your inbox.`,
+          buttonText: 'Enter OTP',
+          onConfirm: () => setShowStatusModal(false)
+        });
+        setShowStatusModal(true);
+
         if (response.otp) {
-          Alert.alert('Development Mode', `Your OTP is: ${response.otp}`);
+          setReceivedOtp(response.otp.toString());
         }
       } else {
         setError(response.error || 'Failed to request OTP');
@@ -65,6 +79,13 @@ const ForgotPasswordScreen = ({ onBack }) => {
       setError('Please enter the 4-digit OTP');
       return;
     }
+    
+    // Verify the OTP client-side if it was returned by the API (for faster validation)
+    if (receivedOtp && otp !== receivedOtp) {
+      setError('Invalid OTP. Please check the code sent to your email.');
+      return;
+    }
+
     setError('');
     setStep(3);
   };
@@ -85,9 +106,17 @@ const ForgotPasswordScreen = ({ onBack }) => {
     try {
       const response = await resetPassword(email, otp, newPassword);
       if (response.success) {
-        Alert.alert('Success', 'Your password has been reset successfully.', [
-          { text: 'Login Now', onPress: onBack }
-        ]);
+        setStatusConfig({
+          type: 'success',
+          title: 'Success!',
+          message: 'Your password has been reset successfully.',
+          buttonText: 'Login Now',
+          onConfirm: () => {
+            setShowStatusModal(false);
+            onBack();
+          }
+        });
+        setShowStatusModal(true);
       } else {
         setError(response.error || 'Failed to reset password');
       }
@@ -279,6 +308,44 @@ const ForgotPasswordScreen = ({ onBack }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {/* Custom Status Modal */}
+      <Modal
+        visible={showStatusModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowStatusModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={[
+              styles.modalIconCircle, 
+              { backgroundColor: statusConfig.type === 'success' ? '#F0FDF4' : '#FEF2F2' }
+            ]}>
+              <Icon 
+                name={statusConfig.type === 'success' ? 'check-circle' : 'alert-circle'} 
+                size={48} 
+                color={statusConfig.type === 'success' ? '#16A34A' : '#DC2626'} 
+              />
+            </View>
+            <Text style={styles.modalTitle}>{statusConfig.title}</Text>
+            <Text style={styles.modalMessage}>{statusConfig.message}</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={statusConfig.onConfirm || (() => setShowStatusModal(false))}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['#F97316', '#EA580C']}
+                style={styles.modalButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.modalButtonText}>{statusConfig.buttonText}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -469,6 +536,64 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
     marginTop: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+    fontWeight: '500',
+  },
+  modalButton: {
+    width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  modalButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });
 

@@ -17,6 +17,7 @@ import BannerManagement from '../components/BannerManagement';
 import EAuctionManagement from '../components/EAuctionManagement';
 import CircleAnalytics from '../components/Analytics/CircleAnalytics';
 import FeaturedManagement from '../components/FeaturedManagement';
+import BrandManagement from '../components/BrandManagement';
 import Settings from '../components/Settings';
 import WelcomeAnimation from '../components/WelcomeAnimation';
 import LoginPage from '../components/LoginPage';
@@ -91,6 +92,8 @@ export default function AdminPanel() {
         return 'E-Auction & Online Draw';
       case 'circle-analytics':
         return 'Circle Analytics';
+      case 'brands':
+        return 'Brand Management';
       case 'settings':
         return 'Settings';
       default:
@@ -128,6 +131,8 @@ export default function AdminPanel() {
         return <EAuctionManagement />;
       case 'circle-analytics':
         return <CircleAnalytics />;
+      case 'brands':
+        return <BrandManagement />;
       case 'settings':
         return <Settings user={user} />;
       default:

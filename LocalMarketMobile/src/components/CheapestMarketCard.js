@@ -3,37 +3,63 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackg
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getMarketComparisonStats } from '../services/api';
+import { getMarketHubStats } from '../services/api';
 
-const CheapestMarketCard = ({ navigation, city, circle }) => {
+const CheapestMarketCard = ({ navigation, city, circle, onLocationChange }) => {
   const COLORS = useThemeColors();
+  const styles = createStyles(COLORS);
   const [loading, setLoading] = useState(true);
   const [marketData, setMarketData] = useState({
     name: circle || city || 'Your Market',
     city: city || 'Local',
-    shopsCount: 120,
-    avgSavings: 120,
-    trendingDeals: 240,
+    shopsCount: 0,
+    avgSavings: 0,
+    trendingDeals: 0,
   });
 
   useEffect(() => {
-    // Update market data when props change
-    setMarketData(prev => ({
-      ...prev,
-      name: circle || city || 'Your Market',
-      city: city || 'Local'
-    }));
+    let active = true;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const stats = await getMarketHubStats(city, circle);
+        if (active && stats) {
+          setMarketData({
+            name: circle || city || 'Your Market',
+            city: city || 'Local',
+            shopsCount: stats.shopsCount || 120,
+            avgSavings: stats.avgSavings || 120,
+            trendingDeals: stats.trendingDeals || 240,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching market stats:", error);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
 
-    // Simulate fetching data or use actual API
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    fetchData();
+    return () => { active = false; };
   }, [city, circle]);
+
+  const handleExplore = () => {
+    if (circle && circle !== city) {
+      navigation?.navigate('MarketScreen', { circle, city, locationState: { city, circle } });
+    } else {
+      // If at city level, show all vendors in that city via SearchResults
+      navigation?.navigate('SearchResults', { 
+        query: 'all', 
+        locationState: { city, circle } 
+      });
+    }
+  };
 
   if (loading) {
     return (
       <View style={[styles.wrapper, styles.loadingWrapper]}>
-        <ActivityIndicator size="large" color={COLORS.orange} />
+        <ActivityIndicator size="small" color="#3B82F6" />
+        <Text style={styles.loadingText}>Fetching market data...</Text>
       </View>
     );
   }
@@ -43,7 +69,7 @@ const CheapestMarketCard = ({ navigation, city, circle }) => {
       <View style={styles.card}>
         <View style={styles.leftContent}>
           <Text style={styles.subTitle}>YOUR CURRENT MARKET</Text>
-          <Text style={styles.marketName}>{marketData.name}</Text>
+          <Text style={styles.marketName} numberOfLines={1}>{marketData.name}</Text>
           <Text style={styles.cityName}>{marketData.city}</Text>
           
           <View style={styles.statusRow}>
@@ -79,13 +105,18 @@ const CheapestMarketCard = ({ navigation, city, circle }) => {
           <View style={styles.actionRow}>
             <TouchableOpacity 
               style={styles.exploreButton}
-              onPress={() => navigation?.navigate('SearchResults', { query: marketData.name })}
+              onPress={handleExplore}
+              activeOpacity={0.8}
             >
               <Text style={styles.exploreButtonText}>Explore Market</Text>
               <Icon name="arrow-right" size={14} color="#FFF" />
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.locationChangeButton}>
+            <TouchableOpacity 
+              style={styles.locationChangeButton}
+              onPress={onLocationChange}
+              activeOpacity={0.6}
+            >
               <Icon name="map-pin" size={12} color="#3B82F6" />
               <Text style={styles.locationChangeText}>Change location</Text>
             </TouchableOpacity>
@@ -95,7 +126,6 @@ const CheapestMarketCard = ({ navigation, city, circle }) => {
         {/* Right Map Decoration */}
         <View style={styles.rightContent}>
           <View style={styles.mapContainer}>
-             {/* Map Placeholder with a blue pin */}
              <View style={styles.mapCircle}>
                 <View style={styles.bluePin}>
                    <Icon name="map-pin" size={24} color="#3B82F6" />
@@ -108,7 +138,7 @@ const CheapestMarketCard = ({ navigation, city, circle }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS) => StyleSheet.create({
   wrapper: {
     marginHorizontal: 16,
     marginTop: 10,
@@ -132,13 +162,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '600',
+  },
   leftContent: {
     flex: 1,
   },
   subTitle: {
     fontSize: 10,
     fontWeight: '800',
-    color: COLORS.blue,
+    color: '#3B82F6',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -222,7 +258,7 @@ const styles = StyleSheet.create({
   exploreButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.blue,
+    backgroundColor: '#2563EB',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -240,7 +276,7 @@ const styles = StyleSheet.create({
   locationChangeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.blue,
+    color: '#3B82F6',
     marginLeft: 4,
   },
   rightContent: {

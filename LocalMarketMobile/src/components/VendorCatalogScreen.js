@@ -68,6 +68,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     unit: '',
     description: '',
     inStock: true,
+    bestSeller: false,
     image: null,
   });
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
@@ -278,19 +279,16 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
 
 
       const productPayload = {
-        vendorId: vendorData.id,
-        vendor_id: vendorData.id, // Keep for legacy
+        vendor_id: vendorData.id,
         name: formData.name,
         price: parseFloat(formData.price),
         mrp: formData.mrp ? parseFloat(formData.mrp) : null,
         uom: formData.unit,
-        categoryId: formData.categoryId || null,
+        category_id: formData.categoryId || null,
         description: formData.description,
-        imageUrl: uploadedUrl, 
         image_url: uploadedUrl, 
-        inStock: formData.inStock !== false,
-        type: formData.type || 'Product',
-        isBestSeller: formData.bestSeller || false,
+        is_active: formData.inStock !== false,
+        is_featured: formData.bestSeller || false,
       };
 
 
@@ -312,7 +310,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           price: `₹${res.product.price}`,
           originalPrice: res.product.mrp ? `₹${res.product.mrp}` : undefined,
           discount: discount,
-          inStock: res.product.status === 'Active',
+          inStock: res.product.is_active !== false,
           imageUrl: res.product.image_url || uploadedUrl,
           image_url: res.product.image_url || uploadedUrl,
         };
@@ -483,6 +481,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
+        hideCart={true}
       />
 
       <ScrollView 

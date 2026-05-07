@@ -31,11 +31,11 @@ export async function GET(req) {
         const rows = await supabaseRestGet(`/rest/v1/categories?${query.toString()}`);
         const categories = Array.isArray(rows) ? rows.map(normalizeCategory) : [];
 
-        return Response.json({ categories }, { status: 200 });
+        return Response.json({ success: true, categories }, { status: 200 });
     } catch (e) {
         console.error('Categories GET Error:', e);
         if (e.message && (e.message.includes('fetch failed') || e.message.includes('ENOTFOUND'))) {
-            return Response.json({ categories: [], warning: 'offline_mode' }, { status: 200 });
+            return Response.json({ success: true, categories: [], warning: 'offline_mode' }, { status: 200 });
         }
         return Response.json({ error: e?.message || 'Failed to load categories' }, { status: 500 });
     }

@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch, supabaseRestPost } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v.trim() : '';
@@ -9,6 +9,7 @@ export async function GET(req) {
         const { searchParams } = new URL(req.url);
         const q = toStr(searchParams.get('q'));
         const categoryId = toStr(searchParams.get('categoryId'));
+        const brand = toStr(searchParams.get('brand'));
         const limit = parseInt(searchParams.get('limit') || '100');
         const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -23,6 +24,9 @@ export async function GET(req) {
         }
         if (categoryId) {
             query.set('category_id', `eq.${categoryId}`);
+        }
+        if (brand) {
+            query.set('brand', `eq.${brand}`);
         }
 
         const rows = await supabaseRestGet(`/rest/v1/master_products?${query.toString()}`);
@@ -166,5 +170,32 @@ export async function PATCH(req) {
             return Response.json({ success: false, warning: 'Sync failed: Database unreachable' });
         }
         return Response.json({ error: e?.message || 'Failed to update product' }, { status: 500 });
+    }
+}
+
+// POST /api/master-products - Create a new product
+export async function POST(req) {
+    try {
+        const body = await req.json();
+        
+        const productData = {
+            name: toStr(body.name),
+            brand: toStr(body.brand) || null,
+            uom: toStr(body.uom) || null,
+            default_mrp: Number(body.default_mrp) || 0,
+            base_price: Number(body.base_price) || 0,
+            category_id: body.category_id || null,
+            image_url: toStr(body.image_url) || null
+        };
+
+        if (!productData.name) {
+            return Response.json({ error: 'Product name is required' }, { status: 400 });
+        }
+
+        const result = await supabaseRestPost('/rest/v1/master_products', productData);
+        return Response.json({ success: true, product: result[0] || result }, { status: 200 });
+    } catch (e) {
+        console.error('Master Products POST Error:', e);
+        return Response.json({ error: e?.message || 'Failed to create product' }, { status: 500 });
     }
 }

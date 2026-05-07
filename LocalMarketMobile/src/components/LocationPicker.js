@@ -25,24 +25,7 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
   const fetchOptions = useCallback(async (step, loc) => {
     setLoading(true);
     try {
-      let parentType = '';
-      let parentValue = '';
-
-      if (step === 'city') {
-        parentType = 'state';
-        parentValue = loc.state || '';
-      } else if (step === 'town') {
-        parentType = 'city';
-        parentValue = loc.city || '';
-      } else if (step === 'tehsil') {
-        parentType = 'town';
-        parentValue = loc.town || '';
-      } else if (step === 'subTehsil') {
-        parentType = 'tehsil';
-        parentValue = loc.tehsil || '';
-      }
-
-      // We handle circle manually if needed, or if API doesn't support it, we fall back to static
+      // Handle Circles (Market areas)
       if (step === 'circle') {
         const areaName = loc.city || loc.town || loc.state;
         const result = await getCircles(areaName);
@@ -55,26 +38,26 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
         return;
       }
 
-      const result = await getDynamicLocations(parentType, parentValue);
-      if (result && result.success) {
-        let fetchedOptions = result.data || [];
-        
-        // Add "All in..." options for user convenience
-        if (step === 'state') {
-          setOptions(['India-wise (All of India)', ...fetchedOptions]);
-        } else if (step === 'city') {
-          setOptions([`All in ${loc.state}`, ...fetchedOptions]);
-        } else if (step === 'town') {
-           setOptions([`All in ${loc.city}`, ...fetchedOptions]);
-        } else if (step === 'tehsil') {
-           setOptions([`All in ${loc.town}`, ...fetchedOptions]);
-        } else if (step === 'subTehsil') {
-           setOptions([`All in ${loc.tehsil}`, ...fetchedOptions]);
-        } else {
-          setOptions(fetchedOptions);
-        }
+      // Strictly from API
+      let parentType = '';
+      let parentValue = '';
+      if (step === 'city') { parentType = 'state'; parentValue = loc.state; }
+      else if (step === 'town') { parentType = 'city'; parentValue = loc.city; }
+      else if (step === 'tehsil') { parentType = 'town'; parentValue = loc.town; }
+      else if (step === 'subTehsil') { parentType = 'tehsil'; parentValue = loc.tehsil; }
+
+      const apiResult = await getDynamicLocations(parentType, parentValue).catch(() => null);
+      let fetchedOptions = (apiResult && apiResult.success) ? (apiResult.data || []) : [];
+      
+      console.log(`[LocationPicker Debug] Step: ${step}, Parent: ${parentValue}, API Results:`, fetchedOptions);
+
+      // Only add UI convenience labels to API data
+      if (step === 'state') {
+        setOptions(['India-wise (All of India)', ...fetchedOptions]);
+      } else if (step === 'city' && loc.state) {
+        setOptions([`All in ${loc.state}`, ...fetchedOptions]);
       } else {
-        setOptions([]);
+        setOptions(fetchedOptions);
       }
     } catch (error) {
       console.error('Error fetching location options:', error);

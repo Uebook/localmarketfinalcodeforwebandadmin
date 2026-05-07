@@ -84,7 +84,7 @@ export async function POST(req) {
       }, { status: 200 });
     }
 
-    // SMS login
+    // SMS/Mobile login
     if (method === 'sms') {
       if (!phone) {
         return Response.json({ error: 'Phone number is required' }, { status: 400 });
@@ -112,9 +112,33 @@ export async function POST(req) {
         return Response.json({ error: 'Account is blocked. Please contact support.' }, { status: 403 });
       }
 
-      // If OTP is provided, verify it
+      // 1. Check if login with PASSWORD is provided (Preferred)
+      if (password) {
+        if (!user.password) {
+          return Response.json({ error: 'Password not set. Please use OTP to login first and set a password.' }, { status: 401 });
+        }
+        if (user.password !== password) {
+          return Response.json({ error: 'Invalid password' }, { status: 401 });
+        }
+
+        // Success - Return user data
+        const { password: _, otp: __, otp_expires_at: ___, ...userData } = user;
+        return Response.json({
+          success: true,
+          user: {
+            id: userData.id,
+            name: userData.full_name || userData.name,
+            email: userData.email,
+            phone: userData.phone,
+            state: userData.state,
+            city: userData.city,
+            status: userData.status,
+          },
+        }, { status: 200 });
+      }
+
+      // 2. If OTP is provided, verify it (Backup method)
       if (otp) {
-        // Check if OTP matches and is not expired
         if (!user.otp || user.otp !== otp) {
           return Response.json({ error: 'Invalid OTP' }, { status: 401 });
         }
@@ -133,47 +157,14 @@ export async function POST(req) {
           console.error('Error clearing OTP:', e);
         }
 
-        // Return user data
         const { password: _, otp: __, otp_expires_at: ___, ...userData } = user;
         return Response.json({
           success: true,
-          user: {
-            id: userData.id,
-            name: userData.full_name || userData.name,
-            email: userData.email,
-            phone: userData.phone,
-            state: userData.state,
-            city: userData.city,
-            status: userData.status,
-          },
+          user: userData,
         }, { status: 200 });
       } else {
-        // Generate and send OTP (hardcoded to 1234 for now)
-        const generatedOtp = '1234';
-        const expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + 5); // OTP expires in 5 minutes
-
-        try {
-          await supabaseRestPatch(
-            `/rest/v1/users?id=eq.${encodeURIComponent(user.id)}`,
-            { 
-              otp: generatedOtp,
-              otp_expires_at: expiresAt.toISOString(),
-            }
-          );
-        } catch (e) {
-          console.error('Error saving OTP:', e);
-          return Response.json({ error: 'Failed to send OTP' }, { status: 500 });
-        }
-
-        // In production, send OTP via SMS service here
-        // For now, just return success
-        return Response.json({
-          success: true,
-          message: 'OTP sent successfully',
-          // In development, return OTP (remove in production)
-          otp: generatedOtp,
-        }, { status: 200 });
+        // No Password and No OTP provided - Tell user to enter password
+        return Response.json({ error: 'Password is required' }, { status: 400 });
       }
     }
   } catch (e) {

@@ -29,11 +29,12 @@ import TodayDeals from './TodayDeals';
 import PriceDropAlerts from './PriceDropAlerts';
 import MegaSavingsSection from './MegaSavingsSection';
 import SalesSection from './SalesSection';
+import QuickCategories from './QuickCategories';
 
 
 
 
-const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
+const HomeScreen = ({ navigation, route, locationState, setLocationState, onLocationPickerOpen }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
 
@@ -43,6 +44,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
   const [verifiedVendors, setVerifiedVendors] = useState([]);
   const [nearbyCircles, setNearbyCircles] = useState([]);
   const [premiumBrands, setPremiumBrands] = useState([]);
+  const [todayDealsData, setTodayDealsData] = useState([]);
   const [loadingSections, setLoadingSections] = useState(false);
 
   // --- Fallback helpers defined at component scope so all functions can access them ---
@@ -252,13 +254,14 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
   const loadSectionsData = async (city, circle) => {
     setLoadingSections(true);
     try {
-      const { getVendors, getCircles } = require('../services/api');
-      const [mega, drops, verifiedRes, circlesRes, brandsRes] = await Promise.all([
+      const { getVendors, getCircles, getTodayDeals } = require('../services/api');
+      const [mega, drops, verifiedRes, circlesRes, brandsRes, todayDealsRes] = await Promise.all([
         getMegaSavings(city, circle).catch(() => []),
         getPriceDrops(city, circle).catch(() => []),
         getVendors({ city, circle, verified: true, limit: 10 }).catch(() => ({ vendors: [] })),
         getCircles(city).catch(() => ({ circles: [] })),
         getBrands().catch(() => []),
+        getTodayDeals(city, 10).catch(() => []),
       ]);
       const DUMMY_BRANDS = [
         { id: 'b3', name: 'Nike', localSource: require('../assets/nike_logo.jpg'), category: 'Footwear', description: 'Nike Exclusive Store' },
@@ -270,6 +273,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
       setPriceDropsData(Array.isArray(drops) ? drops : []);
       setVerifiedVendors(verifiedRes?.vendors || []);
       setNearbyCircles(circlesRes?.circles || []);
+      setTodayDealsData(Array.isArray(todayDealsRes) ? todayDealsRes : (todayDealsRes?.results || []));
 
       const brands = Array.isArray(brandsRes) && brandsRes.length > 0 ? brandsRes : DUMMY_BRANDS;
       setPremiumBrands(brands);
@@ -370,7 +374,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
             </View>
             <View style={styles.heroRight}>
               <Image
-                source={require('../assets/lokall_shop_illustration.jpg')}
+                source={require('../assets/lokall_shop_illustration.png')}
                 style={styles.heroIllustration}
                 resizeMode="contain"
               />
@@ -383,6 +387,9 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
             currentCity={locationState.city}
             locationState={locationState}
           />
+          
+          {/* Quick Search Categories */}
+          <QuickCategories onSelect={(name) => handleSearch(name)} />
         </View>
 
         <View style={styles.mainContent}>
@@ -391,6 +398,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
               navigation={navigation}
               city={locationState.city}
               circle={locationState.circle}
+              onLocationChange={onLocationPickerOpen}
             />
           </View>
 
@@ -399,7 +407,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
             <View style={styles.sectionContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Verified Shops Nearby You</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('SearchResults', { verified: true, locationState })} style={styles.viewAllRow}>
+                <TouchableOpacity onPress={() => navigation.navigate('SearchResults', { query: 'verified', verified: true, locationState })} style={styles.viewAllRow}>
                   <Text style={styles.viewAllText}>View all</Text>
                   <Icon name="arrow-right" size={14} color="#3B82F6" />
                 </TouchableOpacity>
@@ -443,31 +451,98 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
             />
           </View>
 
-          {/* 3. Middle Banner */}
-          <View style={styles.sectionContainer}>
+          {/* 3. Support Local Banner & Trust Badges */}
+          <View style={styles.bannerContainer}>
             <LinearGradient
               colors={['#FEF3C7', '#FFFBEB']}
-              style={styles.middleBanner}
+              style={styles.supportBanner}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <View style={styles.bannerContent}>
-                <Text style={styles.bannerSub}>Support local shops in</Text>
-                <Text style={styles.bannerTitle}>{locationState.circle || locationState.town || locationState.city || 'Your Market'}</Text>
+              <View style={styles.bannerTextContent}>
+                <Text style={styles.bannerSubtitle}>Support local shops in</Text>
+                <Text style={styles.bannerTitle}>
+                  {locationState?.circle || locationState?.city || 'Your Circle'}
+                </Text>
                 <Text style={styles.bannerDesc}>Better prices, better deals!</Text>
-                <TouchableOpacity
-                  style={styles.bannerButton}
-                  onPress={() => navigation.navigate('MarketScreen', { circle: locationState.circle, city: locationState.city })}
+                <TouchableOpacity 
+                  style={styles.shopLocalBtn}
+                  onPress={() => {
+                    if (locationState.circle) {
+                      navigation.navigate('MarketScreen', { circle: locationState.circle, locationState });
+                    } else {
+                      navigation.navigate('SearchResults', { 
+                        query: 'all', 
+                        locationState 
+                      });
+                    }
+                  }}
                 >
-                  <Text style={styles.bannerButtonText}>Shop Local</Text>
-                  <Icon name="arrow-right" size={14} color="#FFF" />
+                  <Text style={styles.shopLocalText}>Shop Local</Text>
+                  <Icon name="arrow-right" size={16} color="#FFF" />
                 </TouchableOpacity>
               </View>
-              <View style={styles.bannerImageContainer}>
-                {/* This would be the illustration of the man at the shop */}
-                <Icon name="shopping-bag" size={60} color="#F59E0B" />
-              </View>
+              <Image
+                source={require('../assets/shopkeeper_illustration.png')}
+                style={styles.bannerIllustration}
+                resizeMode="contain"
+              />
             </LinearGradient>
+          </View>
+
+          {/* 4. Trust Badges (2x2 Grid) */}
+          <View style={styles.trustGridContainer}>
+            <View style={styles.trustRow}>
+              <View style={styles.trustItem}>
+                <View style={[styles.trustIconCircle, { backgroundColor: '#F0FDF4' }]}>
+                  <Icon name="home" size={14} color="#22C55E" />
+                </View>
+                <View>
+                  <Text style={styles.trustItemTitle}>100% Local Shops</Text>
+                  <Text style={styles.trustItemDesc}>Direct from nearby stores</Text>
+                </View>
+              </View>
+
+              <View style={styles.trustItem}>
+                <View style={[styles.trustIconCircle, { backgroundColor: '#EFF6FF' }]}>
+                  <Icon name="shield" size={14} color="#3B82F6" />
+                </View>
+                <View>
+                  <Text style={styles.trustItemTitle}>Best Price Guarantee</Text>
+                  <Text style={styles.trustItemDesc}>We show you lowest price</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={[styles.trustRow, { marginBottom: 0 }]}>
+              <View style={styles.trustItem}>
+                <View style={[styles.trustIconCircle, { backgroundColor: '#FFF7ED' }]}>
+                  <Icon name="pocket" size={14} color="#F97316" />
+                </View>
+                <View>
+                  <Text style={styles.trustItemTitle}>Save More</Text>
+                  <Text style={styles.trustItemDesc}>Compare & save instantly</Text>
+                </View>
+              </View>
+
+              <View style={styles.trustItem}>
+                <View style={[styles.trustIconCircle, { backgroundColor: '#F5F3FF' }]}>
+                  <Icon name="check-circle" size={14} color="#8B5CF6" />
+                </View>
+                <View>
+                  <Text style={styles.trustItemTitle}>Trusted & Verified</Text>
+                  <Text style={styles.trustItemDesc}>Verified shops & reviews</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* New Section: Today's Best Deals */}
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Today's Best Deals</Text>
+            </View>
+            <TodayDeals navigation={navigation} data={todayDealsData} />
           </View>
 
           {/* New Section: All India Mega Sales */}
@@ -475,10 +550,6 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
             <View style={styles.sectionContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>All India Mega Sales</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('SearchResults', { query: 'megasavings', locationState })} style={styles.viewAllRow}>
-                  <Text style={styles.viewAllText}>View all</Text>
-                  <Icon name="arrow-right" size={14} color="#3B82F6" />
-                </TouchableOpacity>
               </View>
               <MegaSavingsSection
                 data={megaSavingsData}
@@ -487,30 +558,19 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
             </View>
           )}
 
-          {/* 4. Trust Badges */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.trustBadgesScroll}
-            contentContainerStyle={styles.trustBadgesContent}
-          >
-            {[
-              { icon: 'home', title: '100% Local Shops', desc: 'Direct from nearby stores' },
-              { icon: 'check-circle', title: 'Best Price Guarantee', desc: 'We show you the lowest price' },
-              { icon: 'shopping-cart', title: 'Save More', desc: 'Compare & save instantly' },
-              { icon: 'shield', title: 'Trusted & Verified', desc: 'Verified shops & reviews' },
-            ].map((badge, i) => (
-              <View key={i} style={styles.trustBadgeItem}>
-                <View style={styles.trustIconContainer}>
-                  <Icon name={badge.icon} size={20} color="#16A34A" />
-                </View>
-                <View>
-                  <Text style={styles.trustTitle}>{badge.title}</Text>
-                  <Text style={styles.trustDesc}>{badge.desc}</Text>
-                </View>
+          {/* New Section: Price Drop Alerts */}
+          {priceDropsData.length > 0 && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Price Drop Alerts</Text>
               </View>
-            ))}
-          </ScrollView>
+              <PriceDropAlerts
+                data={priceDropsData}
+                navigation={navigation}
+              />
+            </View>
+          )}
+
 
           {/* 5. Premium Brands */}
           <View style={styles.sectionContainer}>
@@ -519,10 +579,6 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState }) => {
                 <Text style={styles.sectionTitle}>Premium Brands</Text>
                 <Text style={styles.sectionSubtitle}>Exclusive partnerships with top local brands</Text>
               </View>
-              <TouchableOpacity style={styles.viewAllRow} onPress={() => navigation.navigate('SearchResults', { query: 'premium', locationState })}>
-                <Text style={styles.viewAllText}>View all</Text>
-                <Icon name="arrow-right" size={14} color="#3B82F6" />
-              </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.brandsScroll}>
               {premiumBrands.map((brand, i) => (
@@ -664,34 +720,39 @@ const createStyles = (COLORS) => StyleSheet.create({
     color: '#3B82F6',
     marginRight: 4,
   },
-  middleBanner: {
+  bannerContainer: {
     marginHorizontal: 16,
-    borderRadius: 24,
-    padding: 20,
+    marginBottom: 24,
+  },
+  supportBanner: {
+    borderRadius: 20,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 140,
   },
-  bannerContent: {
+  bannerTextContent: {
     flex: 1,
+    paddingRight: 8,
   },
-  bannerSub: {
-    fontSize: 12,
+  bannerSubtitle: {
+    fontSize: 11,
     fontWeight: '600',
     color: '#92400E',
   },
   bannerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
     color: '#0F172A',
-    marginVertical: 4,
+    marginVertical: 2,
   },
   bannerDesc: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
     color: '#B45309',
-    marginBottom: 15,
+    marginBottom: 12,
   },
-  bannerButton: {
+  shopLocalBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2563EB',
@@ -700,50 +761,60 @@ const createStyles = (COLORS) => StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'flex-start',
   },
-  bannerButtonText: {
+  shopLocalText: {
     fontSize: 13,
     fontWeight: '700',
     color: '#FFF',
     marginRight: 6,
   },
-  bannerImageContainer: {
-    padding: 10,
+  bannerIllustration: {
+    width: 120,
+    height: 120,
   },
-  trustBadgesScroll: {
-    marginBottom: 24,
-  },
-  trustBadgesContent: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  trustBadgeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    padding: 12,
+  trustGridContainer: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
     borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
     borderWidth: 1,
     borderColor: '#F1F5F9',
-    width: 200,
   },
-  trustIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#DCFCE7',
+  trustRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  trustItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trustIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
   },
-  trustTitle: {
-    fontSize: 11,
+  trustItemTitle: {
+    fontSize: 10,
     fontWeight: '800',
     color: '#0F172A',
+    lineHeight: 12,
   },
-  trustDesc: {
+  trustItemDesc: {
     fontSize: 9,
     fontWeight: '500',
     color: '#64748B',
+    marginTop: 1,
+    lineHeight: 11,
   },
   brandsScroll: {
     paddingHorizontal: 16,

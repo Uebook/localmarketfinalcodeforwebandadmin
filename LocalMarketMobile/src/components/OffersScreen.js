@@ -10,7 +10,7 @@ import { getIconName } from '../utils/iconMapping';
 import { getFestiveOffers, getVendors } from '../services/api';
 import { useThemeColors } from '../hooks/useThemeColors';
 
-const OffersScreen = ({ navigation, locationState }) => {
+const OffersScreen = ({ navigation, locationState, showLocationPicker, setShowLocationPicker }) => {
   const { width } = Dimensions.get('window');
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
@@ -256,6 +256,8 @@ const OffersScreen = ({ navigation, locationState }) => {
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
+        showLocationPicker={showLocationPicker}
+        setShowLocationPicker={setShowLocationPicker}
       />
 
       <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>

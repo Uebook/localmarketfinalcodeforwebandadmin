@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, PanResponder, Modal, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, PanResponder, Modal, Share, Alert } from 'react-native';
+import { useCart } from '../context/CartContext';
 import ImageWithFallback from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,6 +38,7 @@ const SearchResults = ({
     const [currentLocation, setCurrentLocation] = useState(route?.params?.locationState || locationState);
     
     const COLORS = useThemeColors();
+    const { addToCart } = useCart();
     const styles = createStyles(COLORS);
 
     const savedIds = savedBusinessIds.length > 0 ? savedBusinessIds : propSavedIds;
@@ -109,13 +111,19 @@ const SearchResults = ({
                 filters.circle = route.params.circle;
             }
 
-            // Map categoryId to query if it's a category search but no text query provided
-            if (categoryId && !query) {
+            // Handle Category Search
+            if (categoryId) {
                 try {
                     const cats = await getCategories();
                     const cat = cats?.categories?.find(c => String(c.id) === String(categoryId));
-                    if (cat) filters.q = cat.name;
-                } catch (e) {}
+                    if (cat) {
+                        filters.category = cat.name;
+                        // If no query, set q to category name for better multi-column matching
+                        if (!query) filters.q = cat.name;
+                    }
+                } catch (e) {
+                    console.warn('Error mapping category ID:', e);
+                }
             }
 
             // 2. Call unified Search API (Matches Website logic)
@@ -206,8 +214,11 @@ const SearchResults = ({
 
     const filteredResults = useMemo(() => {
         let results = [...baseResults];
+        
+        const specialKeywords = ['verified', 'deals', 'megasavings', 'pricedrops', 'all'];
+        const isSpecialQuery = query && specialKeywords.includes(query.toLowerCase());
 
-        if (query && !propResults) {
+        if (query && !propResults && !isSpecialQuery) {
             const lowerQuery = query.toLowerCase();
             // Split query into words for better matching
             const queryWords = lowerQuery.split(/[\s\/&]+/).filter(w => w.length > 0);
@@ -432,6 +443,17 @@ const SearchResults = ({
                                 <Text style={styles.ratingText}>{item.rating}</Text>
                             </View>
                             <Text style={styles.reviewCount}>({item.reviewCount} reviews)</Text>
+                            
+                            <TouchableOpacity 
+                                style={styles.quickAddBtn}
+                                onPress={(e) => {
+                                    e.stopPropagation();
+                                    handleAddToCart(item);
+                                }}
+                            >
+                                <Icon name="shopping-bag" size={14} color="#FFF" />
+                                <Text style={styles.quickAddText}>ADD</Text>
+                            </TouchableOpacity>
                         </View>
 
                         {/* Store & Distance Info */}
@@ -445,14 +467,7 @@ const SearchResults = ({
                                 <Text style={styles.distanceText}>{item.distance}</Text>
                             </View>
                             
-                            <View style={styles.actionButtons}>
-                                <TouchableOpacity 
-                                    style={styles.callButton}
-                                    onPress={() => handleBusinessClick(item)}
-                                >
-                                    <Text style={styles.callButtonText}>Compare Prices</Text>
-                                </TouchableOpacity>
-                            </View>
+
                         </View>
                     </View>
                 </View>
@@ -1128,6 +1143,26 @@ const createStyles = (COLORS) => StyleSheet.create({
         fontSize: 10,
         color: '#9ca3af',
         fontWeight: '500',
+        flex: 1,
+    },
+    quickAddBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: COLORS.orange,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 10,
+        shadowColor: COLORS.orange,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    quickAddText: {
+        color: '#FFF',
+        fontSize: 10,
+        fontWeight: '900',
     },
     footerRow: {
         flexDirection: 'row',

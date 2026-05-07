@@ -31,7 +31,18 @@ const PriceDropAlerts = ({ data = [] }) => {
             key={item.id} 
             style={styles.card}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('VendorDetails', { business: item.vendors || item.vendor || item })}
+            onPress={() => {
+              const vendorData = item.vendors || item.vendor || item;
+              navigation.navigate('VendorDetails', { 
+                business: {
+                  ...vendorData,
+                  id: vendorData.id || item.vendor_id || item.vendorId,
+                  name: vendorData.name || vendorData.shop_name || item.vendor_name || item.shop_name,
+                  shop_name: vendorData.name || vendorData.shop_name || item.vendor_name || item.shop_name
+                },
+                highlightProductId: item.id
+              });
+            }}
           >
             <View style={styles.dropBadge}>
               <Icon name="trending-down" size={11} color="#DC2626" />

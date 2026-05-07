@@ -1,4 +1,5 @@
 import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { sendOTPEmail } from '@/lib/emailService';
 
 export async function POST(req) {
   try {
@@ -36,8 +37,8 @@ export async function POST(req) {
     const targetTable = user ? 'users' : 'vendors';
     const targetId = user ? user.id : vendor.id;
 
-    // 3. Generate OTP (mocked to 1234 for dev)
-    const generatedOtp = '1234';
+    // 3. Generate random 4-digit OTP
+    const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10); // OTP valid for 10 mins
 
@@ -50,13 +51,18 @@ export async function POST(req) {
       }
     );
 
-    // In production, send email here
-    console.log(`[Forgot Password] OTP for ${email}: ${generatedOtp}`);
+    // 5. Send real email
+    try {
+      await sendOTPEmail(email, generatedOtp);
+    } catch (emailError) {
+      console.error('[Forgot Password] Email sending failed:', emailError);
+      // We continue so development isn't blocked, but in production this should be handled
+    }
 
     return Response.json({ 
       success: true, 
       message: 'OTP sent to your email',
-      otp: generatedOtp // Including in response for dev testing
+      otp: process.env.NODE_ENV === 'development' ? generatedOtp : undefined // Only show OTP in response during dev
     });
 
   } catch (error) {

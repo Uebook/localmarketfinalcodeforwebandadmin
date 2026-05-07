@@ -4,12 +4,19 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { submitEnquiry } from '../services/api';
 
-const EnquiryModal = ({ businessName, vendorId, isOpen, onClose }) => {
+const EnquiryModal = ({ businessName, vendorId, isOpen, onClose, productName }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(productName ? `I am interested in: ${productName}. Please provide more details.` : '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Update message when productName changes
+  React.useEffect(() => {
+    if (productName) {
+      setMessage(`I am interested in: ${productName}. Please provide more details.`);
+    }
+  }, [productName]);
 
   if (!isOpen) return null;
 

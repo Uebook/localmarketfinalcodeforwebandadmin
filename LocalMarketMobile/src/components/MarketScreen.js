@@ -159,79 +159,97 @@ const MarketScreen = ({ navigation, route }) => {
       <TouchableOpacity
         style={styles.vendorCard}
         onPress={() => navigation.navigate('VendorDetails', { business: item })}
-        activeOpacity={0.8}
+        activeOpacity={0.9}
       >
-        <View style={styles.cardContent}>
-          <View style={styles.imageContainer}>
-            <Image 
-              source={{ uri: item.imageUrl || item.image_url || (item.images && item.images[0]) }} 
-              style={styles.vendorImage} 
-            />
+        {/* Main Image with Gradient Overlay */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ uri: item.imageUrl || item.image_url || (item.images && item.images[0]) }} 
+            style={styles.vendorImage} 
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.7)']}
+            style={styles.cardGradient}
+          />
+          
+          {/* Top Badges */}
+          <View style={styles.topBadgesRow}>
             {isVerified && (
-              <View style={styles.verifiedBadge}>
-                <Text style={styles.verifiedText}>Verified Partner</Text>
+              <View style={styles.premiumBadge}>
+                <Icon name="shield" size={10} color="#FFF" />
+                <Text style={styles.premiumBadgeText}>VERIFIED</Text>
               </View>
             )}
+            <View style={styles.distancePill}>
+              <Icon name="map-pin" size={10} color="#FFF" />
+              <Text style={styles.distancePillText}>{item.distance}</Text>
+            </View>
           </View>
 
-          <View style={styles.contentContainer}>
-            <View style={styles.headerRow}>
+          {/* Rating Overlay */}
+          <View style={styles.ratingOverlay}>
+            <Icon name="star" size={10} color="#FFB800" fill="#FFB800" />
+            <Text style={styles.ratingOverlayText}>{rating.toFixed(1)}</Text>
+          </View>
+        </View>
+
+        {/* Info Area */}
+        <View style={styles.contentContainer}>
+          <View style={styles.infoRow}>
+            <View style={{ flex: 1 }}>
               <Text style={styles.vendorName} numberOfLines={1}>{item.shop_name || item.name}</Text>
-              <TouchableOpacity 
-                style={styles.callButton} 
-                activeOpacity={0.7}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  // Call logic here if needed
-                }}
-              >
-                <Icon name="phone" size={10} color={COLORS.white} fill={COLORS.white} />
-                <Text style={styles.callButtonText}>Call</Text>
-              </TouchableOpacity>
+              <Text style={styles.categoryText} numberOfLines={1}>
+                {item.category_name || item.category || 'General Store'} • {item.address || item.city || 'Nearby'}
+              </Text>
             </View>
+            
+            <TouchableOpacity 
+              style={styles.modernCallButton} 
+              activeOpacity={0.7}
+              onPress={(e) => {
+                e.stopPropagation();
+                // Call logic
+              }}
+            >
+              <Icon name="phone" size={14} color="#FFF" />
+            </TouchableOpacity>
+          </View>
 
-            <Text style={styles.categoryText} numberOfLines={1}>
-              {item.category_name || item.category || 'General Store'} • {item.address || item.city || 'Nearby'}
-            </Text>
+          <View style={styles.cardFooter}>
+             <View style={styles.tagsRow}>
+                <View style={styles.tagItem}>
+                   <Text style={styles.tagText}>Best Price</Text>
+                </View>
+                <View style={[styles.tagItem, { backgroundColor: '#F0FDF4' }]}>
+                   <Text style={[styles.tagText, { color: '#16A34A' }]}>Local</Text>
+                </View>
+             </View>
 
-            <View style={styles.ratingRow}>
-              <View style={styles.ratingBadgeGreen}>
-                <Text style={styles.ratingTextGreen}>{rating.toFixed(1)}</Text>
-                <Icon name="star" size={10} color={COLORS.success} fill={COLORS.success} />
-              </View>
-              <Text style={styles.reviewCount}>({item.reviewCount || 48} Ratings)</Text>
-            </View>
-
-            <View style={styles.footerRow}>
-              <View style={styles.distanceContainer}>
-                <Icon name="map-pin" size={10} color={COLORS.danger} />
-                <Text style={styles.distanceText}>{item.distance}</Text>
-              </View>
-              <View style={styles.actionButtons}>
+             <View style={styles.actionIcons}>
                 <TouchableOpacity 
                   onPress={(e) => {
                     e.stopPropagation();
                     handleToggleSave(item);
                   }}
-                  style={styles.actionBtn}
+                  style={styles.iconCircle}
                 >
                   <Icon 
                     name="heart" 
                     size={18} 
-                    color={savedIds.includes(item.id || item.vendor_id) ? '#EF4444' : '#94A3B8'} 
+                    color={savedIds.includes(item.id || item.vendor_id) ? '#EF4444' : '#64748B'} 
                     fill={savedIds.includes(item.id || item.vendor_id) ? '#EF4444' : 'transparent'}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity 
                   onPress={(e) => {
                     e.stopPropagation();
-                    handleShare(item);
+                    Share.share({ message: `Check out ${item.shop_name || item.name} on Lokall!` });
                   }}
+                  style={styles.iconCircle}
                 >
-                  <Icon name="share-2" size={16} color={COLORS.textMuted} />
+                  <Icon name="share-2" size={18} color="#64748B" />
                 </TouchableOpacity>
-              </View>
-            </View>
+             </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -517,22 +535,21 @@ const createStyles = (COLORS) => StyleSheet.create({
   vendorCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 20,
-    padding: 12,
+    marginBottom: 20,
+    borderRadius: 24,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: COLORS.divider,
-    elevation: 3,
-  },
-  cardContent: {
-    flexDirection: 'row',
+    borderColor: '#F1F5F9',
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 8,
   },
   imageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: COLORS.divider,
+    width: '100%',
+    height: 180,
+    backgroundColor: '#F1F5F9',
     position: 'relative',
   },
   vendorImage: {
@@ -540,106 +557,142 @@ const createStyles = (COLORS) => StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  verifiedBadge: {
+  cardGradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.blue,
+    height: 80,
+  },
+  topBadgesRow: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    alignItems: 'center',
-  },
-  verifiedText: {
-    fontSize: 8,
-    fontWeight: '900',
-    color: COLORS.white,
-    textTransform: 'uppercase',
-  },
-  contentContainer: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'space-between',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  vendorName: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.textPrimary,
-    flex: 1,
-    marginRight: 8,
-  },
-  callButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.blue,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
   },
-  callButtonText: {
+  premiumBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#FFF',
+    letterSpacing: 0.5,
+  },
+  distancePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  distancePillText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  ratingOverlay: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  ratingOverlayText: {
     fontSize: 11,
     fontWeight: '800',
-    color: COLORS.white,
+    color: '#0F172A',
+  },
+  contentContainer: {
+    padding: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  vendorName: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginBottom: 4,
   },
   categoryText: {
     fontSize: 12,
-    color: COLORS.textMuted,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    gap: 6,
-  },
-  ratingBadgeGreen: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: (COLORS.success || '#16a34a') + '15',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    gap: 2,
-  },
-  ratingTextGreen: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: COLORS.success,
-  },
-  reviewCount: {
-    fontSize: 11,
-    color: COLORS.textMuted,
+    color: '#64748B',
     fontWeight: '600',
   },
-  footerRow: {
+  modernCallButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#3B82F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
-    paddingTop: 8,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.backgroundSoft || '#F8FAFC',
+    borderTopColor: '#F1F5F9',
   },
-  distanceContainer: {
+  tagsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    gap: 8,
   },
-  distanceText: {
-    fontSize: 11,
+  tagItem: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  tagText: {
+    fontSize: 10,
     fontWeight: '800',
-    color: COLORS.textSecondary,
+    color: '#3B82F6',
   },
-  actionButtons: {
+  actionIcons: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 12,
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   modalOverlay: {
     flex: 1,

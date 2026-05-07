@@ -14,36 +14,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getCart, removeFromCart, updateQuantity, clearCart } from '../utils/cartStorage';
+import { useCart } from '../context/CartContext';
 import { getVendorProfile } from '../services/api';
 import LinearGradient from 'react-native-linear-gradient';
 
 const CartScreen = ({ navigation }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
-  const [cartItems, setCartItems] = useState([]);
+  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
   const [vendorDetails, setVendorDetails] = useState({});
-  const [loading, setLoading] = useState(true);
   const [loadingVendors, setLoadingVendors] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      loadCart();
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  const loadCart = async () => {
-    setLoading(true);
-    try {
-      const items = await getCart();
-      setCartItems(items || []);
-    } catch (error) {
-      console.error('Error loading cart:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Fetch vendor details for all unique vendors in cart
   useEffect(() => {
@@ -97,12 +77,7 @@ const CartScreen = ({ navigation }) => {
     if (!item) return;
     
     const newQty = item.quantity + delta;
-    if (newQty < 1) {
-      handleRemoveItem(id);
-    } else {
-      await updateQuantity(id, newQty);
-      loadCart();
-    }
+    await updateQuantity(id, newQty);
   };
 
   const handleRemoveItem = (id) => {
@@ -116,7 +91,6 @@ const CartScreen = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             await removeFromCart(id);
-            loadCart();
           }
         },
       ]
@@ -134,7 +108,6 @@ const CartScreen = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             await clearCart();
-            loadCart();
           }
         },
       ]
@@ -182,7 +155,7 @@ const CartScreen = ({ navigation }) => {
     Linking.openURL(url);
   };
 
-  if (loading && cartItems.length === 0) {
+  if (loadingVendors && cartItems.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF6B00" />
@@ -218,7 +191,7 @@ const CartScreen = ({ navigation }) => {
           <Text style={styles.emptySubtitle}>Start adding items from your local vendors to build your basket!</Text>
           <TouchableOpacity 
             style={styles.browseButton}
-            onPress={() => navigation.navigate('Home')}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
           >
             <LinearGradient
               colors={['#0F172A', '#1E293B']}
@@ -239,11 +212,18 @@ const CartScreen = ({ navigation }) => {
                   <View style={styles.vendorHeader}>
                     <View style={styles.vendorInfo}>
                       <View style={styles.vendorIconBox}>
-                        <Icon name="shopping-bag" size={18} color="#FF6B00" />
+                        {(vendor?.image_url || vendor?.imageUrl || vendor?.image) ? (
+                          <Image 
+                            source={{ uri: vendor.image_url || vendor.imageUrl || vendor.image }} 
+                            style={styles.vendorThumb} 
+                          />
+                        ) : (
+                          <Icon name="shopping-bag" size={18} color="#FF6B00" />
+                        )}
                       </View>
                       <View>
                         <Text style={styles.vendorNameText}>{group.vendorName}</Text>
-                        <Text style={styles.vendorCityText}>{vendor?.city || 'Local Vendor'}</Text>
+                        <Text style={styles.vendorCityText}>{vendor?.city || vendor?.address || 'Local Shop'}</Text>
                       </View>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('VendorDetails', { vendorId: group.vendorId })}>
@@ -358,7 +338,7 @@ const CartScreen = ({ navigation }) => {
 
               <TouchableOpacity 
                 style={styles.addMoreBtn}
-                onPress={() => navigation.navigate('Home')}
+                onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
               >
                 <Text style={styles.addMoreText}>CONTINUE SHOPPING</Text>
               </TouchableOpacity>
@@ -469,13 +449,19 @@ const createStyles = (COLORS) => StyleSheet.create({
   vendorIconBox: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
     borderWidth: 1,
     borderColor: '#F1F5F9',
+    overflow: 'hidden',
+  },
+  vendorThumb: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   vendorNameText: {
     fontSize: 14,

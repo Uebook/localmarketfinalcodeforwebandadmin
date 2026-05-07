@@ -3,10 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator
 import Image from './ImageWithFallback';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useCart } from '../context/CartContext';
 import { getVendors } from '../services/api';
+import { Alert } from 'react-native';
 
 const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) => {
   const COLORS = useThemeColors();
+  const { addToCart } = useCart();
   const styles = createStyles(COLORS);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(!vendors);
@@ -81,6 +84,16 @@ const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) =>
     }
   };
 
+  const handleAddToCart = (business) => {
+    addToCart({
+      id: business.id + '_gen',
+      name: `Shopping from ${business.name}`,
+      price: business.avgOfflinePrice || 0,
+      image: business.imageUrl
+    }, business.id, business.name);
+    Alert.alert('Added to Basket', `A shopping entry for ${business.name} has been added to your basket.`);
+  };
+
   const renderBusinessCard = ({ item: business }) => (
     <TouchableOpacity
       style={styles.card}
@@ -123,6 +136,7 @@ const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) =>
       </View>
 
       <View style={styles.arrowContainer}>
+
         <Icon name="chevron-right" size={16} color="#E2E8F0" />
       </View>
     </TouchableOpacity>
@@ -245,6 +259,21 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   arrowContainer: {
     marginLeft: 8,
+    alignItems: 'center',
+    gap: 8,
+  },
+  addBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: COLORS.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.orange,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   loadingContainer: {
     height: 100,

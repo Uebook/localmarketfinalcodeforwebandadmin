@@ -5,10 +5,13 @@ import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getCategories, getSearchSuggestions } from '../services/api';
+import { useCart } from '../context/CartContext';
+import { Alert } from 'react-native';
 
 
 const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) => {
   const COLORS = useThemeColors();
+  const { addToCart } = useCart();
   const styles = createStyles(COLORS);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -147,10 +150,16 @@ const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) =>
       // Navigate to SearchResults with the suggestion
       navigation.navigate('SearchResults', {
         query: suggestion.name,
-        categoryId: suggestion.type === 'category' ? suggestion.data.id : undefined,
+        categoryId: suggestion.type === 'category' ? suggestion.data?.id : undefined,
         locationState: locationState // Pass location context
       });
     }
+  };
+
+  const handleQuickAdd = (item) => {
+    const vendor = item.vendor || { id: item.vendor_id, name: item.shop_name || 'Local Store' };
+    addToCart(item, vendor.id, vendor.name);
+    Alert.alert('Added to Basket', `${item.name} has been added to your shopping basket.`);
   };
 
   const renderSuggestion = ({ item }) => {
@@ -164,7 +173,7 @@ const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) =>
         onPress={() => handleSuggestionPress(item)}
         activeOpacity={0.7}
       >
-        {/* Left: Image/Icon */}
+        {/* Left: Image/Icon with Badge */}
         <View style={styles.suggestionImageContainer}>
           {item.image ? (
             <Image source={{ uri: item.image }} style={styles.suggestionImage} />
@@ -173,8 +182,13 @@ const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) =>
               <Icon
                 name={getIconName(isCategory ? 'grid' : (isVendor ? 'store' : 'package'))}
                 size={22}
-                color="#CBD5E1"
+                color={isCategory ? COLORS.blue : (isVendor ? COLORS.orange : '#94A3B8')}
               />
+            </View>
+          )}
+          {isProduct && item.price > 0 && item.mrp > item.price && (
+            <View style={styles.saleBadgeSmall}>
+              <Text style={styles.saleTextSmall}>SALE</Text>
             </View>
           )}
         </View>
@@ -182,8 +196,16 @@ const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) =>
         {/* Center: Info */}
         <View style={styles.suggestionInfo}>
           <View style={styles.titleRow}>
-            {isVendor && <Text style={styles.tagVendor}>Vendor</Text>}
-            {isCategory && <Text style={styles.tagCategory}>Category</Text>}
+            {isVendor && (
+              <View style={[styles.miniTag, { backgroundColor: '#FFF7ED' }]}>
+                <Text style={[styles.miniTagText, { color: COLORS.orange }]}>SHOP</Text>
+              </View>
+            )}
+            {isCategory && (
+              <View style={[styles.miniTag, { backgroundColor: '#EFF6FF' }]}>
+                <Text style={[styles.miniTagText, { color: COLORS.blue }]}>CAT</Text>
+              </View>
+            )}
             <Text style={styles.suggestionTitle} numberOfLines={1}>
               {item.name}
             </Text>
@@ -191,42 +213,48 @@ const SearchBar = ({ onSearch, navigation, currentCity = '', locationState }) =>
 
           {isProduct && (
             <View style={styles.metaRow}>
-              <Icon name={getIconName('ShoppingBag')} size={12} color="#FF6B00" style={{ marginRight: 4 }} />
               <Text style={styles.vendorName} numberOfLines={1}>
-                {item.vendor?.name || item.shop_name || 'Local Store'}
+                by {item.vendor?.name || item.shop_name || 'Local Store'}
               </Text>
-              <View style={styles.locationSmall}>
-                <Icon name={getIconName('MapPin')} size={10} color="#94A3B8" />
-                <Text style={styles.distanceText}>{item.vendor?.distance || 'Local'}</Text>
-              </View>
+              <View style={styles.dot} />
+              <Text style={styles.distanceTextSmall}>{item.vendor?.distance || 'Nearby'}</Text>
             </View>
           )}
 
-          {(isVendor || isCategory) && (
-            <Text style={styles.exploreText}>
-              Click to explore {isVendor ? 'store' : 'category'}
-            </Text>
+          {isVendor && (
+            <View style={styles.metaRow}>
+              <Icon name="star" size={10} color="#F59E0B" fill="#F59E0B" />
+              <Text style={styles.ratingTextSmall}>{item.rating || '4.5'}</Text>
+              <View style={styles.dot} />
+              <Text style={styles.metaTextSmall}>{item.category || 'Local Shop'}</Text>
+            </View>
+          )}
+
+          {isCategory && (
+            <Text style={styles.exploreTextSmall}>Explore wide range of products</Text>
           )}
         </View>
 
         {/* Right: Price/Action */}
         <View style={styles.suggestionRight}>
-          {item.price > 0 && (
-            <View style={styles.priceColumn}>
-              <View style={styles.pricePill}>
-                <Text style={styles.priceValue}>₹{item.price}</Text>
-              </View>
-              {item.mrp && item.mrp > item.price && (
-                <Text style={styles.mrpText}>₹{item.mrp}</Text>
-              )}
+          {isProduct && item.price > 0 ? (
+            <View style={styles.productActionContainer}>
+               <Text style={styles.priceValueLarge}>₹{item.price}</Text>
+               <TouchableOpacity 
+                  style={styles.quickAddPill}
+                  onPress={(e) => {
+                    handleQuickAdd(item);
+                  }}
+               >
+                  <Icon name="plus" size={12} color="#FFF" />
+                  <Text style={styles.quickAddPillText}>ADD</Text>
+               </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.chevronCircle}>
+              <Icon name="chevron-right" size={14} color="#94A3B8" />
             </View>
           )}
-          {isVendor && !item.price && (
-            <View style={styles.enterBadge}>
-              <Text style={styles.enterText}>ENTER</Text>
-            </View>
-          )}
-          <Icon name="chevron-right" size={16} color="#CBD5E1" style={{ marginLeft: 8 }} />
         </View>
       </TouchableOpacity>
     );
@@ -499,83 +527,146 @@ const createStyles = (COLORS) => StyleSheet.create({
     suggestionItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: '#F8FAFC',
+      padding: 12,
+      marginHorizontal: 8,
+      marginVertical: 4,
+      backgroundColor: '#FFF',
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: '#F1F5F9',
     },
     suggestionImageContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
-      backgroundColor: '#F1F5F9',
+      width: 56,
+      height: 56,
+      borderRadius: 14,
+      backgroundColor: '#F8FAFC',
       marginRight: 12,
       overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
+      position: 'relative',
     },
     suggestionImage: {
       width: '100%',
       height: '100%',
+      resizeMode: 'cover',
+    },
+    saleBadgeSmall: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      backgroundColor: '#EF4444',
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+      borderBottomRightRadius: 8,
+    },
+    saleTextSmall: {
+      color: '#FFF',
+      fontSize: 7,
+      fontWeight: '900',
     },
     suggestionInfo: {
       flex: 1,
-      marginRight: 8,
+      justifyContent: 'center',
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    miniTag: {
+      paddingHorizontal: 4,
+      paddingVertical: 1,
+      borderRadius: 4,
+      marginRight: 6,
+    },
+    miniTagText: {
+      fontSize: 8,
+      fontWeight: '900',
     },
     suggestionTitle: {
       fontSize: 14,
-      fontWeight: '700',
-      color: '#0F172A',
+      fontWeight: '800',
+      color: '#1E293B',
+      flex: 1,
     },
-    tagVendor: {
-      fontSize: 8,
-      fontWeight: '900',
-      color: COLORS.orange,
-      backgroundColor: '#FFF7ED',
-      paddingHorizontal: 4,
-      paddingVertical: 1,
-      borderRadius: 4,
-      marginRight: 6,
-      textTransform: 'uppercase',
-    },
-    tagCategory: {
-      fontSize: 8,
-      fontWeight: '900',
-      color: COLORS.blue,
-      backgroundColor: '#EFF6FF',
-      paddingHorizontal: 4,
-      paddingVertical: 1,
-      borderRadius: 4,
-      marginRight: 6,
-      textTransform: 'uppercase',
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     vendorName: {
       fontSize: 11,
       fontWeight: '600',
       color: '#64748B',
-      marginTop: 2,
     },
-    pricePill: {
-      backgroundColor: '#0F172A',
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 10,
+    dot: {
+      width: 3,
+      height: 3,
+      borderRadius: 1.5,
+      backgroundColor: '#CBD5E1',
+      marginHorizontal: 6,
     },
-    priceValue: {
-      fontSize: 12,
-      fontWeight: '900',
-      color: '#FFFFFF',
-    },
-    loadingContainer: {
-      padding: 40,
-      alignItems: 'center',
-    },
-    loadingText: {
-      marginTop: 12,
-      fontSize: 11,
-      fontWeight: '700',
+    distanceTextSmall: {
+      fontSize: 10,
       color: '#94A3B8',
-      textTransform: 'uppercase',
-      letterSpacing: 1,
+      fontWeight: '600',
+    },
+    ratingTextSmall: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: '#0F172A',
+      marginLeft: 4,
+    },
+    metaTextSmall: {
+      fontSize: 11,
+      color: '#64748B',
+      fontWeight: '600',
+    },
+    exploreTextSmall: {
+      fontSize: 11,
+      color: COLORS.blue,
+      fontWeight: '600',
+    },
+    suggestionRight: {
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      paddingLeft: 8,
+    },
+    productActionContainer: {
+      alignItems: 'center',
+      gap: 6,
+    },
+    priceValueLarge: {
+      fontSize: 14,
+      fontWeight: '900',
+      color: '#0F172A',
+    },
+    quickAddPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: COLORS.orange,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 10,
+      shadowColor: COLORS.orange,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    quickAddPillText: {
+      color: '#FFF',
+      fontSize: 9,
+      fontWeight: '900',
+    },
+    chevronCircle: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: '#F8FAFC',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     noSuggestionsContainer: {
       padding: 40,

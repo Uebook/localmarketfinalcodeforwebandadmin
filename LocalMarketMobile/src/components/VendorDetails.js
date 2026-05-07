@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { 
-  View, Text, TouchableOpacity, StyleSheet, ScrollView, 
+import {
+  View, Text, TouchableOpacity, StyleSheet, ScrollView,
   Linking, Alert, ActivityIndicator, ImageBackground,
-  Dimensions, StatusBar, Platform, TextInput, Share, Modal, Pressable, Animated
+  Dimensions, StatusBar, Platform, TextInput, Share, Modal, Pressable, Animated, ToastAndroid
 } from 'react-native';
 import Image from './ImageWithFallback';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,24 +10,27 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorProducts, getVendorReviews, getVendorProfile, submitReview } from '../services/api';
-import { saveVendor, removeSavedVendor, isVendorSaved } from '../utils/savedVendors';
-import { addToCart } from '../utils/cartStorage';
+import { isVendorSaved, removeSavedVendor, saveVendor } from '../utils/savedVendors';
+import { useCart } from '../context/CartContext';
 import MapView from './MapView';
 import EnquiryModal from './EnquiryModal';
 import WriteReview from './WriteReview';
 import Logo from './Logo';
 
 const { width, height } = Dimensions.get('window');
-const HERO_HEIGHT = height / 4;
+const HERO_HEIGHT = height / 2.8;
 const HEADER_MIN_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
 const HEADER_SCROLL_DISTANCE = HERO_HEIGHT - HEADER_MIN_HEIGHT;
 
 const VendorDetails = ({ navigation, route }) => {
   const COLORS = useThemeColors();
+  const { addToCart, cartItems, updateQuantity } = useCart();
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const styles = createStyles(COLORS, scrollY);
-  
-  const business = route.params?.business || route.params?.vendor;
+
+  const business = route.params?.business || route.params?.vendor || {};
+  const targetVendorId = business?.id || business?.vendor_id || business?.vendorId || business?.vendorId || business?.vendor_id || business?.v_id;
+
   const [activeTab, setActiveTab] = useState('overview');
   const [isSaved, setIsSaved] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
@@ -37,23 +40,23 @@ const VendorDetails = ({ navigation, route }) => {
   const [productSearch, setProductSearch] = useState('');
   const [showEnquiryModal, setShowEnquiryModal] = useState(false);
   const [showWriteReview, setShowWriteReview] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    const vid = business?.id || business?.vendor_id || business?.vendorId;
-    if (vid) {
-      loadData(vid);
-      checkSaveStatus(vid);
+    if (targetVendorId) {
+      loadData(targetVendorId);
+      checkSaveStatus(targetVendorId);
     }
-  }, [business?.id, business?.vendor_id]);
+  }, [targetVendorId]);
 
   const loadData = async (vid) => {
     try {
       setLoading(true);
-      
+
       // Fetch full profile first (most robust data)
       const profileResponse = await getVendorProfile(vid);
-      
+
       if (profileResponse && profileResponse.vendor) {
         console.log('Syncing full vendor profile for:', profileResponse.vendor.shop_name);
         setVendorInfo(profileResponse.vendor);
@@ -75,6 +78,28 @@ const VendorDetails = ({ navigation, route }) => {
       setLoading(false);
     }
   };
+
+  // Handle highlighted product from navigation
+  useEffect(() => {
+    const highlightId = route.params?.highlightProductId;
+    if (highlightId && allProducts.length > 0) {
+      const item = allProducts.find(p => p.id === highlightId);
+      if (item) {
+        const isService = item.type === 'service' || (item.name && item.name.toLowerCase().includes('service'));
+        setActiveTab(isService ? 'services' : 'products');
+      }
+    }
+  }, [route.params?.highlightProductId, allProducts]);
+
+  const averageRating = useMemo(() => {
+    // If we have real reviews, prioritize their average
+    if (reviews.length > 0) {
+      const sum = reviews.reduce((acc, r) => acc + (parseFloat(r.rating) || 0), 0);
+      return (sum / reviews.length).toFixed(1);
+    }
+    // Fallback to vendor's stored rating
+    return parseFloat(vendorInfo.rating || 0).toFixed(1);
+  }, [reviews, vendorInfo.rating]);
 
   const checkSaveStatus = async (vid) => {
     const saved = await isVendorSaved(vid);
@@ -107,7 +132,7 @@ const VendorDetails = ({ navigation, route }) => {
       // Ensure phone format is clean (no spaces or plus for simplicity, or handle correctly)
       const cleanPhone = phone.replace(/[^\d]/g, '');
       const waUrl = `https://wa.me/${cleanPhone}`;
-      
+
       Linking.canOpenURL(waUrl).then(supported => {
         if (supported) {
           Linking.openURL(waUrl);
@@ -138,27 +163,38 @@ const VendorDetails = ({ navigation, route }) => {
       await submitReview(reviewData);
       Alert.alert('Success', 'Your review has been submitted successfully.');
       // Refresh vendor data to show the new review
-      loadData(vendorInfo.id);
+      loadData(targetVendorId);
     } catch (error) {
       console.error('Error submitting review:', error);
       throw error; // Will be caught by WriteReview Modal's internal catch
     }
   };
 
-  const filteredProducts = useMemo(() => {
-    if (!productSearch) return allProducts;
-    return allProducts.filter(p => 
-      p.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
-      p.category_name?.toLowerCase().includes(productSearch.toLowerCase())
-    );
-  }, [allProducts, productSearch]);
+  const products = useMemo(() => allProducts.filter(p => p.type !== 'service' && !(p.name && p.name?.toLowerCase().includes('service'))), [allProducts]);
+  const services = useMemo(() => allProducts.filter(p => p.type === 'service' || (p.name && p.name?.toLowerCase().includes('service'))), [allProducts]);
 
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'products', label: `Products (${filteredProducts.length})` },
-    { id: 'reviews', label: `Reviews (${reviews.length})` },
-    { id: 'info', label: 'Contact' },
-  ];
+  const filteredItems = useMemo(() => {
+    const source = activeTab === 'services' ? services : (activeTab === 'products' ? products : allProducts);
+    if (!productSearch) return source;
+    return source.filter(p => p.name?.toLowerCase().includes(productSearch.toLowerCase()));
+  }, [allProducts, products, services, productSearch, activeTab]);
+
+  const tabs = useMemo(() => {
+    const base = [{ id: 'overview', label: 'Overview' }];
+    
+    if (products.length > 0 || services.length === 0) {
+      base.push({ id: 'products', label: `Products (${products.length})` });
+    }
+    
+    if (services.length > 0) {
+      base.push({ id: 'services', label: `Services (${services.length})` });
+    }
+    
+    base.push({ id: 'reviews', label: `Reviews (${reviews.length})` });
+    base.push({ id: 'info', label: 'Contact' });
+    
+    return base;
+  }, [products.length, services.length, reviews.length]);
 
   const renderOverview = () => (
     <View style={styles.overviewContainer}>
@@ -170,26 +206,26 @@ const VendorDetails = ({ navigation, route }) => {
           </View>
           <Text style={styles.gridActionLabel}>Call</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.gridActionItem} onPress={handleWhatsApp}>
           <View style={[styles.gridActionIcon, { backgroundColor: '#F0FDF4' }]}>
             <Icon name="message-circle" size={24} color="#16A34A" />
           </View>
           <Text style={styles.gridActionLabel}>WhatsApp</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.gridActionItem} onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vendorInfo.address)}`)}>
           <View style={[styles.gridActionIcon, { backgroundColor: '#EEF2FF' }]}>
             <Icon name="navigation" size={24} color="#4F46E5" />
           </View>
           <Text style={styles.gridActionLabel}>Directions</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.gridActionItem} onPress={handleShare}>
-          <View style={[styles.gridActionIcon, { backgroundColor: '#F8FAFC' }]}>
-            <Icon name="share-2" size={24} color="#475569" />
+
+        <TouchableOpacity style={styles.gridActionItem} onPress={() => setShowEnquiryModal(true)}>
+          <View style={[styles.gridActionIcon, { backgroundColor: '#FFF7ED' }]}>
+            <Icon name="mail" size={24} color={COLORS.orange} />
           </View>
-          <Text style={styles.gridActionLabel}>Share</Text>
+          <Text style={styles.gridActionLabel}>Enquiry</Text>
         </TouchableOpacity>
       </View>
 
@@ -208,12 +244,12 @@ const VendorDetails = ({ navigation, route }) => {
           </View>
         </View>
         <View style={styles.mapPreviewMini}>
-          <Image 
-            source={{ uri: 'https://maps.googleapis.com/maps/api/staticmap?center=30.7333,76.7794&zoom=14&size=400x400&markers=color:red%7C30.7333,76.7794&key=YOUR_API_KEY' }} 
+          <Image
+            source={{ uri: 'https://maps.googleapis.com/maps/api/staticmap?center=30.7333,76.7794&zoom=14&size=400x400&markers=color:red%7C30.7333,76.7794&key=YOUR_API_KEY' }}
             style={styles.mapImageMini}
           />
           <View style={styles.mapMarkerOverlay}>
-             <Icon name="map-pin" size={24} color="#EF4444" fill="#EF4444" />
+            <Icon name="map-pin" size={24} color="#EF4444" fill="#EF4444" />
           </View>
         </View>
       </View>
@@ -237,7 +273,7 @@ const VendorDetails = ({ navigation, route }) => {
             <Text style={styles.viewAllLink}>View all</Text>
           </TouchableOpacity>
         </View>
-        
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dealsScroll}>
           {allProducts.slice(0, 5).map((item) => (
             <TouchableOpacity key={item.id} style={styles.dealCard}>
@@ -258,68 +294,93 @@ const VendorDetails = ({ navigation, route }) => {
       case 'overview':
         return renderOverview();
       case 'products':
+      case 'services':
         return (
           <View style={styles.tabContainer}>
             <View style={styles.innerSearchContainer}>
-               <Icon name="search" size={20} color="#94A3B8" />
-               <TextInput 
-                 style={styles.innerSearchInput}
-                 placeholder={`Search in ${vendorInfo.shop_name || vendorInfo.name}...`}
-                 value={productSearch}
-                 onChangeText={setProductSearch}
-                 placeholderTextColor="#94A3B8"
-                 clearButtonMode="while-editing"
-               />
+              <Icon name="search" size={20} color="#94A3B8" />
+              <TextInput
+                style={styles.innerSearchInput}
+                placeholder={`Search in ${vendorInfo.shop_name || vendorInfo.name}...`}
+                value={productSearch}
+                onChangeText={setProductSearch}
+                placeholderTextColor="#94A3B8"
+                clearButtonMode="while-editing"
+              />
             </View>
 
             <View style={styles.productGrid}>
-              {filteredProducts.length > 0 ? filteredProducts.map((item) => {
+              {filteredItems.length > 0 ? filteredItems.map((item) => {
                 const comparisonPrice = Math.max(item.online_price || 0, item.mrp || 0);
                 const savings = comparisonPrice > item.price ? comparisonPrice - item.price : 0;
                 const savingsPercent = savings > 0 ? Math.round((savings / comparisonPrice) * 100) : 0;
 
                 return (
-                <TouchableOpacity 
-                  key={item.id} 
-                  style={styles.productGridCard}
-                  onPress={() => addToCart(item, vendorInfo.id)}
-                  activeOpacity={0.9}
-                >
-                  <View style={styles.productImageContainer}>
-                    <Image 
-                      source={{ uri: item.image_url || item.imageUrl }} 
-                      style={styles.gridProductImage} 
-                    />
-                    {savingsPercent > 0 && (
-                      <View style={styles.gridDiscountBadge}>
-                        <Text style={styles.gridDiscountText}>{savingsPercent}% OFF</Text>
-                      </View>
-                    )}
-                  </View>
-                  
-                  <View style={styles.gridProductInfo}>
-                    <Text style={styles.gridProductName} numberOfLines={2}>{item.name}</Text>
-                    <Text style={styles.gridProductCategory}>{item.category_name || vendorInfo.category}</Text>
-                    
-                    <View style={styles.gridPriceRow}>
-                      <View>
-                        <Text style={styles.gridPriceValue}>₹{item.price}</Text>
-                        {savings > 0 && (
-                          <Text style={styles.gridMrpPrice}>₹{comparisonPrice}</Text>
-                        )}
-                      </View>
-                      <TouchableOpacity style={styles.gridAddBtn}>
-                        <Icon name="plus" size={16} color="#FFF" />
-                      </TouchableOpacity>
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.productGridCard,
+                      route.params?.highlightProductId === item.id && { borderColor: COLORS.orange, borderWidth: 2, backgroundColor: '#FFF7ED' }
+                    ]}
+                    onPress={() => {
+                      setSelectedProduct(item);
+                      setShowEnquiryModal(true);
+                    }}
+                    activeOpacity={0.9}
+                  >
+                    <View style={styles.productImageContainer}>
+                      <Image
+                        source={{ uri: item.image_url || item.imageUrl }}
+                        style={styles.gridProductImage}
+                      />
+                      {savingsPercent > 0 && (
+                        <View style={styles.gridDiscountBadge}>
+                          <Text style={styles.gridDiscountText}>{savingsPercent}% OFF</Text>
+                        </View>
+                      )}
                     </View>
-                  </View>
-                </TouchableOpacity>
+
+                    <View style={styles.gridProductInfo}>
+                      <Text style={styles.gridProductName} numberOfLines={2}>{item.name}</Text>
+                      <View style={styles.typeBadgeRow}>
+                        {item.type === 'service' || (item.name && item.name.toLowerCase().includes('service')) ? (
+                          <View style={[styles.typeBadge, { backgroundColor: '#F0F9FF' }]}>
+                            <Text style={[styles.typeBadgeText, { color: '#0369A1' }]}>SERVICE</Text>
+                          </View>
+                        ) : (
+                          <View style={[styles.typeBadge, { backgroundColor: '#F0FDF4' }]}>
+                            <Text style={[styles.typeBadgeText, { color: '#15803D' }]}>PRODUCT</Text>
+                          </View>
+                        )}
+                        <Text style={styles.gridProductCategory}>{item.category_name || vendorInfo.category}</Text>
+                      </View>
+
+                      <View style={styles.gridPriceRow}>
+                        <View>
+                          <Text style={styles.gridPriceValue}>₹{item.price}</Text>
+                          {savings > 0 && (
+                            <Text style={styles.gridMrpPrice}>₹{comparisonPrice}</Text>
+                          )}
+                        </View>
+                        <TouchableOpacity
+                          style={styles.gridEnquiryBtn}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            setSelectedProduct(item);
+                            setShowEnquiryModal(true);
+                          }}
+                        >
+                          <Text style={styles.gridEnquiryBtnText}>Enquire</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
                 );
               }) : (
                 <View style={styles.emptySearchContainer}>
-                   <Icon name="search" size={64} color="#CBD5E1" />
-                   <Text style={styles.emptyTitle}>No products found</Text>
-                   <Text style={styles.emptyText}>Try searching for something else in this store.</Text>
+                  <Icon name="search" size={64} color="#CBD5E1" />
+                  <Text style={styles.emptyTitle}>No products found</Text>
+                  <Text style={styles.emptyText}>Try searching for something else in this store.</Text>
                 </View>
               )}
             </View>
@@ -328,69 +389,69 @@ const VendorDetails = ({ navigation, route }) => {
       case 'reviews':
         return (
           <View style={styles.tabContainer}>
-             <TouchableOpacity style={styles.writeReviewBtn} onPress={() => setShowWriteReview(true)}>
-                <Text style={styles.writeReviewText}>Write a Review</Text>
-             </TouchableOpacity>
+            <TouchableOpacity style={styles.writeReviewBtn} onPress={() => setShowWriteReview(true)}>
+              <Text style={styles.writeReviewText}>Write a Review</Text>
+            </TouchableOpacity>
 
-             {reviews.length > 0 ? reviews.map((rev) => (
-               <View key={rev.id} style={styles.reviewItem}>
-                 <View style={styles.reviewHeader}>
-                   <View style={styles.avatar}>
-                     <Text style={{ color: '#FFF', fontWeight: '900' }}>{rev.user_name?.charAt(0).toUpperCase() || 'U'}</Text>
-                   </View>
-                   <View>
-                     <Text style={styles.reviewerName}>{rev.user_name || 'Anonymous'}</Text>
-                     <View style={styles.starRowSmall}>
-                       {[1, 2, 3, 4, 5].map((star) => (
-                         <Icon key={star} name="star" size={12} color={star <= rev.rating ? "#F59E0B" : "#E2E8F0"} fill={star <= rev.rating ? "#F59E0B" : "transparent"} />
-                       ))}
-                     </View>
-                   </View>
-                 </View>
-                 <Text style={styles.commentText}>{rev.comment}</Text>
-                 {rev.vendor_reply && (
-                   <View style={styles.vendorReply}>
-                     <Text style={styles.replyLabel}>Store Reply</Text>
-                     <Text style={styles.replyText}>{rev.vendor_reply}</Text>
-                   </View>
-                 )}
-               </View>
-             )) : (
-               <View style={styles.emptyState}>
-                 <Text>No reviews yet. Be the first to review!</Text>
-               </View>
-             )}
+            {reviews.length > 0 ? reviews.map((rev) => (
+              <View key={rev.id} style={styles.reviewItem}>
+                <View style={styles.reviewHeader}>
+                  <View style={styles.avatar}>
+                    <Text style={{ color: '#FFF', fontWeight: '900' }}>{rev.user_name?.charAt(0).toUpperCase() || 'U'}</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.reviewerName}>{rev.user_name || 'Anonymous'}</Text>
+                    <View style={styles.starRowSmall}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Icon key={star} name="star" size={12} color={star <= rev.rating ? "#F59E0B" : "#E2E8F0"} fill={star <= rev.rating ? "#F59E0B" : "transparent"} />
+                      ))}
+                    </View>
+                  </View>
+                </View>
+                <Text style={styles.commentText}>{rev.comment}</Text>
+                {rev.vendor_reply && (
+                  <View style={styles.vendorReply}>
+                    <Text style={styles.replyLabel}>Store Reply</Text>
+                    <Text style={styles.replyText}>{rev.vendor_reply}</Text>
+                  </View>
+                )}
+              </View>
+            )) : (
+              <View style={styles.emptyState}>
+                <Text>No reviews yet. Be the first to review!</Text>
+              </View>
+            )}
           </View>
         );
       case 'info':
         return (
           <View style={styles.tabContainer}>
             <View style={styles.contactList}>
-                 <TouchableOpacity style={styles.contactItem} onPress={handleCall}>
-                   <Icon name="phone" size={20} color={COLORS.orange} />
-                   <View style={styles.contactTextWrapper}>
-                     <Text style={styles.infoLabel}>Phone Number</Text>
-                     <Text style={styles.infoValue}>{vendorInfo.phone || 'Not available'}</Text>
-                   </View>
-                   <Icon name="chevron-right" size={20} color="#CBD5E1" />
-                 </TouchableOpacity>
+              <TouchableOpacity style={styles.contactItem} onPress={handleCall}>
+                <Icon name="phone" size={20} color={COLORS.orange} />
+                <View style={styles.contactTextWrapper}>
+                  <Text style={styles.infoLabel}>Phone Number</Text>
+                  <Text style={styles.infoValue}>{vendorInfo.phone || 'Not available'}</Text>
+                </View>
+                <Icon name="chevron-right" size={20} color="#CBD5E1" />
+              </TouchableOpacity>
 
-                 <TouchableOpacity style={styles.contactItem} onPress={handleWhatsApp}>
-                   <Icon name="message-circle" size={20} color="#22C55E" />
-                   <View style={styles.contactTextWrapper}>
-                     <Text style={styles.infoLabel}>WhatsApp</Text>
-                     <Text style={styles.infoValue}>Chat with us</Text>
-                   </View>
-                   <Icon name="chevron-right" size={20} color="#CBD5E1" />
-                 </TouchableOpacity>
+              <TouchableOpacity style={styles.contactItem} onPress={handleWhatsApp}>
+                <Icon name="message-circle" size={20} color="#22C55E" />
+                <View style={styles.contactTextWrapper}>
+                  <Text style={styles.infoLabel}>WhatsApp</Text>
+                  <Text style={styles.infoValue}>Chat with us</Text>
+                </View>
+                <Icon name="chevron-right" size={20} color="#CBD5E1" />
+              </TouchableOpacity>
 
-                 <View style={styles.contactItem}>
-                   <Icon name="mail" size={20} color="#3B82F6" />
-                   <View style={styles.contactTextWrapper}>
-                     <Text style={styles.infoLabel}>Email Address</Text>
-                     <Text style={styles.infoValue}>{vendorInfo.email || 'Not available'}</Text>
-                   </View>
-                 </View>
+              <View style={styles.contactItem}>
+                <Icon name="mail" size={20} color="#3B82F6" />
+                <View style={styles.contactTextWrapper}>
+                  <Text style={styles.infoLabel}>Email Address</Text>
+                  <Text style={styles.infoValue}>{vendorInfo.email || 'Not available'}</Text>
+                </View>
+              </View>
             </View>
           </View>
         );
@@ -402,30 +463,30 @@ const VendorDetails = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      
+
       {/* Sticky Compact Header for Scroll */}
       <Animated.View style={styles.stickyHeader}>
-         <SafeAreaView edges={['top']} style={styles.stickyHeaderContent}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.stickyBackBtn}>
-              <Icon name="arrow-left" size={22} color="#0F172A" />
+        <SafeAreaView edges={['top']} style={styles.stickyHeaderContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.stickyBackBtn}>
+            <Icon name="arrow-left" size={22} color="#0F172A" />
+          </TouchableOpacity>
+          <Animated.Text style={styles.stickyTitle} numberOfLines={1}>
+            {vendorInfo.name || vendorInfo.shop_name}
+          </Animated.Text>
+          <View style={styles.stickyActions}>
+            <TouchableOpacity onPress={handleSave}>
+              <Icon name="heart" size={20} color={isSaved ? "#EF4444" : "#0F172A"} fill={isSaved ? "#EF4444" : "transparent"} />
             </TouchableOpacity>
-            <Animated.Text style={styles.stickyTitle} numberOfLines={1}>
-              {vendorInfo.name || vendorInfo.shop_name}
-            </Animated.Text>
-            <View style={styles.stickyActions}>
-               <TouchableOpacity onPress={handleSave}>
-                  <Icon name="heart" size={20} color={isSaved ? "#EF4444" : "#0F172A"} fill={isSaved ? "#EF4444" : "transparent"} />
-               </TouchableOpacity>
-               <TouchableOpacity onPress={handleShare}>
-                  <Icon name="share-2" size={20} color="#0F172A" />
-               </TouchableOpacity>
-            </View>
-         </SafeAreaView>
+            <TouchableOpacity onPress={handleShare}>
+              <Icon name="share-2" size={20} color="#0F172A" />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </Animated.View>
 
-      <Animated.ScrollView 
-        showsVerticalScrollIndicator={false} 
-        stickyHeaderIndices={[1]}
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 150 }}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true }
@@ -445,55 +506,67 @@ const VendorDetails = ({ navigation, route }) => {
               </View>
             )}
           </Animated.View>
-            
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.6)']}
-              style={styles.heroGradient}
-            >
-              <Animated.View style={styles.topActions}>
-                <SafeAreaView edges={['top']} style={styles.topActionsContent}>
-                  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconCircleWhite} activeOpacity={0.7}>
-                    <Icon name="arrow-left" size={22} color="#0F172A" />
+
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.6)']}
+            style={styles.heroGradient}
+          >
+            <Animated.View style={styles.topActions}>
+              <SafeAreaView edges={['top']} style={styles.topActionsContent}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconCircleWhite} activeOpacity={0.7}>
+                  <Icon name="arrow-left" size={22} color="#0F172A" />
+                </TouchableOpacity>
+                <View style={styles.topRightActions}>
+                  <TouchableOpacity onPress={handleShare} style={styles.iconCircleWhite} activeOpacity={0.7}>
+                    <Icon name="share" size={20} color="#0F172A" />
                   </TouchableOpacity>
-                  <View style={styles.topRightActions}>
-                     <TouchableOpacity onPress={handleShare} style={styles.iconCircleWhite} activeOpacity={0.7}>
-                        <Icon name="share" size={20} color="#0F172A" />
-                     </TouchableOpacity>
-                     <TouchableOpacity onPress={handleSave} style={styles.iconCircleWhite} activeOpacity={0.7}>
-                        <Icon name="heart" size={20} color={isSaved ? "#EF4444" : "#0F172A"} fill={isSaved ? "#EF4444" : "transparent"} />
-                     </TouchableOpacity>
-                  </View>
-                </SafeAreaView>
-              </Animated.View>
+                  <TouchableOpacity onPress={handleSave} style={styles.iconCircleWhite} activeOpacity={0.7}>
+                    <Icon name="heart" size={20} color={isSaved ? "#EF4444" : "#0F172A"} fill={isSaved ? "#EF4444" : "transparent"} />
+                  </TouchableOpacity>
+                </View>
+              </SafeAreaView>
+            </Animated.View>
 
 
-            </LinearGradient>
+          </LinearGradient>
         </View>
 
         {/* Content Card (Overlaps Hero) */}
         <View style={styles.contentCard}>
-           <View style={styles.vendorHeaderMain}>
+          <View style={styles.vendorHeaderMain}>
+            <View style={styles.logoCircleLarge}>
+              {(vendorInfo.image_url || vendorInfo.imageUrl) ? (
+                <Image
+                  source={{ uri: vendorInfo.image_url || vendorInfo.imageUrl }}
+                  style={styles.logoImageLarge}
+                />
+              ) : (
+                <Text style={styles.logoLetterLarge}>
+                  {(vendorInfo.shop_name || vendorInfo.name || 'L').charAt(0).toUpperCase()}
+                </Text>
+              )}
+            </View>
 
-              <View style={styles.headerTitles}>
-                 <Text style={styles.businessTitleMain}>{vendorInfo.name || vendorInfo.shop_name}</Text>
-                 <View style={styles.ratingStatusRow}>
-                    <Text style={styles.ratingTextMain}>
-                      {parseFloat(vendorInfo.rating || 0).toFixed(1)} <Icon name="star" size={14} color="#10B981" fill="#10B981" />
-                    </Text>
-                    <Text style={styles.reviewCountMain}> ({vendorInfo.reviewCount || 0} reviews)</Text>
-                 </View>
-                 <Text style={styles.statusTextMain}>
-                   Open <Text style={{ color: '#94A3B8', fontWeight: '500' }}>• Closes at 9:00 PM</Text>
-                 </Text>
+            <View style={styles.headerTitles}>
+              <Text style={styles.businessTitleMain}>{vendorInfo.name || vendorInfo.shop_name}</Text>
+              <View style={styles.ratingStatusRow}>
+                <Text style={styles.ratingTextMain}>
+                  {averageRating} <Icon name="star" size={14} color="#10B981" fill="#10B981" />
+                </Text>
+                <Text style={styles.reviewCountMain}> ({reviews.length} reviews)</Text>
               </View>
-           </View>
+              <Text style={styles.statusTextMain}>
+                Open <Text style={{ color: '#94A3B8', fontWeight: '500' }}>• Closes at 9:00 PM</Text>
+              </Text>
+            </View>
+          </View>
 
-        {/* Tab Selection Bar - Sticky */}
-        <View style={styles.tabsWrapper}>
-           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
+          {/* Tab Selection Bar - Sticky */}
+          <View style={styles.tabsWrapper}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
               {tabs.map((tab) => (
-                <TouchableOpacity 
-                  key={tab.id} 
+                <TouchableOpacity
+                  key={tab.id}
                   onPress={() => setActiveTab(tab.id)}
                   style={[styles.tabItem, activeTab === tab.id && styles.activeTabItem]}
                 >
@@ -503,61 +576,66 @@ const VendorDetails = ({ navigation, route }) => {
                   {activeTab === tab.id && <View style={styles.activeIndicator} />}
                 </TouchableOpacity>
               ))}
-           </ScrollView>
-        </View>
+            </ScrollView>
+          </View>
 
-        {/* Tab Content Area */}
-        <View style={styles.contentBody}>
-          {loading ? (
-            <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color={COLORS.orange} />
-            </View>
-          ) : (
-            renderTabContent()
-          )}
+          {/* Tab Content Area */}
+          <View style={styles.contentBody}>
+            {loading ? (
+              <View style={styles.loaderContainer}>
+                <ActivityIndicator size="large" color={COLORS.orange} />
+              </View>
+            ) : (
+              renderTabContent()
+            )}
+          </View>
+          <View style={{ height: 20 }} />
         </View>
-      </View>
-    </Animated.ScrollView>
+      </Animated.ScrollView>
 
       {/* Floating Bottom Action Bar */}
       <View style={styles.bottomBar}>
-         <TouchableOpacity 
-           style={[styles.bottomBtn, styles.callBtn]}
-           onPress={handleCall}
-         >
-           <Icon name="phone" size={18} color="#FFF" />
-           <Text style={styles.bottomBtnText}>Call Now</Text>
-         </TouchableOpacity>
-         
-         <TouchableOpacity 
-           style={[styles.bottomBtn, styles.enquiryBtn]}
-           onPress={() => setShowEnquiryModal(true)}
-         >
-           <Text style={[styles.bottomBtnText, { color: '#0F172A' }]}>Enquiry</Text>
-         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.bottomBtn, styles.callBtn]}
+          onPress={handleCall}
+        >
+          <Icon name="phone" size={18} color="#FFF" />
+          <Text style={styles.bottomBtnText}>Call Now</Text>
+        </TouchableOpacity>
 
-         <TouchableOpacity 
-           style={[styles.bottomBtn, styles.whatsappBtn]}
-           onPress={handleWhatsApp}
-         >
-           <Icon name="message-circle" size={18} color="#FFF" />
-           <Text style={styles.bottomBtnText}>WhatsApp</Text>
-         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.bottomBtn, styles.enquiryBtn]}
+          onPress={() => setShowEnquiryModal(true)}
+        >
+          <Text style={[styles.bottomBtnText, { color: '#0F172A' }]}>Enquiry</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.bottomBtn, styles.whatsappBtn]}
+          onPress={handleWhatsApp}
+        >
+          <Icon name="message-circle" size={18} color="#FFF" />
+          <Text style={styles.bottomBtnText}>WhatsApp</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Modals */}
-      <EnquiryModal 
+      <EnquiryModal
         isOpen={showEnquiryModal}
-        onClose={() => setShowEnquiryModal(false)}
+        onClose={() => {
+          setShowEnquiryModal(false);
+          setSelectedProduct(null);
+        }}
         businessName={vendorInfo.shop_name || vendorInfo.name}
-        vendorId={vendorInfo.id}
+        vendorId={targetVendorId}
+        productName={selectedProduct?.name}
       />
       <WriteReview
         visible={showWriteReview}
         onClose={() => setShowWriteReview(false)}
         onSubmit={handleReviewSubmit}
         vendorName={vendorInfo.shop_name || vendorInfo.name}
-        vendorId={vendorInfo.id}
+        vendorId={targetVendorId}
       />
 
       {/* Product Image Enlarger Modal */}
@@ -567,16 +645,16 @@ const VendorDetails = ({ navigation, route }) => {
         onRequestClose={() => setSelectedImage(null)}
         animationType="fade"
       >
-        <Pressable 
-          style={styles.fullScreenModal} 
+        <Pressable
+          style={styles.fullScreenModal}
           onPress={() => setSelectedImage(null)}
         >
           <View style={styles.modalCloseBtn}>
             <Icon name="x" size={30} color="#FFF" />
           </View>
-          <Image 
-            source={{ uri: selectedImage }} 
-            style={styles.fullScreenImage} 
+          <Image
+            source={{ uri: selectedImage }}
+            style={styles.fullScreenImage}
             resizeMode="contain"
           />
         </Pressable>
@@ -713,19 +791,31 @@ const createStyles = (COLORS, scrollY) => StyleSheet.create({
     gap: 20,
   },
   logoCircleLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderWidth: 4,
+    borderColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: -60,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 2,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+  logoImageLarge: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  logoLetterLarge: {
+    fontSize: 40,
+    fontWeight: '900',
+    color: COLORS.orange,
   },
   headerTitles: {
     flex: 1,
@@ -958,8 +1048,23 @@ const createStyles = (COLORS, scrollY) => StyleSheet.create({
     fontSize: 11,
     color: '#94A3B8',
     fontWeight: '600',
+  },
+  typeBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
     marginBottom: 8,
+    gap: 8,
+  },
+  typeBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  typeBadgeText: {
+    fontSize: 8,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   gridPriceRow: {
     flexDirection: 'row',
@@ -983,6 +1088,53 @@ const createStyles = (COLORS, scrollY) => StyleSheet.create({
     backgroundColor: COLORS.orange,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: COLORS.orange,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  qtySelectorGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
+    padding: 2,
+    gap: 8,
+  },
+  qtyBtnGrid: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  gridTextGrid: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#0F172A',
+    minWidth: 16,
+    textAlign: 'center',
+  },
+  gridEnquiryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  gridEnquiryBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#0F172A',
+    textTransform: 'uppercase',
   },
   bottomBar: {
     position: 'absolute',
@@ -1223,7 +1375,7 @@ const createStyles = (COLORS, scrollY) => StyleSheet.create({
   },
   contentBody: {
     flex: 1,
-    paddingBottom: 140,
+    paddingBottom: 150,
   },
   loaderContainer: {
     padding: 50,

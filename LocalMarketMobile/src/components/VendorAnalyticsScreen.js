@@ -382,6 +382,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
+        hideCart={true}
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Image from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -34,8 +34,12 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.grid}>
-        {displayCategories.map((category, index) => {
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {allCategories.map((category, index) => {
           const color = iconColors[index % iconColors.length];
           return (
             <TouchableOpacity
@@ -44,7 +48,7 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
               onPress={() => handleCategoryPress(category)}
               activeOpacity={0.7}
             >
-              <View style={[styles.iconCircle, { backgroundColor: color.bg }]}>
+              <View style={styles.iconCircle}>
                 {category.iconUrl || category.icon_url ? (
                   <Image
                     source={{ uri: category.iconUrl || category.icon_url }}
@@ -52,7 +56,7 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
                     resizeMode="contain"
                   />
                 ) : (
-                  <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={22} color={color.text} />
+                  <Icon name={getIconName(category.iconName || category.icon_name || 'grid')} size={28} color={color.text} />
                 )}
               </View>
               <Text style={styles.categoryName} numberOfLines={1}>
@@ -61,81 +65,47 @@ const TopCategoriesGrid = ({ categories, onCategorySelect, onViewAll }) => {
             </TouchableOpacity>
           );
         })}
-        
-        {onViewAll && displayCategories.length > 0 && (
-          <TouchableOpacity
-            style={styles.categoryCard}
-            onPress={onViewAll}
-            activeOpacity={0.7}
-          >
-            <View style={styles.viewAllIconContainer}>
-              <Icon name={getIconName('ChevronRight')} size={22} color={COLORS.orange} />
-            </View>
-            <Text style={styles.viewAllCategoryText} numberOfLines={1}>
-              More
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      </ScrollView>
     </View>
   );
 };
 
 const createStyles = (COLORS) => StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingVertical: 8,
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  scrollContent: {
+    paddingHorizontal: 16,
+    gap: 12,
   },
   categoryCard: {
-    width: '23%', // Slightly less than 25% for spacing
+    width: 86,
     alignItems: 'center',
-    marginBottom: 20,
   },
   iconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 16, // Square with rounded corners
+    width: 72,
+    height: 72,
+    borderRadius: 20, // Rounded square as per image
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   categoryImage: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
   },
   categoryName: {
     fontSize: 11,
     fontWeight: '700',
     color: '#475569',
-    textAlign: 'center',
-  },
-  viewAllIconContainer: {
-    width: 68,
-    height: 68,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  viewAllCategoryText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#3B82F6',
     textAlign: 'center',
   },
 });

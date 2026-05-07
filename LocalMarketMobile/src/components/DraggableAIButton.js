@@ -29,6 +29,16 @@ const DraggableAIButton = ({ onPress }) => {
     const pan = useRef(new Animated.ValueXY(initialPos)).current;
     const pulseAnim = useRef(new Animated.Value(1)).current;
 
+    // Use refs to track current position without accessing _value directly
+    const offsetRef = useRef(initialPos);
+
+    useEffect(() => {
+        const listener = pan.addListener((value) => {
+            offsetRef.current = value;
+        });
+        return () => pan.removeListener(listener);
+    }, [pan]);
+
     // 3. Pulse Animation
     useEffect(() => {
         const pulse = Animated.loop(
@@ -36,12 +46,12 @@ const DraggableAIButton = ({ onPress }) => {
                 Animated.timing(pulseAnim, {
                     toValue: 1.12,
                     duration: 1500,
-                    useNativeDriver: true,
+                    useNativeDriver: false,
                 }),
                 Animated.timing(pulseAnim, {
                     toValue: 1,
                     duration: 1500,
-                    useNativeDriver: true,
+                    useNativeDriver: false,
                 }),
             ])
         );
@@ -52,13 +62,14 @@ const DraggableAIButton = ({ onPress }) => {
     // 4. PanResponder memoized to prevent recreation on every render
     const panResponder = useMemo(() => 
         PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
             onMoveShouldSetPanResponder: (_, gestureState) => {
                 return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
             },
             onPanResponderGrant: () => {
                 pan.setOffset({
-                    x: pan.x._value,
-                    y: pan.y._value,
+                    x: offsetRef.current.x,
+                    y: offsetRef.current.y,
                 });
                 pan.setValue({ x: 0, y: 0 });
                 setIsDragging(true);
@@ -71,18 +82,20 @@ const DraggableAIButton = ({ onPress }) => {
                 pan.flattenOffset();
                 setIsDragging(false);
 
-                let finalX = pan.x._value;
-                let finalY = pan.y._value;
+                let finalX = offsetRef.current.x;
+                let finalY = offsetRef.current.y;
 
                 // Simple boundaries
                 if (finalX < 10) finalX = 10;
                 if (finalX > width - BUTTON_SIZE - 10) finalX = width - BUTTON_SIZE - 10;
                 if (finalY < 60) finalY = 60;
-                if (finalY > height - BUTTON_SIZE - 140) finalY = height - BUTTON_SIZE - 140; // Prevent hiding behind tab bar
+                if (finalY > height - BUTTON_SIZE - 140) finalY = height - BUTTON_SIZE - 140; 
 
                 Animated.spring(pan, {
                     toValue: { x: finalX, y: finalY },
                     useNativeDriver: false,
+                    friction: 7,
+                    tension: 40
                 }).start();
             },
         }), [pan]);

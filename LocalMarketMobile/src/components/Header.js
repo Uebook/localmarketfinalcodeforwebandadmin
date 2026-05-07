@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useCart } from '../context/CartContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -15,13 +17,17 @@ const Header = ({
   onNotificationClick,
   onLocationChange,
   onRedetect,
-  notificationCount = 2,
-  transparent = false
+  showLocationPicker,
+  setShowLocationPicker,
+  notificationCount = 0,
+  transparent = false,
+  hideCart = false
 }) => {
   const COLORS = useThemeColors();
+  const navigation = useNavigation();
+  const { cartCount } = useCart();
   const styles = createStyles(COLORS, transparent);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   const iconColor = transparent ? COLORS.white : COLORS.textPrimary;
 
@@ -50,9 +56,9 @@ const Header = ({
               <Icon name="map-pin" size={16} color={COLORS.orange} />
               <View style={styles.locationTextBlock}>
                 <Text style={styles.locationCity} numberOfLines={1}>
-                  {locationState.loading
+                  {locationState?.loading
                     ? 'Detecting...'
-                    : (locationState.circle || locationState.town || locationState.city || locationState.displayLabel || 'Pick Location')}
+                    : (locationState?.circle || locationState?.town || locationState?.city || locationState?.displayLabel || 'Pick Location')}
                 </Text>
               </View>
               <Icon name="chevron-down" size={12} color={COLORS.textSecondary} />
@@ -73,6 +79,21 @@ const Header = ({
                 </View>
               )}
             </TouchableOpacity>
+
+            {!hideCart && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Cart')}
+                style={styles.notificationButton}
+                activeOpacity={0.7}
+              >
+                <Icon name="shopping-bag" size={24} color={iconColor} />
+                {cartCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>{cartCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               onPress={onProfileClick}
               style={styles.profileButton}
@@ -108,7 +129,7 @@ const Header = ({
 
             <View style={styles.addressBox}>
               <Text style={styles.fullAddressText}>
-                {locationState.fullAddress || locationState.city || 'No location detected yet'}
+                {locationState?.fullAddress || locationState?.city || 'No location detected yet'}
               </Text>
             </View>
 
@@ -124,35 +145,39 @@ const Header = ({
               <Text style={styles.redetectText}>Re-detect Location</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.manualSelectButton}
-              onPress={() => {
-                setShowLocationModal(false);
-                setShowLocationPicker(true);
-              }}
-              activeOpacity={0.8}
-            >
-              <Icon name={getIconName('Map')} size={14} color={COLORS.orange} style={{ marginRight: 6 }} />
-              <Text style={styles.manualSelectText}>Choose Location Manually</Text>
-            </TouchableOpacity>
+            {setShowLocationPicker && (
+              <TouchableOpacity
+                style={styles.manualSelectButton}
+                onPress={() => {
+                  setShowLocationModal(false);
+                  setShowLocationPicker(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <Icon name={getIconName('Map')} size={14} color={COLORS.orange} style={{ marginRight: 6 }} />
+                <Text style={styles.manualSelectText}>Choose Location Manually</Text>
+              </TouchableOpacity>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
 
-      <LocationPicker
-        visible={showLocationPicker}
-        initialLocation={{
-          state: locationState?.state,
-          city: locationState?.city,
-          circle: locationState?.circle
-        }}
-        onClose={() => setShowLocationPicker(false)}
-        onSelect={(loc) => {
-           if (onLocationChange) {
-             onLocationChange(loc);
-           }
-        }}
-      />
+      {setShowLocationPicker && (
+        <LocationPicker
+          visible={!!showLocationPicker}
+          initialLocation={{
+            state: locationState?.state,
+            city: locationState?.city,
+            circle: locationState?.circle
+          }}
+          onClose={() => setShowLocationPicker(false)}
+          onSelect={(loc) => {
+             if (onLocationChange) {
+               onLocationChange(loc);
+             }
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 };

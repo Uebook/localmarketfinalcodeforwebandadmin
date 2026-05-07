@@ -59,7 +59,13 @@ const WriteReview = ({ visible, onClose, onSubmit, vendorName, vendorId }) => {
       return;
     }
 
-    setLoading(true);
+    console.log('WriteReview submitting for vendorId:', vendorId);
+    if (!vendorId) {
+      Alert.alert('System Error', 'Vendor ID is missing. Please close and reopen the page.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const reviewData = {
         rating,

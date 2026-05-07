@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView,  Linking, Alert, ActivityIndicator, Share } from 'react-native';
 import Image from './ImageWithFallback';
-import { getMarketComparisonStats } from '../services/api';
+import { getMarketHubStats } from '../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
@@ -18,7 +18,7 @@ const ProductDetailsScreen = ({ navigation, route }) => {
   React.useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await getMarketComparisonStats();
+        const res = await getMarketHubStats();
         if (res?.success) setMarketStats(res.stats);
       } catch (e) {
         console.error(e);

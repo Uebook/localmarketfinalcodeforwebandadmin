@@ -235,6 +235,7 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
+        hideCart={true}
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>

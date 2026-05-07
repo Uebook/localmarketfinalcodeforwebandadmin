@@ -9,6 +9,7 @@ import { saveUserData, loadUserData, clearUserData, isUserAuthenticated } from '
 import { ThemeProvider } from './src/components/ThemeProvider';
 import { useThemeColors } from './src/hooks/useThemeColors';
 import { getSavedVendorIds, clearSavedVendors } from './src/utils/savedVendors';
+import { CartProvider } from './src/context/CartContext';
 
 import COLORS_IMPORT from './src/constants/colors';
 
@@ -181,7 +182,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
   );
 }
 
-function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUserData, savedBusinessIds, setSavedBusinessIds, locationState, onLocationChange, onRedetect, onMenuClick, onProfileClick, onNotificationClick, handleLogout, initialRouteName = 'Home' }) {
+function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUserData, savedBusinessIds, setSavedBusinessIds, locationState, onLocationChange, onRedetect, onMenuClick, onProfileClick, onNotificationClick, handleLogout, showLocationPicker, setShowLocationPicker, notificationCount = 0, initialRouteName = 'Home' }) {
   const insets = useSafeAreaInsets();
   const themeColors = useThemeColors();
   const activeRouteName = getFocusedRouteNameFromRoute(route) || initialRouteName;
@@ -197,6 +198,9 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
           onNotificationClick={onNotificationClick}
           onLocationChange={onLocationChange}
           onRedetect={onRedetect}
+          showLocationPicker={showLocationPicker}
+          setShowLocationPicker={setShowLocationPicker}
+          notificationCount={notificationCount}
         />
       )}
       <Tab.Navigator
@@ -210,23 +214,37 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
           } else if (route.name === 'Compare') {
             iconName = 'shuffle';
           } else if (route.name === 'Saved') {
-            iconName = 'bookmark';
+            iconName = 'heart';
           } else if (route.name === 'Profile') {
             iconName = 'user';
           }
 
+          const activeColor = route.name === 'Compare' ? '#CA8A04' : themeColors.orange;
+
           return {
             tabBarIcon: ({ focused }) => {
-              return <Icon name={iconName} size={22} color={focused ? themeColors.orange : themeColors.textMuted} />;
+              return (
+                <View style={[
+                  styles.tabButton,
+                  focused && { backgroundColor: activeColor + '10' }
+                ]}>
+                  <Icon 
+                    name={iconName} 
+                    size={22} 
+                    color={focused ? activeColor : '#94A3B8'} 
+                  />
+                  {focused && <View style={[styles.tabActiveIndicator, { backgroundColor: activeColor }]} />}
+                </View>
+              );
             },
             tabBarLabel: route.name,
             tabBarLabelStyle: {
               fontSize: 10,
-              fontWeight: '700',
+              fontWeight: '800',
               marginTop: 2,
             },
-            tabBarActiveTintColor: themeColors.orange,
-            tabBarInactiveTintColor: themeColors.textMuted,
+            tabBarActiveTintColor: activeColor,
+            tabBarInactiveTintColor: '#94A3B8',
             headerShown: false,
             tabBarStyle: [
               styles.tabBar,
@@ -243,7 +261,14 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
         }}
       >
         <Tab.Screen name="Home">
-          {(props) => <HomeScreen {...props} locationState={locationState} setLocationState={onLocationChange} />}
+          {(props) => (
+            <HomeScreen 
+              {...props} 
+              locationState={locationState} 
+              setLocationState={onLocationChange}
+              onLocationPickerOpen={() => setShowLocationPicker(true)} 
+            />
+          )}
         </Tab.Screen>
         <Tab.Screen name="Categories">
           {(props) => <CategoriesScreen {...props} locationState={locationState} />}
@@ -300,6 +325,7 @@ function App() {
   const [userData, setUserData] = useState(null);
   const [savedBusinessIds, setSavedBusinessIds] = useState([]);
   const [initialRoute, setInitialRoute] = useState('Home');
+  const [notificationCount, setNotificationCount] = useState(0);
   const [locationState, setLocationState] = useState({
     lat: 31.6340,
     lng: 74.8723,
@@ -311,6 +337,7 @@ function App() {
     loading: false,
     error: null,
   });
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const navigationRef = useRef(null);
 
   // Set sidebar control for all screens - set immediately
@@ -377,10 +404,34 @@ function App() {
     loadSavedData();
   }, []);
 
+  // Fetch notification count
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const { getNotifications } = await import('./src/services/api');
+        const data = await getNotifications();
+        if (data && data.notifications) {
+          const unread = data.notifications.filter(n => !n.read && !n.isRead).length;
+          setNotificationCount(unread);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch notification count:', error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchNotifications();
+      // Polling every 60 seconds
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
+
 
   const handleLogin = async (role, userDataParam = null) => {
     setUserRole(role);
     setIsAuthenticated(true);
+    setShowLocationPicker(false); // Safety: reset picker on login
 
     // Save user data to AsyncStorage
     if (userDataParam) {
@@ -445,6 +496,7 @@ function App() {
       setUserData(null);
       setVendorData(null);
       setSavedBusinessIds([]);
+      setShowLocationPicker(false);
     } catch (error) {
       console.error('Error clearing data on logout:', error);
     }
@@ -599,6 +651,7 @@ function App() {
   return (
     <ThemeProvider>
       <SafeAreaProvider>
+        <CartProvider>
         <StatusBar barStyle="dark-content" />
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -623,12 +676,13 @@ function App() {
                     setVendorData={setVendorData}
                     savedBusinessIds={savedBusinessIds}
                     setSavedBusinessIds={setSavedBusinessIds}
+                    notificationCount={notificationCount}
                      locationState={locationState}
                      onLocationChange={setLocationState}
                      onRedetect={() => {
                        // Safe re-detect: set loading state, then trigger GPS
                        setLocationState(prev => ({ ...prev, loading: true }));
-                       import('./src/services/locationApi').then(({ detectLocation }) => {
+                       import('./src/services/api').then(({ detectLocation }) => {
                          import('react-native').then(({ PermissionsAndroid, Platform }) => {
                            const doDetect = async () => {
                              try {
@@ -707,6 +761,8 @@ function App() {
                      userData={userData}
                      setUserData={setUserData}
                      handleLogout={handleLogout}
+                     showLocationPicker={showLocationPicker}
+                     setShowLocationPicker={setShowLocationPicker}
                      initialRouteName={initialRoute}
                   />
                 )}
@@ -802,6 +858,7 @@ function App() {
                 />
               )}
             </Stack.Screen>
+            <Stack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
             <Stack.Screen name="VendorRegistration">
               {(props) => (
@@ -842,6 +899,7 @@ function App() {
           userEmail={userRole === 'vendor' ? (vendorData?.email || '') : (userData?.email || '')}
           userLocation={userRole === 'vendor' ? (vendorData?.address || '') : (locationState.displayLabel || locationState.fullAddress || 'Amritsar, India')}
         />
+      </CartProvider>
       </SafeAreaProvider>
     </ThemeProvider>
   );
