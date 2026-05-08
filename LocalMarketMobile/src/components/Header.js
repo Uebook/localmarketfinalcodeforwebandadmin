@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
+import Image from './ImageWithFallback';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '../context/CartContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,7 +22,8 @@ const Header = ({
   setShowLocationPicker,
   notificationCount = 0,
   transparent = false,
-  hideCart = false
+  hideCart = false,
+  profileImage = null
 }) => {
   const COLORS = useThemeColors();
   const navigation = useNavigation();
@@ -58,7 +60,7 @@ const Header = ({
                 <Text style={styles.locationCity} numberOfLines={1}>
                   {locationState?.loading
                     ? 'Detecting...'
-                    : (locationState?.circle || locationState?.town || locationState?.city || locationState?.displayLabel || 'Pick Location')}
+                    : (locationState?.circle || (locationState?.city === 'Amritsar' ? 'Select Market Area' : locationState?.city) || locationState?.displayLabel || 'Pick Location')}
                 </Text>
               </View>
               <Icon name="chevron-down" size={12} color={COLORS.textSecondary} />
@@ -99,7 +101,11 @@ const Header = ({
               style={styles.profileButton}
               activeOpacity={0.7}
             >
-              <Icon name="user" size={22} color={iconColor} />
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              ) : (
+                <Icon name="user" size={22} color={iconColor} />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -278,6 +284,12 @@ const createStyles = (COLORS, transparent) => StyleSheet.create({
     backgroundColor: COLORS.divider,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
   },
   modalOverlay: {
     flex: 1,

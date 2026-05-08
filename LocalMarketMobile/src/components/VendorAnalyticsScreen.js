@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import Image from './ImageWithFallback';
 import { getVendorTrending, getVendorPerformance } from '../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -10,6 +11,8 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare, handlePreview } from '../utils/vendorActions';
+import ExitConfirmModal from './ExitConfirmModal';
+import { BackHandler } from 'react-native';
 
 const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
   });
   const [trendingData, setTrendingData] = useState([]);
   const [analyticsRecommendations, setAnalyticsRecommendations] = useState([]);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
@@ -71,6 +75,22 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
 
     fetchAllAnalytics();
   }, [vendorData?.id]);
+
+  React.useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => {
+      backHandler.remove();
+    };
+  }, [navigation]);
 
   // Performance data (mapping real stats)
   const performanceData = {
@@ -383,6 +403,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
         hideCart={true}
+        profileImage={vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url}
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -403,7 +424,14 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
             <View style={styles.profileHeaderRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatarInner}>
-                  <Icon name="user" size={32} color={COLORS.textMuted} />
+                  {(vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) ? (
+                    <Image 
+                      source={{ uri: vendorData.imageUrl || vendorData.image || vendorData.image_url || vendorData.profilePhotoUrl || vendorData.profile_image_url }} 
+                      style={styles.avatarImage} 
+                    />
+                  ) : (
+                    <Icon name="user" size={32} color={COLORS.textMuted} />
+                  )}
                 </View>
                 <View style={styles.onlineBadge} />
               </View>
@@ -515,6 +543,12 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
           </View>
         </View>
       </ScrollView>
+
+      <ExitConfirmModal 
+        visible={showExitModal}
+        onCancel={() => setShowExitModal(false)}
+        onConfirm={() => BackHandler.exitApp()}
+      />
     </View>
   );
 };
@@ -609,6 +643,12 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
   },
   onlineBadge: {
     position: 'absolute',

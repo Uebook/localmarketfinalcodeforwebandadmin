@@ -6,6 +6,9 @@ import Header from './Header';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
+import ExitConfirmModal from './ExitConfirmModal';
+import Image from './ImageWithFallback';
+import { BackHandler } from 'react-native';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare, handlePreview } from '../utils/vendorActions';
@@ -16,6 +19,23 @@ import { ActivityIndicator, Alert } from 'react-native';
 const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
+
+  React.useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => {
+      backHandler.remove();
+    };
+  }, [navigation]);
+
   const [locationState] = React.useState({
     lat: vendorData?.location?.lat || null,
     lng: vendorData?.location?.lng || null,
@@ -41,6 +61,8 @@ const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
   const reviews = vendorData?.reviews || [];
 
   const [replyTexts, setReplyTexts] = useState({});
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const [submittingReply, setSubmittingReply] = useState({});
 
   const handleReplyUpdate = (reviewId, text) => {
@@ -103,6 +125,7 @@ const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
         hideCart={true}
+        profileImage={vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url}
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -123,7 +146,14 @@ const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
             <View style={styles.profileHeaderRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatarInner}>
-                  <Icon name="user" size={32} color={COLORS.textMuted} />
+                  {(vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) ? (
+                    <Image 
+                      source={{ uri: vendorData.imageUrl || vendorData.image || vendorData.image_url || vendorData.profilePhotoUrl || vendorData.profile_image_url }} 
+                      style={styles.avatarImage} 
+                    />
+                  ) : (
+                    <Icon name="user" size={32} color={COLORS.textMuted} />
+                  )}
                 </View>
                 <View style={styles.onlineBadge} />
               </View>
@@ -260,6 +290,12 @@ const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
           ))}
         </View>
       </ScrollView>
+
+      <ExitConfirmModal 
+        visible={showExitModal}
+        onCancel={() => setShowExitModal(false)}
+        onConfirm={() => BackHandler.exitApp()}
+      />
     </View>
   );
 };
@@ -344,6 +380,12 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
   },
   onlineBadge: {
     position: 'absolute',

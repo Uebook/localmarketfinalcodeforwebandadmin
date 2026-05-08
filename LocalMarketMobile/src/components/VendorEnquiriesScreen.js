@@ -11,6 +11,8 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { getVendorProfile } from '../services/api';
+import ExitConfirmModal from './ExitConfirmModal';
+import { BackHandler } from 'react-native';
 
 const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
@@ -25,6 +27,23 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
 
   const [enquiries, setEnquiries] = useState(vendorData?.enquiries || []);
   const [refreshing, setRefreshing] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => {
+      backHandler.remove();
+    };
+  }, [navigation]);
 
   // Sync enquiries when vendorData changes
   useEffect(() => {
@@ -168,6 +187,8 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
+        hideCart={true}
+        profileImage={vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url}
       />
 
       <ScrollView 
@@ -194,10 +215,10 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
             <View style={styles.profileHeaderRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatarInner}>
-                  {vendorData?.profile_image_url || vendorData?.profileImageUrl ? (
+                  {(vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) ? (
                     <Image 
-                      source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl }} 
-                      style={styles.circleImage} 
+                      source={{ uri: vendorData.imageUrl || vendorData.image || vendorData.image_url || vendorData.profilePhotoUrl || vendorData.profile_image_url }} 
+                      style={styles.avatarImage} 
                     />
                   ) : (
                     <Icon name="user" size={32} color={COLORS.textMuted} />
@@ -335,6 +356,12 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
           )}
         </View>
       </ScrollView>
+
+      <ExitConfirmModal 
+        visible={showExitModal}
+        onCancel={() => setShowExitModal(false)}
+        onConfirm={() => BackHandler.exitApp()}
+      />
     </View>
   );
 };
@@ -421,9 +448,10 @@ const createStyles = (COLORS) => StyleSheet.create({
     borderColor: '#E2E8F0',
     overflow: 'hidden',
   },
-  circleImage: {
+  avatarImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 20,
     resizeMode: 'cover',
   },
   onlineBadge: {

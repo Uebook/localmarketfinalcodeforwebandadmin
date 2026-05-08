@@ -1,4 +1,5 @@
 import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import bcrypt from 'bcryptjs';
 
 function toStr(v) {
   return typeof v === 'string' ? v.trim() : '';
@@ -48,8 +49,10 @@ export async function POST(req) {
       }
 
       // Simple password comparison (in production, use bcrypt.compare)
-      // For now, direct comparison (NOT SECURE - only for development)
-      if (user.password !== password) {
+      const isMatch = await bcrypt.compare(password, user.password).catch(() => false);
+      const isPlainTextMatch = user.password === password;
+
+      if (!isMatch && !isPlainTextMatch) {
         return Response.json({ error: 'Invalid email or password' }, { status: 401 });
       }
 
@@ -117,7 +120,10 @@ export async function POST(req) {
         if (!user.password) {
           return Response.json({ error: 'Password not set. Please use OTP to login first and set a password.' }, { status: 401 });
         }
-        if (user.password !== password) {
+        const isMatch = await bcrypt.compare(password, user.password).catch(() => false);
+        const isPlainTextMatch = user.password === password;
+
+        if (!isMatch && !isPlainTextMatch) {
           return Response.json({ error: 'Invalid password' }, { status: 401 });
         }
 

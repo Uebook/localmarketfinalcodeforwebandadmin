@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, FlatList, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -10,15 +10,15 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
   const styles = createStyles(COLORS);
 
   const [location, setLocation] = useState({
-    state: initialLocation.state || '',
-    city: initialLocation.city || '',
-    town: initialLocation.town || '',
-    tehsil: initialLocation.tehsil || '',
-    subTehsil: initialLocation.subTehsil || '',
+    state: 'Punjab',
+    city: 'Amritsar',
+    town: '',
+    tehsil: '',
+    subTehsil: '',
     circle: initialLocation.circle || '',
   });
 
-  const [activeStep, setActiveStep] = useState('state');
+  const [activeStep, setActiveStep] = useState('circle');
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,7 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
     try {
       // Handle Circles (Market areas)
       if (step === 'circle') {
-        const areaName = loc.city || loc.town || loc.state;
+        const areaName = 'Amritsar';
         const result = await getCircles(areaName);
         if (result && result.circles) {
           setOptions(result.circles.map(c => typeof c === 'string' ? c : c.name));
@@ -69,8 +69,8 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
 
   // When modal becomes visible, start fetching states if options are empty
   useEffect(() => {
-    if (visible && activeStep === 'state') {
-      fetchOptions('state', location);
+    if (visible && activeStep === 'circle') {
+      fetchOptions('circle', location);
     }
   }, [visible, activeStep, fetchOptions]);
 
@@ -106,18 +106,28 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
       setActiveStep('city');
       fetchOptions('city', newLocation);
     } else if (key === 'city') {
-      newLocation.town = '';
-      newLocation.tehsil = '';
-      newLocation.subTehsil = '';
-      newLocation.circle = '';
-      setActiveStep('town');
-      fetchOptions('town', newLocation);
+      if (value !== 'Amritsar' && !value.startsWith('All in')) {
+        Alert.alert('Notice', 'Services not available in your city');
+        return;
+      }
+      
+      if (value === 'Amritsar') {
+        newLocation.town = '';
+        newLocation.circle = '';
+        setActiveStep('circle');
+        fetchOptions('circle', newLocation);
+      } else {
+        newLocation.town = '';
+        newLocation.tehsil = '';
+        newLocation.subTehsil = '';
+        newLocation.circle = '';
+        setActiveStep('town');
+        fetchOptions('town', newLocation);
+      }
     } else if (key === 'town') {
-      newLocation.tehsil = '';
-      newLocation.subTehsil = '';
-      newLocation.circle = '';
-      setActiveStep('tehsil');
-      fetchOptions('tehsil', newLocation);
+      onSelect(newLocation);
+      onClose();
+      return;
     } else if (key === 'tehsil') {
       newLocation.subTehsil = '';
       newLocation.circle = '';
@@ -147,35 +157,14 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
       case 'state': return 'Select State';
       case 'city': return 'Select City';
       case 'town': return 'Select Town';
-      case 'tehsil': return 'Select Tehsil';
-      case 'subTehsil': return 'Select Sub-Tehsil';
-      case 'circle': return 'Select Circle';
+      case 'circle': return 'Select Market Area';
       default: return 'Select Location';
     }
   };
 
   const handleBack = () => {
-    if (activeStep === 'city') {
-      setActiveStep('state');
-      setLocation({ ...location, city: '', town: '', tehsil: '', subTehsil: '', circle: '' });
-      fetchOptions('state', {});
-    } else if (activeStep === 'town') {
-      setActiveStep('city');
-      setLocation({ ...location, town: '', tehsil: '', subTehsil: '', circle: '' });
-      fetchOptions('city', location);
-    } else if (activeStep === 'tehsil') {
-      setActiveStep('town');
-      setLocation({ ...location, tehsil: '', subTehsil: '', circle: '' });
-      fetchOptions('town', location);
-    } else if (activeStep === 'subTehsil') {
-      setActiveStep('tehsil');
-      setLocation({ ...location, subTehsil: '', circle: '' });
-      fetchOptions('tehsil', location);
-    } else if (activeStep === 'circle') {
-      setActiveStep('subTehsil');
-      setLocation({ ...location, circle: '' });
-      fetchOptions('subTehsil', location);
-    }
+    // In Amritsar-only mode, there's no back from circle selection
+    onClose();
   };
 
   const handleModalClose = () => {
@@ -196,9 +185,7 @@ const LocationPicker = ({ visible, onClose, onSelect, initialLocation = {}, show
   const breadcrumbSegments = [
     { key: 'state', value: location.state },
     { key: 'city', value: location.city },
-    { key: 'town', value: location.town },
-    { key: 'tehsil', value: location.tehsil },
-    { key: 'subTehsil', value: location.subTehsil }
+    { key: 'town', value: location.town }
   ].filter(seg => seg.value);
 
 

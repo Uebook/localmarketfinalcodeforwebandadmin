@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image as RNImage } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image as RNImage, ImageBackground, Alert } from 'react-native';
 import Image from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +30,9 @@ import PriceDropAlerts from './PriceDropAlerts';
 import MegaSavingsSection from './MegaSavingsSection';
 import SalesSection from './SalesSection';
 import QuickCategories from './QuickCategories';
+import ExitConfirmModal from './ExitConfirmModal';
+import { BackHandler } from 'react-native';
+import { getIconName } from '../utils/iconMapping';
 
 
 
@@ -37,6 +40,7 @@ import QuickCategories from './QuickCategories';
 const HomeScreen = ({ navigation, route, locationState, setLocationState, onLocationPickerOpen }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
+  const isServiceAvailable = locationState?.city === 'Amritsar' || !!locationState?.circle;
 
   const [categories, setCategories] = useState([]);
   const [megaSavingsData, setMegaSavingsData] = useState([]);
@@ -190,7 +194,12 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
                 loading: false,
                 error: null,
                 state: data.address?.state || '',
+                available: data.available // Store availability
               });
+
+              if (data.available === false) {
+                Alert.alert('Service Notice', 'Services not available in your city');
+              }
               return;
             } else if (data && data.error === 'International location detected') {
               console.warn("Detected location is outside India. Falling back to default...");
@@ -229,7 +238,12 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
           loading: false,
           error: null,
           state: data.state || '',
+          available: data.available
         });
+
+        if (data.available === false) {
+          Alert.alert('Service Notice', 'Services not available in your city');
+        }
         return;
       }
     } catch (err) {
@@ -239,6 +253,28 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
     handleFallback(); // Ultimate fallback (saved or absolute)
   };
 
+
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandlerPromise = import('react-native').then(({ BackHandler }) => 
+      BackHandler.addEventListener("hardwareBackPress", backAction)
+    );
+
+    return () => {
+      import('react-native').then(({ BackHandler }) => 
+        BackHandler.removeEventListener("hardwareBackPress", backAction)
+      );
+    };
+  }, [navigation]);
 
   useEffect(() => {
     fetchLocation();
@@ -363,24 +399,46 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
         showsVerticalScrollIndicator={false}
       >
         {/* New Premium Hero Section */}
-        <View style={styles.premiumHero}>
-          <View style={styles.heroContent}>
-            <View style={styles.heroLeft}>
-              <Text style={styles.heroTitleMain}>Best Deals,</Text>
-              <Text style={styles.heroTitleAccent}>Nearby.</Text>
-              <Text style={styles.heroSubtitle}>
-                Compare prices from{"\n"}trusted local shops instantly.
-              </Text>
-            </View>
-            <View style={styles.heroRight}>
-              <Image
-                source={require('../assets/lokall_shop_illustration.png')}
-                style={styles.heroIllustration}
-                resizeMode="contain"
-              />
+        <ImageBackground
+          source={require('../assets/home.jpg')}
+          style={styles.premiumHero}
+          imageStyle={styles.heroImageBg}
+        >
+          <View style={styles.heroOverlay}>
+            <View style={styles.heroContent}>
+              <View style={styles.heroLeft}>
+                <Text style={styles.heroTitleMain}>Your Entire</Text>
+                <Text style={styles.heroTitleAccent}>Local Market,</Text>
+                <Text style={styles.heroTitleSmall}>Discover Instantly.</Text>
+                <Text style={styles.heroSubtitle}>
+                  Find best deals, compare prices & locate your{"\n"}
+                  favorite local shops in seconds.
+                </Text>
+              </View>
             </View>
           </View>
+        </ImageBackground>
 
+        {!isServiceAvailable ? (
+          <View style={styles.unavailableContainer}>
+            <View style={styles.unavailableCard}>
+              <Icon name={getIconName('MapPin')} size={48} color={COLORS.orange} style={styles.unavailableIcon} />
+              <Text style={styles.unavailableTitle}>Services not available in your city</Text>
+              <Text style={styles.unavailableText}>
+                Currently, we are only operating in Amritsar. 
+                Please select Amritsar to explore local markets.
+              </Text>
+              <TouchableOpacity 
+                style={styles.selectAmritsarBtn}
+                onPress={onLocationPickerOpen}
+              >
+                <Text style={styles.selectAmritsarText}>Select Amritsar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <>
+            <View style={styles.searchSection}>
           <SearchBar
             onSearch={handleSearch}
             navigation={navigation}
@@ -388,7 +446,6 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
             locationState={locationState}
           />
           
-          {/* Quick Search Categories */}
           <QuickCategories onSelect={(name) => handleSearch(name)} />
         </View>
 
@@ -453,41 +510,37 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
 
           {/* 3. Support Local Banner & Trust Badges */}
           <View style={styles.bannerContainer}>
-            <LinearGradient
-              colors={['#FEF3C7', '#FFFBEB']}
+            <ImageBackground
+              source={require('../assets/shop_banner.jpg')}
               style={styles.supportBanner}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              imageStyle={styles.bannerImageBg}
             >
-              <View style={styles.bannerTextContent}>
-                <Text style={styles.bannerSubtitle}>Support local shops in</Text>
-                <Text style={styles.bannerTitle}>
-                  {locationState?.circle || locationState?.city || 'Your Circle'}
-                </Text>
-                <Text style={styles.bannerDesc}>Better prices, better deals!</Text>
-                <TouchableOpacity 
-                  style={styles.shopLocalBtn}
-                  onPress={() => {
-                    if (locationState.circle) {
-                      navigation.navigate('MarketScreen', { circle: locationState.circle, locationState });
-                    } else {
-                      navigation.navigate('SearchResults', { 
-                        query: 'all', 
-                        locationState 
-                      });
-                    }
-                  }}
-                >
-                  <Text style={styles.shopLocalText}>Shop Local</Text>
-                  <Icon name="arrow-right" size={16} color="#FFF" />
-                </TouchableOpacity>
+              <View style={styles.bannerOverlay}>
+                <View style={styles.bannerTextContent}>
+                  <Text style={styles.bannerSubtitle}>Support local shops in</Text>
+                  <Text style={styles.bannerTitle}>
+                    {locationState?.circle || locationState?.city || 'Your Circle'}
+                  </Text>
+                  <Text style={styles.bannerDesc}>Better prices, better deals!</Text>
+                  <TouchableOpacity
+                    style={styles.shopLocalBtn}
+                    onPress={() => {
+                      if (locationState.circle) {
+                        navigation.navigate('MarketScreen', { circle: locationState.circle, locationState });
+                      } else {
+                        navigation.navigate('SearchResults', {
+                          query: 'all',
+                          locationState
+                        });
+                      }
+                    }}
+                  >
+                    <Text style={styles.shopLocalText}>Shop Local</Text>
+                    <Icon name="arrow-right" size={16} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <Image
-                source={require('../assets/shopkeeper_illustration.png')}
-                style={styles.bannerIllustration}
-                resizeMode="contain"
-              />
-            </LinearGradient>
+            </ImageBackground>
           </View>
 
           {/* 4. Trust Badges (2x2 Grid) */}
@@ -622,9 +675,17 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
           </View>
 
         </View>
+        </>
+        )}
       </ScrollView>
 
       <DraggableAIButton onPress={() => navigation.navigate('AIServiceFlow')} />
+
+      <ExitConfirmModal 
+        visible={showExitModal}
+        onCancel={() => setShowExitModal(false)}
+        onConfirm={() => BackHandler.exitApp()}
+      />
     </View>
   );
 };
@@ -645,46 +706,58 @@ const createStyles = (COLORS) => StyleSheet.create({
     paddingBottom: 100,
   },
   premiumHero: {
-    backgroundColor: '#EFF6FF', // Light blue background
-    paddingBottom: 20,
+    minHeight: 280,
+  },
+  heroImageBg: {
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
   },
+  heroOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    paddingBottom: 40,
+  },
+  searchSection: {
+    marginTop: -30, // Pull search bar up into the banner area slightly
+    paddingBottom: 10,
+  },
   heroContent: {
-    flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    alignItems: 'center',
+    paddingVertical: 40,
   },
   heroLeft: {
     flex: 1,
   },
   heroTitleMain: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '900',
-    color: '#0F172A',
-    lineHeight: 36,
+    color: '#FFFFFF',
+    lineHeight: 32,
   },
   heroTitleAccent: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '900',
     color: '#F97316',
-    lineHeight: 36,
-    marginBottom: 10,
+    lineHeight: 32,
+    marginBottom: 4,
+  },
+  heroTitleSmall: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 28,
+    marginBottom: 12,
   },
   heroSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
+    fontSize: 13,
+    color: '#F1F5F9',
     fontWeight: '500',
-    lineHeight: 20,
-  },
-  heroRight: {
-    width: 140,
-    height: 140,
-  },
-  heroIllustration: {
-    width: '100%',
-    height: '100%',
+    lineHeight: 18,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   mainContent: {
     paddingTop: 10,
@@ -725,51 +798,62 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginBottom: 24,
   },
   supportBanner: {
+    minHeight: 180,
+    justifyContent: 'center',
+    overflow: 'hidden',
     borderRadius: 20,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 140,
+  },
+  bannerImageBg: {
+    borderRadius: 20,
+  },
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    padding: 20,
+    justifyContent: 'center',
   },
   bannerTextContent: {
     flex: 1,
-    paddingRight: 8,
+    justifyContent: 'center',
   },
   bannerSubtitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#92400E',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FED7AA',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   bannerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
-    color: '#0F172A',
-    marginVertical: 2,
+    color: '#FFFFFF',
+    marginVertical: 4,
   },
   bannerDesc: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#B45309',
-    marginBottom: 12,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#F1F5F9',
+    marginBottom: 16,
   },
   shopLocalBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+    backgroundColor: '#F97316', // Using orange for better contrast on dark banner
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 14,
     alignSelf: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   shopLocalText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: '#FFF',
-    marginRight: 6,
-  },
-  bannerIllustration: {
-    width: 120,
-    height: 120,
+    marginRight: 8,
   },
   trustGridContainer: {
     backgroundColor: '#FFFFFF',
@@ -852,6 +936,60 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontWeight: '800',
     color: '#334155',
     textAlign: 'center',
+  },
+  unavailableContainer: {
+    padding: 20,
+    marginTop: -20,
+  },
+  unavailableCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  unavailableIcon: {
+    marginBottom: 20,
+    opacity: 0.9,
+  },
+  unavailableTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  unavailableText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  selectAmritsarBtn: {
+    backgroundColor: '#F97316',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 16,
+    shadowColor: '#F97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  selectAmritsarText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 });
 

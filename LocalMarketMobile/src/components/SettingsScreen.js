@@ -39,10 +39,26 @@ const SettingsScreen = ({
 
   useEffect(() => {
     if (profileData) {
+      let locationStr = '';
+      const rawLocation = profileData.location || profileData.address;
+      
+      if (typeof rawLocation === 'object' && rawLocation !== null) {
+        // Format object to string: "Address, City, State Pincode"
+        const parts = [
+          rawLocation.address,
+          rawLocation.city,
+          rawLocation.state,
+          rawLocation.pincode
+        ].filter(Boolean);
+        locationStr = parts.join(', ');
+      } else {
+        locationStr = rawLocation || '';
+      }
+
       setFormData({
         name: profileData.name || profileData.full_name || profileData.ownerName || 'User',
         mobile: profileData.mobile || profileData.phone || profileData.contactNumber || '',
-        location: profileData.location || profileData.address || '',
+        location: locationStr,
         email: profileData.email || '',
         photo: profileData.profilePhotoUrl || profileData.ownerPhotoUrl || profileData.imageUrl || ''
       });

@@ -1,9 +1,5 @@
-/**
- * API Service for Local Market Mobile App
- * Base URL: https://admin.lokall.in
- */
-
-export const API_BASE_URL = 'https://admin.lokall.in';
+// export const API_BASE_URL = 'http://192.168.1.33:3000'; // Local testing
+export const API_BASE_URL = 'https://admin.lokall.in'; // Production
 import { Platform } from 'react-native';
 
 /**
@@ -267,21 +263,21 @@ export const getDynamicLocations = async (parentType, parentValue) => {
   try {
     const params = new URLSearchParams();
     params.set('limit', '2000');
-    
+
     // Map mobile's parentType/Value to backend's state/city/town/etc params
     if (parentType && parentValue) {
-       if (parentType === 'state') params.set('state', parentValue);
-       else if (parentType === 'city') params.set('city', parentValue);
-       else if (parentType === 'town') params.set('town', parentValue);
-       else if (parentType === 'tehsil') params.set('tehsil', parentValue);
+      if (parentType === 'state') params.set('state', parentValue);
+      else if (parentType === 'city') params.set('city', parentValue);
+      else if (parentType === 'town') params.set('town', parentValue);
+      else if (parentType === 'tehsil') params.set('tehsil', parentValue);
     }
 
     const url = `/api/locations?${params.toString()}`;
     console.log(`[API Debug] Fetching Dynamic Locations: ${url}`);
-    
+
     const response = await apiRequest(url);
     const locations = response.locations || [];
-    
+
     // Extract unique values based on what we need next
     let data = [];
     if (!parentType) {
@@ -363,18 +359,24 @@ export const detectLocation = async (lat = null, lng = null) => {
       console.warn('Location API error:', err.message);
       return null;
     });
-    
+
     // Validate response and ensure it's in India
     if (response && response.success && response.address) {
-       const country = (response.address.country || '').toLowerCase();
-       const countryCode = (response.address.country_code || '').toLowerCase();
-       
-       if (country === 'india' || countryCode === 'in') {
-         return response;
-       }
-       console.warn('Location detected outside India:', country);
+      const country = (response.address.country || '').toLowerCase();
+      const countryCode = (response.address.country_code || '').toLowerCase();
+
+      if (country === 'india' || countryCode === 'in') {
+        const city = response.city || response.address.city || '';
+        const isAmritsar = city.toLowerCase().includes('amritsar');
+        return {
+          ...response,
+          available: isAmritsar,
+          message: isAmritsar ? null : 'services not available in your city'
+        };
+      }
+      console.warn('Location detected outside India:', country);
     }
-    
+
     // Robust Fallback: Default to Amritsar, India
     return {
       success: true,
@@ -505,7 +507,10 @@ export const getUserTheme = async (identifier) => {
     // If no identifier, return global default
     return await apiRequest('/api/user/theme');
   } catch (error) {
-    console.error('Error getting user theme:', error);
+    // Suppress noisy logs for expected cases like missing users or guest accounts
+    if (error.message !== 'User not found') {
+      console.error('Error getting user theme:', error);
+    }
     return { theme: 'default' };
   }
 };
@@ -859,21 +864,25 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
     // Normalize URI for platform
     let normalizedUri = fileUri;
     if (Platform.OS === 'android') {
-      if (!fileUri.includes('://')) {
+      // For Android, ensure we don't double-prefix and handle content:// vs file://
+      if (!fileUri.startsWith('file://') && !fileUri.startsWith('content://')) {
         normalizedUri = `file://${fileUri}`;
       }
     } else if (Platform.OS === 'ios') {
+      // For iOS, fetch needs file:// prefix removed or properly formatted
       normalizedUri = fileUri.replace('file://', '');
       normalizedUri = `file://${normalizedUri}`;
     }
 
-    // Encode URI to handle spaces or special characters in filenames
-    const encodedUri = encodeURI(normalizedUri);
+    // Use normalizedUri directly — encodeURI can break local file schemes in React Native fetch
+    const encodedUri = normalizedUri;
 
     // Safely extract filename from URI
     let filename = 'photo.jpg';
     try {
-      const parts = normalizedUri.split('/');
+      // Decode URI first in case it's already encoded, then get the last part
+      const decodedUri = decodeURI(normalizedUri);
+      const parts = decodedUri.split('/');
       const lastPart = parts[parts.length - 1];
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       if (lastPart && lastPart.includes('.')) {
@@ -892,12 +901,23 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
     const fileType = mimeType || 'image/jpeg';
 
     const formData = new FormData();
-    // React Native FormData file object — DO NOT set Content-Type manually
-    formData.append('file', {
-      uri: encodedUri,
-      type: fileType,
-      name: filename,
-    });
+    
+    // Normalize URI: Android fetch/XHR sometimes needs file://, sometimes not. 
+    // Usually file:// is safest for internal cache files.
+    let uploadUri = fileUri;
+    if (Platform.OS === 'android' && !fileUri.startsWith('content://') && !fileUri.startsWith('file://')) {
+      uploadUri = `file://${fileUri}`;
+    }
+
+    const fileToUpload = {
+      uri: uploadUri,
+      type: mimeType || 'image/jpeg',
+      name: filename || 'photo.jpg',
+    };
+    
+    console.log('[Upload Debug] Final URI:', uploadUri);
+    
+    formData.append('file', fileToUpload);
     formData.append('bucket', 'vendor-documents');
     formData.append('folder', folder);
 
@@ -908,50 +928,43 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
     console.log('Filename:', filename);
     console.log('Folder:', folder);
     console.log('---------------------');
+    // Use XMLHttpRequest for better reliability with file uploads on Android
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.open('POST', `${API_BASE_URL}/api/upload`);
+      
+      xhr.onload = () => {
+        console.log(`[Upload] Response Status: ${xhr.status}`);
+        try {
+          const response = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300 && response.url) {
+            console.log('[Upload] Success! URL:', response.url);
+            resolve(response.url);
+          } else {
+            reject(new Error(response.error || `Upload failed with status ${xhr.status}`));
+          }
+        } catch (e) {
+          console.error('[Upload] Failed to parse response:', xhr.responseText);
+          reject(new Error(`Server error (${xhr.status}): ${xhr.responseText.substring(0, 100)}`));
+        }
+      };
 
-    // Use AbortController for timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000); // Increased to 90s for slower connections
+      xhr.onerror = (e) => {
+        console.error('[Upload] XHR Error:', e);
+        reject(new Error('Network request failed. Please check your server connection.'));
+      };
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/upload`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          // Note: Content-Type is intentionally omitted for multipart/form-data
-        },
-        body: formData,
-        signal: controller.signal,
-      });
+      xhr.ontimeout = () => {
+        console.error('[Upload] XHR Timeout');
+        reject(new Error('Upload timed out.'));
+      };
 
-      clearTimeout(timeoutId);
-
-      const responseStatus = response.status;
-      const responseText = await response.text();
-      console.log(`Upload Response (${responseStatus}):`, responseText.substring(0, 300));
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Failed to parse upload response as JSON:', responseText);
-        throw new Error(`Server error (${responseStatus}): ${responseText.substring(0, 100)}`);
-      }
-
-
-      if (response.ok && data.url) {
-        console.log('Upload successful! URL:', data.url);
-        return data.url;
-      } else {
-        throw new Error(data.error || `Upload failed with status ${response.status}`);
-      }
-    } catch (fetchErr) {
-      clearTimeout(timeoutId);
-      if (fetchErr.name === 'AbortError') {
-        throw new Error('Upload timed out after 30 seconds. Check your connection.');
-      }
-      throw fetchErr;
-    }
+      xhr.timeout = 120000; // 2 minutes
+      
+      console.log(`[Upload] Sending ${filename} to ${API_BASE_URL}/api/upload...`);
+      xhr.send(formData);
+    });
   } catch (error) {
     console.error('File Upload error:', error.message);
     throw error;
@@ -1453,11 +1466,11 @@ export const getMarketHubStats = async (city, circle) => {
     const params = new URLSearchParams();
     if (city) params.set('city', city);
     if (circle) params.set('circle', circle);
-    
+
     // Attempt to fetch from stats endpoint, but catch 404s explicitly
     const response = await apiRequest(`/api/market/stats?${params.toString()}`).catch(err => {
-       if (err.status === 404) return null;
-       throw err;
+      if (err.status === 404) return null;
+      throw err;
     });
 
     if (response) return response;

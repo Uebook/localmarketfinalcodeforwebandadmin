@@ -81,12 +81,13 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
 
   const handleEditOffer = (offer) => {
     setEditingOffer(offer);
+    // Normalize fields from DB (snake_case) to form (camelCase)
     setFormData({
       title: offer.title || '',
       description: offer.description || '',
-      code: offer.code || '',
-      discountAmount: offer.discountAmount || '',
-      validUntil: offer.validUntil || '',
+      code: offer.code || offer.discount_code || '',
+      discountAmount: offer.discount_percent ? `${offer.discount_percent}%` : (offer.discountAmount || ''),
+      validUntil: offer.end_date || offer.validUntil || '',
     });
     setShowCreateForm(true);
   };
@@ -133,12 +134,13 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     const offerPayload = {
       title: formData.title,
       description: formData.description,
+      code: formData.code,
       type: 'vendor',
       target: 'specific',
       vendor_ids: [vendorData.id],
       start_date: new Date().toISOString().split('T')[0],
       end_date: endDate,
-      discount_percent: parseFloat(formData.discountAmount.replace('%', '')) || null,
+      discount_percent: parseFloat(String(formData.discountAmount).replace('%', '')) || null,
       status: 'active',
     };
 
@@ -414,70 +416,27 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>VALID UNTIL</Text>
-                  <TouchableOpacity
-                    style={styles.dateInputContainer}
-                    onPress={() => setShowDatePicker(true)}
-                    activeOpacity={0.7}
-                  >
+                  <View style={styles.dateInputContainer}>
                     <TextInput
                       style={[styles.input, styles.dateInput]}
                       value={formData.validUntil}
                       placeholder="dd/mm/yyyy"
                       placeholderTextColor={COLORS.textMuted}
                       editable={false}
-                      pointerEvents="none"
                     />
                     <Icon name={getIconName('Calendar')} size={20} color={COLORS.textMuted} style={styles.calendarIcon} />
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={StyleSheet.absoluteFill}
+                      onPress={() => {
+                        console.log('[Offers] Opening calendar...');
+                        setShowDatePicker(true);
+                      }}
+                      activeOpacity={0.6}
+                    />
+                  </View>
                 </View>
 
-                {/* Date Picker Modal */}
-                <Modal
-                  visible={showDatePicker}
-                  transparent={true}
-                  animationType="fade"
-                  onRequestClose={() => setShowDatePicker(false)}
-                >
-                  <View style={styles.modalOverlay}>
-                    <View style={styles.datePickerContainer}>
-                      <View style={styles.datePickerHeader}>
-                        <TouchableOpacity onPress={() => {
-                          if (selectedMonth === 0) {
-                            setSelectedMonth(11);
-                            setSelectedYear(selectedYear - 1);
-                          } else {
-                            setSelectedMonth(selectedMonth - 1);
-                          }
-                        }}>
-                          <Icon name="chevron-left" size={24} color={COLORS.textPrimary} />
-                        </TouchableOpacity>
-                        <Text style={styles.datePickerTitle}>{months[selectedMonth]} {selectedYear}</Text>
-                        <TouchableOpacity onPress={() => {
-                          if (selectedMonth === 11) {
-                            setSelectedMonth(0);
-                            setSelectedYear(selectedYear + 1);
-                          } else {
-                            setSelectedMonth(selectedMonth + 1);
-                          }
-                        }}>
-                          <Icon name="chevron-right" size={24} color={COLORS.textPrimary} />
-                        </TouchableOpacity>
-                      </View>
-                      <View style={styles.calendarGrid}>
-                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                          <Text key={d} style={styles.calendarWeekday}>{d}</Text>
-                        ))}
-                        {renderCalendar()}
-                      </View>
-                      <TouchableOpacity
-                        style={styles.closeDatePickerButton}
-                        onPress={() => setShowDatePicker(false)}
-                      >
-                        <Text style={styles.closeDatePickerButtonText}>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </Modal>
+
 
                 <View style={styles.formButtons}>
                   <TouchableOpacity style={styles.cancelButton} onPress={handleCloseForm}>
@@ -501,38 +460,108 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
 
           {/* Offers List */}
           {offers.map((offer) => (
-            <View key={offer.id} style={styles.offerCard}>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteOffer(offer.id)}
-              >
-                <Icon name={getIconName('Trash')} size={18} color={COLORS.orange} />
-              </TouchableOpacity>
-              <View style={styles.offerCardContent}>
-                <View style={styles.offerLeftBar} />
-                <View style={styles.offerDetails}>
-                  <Text style={styles.offerCardTitle}>{offer.title}</Text>
-                  <Text style={styles.offerCardDescription}>{offer.description}</Text>
-                  <View style={styles.offerTags}>
-                    <View style={styles.codeTag}>
-                      <Text style={styles.codeTagText}>{offer.code}</Text>
-                    </View>
-                    <View style={styles.discountTag}>
-                      <Text style={styles.discountTagText}>{offer.discountAmount} OFF</Text>
+            <View key={offer.id} style={styles.premiumOfferCard}>
+              <View style={styles.cardMain}>
+                <View style={[styles.cardLeft, { backgroundColor: COLORS.orange }]}>
+                  <Icon name="tag" size={24} color="#FFF" />
+                  <Text style={styles.verticalValue}>
+                    {offer.discount_percent || offer.discountAmount}%
+                  </Text>
+                  <Text style={styles.verticalOff}>OFF</Text>
+                </View>
+                
+                <View style={styles.cardRight}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle} numberOfLines={1}>{offer.title}</Text>
+                    <View style={styles.cardActions}>
+                      <TouchableOpacity 
+                        style={styles.actionIconBtn} 
+                        onPress={() => handleEditOffer(offer)}
+                      >
+                        <Icon name="edit-2" size={16} color={COLORS.textSecondary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.actionIconBtn} 
+                        onPress={() => handleDeleteOffer(offer.id)}
+                      >
+                        <Icon name="trash-2" size={16} color="#EF4444" />
+                      </TouchableOpacity>
                     </View>
                   </View>
-                  <View style={styles.offerFooter}>
-                    <Text style={styles.expiryText}>Exp: {offer.validUntil}</Text>
-                    <TouchableOpacity onPress={() => handleEditOffer(offer)}>
-                      <Icon name={getIconName('Edit')} size={16} color={COLORS.textMuted} />
-                    </TouchableOpacity>
+                  
+                  <Text style={styles.cardDesc} numberOfLines={2}>{offer.description}</Text>
+                  
+                  <View style={styles.cardFooter}>
+                    <View style={styles.codeWrapper}>
+                      <Text style={styles.codeLabel}>USE CODE:</Text>
+                      <View style={styles.codeBox}>
+                        <Text style={styles.codeValue}>{offer.code || offer.discount_code || 'N/A'}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.expiryBox}>
+                      <Icon name="clock" size={10} color={COLORS.textMuted} />
+                      <Text style={styles.expiryLabel}>
+                        Exp: {offer.end_date || offer.validUntil || 'N/A'}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
+              {/* Ticket Cutouts */}
+              <View style={styles.cutoutTop} />
+              <View style={styles.cutoutBottom} />
             </View>
           ))}
         </View>
       </ScrollView>
+      
+      {/* Date Picker Modal - Moved to root level for better reliability */}
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.datePickerContainer}>
+            <View style={styles.datePickerHeader}>
+              <TouchableOpacity onPress={() => {
+                if (selectedMonth === 0) {
+                  setSelectedMonth(11);
+                  setSelectedYear(selectedYear - 1);
+                } else {
+                  setSelectedMonth(selectedMonth - 1);
+                }
+              }}>
+                <Icon name="chevron-left" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+              <Text style={styles.datePickerTitle}>{months[selectedMonth]} {selectedYear}</Text>
+              <TouchableOpacity onPress={() => {
+                if (selectedMonth === 11) {
+                  setSelectedMonth(0);
+                  setSelectedYear(selectedYear + 1);
+                } else {
+                  setSelectedMonth(selectedMonth + 1);
+                }
+              }}>
+                <Icon name="chevron-right" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.calendarGrid}>
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+                <Text key={d} style={styles.calendarWeekday}>{d}</Text>
+              ))}
+              {renderCalendar()}
+            </View>
+            <TouchableOpacity
+              style={styles.closeDatePickerButton}
+              onPress={() => setShowDatePicker(false)}
+            >
+              <Text style={styles.closeDatePickerButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -933,6 +962,133 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  premiumOfferCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    marginBottom: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    position: 'relative',
+  },
+  cardMain: {
+    flexDirection: 'row',
+    height: 120,
+  },
+  cardLeft: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  verticalValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#FFF',
+    marginTop: 4,
+  },
+  verticalOff: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFF',
+    opacity: 0.9,
+    letterSpacing: 1,
+  },
+  cardRight: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E293B',
+    flex: 1,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionIconBtn: {
+    padding: 4,
+  },
+  cardDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  codeWrapper: {
+    gap: 4,
+  },
+  codeLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#94A3B8',
+  },
+  codeBox: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#CBD5E1',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  codeValue: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#475569',
+    letterSpacing: 0.5,
+  },
+  expiryBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  expiryLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  cutoutTop: {
+    position: 'absolute',
+    left: 72,
+    top: -8,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  cutoutBottom: {
+    position: 'absolute',
+    left: 72,
+    bottom: -8,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   modalOverlay: {
     flex: 1,

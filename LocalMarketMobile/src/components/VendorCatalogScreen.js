@@ -11,6 +11,8 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare } from '../utils/vendorActions';
+import ExitConfirmModal from './ExitConfirmModal';
+import { BackHandler } from 'react-native';
 import { getCategories, createVendorProduct, updateVendorProduct, deleteVendorProduct, uploadFile, getVendorProducts } from '../services/api';
 import { AI_DEFAULT_ITEMS, getSuggestedItemsByCategory } from '../constants/aiDefaultItems';
 
@@ -26,6 +28,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   });
 
   const [refreshing, setRefreshing] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const [products, setProducts] = useState(vendorData?.products || []);
 
   const fetchProducts = async (showLoading = false) => {
@@ -81,11 +84,30 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const units = ['Piece', 'Kg', 'Litre', 'Pack', 'Box', 'Dozen'];
 
   useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => {
+      backHandler.remove();
+    };
+  }, [navigation]);
+
+  useEffect(() => {
     const fetchCategories = async () => {
       try {
         const data = await getCategories();
         if (data && data.categories) {
-          setCategories(data.categories);
+          const sortedCategories = [...data.categories].sort((a, b) => 
+            (a.name || '').localeCompare(b.name || '')
+          );
+          setCategories(sortedCategories);
         }
       } catch (err) {
         console.error('Failed to fetch categories:', err);
@@ -482,6 +504,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
         hideCart={true}
+        profileImage={vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url}
       />
 
       <ScrollView 
@@ -513,7 +536,14 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             <View style={styles.profileHeaderRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatarInner}>
-                  <Icon name="user" size={32} color={COLORS.textMuted} />
+                  {(vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) ? (
+                    <Image 
+                      source={{ uri: vendorData.imageUrl || vendorData.image || vendorData.image_url || vendorData.profilePhotoUrl || vendorData.profile_image_url }} 
+                      style={styles.avatarImage} 
+                    />
+                  ) : (
+                    <Icon name="user" size={32} color={COLORS.textMuted} />
+                  )}
                 </View>
                 <View style={styles.onlineBadge} />
               </View>
@@ -760,7 +790,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                             style={styles.dropdown}
                             onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
                           >
-                            <Text style={[styles.dropdownText, !formData.categoryId && styles.dropdownPlaceholder]} numberOfLines={1}>
+                            <Text style={[styles.dropdownText, !formData.categoryId ? styles.dropdownPlaceholder : null]} numberOfLines={1}>
                               {formData.categoryName || 'Select'}
                             </Text>
                             <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
@@ -873,10 +903,10 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                   <Text style={styles.productCategory}>{item.category}</Text>
                   <View style={styles.priceRow}>
                     <Text style={styles.productPrice}>{item.price}</Text>
-                    {item.originalPrice && (
+                    {!!item.originalPrice && (
                       <>
                         <Text style={styles.originalPrice}>{item.originalPrice}</Text>
-                        {item.discount && <Text style={styles.discount}>{item.discount}</Text>}
+                        {!!item.discount && <Text style={styles.discount}>{item.discount}</Text>}
                       </>
                     )}
                   </View>
@@ -901,6 +931,11 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           />
       </ScrollView>
 
+      <ExitConfirmModal 
+        visible={showExitModal}
+        onCancel={() => setShowExitModal(false)}
+        onConfirm={() => BackHandler.exitApp()}
+      />
     </View >
   );
 };
@@ -1058,6 +1093,12 @@ const createStyles = (COLORS) => StyleSheet.create({
       justifyContent: 'center',
       borderWidth: 1,
       borderColor: '#E2E8F0',
+      overflow: 'hidden',
+    },
+    avatarImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 20,
     },
     onlineBadge: {
       position: 'absolute',

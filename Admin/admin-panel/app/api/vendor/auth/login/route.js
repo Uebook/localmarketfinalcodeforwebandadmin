@@ -1,4 +1,5 @@
 import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req) {
     try {
@@ -42,7 +43,10 @@ export async function POST(req) {
             return Response.json({ error: 'Password not set for this account. Please use Forgot Password.' }, { status: 401 });
         }
 
-        if (v.password !== password) {
+        const isMatch = await bcrypt.compare(password, v.password).catch(() => false);
+        const isPlainTextMatch = v.password === password;
+
+        if (!isMatch && !isPlainTextMatch) {
             return Response.json({ error: 'Invalid password. Please try again.' }, { status: 401 });
         }
 

@@ -93,6 +93,11 @@ const RegisterScreen = ({ onRegister, onBack }) => {
       return false;
     }
 
+    if (formData.city && formData.city !== 'Amritsar') {
+      setError('Services not available in your city');
+      return false;
+    }
+
     return true;
   };
 

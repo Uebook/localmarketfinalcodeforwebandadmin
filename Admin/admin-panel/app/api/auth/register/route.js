@@ -1,4 +1,5 @@
 import { supabaseRestGet, supabaseRestInsert } from '@/lib/supabaseAdminFetch';
+import bcrypt from 'bcryptjs';
 
 function toStr(v) {
   return typeof v === 'string' ? v.trim() : '';
@@ -84,7 +85,7 @@ export async function POST(req) {
       full_name: userName,
       phone: normalizedPhone,
       email: userEmail || null,
-      password: userPassword, // Store password (in production, hash it)
+      password: await bcrypt.hash(userPassword, 10), // Store hashed password
       state: state ? toStr(state) : null,
       city: city ? toStr(city) : null,
       status: 'Active',

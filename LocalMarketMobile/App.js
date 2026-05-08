@@ -3,7 +3,7 @@ import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-naviga
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StatusBar, View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StatusBar, View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { saveUserData, loadUserData, clearUserData, isUserAuthenticated } from './src/utils/userStorage';
 import { ThemeProvider } from './src/components/ThemeProvider';
@@ -187,6 +187,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
   const themeColors = useThemeColors();
   const activeRouteName = getFocusedRouteNameFromRoute(route) || initialRouteName;
   const showGlobalHeader = activeRouteName !== 'Profile';
+  const isServiceAvailable = locationState?.city === 'Amritsar' || !!locationState?.circle;
   
   return (
     <View style={{ flex: 1 }}>
@@ -201,6 +202,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
           showLocationPicker={showLocationPicker}
           setShowLocationPicker={setShowLocationPicker}
           notificationCount={notificationCount}
+          profileImage={userRole === 'vendor' ? (vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) : (userData?.photo || userData?.imageUrl)}
         />
       )}
       <Tab.Navigator
@@ -270,13 +272,43 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
             />
           )}
         </Tab.Screen>
-        <Tab.Screen name="Categories">
+        <Tab.Screen 
+          name="Categories"
+          listeners={{
+            tabPress: e => {
+              if (!isServiceAvailable) {
+                e.preventDefault();
+                Alert.alert('Service Notice', 'Services not available in your city');
+              }
+            },
+          }}
+        >
           {(props) => <CategoriesScreen {...props} locationState={locationState} />}
         </Tab.Screen>
-        <Tab.Screen name="Compare">
+        <Tab.Screen 
+          name="Compare"
+          listeners={{
+            tabPress: e => {
+              if (!isServiceAvailable) {
+                e.preventDefault();
+                Alert.alert('Service Notice', 'Services not available in your city');
+              }
+            },
+          }}
+        >
           {(props) => <SearchScreen {...props} locationState={locationState} />}
         </Tab.Screen>
-        <Tab.Screen name="Saved">
+        <Tab.Screen 
+          name="Saved"
+          listeners={{
+            tabPress: e => {
+              if (!isServiceAvailable) {
+                e.preventDefault();
+                Alert.alert('Service Notice', 'Services not available in your city');
+              }
+            },
+          }}
+        >
           {(props) => (
             <SavedScreen
               {...props}

@@ -237,6 +237,10 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     } else if (step === 3) {
       if (!formData.state) { setError('State is required'); return false; }
       if (!formData.city) { setError('City is required'); return false; }
+      if (formData.city !== 'Amritsar') {
+        setError('Services not available in your city');
+        return false;
+      }
       if (!formData.area) { setError('Circle / Area is required'); return false; }
       if (!formData.circle) { setError('Specific Market is required'); return false; }
     } else if (step === 4) {

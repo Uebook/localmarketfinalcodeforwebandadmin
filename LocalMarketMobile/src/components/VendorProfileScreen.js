@@ -14,6 +14,8 @@ import WriteReview from './WriteReview';
 import LocationPicker from './LocationPicker';
 import { formatLocation } from '../constants/locations';
 import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
+import ExitConfirmModal from './ExitConfirmModal';
+import { BackHandler } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadFile, updateVendorProfile, getVendorProfile, getCategories } from '../services/api';
 import { ActivityIndicator, } from 'react-native';
@@ -21,6 +23,22 @@ import { ActivityIndicator, } from 'react-native';
 const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
+
+  React.useEffect(() => {
+    const backAction = () => {
+      if (navigation.isFocused()) {
+        setShowExitModal(true);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => {
+      backHandler.remove();
+    };
+  }, [navigation]);
   const [locationState] = useState({
     lat: vendorData?.location?.lat || null,
     lng: vendorData?.location?.lng || null,
@@ -36,7 +54,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const normalizedVendor = {
     ...vendorData,
     imageUrl: getVal('imageUrl') || getVal('image_url') || getVal('image'),
-    profileImageUrl: getVal('profileImageUrl') || getVal('profile_image_url'),
+    profileImageUrl: getVal('profileImageUrl') || getVal('profile_image_url') || getVal('imageUrl') || getVal('image_url') || getVal('image') || getVal('profilePhotoUrl'),
     ownerName: getVal('ownerName') || getVal('owner_name'),
     contactNumber: getVal('contactNumber') || getVal('contact_number') || getVal('phone'),
     openTime: getVal('openTime') || getVal('open_time'),
@@ -48,6 +66,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const [bulkUploads, setBulkUploads] = useState(false);
   const [showWriteReview, setShowWriteReview] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const [location, setLocation] = useState(vendorData?.location || null);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingProfile, setUploadingProfile] = useState(false);
@@ -89,6 +108,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   }, []);
 
   const handleEditClick = () => {
+    console.log('[VendorProfile] Edit clicked, showing modal...');
     setEditFormData({
       name: normalizedVendor.name || '',
       category: normalizedVendor.category || '',
@@ -157,32 +177,64 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
       includeBase64: false,
       maxHeight: 1200,
       maxWidth: 1200,
+      quality: 0.8,
     };
 
-    try {
-      console.log(`[ImagePick] Opening library for: ${type}`);
-      const result = await launchImageLibrary(options);
+    Alert.alert(
+      'Upload Photo',
+      'Choose an option to upload your photo',
+      [
+        {
+          text: 'Camera',
+          onPress: () => {
+            // Using setTimeout to avoid "Activity error" on some Android devices
+            setTimeout(async () => {
+              try {
+                const { launchCamera } = require('react-native-image-picker');
+                const result = await launchCamera(options);
+                processImageResult(result, type);
+              } catch (err) {
+                console.error('[Camera] Error:', err);
+              }
+            }, 100);
+          }
+        },
+        {
+          text: 'Gallery',
+          onPress: () => {
+            setTimeout(async () => {
+              try {
+                const result = await launchImageLibrary(options);
+                processImageResult(result, type);
+              } catch (err) {
+                console.error('[Library] Error:', err);
+              }
+            }, 100);
+          }
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        }
+      ]
+    );
+  };
 
-      if (result.didCancel) {
-        console.log('[ImagePick] User cancelled image picker');
-        return;
-      }
-      if (result.errorCode) {
-        console.error('[ImagePick] Error Code:', result.errorCode, result.errorMessage);
-        Alert.alert('Error', result.errorMessage || 'Image picker error');
-        return;
-      }
+  const processImageResult = async (result, type) => {
+    if (result.didCancel) {
+      console.log('[ImagePick] User cancelled');
+      return;
+    }
+    if (result.errorCode) {
+      console.error('[ImagePick] Error Code:', result.errorCode, result.errorMessage);
+      Alert.alert('Error', result.errorMessage || 'Image picker error');
+      return;
+    }
 
-      if (result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        console.log('[ImagePick] Success:', asset.uri);
-        await handleUpload(asset.uri, type, asset.type); 
-      } else {
-        console.warn('[ImagePick] No assets returned');
-      }
-    } catch (error) {
-      console.error('[ImagePick] Unexpected Error:', error);
-      Alert.alert('Error', 'Failed to pick image');
+    if (result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      console.log('[ImagePick] Success:', asset.uri);
+      await handleUpload(asset.uri, type, asset.type); 
     }
   };
 
@@ -196,7 +248,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
       setUploading(true);
 
       // 1. Upload file to Supabase
-      const folder = isCover ? 'shop-fronts' : 'owner-photos';
+      const folder = isCover ? 'shop-photos' : 'id-proofs';
       const uploadedUrl = await uploadFile(uri, folder, mimeType);
 
       if (uploadedUrl) {
@@ -275,6 +327,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
         hideCart={true}
+        profileImage={vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url}
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -310,18 +363,18 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
                   ) : (
                     <Icon name="user" size={32} color={COLORS.textMuted} />
                   )}
-                  <TouchableOpacity
-                    style={styles.profileCameraButton}
-                    onPress={() => handleImagePick('profile')}
-                    disabled={uploadingProfile}
-                  >
-                    {uploadingProfile ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <Icon name="camera" size={10} color="#FFF" />
-                    )}
-                  </TouchableOpacity>
                 </View>
+                <TouchableOpacity
+                  style={styles.profileCameraButton}
+                  onPress={() => handleImagePick('profile')}
+                  disabled={uploadingProfile}
+                >
+                  {uploadingProfile ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Icon name="camera" size={10} color="#FFF" />
+                  )}
+                </TouchableOpacity>
                 <View style={styles.onlineBadge} />
               </View>
 
@@ -412,33 +465,7 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
           </View>
         </View>
 
-        {/* Write Review Section */}
-        <View style={styles.writeReviewSection}>
-          <View style={styles.writeReviewHeader}>
-            <View style={styles.writeReviewHeaderLeft}>
-              <Icon name={getIconName('Star')} size={24} color={COLORS.orange} />
-              <View style={styles.writeReviewHeaderText}>
-                <Text style={styles.writeReviewTitle}>Customer Reviews</Text>
-                <Text style={styles.writeReviewSubtitle}>Share your experience</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.writeReviewButton}
-              onPress={() => setShowWriteReview(true)}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={COLORS.primaryGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.writeReviewButtonGradient}
-              >
-                <Icon name={getIconName('Edit')} size={16} color={COLORS.white} />
-                <Text style={styles.writeReviewButtonText}>Write Review</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </View>
+
 
         {/* Business Profile Section */}
         <View style={styles.businessProfileSection}>
@@ -565,6 +592,12 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
           </View>
         </View>
       </ScrollView>
+
+      <ExitConfirmModal 
+        visible={showExitModal}
+        onCancel={() => setShowExitModal(false)}
+        onConfirm={() => BackHandler.exitApp()}
+      />
 
       {/* Write Review Modal */}
       <WriteReview
@@ -1057,6 +1090,8 @@ const createStyles = (COLORS) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    padding: 8,
+    marginRight: -8,
   },
   editButtonText: {
     fontSize: 14,
