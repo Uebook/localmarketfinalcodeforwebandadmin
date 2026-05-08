@@ -66,12 +66,21 @@ const EnquiryModal = ({ businessName, vendorId, isOpen, onClose, productName }) 
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
+      <TouchableOpacity 
+        style={styles.overlay} 
+        activeOpacity={1} 
+        onPress={onClose}
+      >
+        <TouchableOpacity 
+          style={styles.modalContainer} 
+          activeOpacity={1} 
+          onPress={() => {}} // Prevent clicks inside from closing
+        >
           <TouchableOpacity
             onPress={onClose}
             style={styles.closeButton}
             activeOpacity={0.7}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           >
             <Icon name={getIconName('X')} size={20} color="#9ca3af" />
           </TouchableOpacity>
@@ -168,8 +177,8 @@ const EnquiryModal = ({ businessName, vendorId, isOpen, onClose, productName }) 
               </View>
             </>
           )}
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -201,6 +210,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
     backgroundColor: '#f3f4f6',
+    zIndex: 10,
   },
   header: {
     marginBottom: 24,

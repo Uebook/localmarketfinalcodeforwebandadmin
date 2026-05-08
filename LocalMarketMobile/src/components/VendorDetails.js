@@ -356,22 +356,56 @@ const VendorDetails = ({ navigation, route }) => {
                       </View>
 
                       <View style={styles.gridPriceRow}>
-                        <View>
+                        <View style={styles.priceColumn}>
                           <Text style={styles.gridPriceValue}>₹{item.price}</Text>
                           {savings > 0 && (
                             <Text style={styles.gridMrpPrice}>₹{comparisonPrice}</Text>
                           )}
                         </View>
-                        <TouchableOpacity
-                          style={styles.gridEnquiryBtn}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            setSelectedProduct(item);
-                            setShowEnquiryModal(true);
-                          }}
-                        >
-                          <Text style={styles.gridEnquiryBtnText}>Enquire</Text>
-                        </TouchableOpacity>
+                        
+                        {(() => {
+                          const cartItem = cartItems.find(ci => ci.id === item.id);
+                          if (cartItem) {
+                            return (
+                              <View style={styles.qtySelectorGrid}>
+                                <TouchableOpacity 
+                                  style={styles.qtyBtnGrid}
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    updateQuantity(item.id, cartItem.quantity - 1);
+                                  }}
+                                >
+                                  <Icon name="minus" size={12} color="#0F172A" />
+                                </TouchableOpacity>
+                                <Text style={styles.gridQtyText}>{cartItem.quantity}</Text>
+                                <TouchableOpacity 
+                                  style={styles.qtyBtnGrid}
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    updateQuantity(item.id, cartItem.quantity + 1);
+                                  }}
+                                >
+                                  <Icon name="plus" size={12} color="#0F172A" />
+                                </TouchableOpacity>
+                              </View>
+                            );
+                          }
+                          return (
+                            <TouchableOpacity
+                              style={styles.gridAddBtn}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                addToCart(item, targetVendorId, vendorInfo.shop_name || vendorInfo.name);
+                                if (Platform.OS === 'android') {
+                                  ToastAndroid.show('Added to cart', ToastAndroid.SHORT);
+                                }
+                              }}
+                            >
+                              <Text style={styles.gridAddBtnText}>Add</Text>
+                              <Icon name="plus" size={14} color="#FFF" />
+                            </TouchableOpacity>
+                          );
+                        })()}
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -1082,15 +1116,17 @@ const createStyles = (COLORS, scrollY) => StyleSheet.create({
     textDecorationLine: 'line-through',
   },
   gridAddBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: COLORS.orange,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: COLORS.orange,
+    gap: 4,
+    backgroundColor: '#dc2626',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    shadowColor: '#dc2626',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -1115,26 +1151,20 @@ const createStyles = (COLORS, scrollY) => StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-  gridTextGrid: {
+  gridQtyText: {
     fontSize: 12,
     fontWeight: '900',
     color: '#0F172A',
     minWidth: 16,
     textAlign: 'center',
   },
-  gridEnquiryBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+  priceColumn: {
+    flex: 1,
   },
-  gridEnquiryBtnText: {
-    fontSize: 11,
+  gridAddBtnText: {
+    fontSize: 13,
     fontWeight: '900',
-    color: '#0F172A',
-    textTransform: 'uppercase',
+    color: '#FFF',
   },
   bottomBar: {
     position: 'absolute',

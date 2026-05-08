@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import { supabaseRestInsert } from '@/lib/supabaseAdminFetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,16 +12,21 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // In a real app, you'd insert into an 'enquiries' table.
-    // For now, we'll simulate success or use a generic rest helper if it exists.
-    // Assuming there's a table named 'enquiries'
-    /*
-    const res = await supabaseRestPost('/rest/v1/enquiries', {
-        vendor_id, name, mobile, message, created_at: new Date().toISOString()
+    // Insert into 'enquiries' table
+    const result = await supabaseRestInsert('/rest/v1/enquiries', {
+        vendor_id,
+        sender_name: name,
+        sender_phone: mobile,
+        message: message || 'I am interested in your products.',
+        status: 'new',
+        created_at: new Date().toISOString()
     });
-    */
 
-    return NextResponse.json({ success: true, message: 'Enquiry submitted successfully' });
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Enquiry submitted successfully',
+      enquiry: Array.isArray(result) ? result[0] : result 
+    });
   } catch (error) {
     console.error('Enquiry API Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

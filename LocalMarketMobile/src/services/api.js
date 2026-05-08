@@ -1,9 +1,9 @@
 /**
  * API Service for Local Market Mobile App
- * Base URL: https://admin-panel-rho-sepia-57.vercel.app
+ * Base URL: https://admin.lokall.in
  */
 
-export const API_BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000/' : 'http://localhost:3000/'; // Local Development Backend
+export const API_BASE_URL = 'https://admin.lokall.in';
 import { Platform } from 'react-native';
 
 /**

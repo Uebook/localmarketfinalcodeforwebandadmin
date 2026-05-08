@@ -77,10 +77,17 @@ export async function GET(req) {
             })) : [],
             enquiries: Array.isArray(enquiries) ? enquiries.map(e => ({
                 id: e.id,
-                senderName: e.sender_name || 'Customer',
-                date: e.created_at ? new Date(e.created_at).toLocaleDateString() : '',
+                customerName: e.sender_name || 'Customer', // Mobile expects customerName
+                senderName: e.sender_name || 'Customer',   // Keep senderName for compatibility
+                phone: e.sender_phone || '',               // Mobile expects phone
+                senderPhone: e.sender_phone || '',        // Keep senderPhone for compatibility
+                date: e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                }) : '',
                 message: e.message,
-                status: e.status
+                status: e.status || 'new'
             })) : [],
             reviews: Array.isArray(reviews) ? reviews.map(r => ({
                 id: r.id,

@@ -38,7 +38,6 @@ const SearchResults = ({
     const [currentLocation, setCurrentLocation] = useState(route?.params?.locationState || locationState);
     
     const COLORS = useThemeColors();
-    const { addToCart } = useCart();
     const styles = createStyles(COLORS);
 
     const savedIds = savedBusinessIds.length > 0 ? savedBusinessIds : propSavedIds;
@@ -444,16 +443,7 @@ const SearchResults = ({
                             </View>
                             <Text style={styles.reviewCount}>({item.reviewCount} reviews)</Text>
                             
-                            <TouchableOpacity 
-                                style={styles.quickAddBtn}
-                                onPress={(e) => {
-                                    e.stopPropagation();
-                                    handleAddToCart(item);
-                                }}
-                            >
-                                <Icon name="shopping-bag" size={14} color="#FFF" />
-                                <Text style={styles.quickAddText}>ADD</Text>
-                            </TouchableOpacity>
+
                         </View>
 
                         {/* Store & Distance Info */}
@@ -1144,25 +1134,6 @@ const createStyles = (COLORS) => StyleSheet.create({
         color: '#9ca3af',
         fontWeight: '500',
         flex: 1,
-    },
-    quickAddBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        backgroundColor: COLORS.orange,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 10,
-        shadowColor: COLORS.orange,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    quickAddText: {
-        color: '#FFF',
-        fontSize: 10,
-        fontWeight: '900',
     },
     footerRow: {
         flexDirection: 'row',

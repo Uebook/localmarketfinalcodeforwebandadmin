@@ -300,12 +300,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
                       >
                         <Icon name={getIconName('Phone')} size={20} color="#16a34a" />
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.actionButtonSmall}
-                        onPress={() => handleMessage(enquiry.phone)}
-                      >
-                        <Icon name={getIconName('MessageCircle')} size={20} color="#16a34a" />
-                      </TouchableOpacity>
+
                     </View>
                   </View>
 
