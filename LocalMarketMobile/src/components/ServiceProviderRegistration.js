@@ -11,7 +11,7 @@ import LocationPicker from './LocationPicker';
 import { formatLocation } from '../constants/locations';
 import { generateVendorId } from '../utils/paymentUtils';
 
-const SERVICE_TYPES = ['Carpenter', 'Plumber', 'Electrician', 'Painter', 'Mechanic', 'AC Repair', 'Other'];
+const SERVICE_TYPES = ['AC Repair', 'Carpenter', 'Electrician', 'Mechanic', 'Other', 'Painter', 'Plumber'];
 
 const ServiceProviderRegistration = ({ navigation, onComplete, onCancel }) => {
   const COLORS = useThemeColors();

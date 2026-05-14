@@ -858,117 +858,77 @@ export const updateVendorProfile = async (id, profileData) => {
  * @returns {Promise<string>} The URL of the uploaded file
  */
 export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
-  try {
-    console.log(`Starting upload to ${folder}... URI: ${fileUri}, Mime: ${mimeType}`);
+  return new Promise((resolve, reject) => {
+    console.log(`[Upload] Starting upload to ${folder}... URI: ${fileUri}`);
 
-    // Normalize URI for platform
-    let normalizedUri = fileUri;
-    if (Platform.OS === 'android') {
-      // For Android, ensure we don't double-prefix and handle content:// vs file://
-      if (!fileUri.startsWith('file://') && !fileUri.startsWith('content://')) {
-        normalizedUri = `file://${fileUri}`;
-      }
-    } else if (Platform.OS === 'ios') {
-      // For iOS, fetch needs file:// prefix removed or properly formatted
-      normalizedUri = fileUri.replace('file://', '');
-      normalizedUri = `file://${normalizedUri}`;
-    }
-
-    // Use normalizedUri directly — encodeURI can break local file schemes in React Native fetch
-    const encodedUri = normalizedUri;
-
-    // Safely extract filename from URI
-    let filename = 'photo.jpg';
+    // Safely extract filename
+    let filename = `upload_${Date.now()}.jpg`;
     try {
-      // Decode URI first in case it's already encoded, then get the last part
-      const decodedUri = decodeURI(normalizedUri);
-      const parts = decodedUri.split('/');
-      const lastPart = parts[parts.length - 1];
-      const randomSuffix = Math.random().toString(36).substring(2, 8);
-      if (lastPart && lastPart.includes('.')) {
-        const fileParts = lastPart.split('.');
-        const ext = fileParts.pop();
-        const base = fileParts.join('.');
-        filename = `${base}_${randomSuffix}.${ext}`;
-      } else {
-        filename = `upload_${Date.now()}_${randomSuffix}.jpg`;
-      }
-    } catch (e) {
-      console.warn('Error extracting filename:', e);
-      filename = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.jpg`;
-    }
-
-    const fileType = mimeType || 'image/jpeg';
+      const parts = fileUri.split('/');
+      filename = parts[parts.length - 1] || filename;
+    } catch (e) {}
 
     const formData = new FormData();
     
-    // Normalize URI: Android fetch/XHR sometimes needs file://, sometimes not. 
-    // Usually file:// is safest for internal cache files.
+    // Normalize URI for Android
     let uploadUri = fileUri;
     if (Platform.OS === 'android' && !fileUri.startsWith('content://') && !fileUri.startsWith('file://')) {
       uploadUri = `file://${fileUri}`;
     }
 
-    const fileToUpload = {
+    // React Native's FormData.append for files
+    formData.append('file', {
       uri: uploadUri,
       type: mimeType || 'image/jpeg',
-      name: filename || 'photo.jpg',
-    };
+      name: filename,
+    });
     
-    console.log('[Upload Debug] Final URI:', uploadUri);
-    
-    formData.append('file', fileToUpload);
     formData.append('bucket', 'vendor-documents');
     formData.append('folder', folder);
 
-    console.log('--- UPLOAD DEBUG ---');
-    console.log('Target URL:', `${API_BASE_URL}/api/upload`);
-    console.log('File URI:', encodedUri);
-    console.log('File Type:', fileType);
-    console.log('Filename:', filename);
-    console.log('Folder:', folder);
-    console.log('---------------------');
-    // Use XMLHttpRequest for better reliability with file uploads on Android
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      
-      xhr.open('POST', `${API_BASE_URL}/api/upload`);
-      
-      xhr.onload = () => {
-        console.log(`[Upload] Response Status: ${xhr.status}`);
-        try {
-          const response = JSON.parse(xhr.responseText);
-          if (xhr.status >= 200 && xhr.status < 300 && response.url) {
+    const xhr = new XMLHttpRequest();
+    
+    xhr.open('POST', `${API_BASE_URL}/api/upload`);
+    
+    // Set headers if needed, but NOT Content-Type for FormData
+    xhr.setRequestHeader('Accept', 'application/json');
+
+    xhr.onload = () => {
+      console.log(`[Upload] XHR Status: ${xhr.status}`);
+      try {
+        const response = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          if (response.url) {
             console.log('[Upload] Success! URL:', response.url);
             resolve(response.url);
           } else {
-            reject(new Error(response.error || `Upload failed with status ${xhr.status}`));
+            reject(new Error('Upload succeeded but no URL was returned'));
           }
-        } catch (e) {
-          console.error('[Upload] Failed to parse response:', xhr.responseText);
-          reject(new Error(`Server error (${xhr.status}): ${xhr.responseText.substring(0, 100)}`));
+        } else {
+          const errorMsg = response.error || response.message || `Upload failed (${xhr.status})`;
+          console.error('[Upload] Server error:', errorMsg);
+          reject(new Error(errorMsg));
         }
-      };
+      } catch (e) {
+        console.error('[Upload] Failed to parse response:', xhr.responseText);
+        reject(new Error(`Server error (${xhr.status})`));
+      }
+    };
 
-      xhr.onerror = (e) => {
-        console.error('[Upload] XHR Error:', e);
-        reject(new Error('Network request failed. Please check your server connection.'));
-      };
+    xhr.onerror = (e) => {
+      console.error('[Upload] XHR Fatal Error:', e);
+      reject(new Error('Network request failed. Please check your internet connection and ensure the server is reachable.'));
+    };
 
-      xhr.ontimeout = () => {
-        console.error('[Upload] XHR Timeout');
-        reject(new Error('Upload timed out.'));
-      };
+    xhr.ontimeout = () => {
+      reject(new Error('Upload timed out.'));
+    };
 
-      xhr.timeout = 120000; // 2 minutes
-      
-      console.log(`[Upload] Sending ${filename} to ${API_BASE_URL}/api/upload...`);
-      xhr.send(formData);
-    });
-  } catch (error) {
-    console.error('File Upload error:', error.message);
-    throw error;
-  }
+    xhr.timeout = 60000; // 1 minute
+    
+    console.log(`[Upload] Sending ${filename} to ${API_BASE_URL}/api/upload...`);
+    xhr.send(formData);
+  });
 };
 
 
@@ -978,8 +938,7 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
  * @returns {Promise<Object>}
  */
 export const createVendorProduct = async (productData) => {
-  console.log('Creating Product Payload:', JSON.stringify(productData, null, 2));
-  return await apiRequest('/api/vendor/products', {
+  return await apiRequest('/api/vendor-products', {
     method: 'POST',
     body: JSON.stringify(productData),
   });
@@ -992,7 +951,7 @@ export const createVendorProduct = async (productData) => {
  * @returns {Promise<Object>}
  */
 export const updateVendorProduct = async (id, productData) => {
-  return await apiRequest(`/api/vendor/products/${id}`, {
+  return await apiRequest(`/api/vendor-products?id=${id}`, {
     method: 'PATCH',
     body: JSON.stringify(productData),
   });
@@ -1004,7 +963,7 @@ export const updateVendorProduct = async (id, productData) => {
  * @returns {Promise<Object>}
  */
 export const deleteVendorProduct = async (id) => {
-  return await apiRequest(`/api/vendor/products/${id}`, {
+  return await apiRequest(`/api/vendor-products?id=${id}`, {
     method: 'DELETE',
   });
 };

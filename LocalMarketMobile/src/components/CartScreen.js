@@ -11,7 +11,7 @@ import {
   Linking,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useCart } from '../context/CartContext';
@@ -19,6 +19,7 @@ import { getVendorProfile } from '../services/api';
 import LinearGradient from 'react-native-linear-gradient';
 
 const CartScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -346,7 +347,7 @@ const CartScreen = ({ navigation }) => {
           </ScrollView>
 
           {/* Bottom Sticky Bar */}
-          <View style={styles.footerBar}>
+          <View style={[styles.footerBar, { paddingBottom: Math.max(insets.bottom, 24) }]}>
             <View>
               <Text style={styles.footerLabel}>Total Value</Text>
               <Text style={styles.footerTotal}>₹{calculateTotal()}</Text>

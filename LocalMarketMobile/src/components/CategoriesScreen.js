@@ -25,7 +25,7 @@ const CategoriesScreen = ({ navigation, route, locationState }) => {
       setLoading(true);
       const data = await getCategories();
       if (data && data.categories) {
-        setCategories(data.categories);
+        setCategories([...data.categories].sort((a, b) => (a.name || '').localeCompare(b.name || '')));
       }
     } catch (error) {
       console.error('Error loading categories:', error);

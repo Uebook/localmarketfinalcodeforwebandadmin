@@ -36,11 +36,18 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     if (showLoading) setRefreshing(true);
     try {
       const freshProducts = await getVendorProducts(vendorData.id);
-      if (Array.isArray(freshProducts)) {
-        setProducts(freshProducts);
-        if (setVendorData) {
-          setVendorData(prev => ({ ...prev, products: freshProducts }));
-        }
+      const productsList = freshProducts?.products || (Array.isArray(freshProducts) ? freshProducts : []);
+      
+      const mappedProducts = productsList.map(p => ({
+        ...p,
+        id: p.id || p._id || p.uuid || p.v_product_id,
+        category: p.category_name || p.category || '',
+        imageUrl: p.image_url || p.imageUrl || null,
+      }));
+
+      setProducts(mappedProducts);
+      if (setVendorData) {
+        setVendorData(prev => ({ ...prev, products: mappedProducts }));
       }
     } catch (err) {
       console.error('Failed to fetch products:', err);
@@ -116,6 +123,16 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     fetchCategories();
   }, []);
 
+  // Sync category name when categories load or categoryId changes
+  useEffect(() => {
+    if (categories.length > 0 && formData.categoryId && !formData.categoryName) {
+      const found = categories.find(c => c.id === formData.categoryId);
+      if (found) {
+        setFormData(prev => ({ ...prev, categoryName: found.name }));
+      }
+    }
+  }, [categories, formData.categoryId]);
+
   const handleMenuClick = () => {
     const vendorControl = getVendorSidebarControl();
     const customerControl = getSidebarControl();
@@ -189,17 +206,27 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   };
 
   const handleEditItem = (item) => {
-    setEditingItem(item);
+    // Ensure we have a valid ID
+    const itemId = item.id || item._id || item.v_product_id;
+    if (!itemId) {
+      console.warn('[Catalog] Attempting to edit item without ID:', item.name);
+    }
+    
+    const categoryId = item.category_id || '';
+    const foundCategory = categories.find(c => c.id === categoryId);
+    const categoryName = foundCategory ? foundCategory.name : (item.category_name || item.category || '');
+
     setFormData({
       name: item.name || '',
-      price: item.price?.toString().replace('₹', '') || '',
-      mrp: item.originalPrice?.toString().replace('₹', '') || '',
+      price: (item.price !== undefined ? item.price : '').toString().replace('₹', ''),
+      mrp: (item.mrp !== undefined ? item.mrp : (item.originalPrice || '')).toString().replace('₹', ''),
       type: item.type || 'Product',
-      categoryId: item.category_id || '',
-      categoryName: item.category_name || item.category || '',
-      unit: item.uom || item.unit || '',
+      categoryId: categoryId,
+      categoryName: categoryName,
+      unit: item.uom || item.unit || item.uom_name || item.unit_name || '',
       description: item.description || '',
-      bestSeller: item.bestSeller || false,
+      bestSeller: item.is_featured === true || item.bestSeller === true,
+      inStock: item.status === 'Active' || item.is_active !== false,
       image: item.image_url || item.imageUrl || null,
     });
     setShowAddForm(true);
@@ -295,7 +322,23 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         try {
           uploadedUrl = await uploadFile(formData.image.uri, 'product-images', formData.image.type || 'image/jpeg');
         } catch (uploadErr) {
-          console.warn('Image upload failed, using local URI as fallback:', uploadErr);
+          console.error('Image upload failed:', uploadErr);
+          Alert.alert(
+            'Upload Failed', 
+            `Could not upload product image. ${uploadErr.message || 'Please try again or use a different image.'}`
+          );
+          setSaving(false);
+          return;
+        }
+      } else if (typeof formData.image === 'string' && !formData.image.startsWith('http') && formData.image.startsWith('file://')) {
+        // Handle case where image is just a file URI string
+        try {
+          uploadedUrl = await uploadFile(formData.image, 'product-images', 'image/jpeg');
+        } catch (uploadErr) {
+          console.error('Image upload failed (string URI):', uploadErr);
+          Alert.alert('Upload Failed', 'Could not upload product image.');
+          setSaving(false);
+          return;
         }
       }
 
@@ -304,14 +347,29 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         vendor_id: vendorData.id,
         name: formData.name,
         price: parseFloat(formData.price),
-        mrp: formData.mrp ? parseFloat(formData.mrp) : null,
         uom: formData.unit,
-        category_id: formData.categoryId || null,
         description: formData.description,
         image_url: uploadedUrl, 
-        is_active: formData.inStock !== false,
+        status: formData.inStock ? 'Active' : 'Inactive', // Use status as discovered via testing
+        is_active: formData.inStock !== false, // Still include for safety
         is_featured: formData.bestSeller || false,
       };
+
+      // Add optional fields only if they have values (including 0)
+      if (formData.mrp !== undefined && formData.mrp !== '') {
+        productPayload.mrp = parseFloat(formData.mrp);
+      }
+      
+      if (formData.categoryId && formData.categoryId !== 'undefined' && formData.categoryId !== '') {
+        productPayload.category_id = formData.categoryId;
+      }
+
+      // Final sanitization to prevent "undefined" string errors
+      Object.keys(productPayload).forEach(key => {
+        if (productPayload[key] === 'undefined' || productPayload[key] === undefined) {
+          delete productPayload[key];
+        }
+      });
 
 
       let res;
@@ -321,20 +379,30 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         res = await createVendorProduct(productPayload);
       }
 
-      if (res && res.success) {
+      if (res && (res.success || res.id || res.product)) {
         // Update local state
+        const savedProduct = res.product || (res.id ? res : null);
+        
+        if (!savedProduct) {
+          // If we can't find product data, just re-fetch and close
+          fetchProducts();
+          setShowAddForm(false);
+          setEditingItem(null);
+          return;
+        }
+
         const discount = calculateDiscount(formData.price, formData.mrp);
         const newItem = {
-          ...res.product,
-          id: res.product.id,
-          name: res.product.name,
-          category: res.product.category_name || formData.categoryName || '',
-          price: `₹${res.product.price}`,
-          originalPrice: res.product.mrp ? `₹${res.product.mrp}` : undefined,
+          ...savedProduct,
+          id: savedProduct.id || savedProduct._id || editingItem?.id,
+          name: savedProduct.name || formData.name,
+          category: savedProduct.category_name || formData.categoryName || '',
+          price: `₹${savedProduct.price || formData.price}`,
+          originalPrice: (savedProduct.mrp || formData.mrp) ? `₹${savedProduct.mrp || formData.mrp}` : undefined,
           discount: discount,
-          inStock: res.product.is_active !== false,
-          imageUrl: res.product.image_url || uploadedUrl,
-          image_url: res.product.image_url || uploadedUrl,
+          inStock: (savedProduct.is_active !== false),
+          imageUrl: savedProduct.image_url || uploadedUrl,
+          image_url: savedProduct.image_url || uploadedUrl,
         };
 
         let updatedProducts;
@@ -440,7 +508,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
 
           <View style={styles.categoryList}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {Object.keys(AI_DEFAULT_ITEMS).map((cat) => (
+              {Object.keys(AI_DEFAULT_ITEMS).sort().map((cat) => (
                 <TouchableOpacity
                   key={cat}
                   style={[
@@ -903,6 +971,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                   <Text style={styles.productCategory}>{item.category}</Text>
                   <View style={styles.priceRow}>
                     <Text style={styles.productPrice}>{item.price}</Text>
+                    <Text style={styles.unitText}> / {item.uom || item.unit || item.uom_name || item.unit_name || 'Unit'}</Text>
                     {!!item.originalPrice && (
                       <>
                         <Text style={styles.originalPrice}>{item.originalPrice}</Text>
@@ -1254,6 +1323,11 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.textPrimary,
+  },
+  unitText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
   },
   originalPrice: {
     fontSize: 14,

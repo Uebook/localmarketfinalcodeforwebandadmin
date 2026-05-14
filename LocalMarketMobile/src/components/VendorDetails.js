@@ -5,7 +5,7 @@ import {
   Dimensions, StatusBar, Platform, TextInput, Share, Modal, Pressable, Animated, ToastAndroid
 } from 'react-native';
 import Image from './ImageWithFallback';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -23,6 +23,7 @@ const HEADER_MIN_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
 const HEADER_SCROLL_DISTANCE = HERO_HEIGHT - HEADER_MIN_HEIGHT;
 
 const VendorDetails = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const COLORS = useThemeColors();
   const { addToCart, cartItems, updateQuantity } = useCart();
   const scrollY = React.useRef(new Animated.Value(0)).current;
@@ -323,8 +324,10 @@ const VendorDetails = ({ navigation, route }) => {
                       route.params?.highlightProductId === item.id && { borderColor: COLORS.orange, borderWidth: 2, backgroundColor: '#FFF7ED' }
                     ]}
                     onPress={() => {
-                      setSelectedProduct(item);
-                      setShowEnquiryModal(true);
+                      navigation.navigate('ProductDetails', { 
+                        product: item,
+                        business: vendorInfo 
+                      });
                     }}
                     activeOpacity={0.9}
                   >
@@ -628,7 +631,7 @@ const VendorDetails = ({ navigation, route }) => {
       </Animated.ScrollView>
 
       {/* Floating Bottom Action Bar */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <TouchableOpacity
           style={[styles.bottomBtn, styles.callBtn]}
           onPress={handleCall}

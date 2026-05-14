@@ -11,6 +11,10 @@ const corsHeaders = {
 
 export async function POST(request) {
     try {
+        console.log(`[API Upload] Incoming request from ${request.headers.get('user-agent')}`);
+        const contentType = request.headers.get('content-type') || '';
+        console.log(`[API Upload] Content-Type: ${contentType}`);
+
         const formData = await request.formData();
         const file = formData.get('file');
         const bucket = formData.get('bucket') || 'vendor-documents';

@@ -12,7 +12,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
@@ -144,6 +144,7 @@ const StepBar = ({ step, total = 5 }) => (
 
 // ─── Main Component ────────────────────────────────────────────────────────
 const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
+  const insets = useSafeAreaInsets();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -181,12 +182,12 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     getCategories().then(data => {
       const cats = data?.categories || [];
       if (cats.length > 0) {
-        setCategories(cats.map(c => c.name));
+        setCategories(cats.map(c => c.name).sort((a, b) => a.localeCompare(b)));
       } else {
-        setCategories(DUMMY_CATEGORIES);
+        setCategories([...DUMMY_CATEGORIES].sort((a, b) => a.localeCompare(b)));
       }
     }).catch(() => {
-      setCategories(DUMMY_CATEGORIES);
+      setCategories([...DUMMY_CATEGORIES].sort((a, b) => a.localeCompare(b)));
     }).finally(() => setLoadingCats(false));
 
     // Load states
@@ -547,7 +548,7 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
       </Modal>
 
       {/* Footer Buttons */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {step > 1 && (
           <TouchableOpacity style={styles.btnBack} onPress={handleBack} activeOpacity={0.7}>
             <Text style={styles.btnBackText}>Back</Text>
