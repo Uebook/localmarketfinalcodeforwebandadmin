@@ -276,15 +276,28 @@ const VendorDetails = ({ navigation, route }) => {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dealsScroll}>
-          {allProducts.slice(0, 5).map((item) => (
-            <TouchableOpacity key={item.id} style={styles.dealCard}>
-              <Image source={{ uri: item.image_url || item.imageUrl }} style={styles.dealImage} />
-              <View style={styles.dealInfo}>
-                <Text style={styles.dealName} numberOfLines={2}>{item.name}</Text>
-                <Text style={styles.dealPrice}>₹{item.price}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {allProducts.slice(0, 5).map((item) => {
+            const rawUrl = item.image_url || item.imageUrl;
+            let displayImage = rawUrl;
+            if (typeof rawUrl === 'string' && rawUrl.startsWith('[') && rawUrl.endsWith(']')) {
+              try {
+                const parsed = JSON.parse(rawUrl);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  const index = (item.id % parsed.length) || 0;
+                  displayImage = parsed[index];
+                }
+              } catch (e) {}
+            }
+            return (
+              <TouchableOpacity key={item.id} style={styles.dealCard}>
+                <Image source={{ uri: displayImage }} style={styles.dealImage} />
+                <View style={styles.dealInfo}>
+                  <Text style={styles.dealName} numberOfLines={2}>{item.name}</Text>
+                  <Text style={styles.dealPrice}>₹{item.price}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
     </View>
@@ -333,7 +346,21 @@ const VendorDetails = ({ navigation, route }) => {
                   >
                     <View style={styles.productImageContainer}>
                       <Image
-                        source={{ uri: item.image_url || item.imageUrl }}
+                        source={{ 
+                          uri: (() => {
+                            const rawUrl = item.image_url || item.imageUrl;
+                            if (typeof rawUrl === 'string' && rawUrl.startsWith('[') && rawUrl.endsWith(']')) {
+                              try {
+                                const parsed = JSON.parse(rawUrl);
+                                if (Array.isArray(parsed) && parsed.length > 0) {
+                                  const index = (item.id % parsed.length) || 0;
+                                  return parsed[index];
+                                }
+                              } catch (e) {}
+                            }
+                            return rawUrl;
+                          })()
+                        }}
                         style={styles.gridProductImage}
                       />
                       {savingsPercent > 0 && (

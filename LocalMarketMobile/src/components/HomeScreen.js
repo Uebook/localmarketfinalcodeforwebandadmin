@@ -265,15 +265,8 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
       return false;
     };
 
-    const backHandlerPromise = import('react-native').then(({ BackHandler }) => 
-      BackHandler.addEventListener("hardwareBackPress", backAction)
-    );
-
-    return () => {
-      import('react-native').then(({ BackHandler }) => 
-        BackHandler.removeEventListener("hardwareBackPress", backAction)
-      );
-    };
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => backHandler.remove();
   }, [navigation]);
 
   useEffect(() => {

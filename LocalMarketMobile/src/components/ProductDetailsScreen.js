@@ -14,7 +14,8 @@ import {
   Linking,
   ToastAndroid,
   Modal,
-  Pressable
+  Pressable,
+  FlatList
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
@@ -46,6 +47,23 @@ const ProductDetailsScreen = ({ navigation, route }) => {
   const isInCart = useMemo(() => {
     return cartItems.find(item => item.id === product?.id);
   }, [cartItems, product?.id]);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Parse product images
+  const productImages = useMemo(() => {
+    const rawUrl = product?.image_url || product?.imageUrl;
+    if (!rawUrl) return [];
+    if (typeof rawUrl === 'string' && rawUrl.startsWith('[') && rawUrl.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(rawUrl);
+        return Array.isArray(parsed) ? parsed : [rawUrl];
+      } catch (e) {
+        return [rawUrl];
+      }
+    }
+    return Array.isArray(rawUrl) ? rawUrl : [rawUrl];
+  }, [product]);
 
   useEffect(() => {
     if (isInCart) {
@@ -144,28 +162,60 @@ const ProductDetailsScreen = ({ navigation, route }) => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Large Hero Image */}
-        <TouchableOpacity 
-          activeOpacity={0.9} 
-          onPress={() => setShowFullImage(true)}
-          style={styles.imageContainer}
-        >
+        <View style={styles.imageContainer}>
           <Animated.View style={{ transform: [{ scale: imageScale }] }}>
-            <Image
-              source={{ uri: product.image_url || product.imageUrl }}
-              style={styles.heroImage}
-              resizeMode="cover"
+            <FlatList
+              data={productImages}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                setActiveImageIndex(index);
+              }}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  activeOpacity={0.9} 
+                  onPress={() => setShowFullImage(true)}
+                >
+                  <Image
+                    source={{ uri: item }}
+                    style={styles.heroImage}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              )}
             />
           </Animated.View>
+          
           <LinearGradient
-            colors={['rgba(0,0,0,0.4)', 'transparent', 'transparent', 'rgba(0,0,0,0.05)']}
+            colors={['rgba(0,0,0,0.4)', 'transparent', 'transparent', 'rgba(0,0,0,0.15)']}
             style={StyleSheet.absoluteFill}
+            pointerEvents="none"
           />
+
+          {/* Pagination Dots */}
+          {productImages.length > 1 && (
+            <View style={styles.paginationContainer}>
+              {productImages.map((_, index) => (
+                <View 
+                  key={index} 
+                  style={[
+                    styles.paginationDot,
+                    activeImageIndex === index && styles.paginationDotActive
+                  ]} 
+                />
+              ))}
+            </View>
+          )}
+
           {savingsPercent > 0 && (
             <View style={styles.discountBadge}>
               <Text style={styles.discountText}>{savingsPercent}% OFF</Text>
             </View>
           )}
-        </TouchableOpacity>
+        </View>
 
         {/* Product Information */}
         <View style={styles.contentCard}>
@@ -324,19 +374,37 @@ const ProductDetailsScreen = ({ navigation, route }) => {
         onRequestClose={() => setShowFullImage(false)}
         animationType="fade"
       >
-        <Pressable 
-          style={styles.fullScreenModal}
-          onPress={() => setShowFullImage(false)}
-        >
-          <View style={[styles.modalCloseBtn, { top: insets.top + 10 }]}>
+        <View style={styles.fullScreenModal}>
+          <TouchableOpacity 
+            style={[styles.modalCloseBtn, { top: insets.top + 10 }]}
+            onPress={() => setShowFullImage(false)}
+          >
             <Icon name="x" size={30} color="#FFF" />
-          </View>
-          <Image
-            source={{ uri: product.image_url || product.imageUrl }}
-            style={styles.fullScreenImage}
-            resizeMode="contain"
+          </TouchableOpacity>
+          
+          <FlatList
+            data={productImages}
+            horizontal
+            pagingEnabled
+            initialScrollIndex={activeImageIndex}
+            getItemLayout={(data, index) => ({
+              length: width,
+              offset: width * index,
+              index,
+            })}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.fullScreenImageWrapper}>
+                <Image
+                  source={{ uri: item }}
+                  style={styles.fullScreenImage}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
+            keyExtractor={(item, index) => index.toString()}
           />
-        </Pressable>
+        </View>
       </Modal>
     </View>
   );
@@ -780,8 +848,34 @@ const styles = StyleSheet.create({
   modalCloseBtn: {
     position: 'absolute',
     right: 20,
-    zIndex: 10,
+    zIndex: 100,
     padding: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 25,
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 40,
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  paginationDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  paginationDotActive: {
+    backgroundColor: '#FFF',
+    width: 20,
+  },
+  fullScreenImageWrapper: {
+    width: width,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
 

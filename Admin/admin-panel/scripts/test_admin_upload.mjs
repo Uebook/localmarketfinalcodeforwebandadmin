@@ -7,11 +7,11 @@ const API_BASE_URL = 'https://admin.lokall.in';
 
 async function testAdminUpload() {
     console.log(`--- Testing Admin Upload API: ${API_BASE_URL}/api/upload ---`);
-    
+
     const formData = new FormData();
     const filePath = path.join(__dirname, 'test_upload.txt');
     fs.writeFileSync(filePath, 'Test content from Mac simulation');
-    
+
     const blob = new Blob([fs.readFileSync(filePath)], { type: 'text/plain' });
     formData.append('file', blob, 'mac_test.txt');
     formData.append('bucket', 'vendor-documents');

@@ -2,8 +2,10 @@ import { Platform } from 'react-native';
 
 // Use 10.0.2.2 for Android emulators to reach localhost on the host machine
 // Standard bridge for Android emulator to host localhost
-const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
-export const API_BASE_URL = __DEV__ ? LOCAL_URL : 'https://admin.lokall.in';
+// Use 10.0.2.2 for Android emulators to reach localhost on the host machine
+// Use your actual local IP (192.168.1.42) instead of 10.0.2.2 for better reachability from the emulator on Mac
+// Use the live production URL (Confirmed Working)
+export const API_BASE_URL = 'https://admin.lokall.in';
 
 /**
  * Generic fetch wrapper with error handling
@@ -869,10 +871,10 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
     try {
       const parts = fileUri.split('/');
       filename = parts[parts.length - 1] || filename;
-    } catch (e) {}
+    } catch (e) { }
 
     const formData = new FormData();
-    
+
     // Normalize URI for Android
     let uploadUri = fileUri;
     if (Platform.OS === 'android' && !fileUri.startsWith('content://') && !fileUri.startsWith('file://')) {
@@ -885,14 +887,14 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
       type: mimeType || 'image/jpeg',
       name: filename,
     });
-    
+
     formData.append('bucket', 'vendor-documents');
     formData.append('folder', folder);
 
     const xhr = new XMLHttpRequest();
-    
+
     xhr.open('POST', `${API_BASE_URL}/api/upload`);
-    
+
     // Set headers if needed, but NOT Content-Type for FormData
     xhr.setRequestHeader('Accept', 'application/json');
 
@@ -932,19 +934,19 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
  */
 export const uploadFilesBulk = async (fileUris, folder = 'general') => {
   if (!fileUris || fileUris.length === 0) return [];
-  
+
   console.log(`[Bulk Upload] Starting upload of ${fileUris.length} files to ${folder}...`);
   const url = `${API_BASE_URL}/api/upload-bulk`;
   console.log(`[Bulk Upload] URL: ${url}`);
 
   const formData = new FormData();
-  
+
   fileUris.forEach((uri, index) => {
     let filename = `upload_${Date.now()}_${index}.jpg`;
     try {
       const parts = uri.split('/');
       filename = parts[parts.length - 1] || filename;
-    } catch (e) {}
+    } catch (e) { }
 
     let uploadUri = uri;
     if (Platform.OS === 'android' && !uri.startsWith('content://') && !uri.startsWith('file://')) {
@@ -972,7 +974,7 @@ export const uploadFilesBulk = async (fileUris, folder = 'general') => {
     });
 
     console.log(`[Bulk Upload] Response Status: ${response.status}`);
-    
+
     const responseText = await response.text();
     let data;
     try {
@@ -986,7 +988,7 @@ export const uploadFilesBulk = async (fileUris, folder = 'general') => {
       const urls = (data.files || [])
         .filter(f => f.success || f.url)
         .map(f => f.url);
-      
+
       console.log(`[Bulk Upload] Success! ${urls.length} files uploaded`);
       return urls;
     } else {
