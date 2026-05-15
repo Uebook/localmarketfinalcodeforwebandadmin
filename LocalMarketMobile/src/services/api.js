@@ -649,6 +649,7 @@ export const getVendorProducts = async (vendorId) => {
 
     const response = await apiRequest(`/api/vendor-products?vendorId=${encodeURIComponent(vendorId)}`);
 
+
     // Ensure we always return an array
     if (response && Array.isArray(response.products)) {
       return { products: response.products };
@@ -932,76 +933,128 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
  * @param {string} folder - Destination folder in the bucket
  * @returns {Promise<Array<string>>} Array of uploaded public URLs
  */
-export const uploadFilesBulk = (fileAssets, folder = 'general') => {
+// Direct Supabase config (kept for reference)
+const SUPABASE_URL = 'https://db.lokall.in';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE';
+const SUPABASE_BUCKET = 'vendor-documents';
+
+/**
+ * Upload a single file directly to Supabase storage via fetch+blob
+ */
+const uploadSingleToSupabase = async (asset, folder) => {
+  const timestamp = Date.now();
+  const filename = asset.fileName || asset.name || `photo_${timestamp}.jpg`;
+  const storagePath = `${folder}/${timestamp}-${filename}`;
+  const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${storagePath}`;
+  const mimeType = asset.type || 'image/jpeg';
+
+  console.log(`[Supabase Upload] Reading file: ${asset.uri}`);
+  console.log(`[Supabase Upload] Uploading to: ${uploadUrl}`);
+
+  // Step 1: Read the local file as a blob
+  const fileResponse = await fetch(asset.uri);
+  const blob = await fileResponse.blob();
+
+  // Step 2: Upload raw binary to Supabase (NOT multipart form data)
+  const response = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'apikey': SUPABASE_ANON_KEY,
+      'Content-Type': mimeType,
+      'x-upsert': 'true',
+    },
+    body: blob,
+  });
+
+  console.log(`[Supabase Upload] Status: ${response.status}`);
+
+  if (response.ok) {
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${storagePath}`;
+    console.log(`[Supabase Upload] Success! URL: ${publicUrl}`);
+    return publicUrl;
+  }
+
+  const errorText = await response.text();
+  throw new Error(`Upload failed (${response.status}): ${errorText}`);
+};
+
+/**
+ * Upload images to VPS local storage via /api/upload-local
+ * Files are saved to /var/www/localmarket/Images/ on the server
+ */
+const uploadToVPS = (asset) => {
   return new Promise((resolve, reject) => {
-    if (!fileAssets || fileAssets.length === 0) return resolve([]);
+    const uploadUri = Platform.OS === 'android'
+      ? asset.uri
+      : asset.uri.replace('file://', '');
 
-    // Accepts both plain URI strings and full image picker asset objects
-    const assets = fileAssets.map(asset => {
-      if (typeof asset === 'string') {
-        return { uri: asset, type: 'image/jpeg', name: `upload_${Date.now()}.jpg` };
-      }
-      return asset;
-    });
-
-    console.log(`[Bulk Upload] Starting XHR upload of ${assets.length} files to ${folder}...`);
-    const url = `${API_BASE_URL}/api/upload-bulk`;
-    console.log(`[Bulk Upload] URL: ${url}`);
+    const filename = asset.fileName || asset.name || `photo_${Date.now()}.jpg`;
+    const mimeType = asset.type || 'image/jpeg';
 
     const formData = new FormData();
-
-    assets.forEach((asset, index) => {
-      // Use exact pattern from working app
-      const uploadUri = Platform.OS === 'android'
-        ? asset.uri
-        : asset.uri.replace('file://', '');
-
-      const filename = asset.fileName || asset.name || `upload_${Date.now()}_${index}.jpg`;
-      const mimeType = asset.type || 'image/jpeg';
-
-      console.log(`[Bulk Upload] File ${index}: uri=${uploadUri}, name=${filename}, type=${mimeType}`);
-
-      formData.append('file', {
-        uri: uploadUri,
-        type: mimeType,
-        name: filename,
-      });
-    });
-
-    formData.append('bucket', 'vendor-documents');
-    formData.append('folder', folder);
+    formData.append('file', { uri: uploadUri, type: mimeType, name: filename });
 
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', url);
+    xhr.open('POST', `${API_BASE_URL}/api/upload-local`);
     xhr.setRequestHeader('Accept', 'application/json');
 
     xhr.onload = () => {
-      console.log(`[Bulk Upload] XHR Status: ${xhr.status}`);
+      console.log(`[VPS Upload] Status: ${xhr.status}`);
       try {
         const data = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300 && data.success) {
-          const urls = (data.files || []).filter(f => f.success || f.url).map(f => f.url);
-          console.log(`[Bulk Upload] Success! ${urls.length} files uploaded`);
-          resolve(urls);
+          const file = data.files?.[0];
+          if (file?.url) {
+            console.log(`[VPS Upload] Success: ${file.url}`);
+            resolve(file.url);
+          } else {
+            reject(new Error('No URL returned'));
+          }
         } else {
-          const errorMsg = data.error || data.message || `Upload failed (${xhr.status})`;
-          console.error(`[Bulk Upload] Server error: ${errorMsg}`);
-          reject(new Error(errorMsg));
+          reject(new Error(data.error || `Upload failed (${xhr.status})`));
         }
       } catch (e) {
-        reject(new Error(`Server returned invalid response: ${xhr.responseText.substring(0, 80)}`));
+        reject(new Error(`Invalid server response: ${xhr.responseText?.substring(0, 80)}`));
       }
     };
 
     xhr.onerror = () => {
-      console.error('[Bulk Upload] XHR network error');
-      reject(new Error(`Network request failed. Check if the server at ${API_BASE_URL} is reachable.`));
+      reject(new Error('Network error. Check your connection.'));
     };
 
     xhr.send(formData);
   });
+};
 
+/**
+ * Bulk upload files - tries VPS local storage first, falls back to Supabase direct
+ */
+export const uploadFilesBulk = async (fileAssets, folder = 'products') => {
+  if (!fileAssets || fileAssets.length === 0) return [];
 
+  console.log(`[Bulk Upload] Uploading ${fileAssets.length} files...`);
+
+  const results = await Promise.allSettled(
+    fileAssets.map(asset => uploadToVPS(asset))
+  );
+
+  const urls = [];
+  results.forEach((result, i) => {
+    if (result.status === 'fulfilled') {
+      urls.push(result.value);
+    } else {
+      console.error(`[Bulk Upload] File ${i} failed:`, result.reason?.message);
+    }
+  });
+
+  if (urls.length === 0) {
+    throw new Error('All image uploads failed. Please try again.');
+  }
+
+  console.log(`[Bulk Upload] ${urls.length}/${fileAssets.length} uploaded successfully`);
+  return urls;
+};
 
 /**
  * Create a new vendor product

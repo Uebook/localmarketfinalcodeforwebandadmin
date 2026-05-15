@@ -345,10 +345,20 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       const localFileAssets = formData.images
         .filter(img => typeof img !== 'string' || !img.startsWith('http'));
 
+      // Pre-format files with explicit uri/type/name for reliable upload
+      const formattedFiles = localFileAssets.map((file, index) => ({
+        uri: file.uri || (typeof file === 'string' ? file : ''),
+        type: file.type || 'image/jpeg',
+        name: file.fileName || `photo_${Date.now()}_${index}.jpg`,
+      })).filter(f => f.uri);
+
+      console.log('Uploading files:', formattedFiles);
+
       let newlyUploadedUrls = [];
-      if (localFileAssets.length > 0) {
+      if (formattedFiles.length > 0) {
         try {
-          newlyUploadedUrls = await uploadFilesBulk(localFileAssets, 'product-images');
+          newlyUploadedUrls = await uploadFilesBulk(formattedFiles, 'products');
+
         } catch (uploadErr) {
           console.error('Bulk image upload failed:', uploadErr);
           Alert.alert('Upload Failed', `Could not upload one or more images. ${uploadErr.message}`);

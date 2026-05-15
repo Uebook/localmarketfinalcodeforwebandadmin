@@ -1,0 +1,169 @@
+
+> LocalMarketMobile@0.0.1 start
+> npx react-native start
+
+
+Welcome to React Native v0.83
+Starting dev server on http://localhost:8081
+
+
+                        ▒▒▓▓▓▓▒▒
+                     ▒▓▓▓▒▒░░▒▒▓▓▓▒
+                  ▒▓▓▓▓░░░▒▒▒▒░░░▓▓▓▓▒
+                 ▓▓▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▓▓
+                 ▓▓░░░░░▒▓▓▓▓▓▓▒░░░░░▓▓
+                 ▓▓░░▓▓▒░░░▒▒░░░▒▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▒▒▒▒▓▓▓▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓▓▒░░▓▓
+                 ▓▓▒░░▒▒▓▓▓▓▓▓▓▓▒░░░▒▓▓
+                  ▒▓▓▓▒░░░▒▓▓▒░░░▒▓▓▓▒
+                     ▒▓▓▓▒░░░░▒▓▓▓▒
+                        ▒▒▓▓▓▓▒▒
+
+
+                Welcome to Metro v0.83.6
+              Fast - Scalable - Integrated
+
+
+ INFO  Dev server ready. Press Ctrl+C to exit.
+ INFO  Interactive mode is not supported in this environment
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 1% (1/1)
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 4% (27/151)
+ BUNDLE  ./index.js ▓▓▓░░░░░░░░░░░░░ 23% (160/341)
+ BUNDLE  ./index.js ▓▓▓░░░░░░░░░░░░░ 24% (184/386)
+ BUNDLE  ./index.js ▓▓▓▓▓▓░░░░░░░░░░ 40% (327/516)
+ BUNDLE  ./index.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 64% (494/617)
+ BUNDLE  ./index.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 74% (648/752)
+ BUNDLE  ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 81% (718/796)
+ BUNDLE  ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 87% (823/897)
+ BUNDLE  ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99% (1036/1039)
+ BUNDLE  ./index.js 
+ INFO  [1m[7m💡 JavaScript logs have moved![22m They can now be viewed in React Native DevTools. Tip: Type [1mj[22m in the terminal to open.[27m
+ BUNDLE  src/services/api.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  src/services/api.js 
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js 
+ BUNDLE  src/services/api.js 
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js 
+ BUNDLE  src/services/api.js 
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js 
+ BUNDLE  src/services/api.js 
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/components/VendorCatalogScreen.js: Unexpected token (72:2)
+
+  70 |   const [editingItem, setEditingItem] = useState(null);
+  71 |     images: [], // Changed from image: null to images: []
+> 72 |   });
+     |   ^
+  73 |   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  74 |   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  75 |   const [showAIModal, setShowAIModal] = useState(false);
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/components/VendorCatalogScreen.js: 'return' outside of function. (573:2)
+
+  571 |   );
+  572 |
+> 573 |   return (
+      |   ^
+  574 |     <View style={styles.container}>
+  575 |       {renderAIModal()}
+  576 |       {/* Gradient Background */}
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/components/VendorCatalogScreen.js: 'return' outside of function. (575:2)
+
+  573 |   );
+  574 |
+> 575 |   return (
+      |   ^
+  576 |     <View style={styles.container}>
+  577 |       {renderAIModal()}
+  578 |       {/* Gradient Background */}
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/components/VendorCatalogScreen.js: 'return' outside of function. (575:2)
+
+  573 |   );
+  574 |
+> 575 |   return (
+      |   ^
+  576 |     <View style={styles.container}>
+  577 |       {renderAIModal()}
+  578 |       {/* Gradient Background */}
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/components/VendorCatalogScreen.js: 'return' outside of function. (575:2)
+
+  573 |   );
+  574 |
+> 575 |   return (
+      |   ^
+  576 |     <View style={styles.container}>
+  577 |       {renderAIModal()}
+  578 |       {/* Gradient Background */}
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/components/VendorCatalogScreen.js: 'return' outside of function. (575:2)
+
+  573 |   );
+  574 |
+> 575 |   return (
+      |   ^
+  576 |     <View style={styles.container}>
+  577 |       {renderAIModal()}
+  578 |       {/* Gradient Background */}
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js 
+ BUNDLE  src/services/api.js 
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js 
+ BUNDLE  src/services/api.js 
+ BUNDLE  node_modules/react-native/index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  node_modules/react-native/index.js 
+ ERROR  [timeout] connection terminated with Device for app='com.localmarketmobile' on device='sdk_gphone_arm64 - 11 - API 30' after not responding for 60 seconds.
+ ERROR  [timeout] connection terminated with Device for app='com.localmarketmobile' on device='sdk_gphone_arm64 - 11 - API 30' after not responding for 60 seconds.
+ ERROR  [timeout] connection terminated with Device for app='com.localmarketmobile' on device='sdk_gphone_arm64 - 11 - API 30' after not responding for 60 seconds.
+ ERROR  [timeout] connection terminated with Device for app='com.localmarketmobile' on device='sdk_gphone_arm64 - 11 - API 30' after not responding for 60 seconds.
+ ERROR  [timeout] connection terminated with Device for app='com.localmarketmobile' on device='sdk_gphone_arm64 - 11 - API 30' after not responding for 60 seconds.
+ ERROR  [timeout] connection terminated with Device for app='com.localmarketmobile' on device='sdk_gphone_arm64 - 11 - API 30' after not responding for 60 seconds.
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/services/api.js: Unexpected token (993:8)
+
+  991 |           console.error('[Upload] Server error:', errorMsg);
+  992 |           reject(new Error(errorMsg));
+> 993 |         }
+      |         ^
+  994 |       } catch (e) {
+  995 |         console.error('[Upload] Failed to parse response:', xhr.responseText);
+  996 |         reject(new Error(`Server error (${xhr.status})`));
+ ERROR  SyntaxError: /Users/vansh/ReactProject/LocalMarket/LocalMarketMobile/src/services/api.js: Unexpected token (993:8)
+
+  991 |           console.error('[Upload] Server error:', errorMsg);
+  992 |           reject(new Error(errorMsg));
+> 993 |         }
+      |         ^
+  994 |       } catch (e) {
+  995 |         console.error('[Upload] Failed to parse response:', xhr.responseText);
+  996 |         reject(new Error(`Server error (${xhr.status})`));
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js 
+ BUNDLE  src/services/api.js 
+ BUNDLE  node_modules/react-native/index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  node_modules/react-native/index.js 
+ INFO  Launching DevTools...
+ MAP  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ MAP  src/components/VendorCatalogScreen.js 
+ MAP  ./index.js 
+ MAP  src/services/api.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ MAP  src/services/api.js 
+ MAP  src/services/api.js 
+ BUNDLE  ./index.js 
+ MAP  ./index.js 
+ BUNDLE  src/services/api.js 
+ MAP  src/services/api.js 
+ MAP  src/services/api.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ MAP  src/services/api.js 
+ MAP  src/services/api.js 
+ BUNDLE  ./index.js 
+ MAP  ./index.js 
+ BUNDLE  src/services/api.js 
+ MAP  src/services/api.js 
+ BUNDLE  ./index.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ BUNDLE  ./index.js 
+ MAP  ./index.js 
+ BUNDLE  src/services/api.js 
+ MAP  src/services/api.js 
+ MAP  src/components/HomeScreen.js ░░░░░░░░░░░░░░░░ 0% (0/1)
+ MAP  src/components/HomeScreen.js 
