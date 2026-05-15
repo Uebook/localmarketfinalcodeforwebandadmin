@@ -932,71 +932,74 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
  * @param {string} folder - Destination folder in the bucket
  * @returns {Promise<Array<string>>} Array of uploaded public URLs
  */
-export const uploadFilesBulk = async (fileUris, folder = 'general') => {
-  if (!fileUris || fileUris.length === 0) return [];
+export const uploadFilesBulk = (fileAssets, folder = 'general') => {
+  return new Promise((resolve, reject) => {
+    if (!fileAssets || fileAssets.length === 0) return resolve([]);
 
-  console.log(`[Bulk Upload] Starting upload of ${fileUris.length} files to ${folder}...`);
-  const url = `${API_BASE_URL}/api/upload-bulk`;
-  console.log(`[Bulk Upload] URL: ${url}`);
-
-  const formData = new FormData();
-
-  fileUris.forEach((uri, index) => {
-    let filename = `upload_${Date.now()}_${index}.jpg`;
-    try {
-      const parts = uri.split('/');
-      filename = parts[parts.length - 1] || filename;
-    } catch (e) { }
-
-    let uploadUri = uri;
-    if (Platform.OS === 'android' && !uri.startsWith('content://') && !uri.startsWith('file://')) {
-      uploadUri = `file://${uri}`;
-    }
-
-    formData.append('file', {
-      uri: uploadUri,
-      type: 'image/jpeg',
-      name: filename,
+    // Accepts both plain URI strings and full image picker asset objects
+    const assets = fileAssets.map(asset => {
+      if (typeof asset === 'string') {
+        return { uri: asset, type: 'image/jpeg', name: `upload_${Date.now()}.jpg` };
+      }
+      return asset;
     });
+
+    console.log(`[Bulk Upload] Starting XHR upload of ${assets.length} files to ${folder}...`);
+    const url = `${API_BASE_URL}/api/upload-bulk`;
+    console.log(`[Bulk Upload] URL: ${url}`);
+
+    const formData = new FormData();
+
+    assets.forEach((asset, index) => {
+      // Use exact pattern from working app
+      const uploadUri = Platform.OS === 'android'
+        ? asset.uri
+        : asset.uri.replace('file://', '');
+
+      const filename = asset.fileName || asset.name || `upload_${Date.now()}_${index}.jpg`;
+      const mimeType = asset.type || 'image/jpeg';
+
+      console.log(`[Bulk Upload] File ${index}: uri=${uploadUri}, name=${filename}, type=${mimeType}`);
+
+      formData.append('file', {
+        uri: uploadUri,
+        type: mimeType,
+        name: filename,
+      });
+    });
+
+    formData.append('bucket', 'vendor-documents');
+    formData.append('folder', folder);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Accept', 'application/json');
+
+    xhr.onload = () => {
+      console.log(`[Bulk Upload] XHR Status: ${xhr.status}`);
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300 && data.success) {
+          const urls = (data.files || []).filter(f => f.success || f.url).map(f => f.url);
+          console.log(`[Bulk Upload] Success! ${urls.length} files uploaded`);
+          resolve(urls);
+        } else {
+          const errorMsg = data.error || data.message || `Upload failed (${xhr.status})`;
+          console.error(`[Bulk Upload] Server error: ${errorMsg}`);
+          reject(new Error(errorMsg));
+        }
+      } catch (e) {
+        reject(new Error(`Server returned invalid response: ${xhr.responseText.substring(0, 80)}`));
+      }
+    };
+
+    xhr.onerror = () => {
+      console.error('[Bulk Upload] XHR network error');
+      reject(new Error(`Network request failed. Check if the server at ${API_BASE_URL} is reachable.`));
+    };
+
+    xhr.send(formData);
   });
-
-  formData.append('bucket', 'vendor-documents');
-  formData.append('folder', folder);
-
-  try {
-    const axios = require('axios').default;
-    const response = await axios.post(url, formData, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'multipart/form-data',
-      },
-      timeout: 30000,
-    });
-
-    console.log(`[Bulk Upload] Response Status: ${response.status}`);
-    const data = response.data;
-
-    if (data.success) {
-      const urls = (data.files || [])
-        .filter(f => f.success || f.url)
-        .map(f => f.url);
-      console.log(`[Bulk Upload] Success! ${urls.length} files uploaded`);
-      return urls;
-    } else {
-      const errorMsg = data.error || data.message || `Upload failed (${response.status})`;
-      console.error(`[Bulk Upload] Server error: ${errorMsg}`);
-      throw new Error(errorMsg);
-    }
-  } catch (error) {
-    const status = error?.response?.status;
-    const serverMsg = error?.response?.data?.error;
-    console.error(`[Bulk Upload] Error:`, serverMsg || error.message);
-    if (status) {
-      throw new Error(`Server error ${status}: ${serverMsg || 'Upload failed'}`);
-    }
-    throw new Error(`Network request failed. Please check if the server at ${API_BASE_URL} is reachable.`);
-  }
-};
 
 
 

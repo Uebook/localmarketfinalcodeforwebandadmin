@@ -340,16 +340,15 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     setSaving(true);
     try {
       // Separate already uploaded URLs and new local files
+      // Pass full asset objects so uploadFilesBulk gets type, fileName etc.
       const existingUrls = formData.images.filter(img => typeof img === 'string' && img.startsWith('http'));
-      const localFileUris = formData.images
-        .filter(img => typeof img !== 'string' || !img.startsWith('http'))
-        .map(img => img.uri || (typeof img === 'string' ? img : null))
-        .filter(uri => uri !== null);
+      const localFileAssets = formData.images
+        .filter(img => typeof img !== 'string' || !img.startsWith('http'));
 
       let newlyUploadedUrls = [];
-      if (localFileUris.length > 0) {
+      if (localFileAssets.length > 0) {
         try {
-          newlyUploadedUrls = await uploadFilesBulk(localFileUris, 'product-images');
+          newlyUploadedUrls = await uploadFilesBulk(localFileAssets, 'product-images');
         } catch (uploadErr) {
           console.error('Bulk image upload failed:', uploadErr);
           Alert.alert('Upload Failed', `Could not upload one or more images. ${uploadErr.message}`);
