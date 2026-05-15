@@ -4,8 +4,8 @@ import { Platform } from 'react-native';
 // Standard bridge for Android emulator to host localhost
 // Use 10.0.2.2 for Android emulators to reach localhost on the host machine
 // Use your actual local IP (192.168.1.42) instead of 10.0.2.2 for better reachability from the emulator on Mac
-// Using http temporarily to debug SSL issues in the emulator
-export const API_BASE_URL = 'http://admin.lokall.in';
+// Live production URL
+export const API_BASE_URL = 'https://admin.lokall.in';
 
 /**
  * Generic fetch wrapper with error handling
@@ -964,31 +964,22 @@ export const uploadFilesBulk = async (fileUris, folder = 'general') => {
   formData.append('folder', folder);
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
+    const axios = require('axios').default;
+    const response = await axios.post(url, formData, {
       headers: {
         'Accept': 'application/json',
-        // Note: Do NOT set Content-Type header when using FormData with fetch
+        'Content-Type': 'multipart/form-data',
       },
+      timeout: 30000,
     });
 
     console.log(`[Bulk Upload] Response Status: ${response.status}`);
+    const data = response.data;
 
-    const responseText = await response.text();
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error(`[Bulk Upload] Failed to parse response: ${responseText.substring(0, 100)}`);
-      throw new Error(`Server returned invalid response: ${response.status}`);
-    }
-
-    if (response.ok && data.success) {
+    if (data.success) {
       const urls = (data.files || [])
         .filter(f => f.success || f.url)
         .map(f => f.url);
-
       console.log(`[Bulk Upload] Success! ${urls.length} files uploaded`);
       return urls;
     } else {
@@ -997,11 +988,13 @@ export const uploadFilesBulk = async (fileUris, folder = 'general') => {
       throw new Error(errorMsg);
     }
   } catch (error) {
-    console.error(`[Bulk Upload] Network or internal error:`, error);
-    if (error.message.includes('Network request failed')) {
-      throw new Error(`Network request failed. Please check if the server at ${API_BASE_URL} is reachable from your device/emulator.`);
+    const status = error?.response?.status;
+    const serverMsg = error?.response?.data?.error;
+    console.error(`[Bulk Upload] Error:`, serverMsg || error.message);
+    if (status) {
+      throw new Error(`Server error ${status}: ${serverMsg || 'Upload failed'}`);
     }
-    throw error;
+    throw new Error(`Network request failed. Please check if the server at ${API_BASE_URL} is reachable.`);
   }
 };
 
