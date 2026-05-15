@@ -107,9 +107,14 @@ export async function GET(req) {
 // PATCH /api/vendor/profile  — update vendor details
 export async function PATCH(req) {
     try {
+        const { searchParams } = new URL(req.url);
+        const queryId = searchParams.get('id');
+        
         const body = await req.json();
         const { id, ...updates } = body;
-        if (!id) return Response.json({ error: 'Vendor ID required' }, { status: 400 });
+        
+        const vendorId = id || queryId;
+        if (!vendorId) return Response.json({ error: 'Vendor ID required' }, { status: 400 });
 
         const allowed = [
             'name', 'owner_name', 'email', 'address', 'city', 'state', 'pincode',
@@ -141,7 +146,7 @@ export async function PATCH(req) {
             }
         }
 
-        const result = await supabaseRestPatch(`/rest/v1/vendors?id=eq.${id}`, filtered);
+        const result = await supabaseRestPatch(`/rest/v1/vendors?id=eq.${vendorId}`, filtered);
         return Response.json({ success: true, vendor: Array.isArray(result) ? result[0] : result });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });
