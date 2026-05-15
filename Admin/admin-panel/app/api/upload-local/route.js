@@ -6,7 +6,7 @@ import { existsSync } from 'fs';
 // Use absolute path resolution for VPS environments
 // This ensures that even if process.cwd() shifts during build/run, we target the correct public folder
 const IMAGES_DIR = resolve(process.cwd(), 'public', 'images');
-const PUBLIC_BASE_URL = 'https://lokall.in/images';
+const PUBLIC_BASE_URL = 'https://admin.lokall.in/images';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
