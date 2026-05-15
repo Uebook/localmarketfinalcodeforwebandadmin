@@ -4,7 +4,7 @@ import { existsSync } from 'fs';
 
 export async function GET(request, { params }) {
     const { filename } = params;
-    // Force absolute path resolution relative to the app root
+    return new Response(`Hitting route for: ${filename}`);
     const filePath = resolve(process.cwd(), 'public', 'images', filename);
 
     if (!existsSync(filePath)) {
