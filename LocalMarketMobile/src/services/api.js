@@ -1,6 +1,9 @@
-// export const API_BASE_URL = 'http://192.168.1.33:3000'; // Local testing
-export const API_BASE_URL = 'https://admin.lokall.in'; // Production
 import { Platform } from 'react-native';
+
+// Use 10.0.2.2 for Android emulators to reach localhost on the host machine
+// Standard bridge for Android emulator to host localhost
+const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+export const API_BASE_URL = __DEV__ ? LOCAL_URL : 'https://admin.lokall.in';
 
 /**
  * Generic fetch wrapper with error handling
@@ -906,30 +909,100 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
           }
         } else {
           const errorMsg = response.error || response.message || `Upload failed (${xhr.status})`;
-          console.error('[Upload] Server error:', errorMsg);
           reject(new Error(errorMsg));
         }
       } catch (e) {
-        console.error('[Upload] Failed to parse response:', xhr.responseText);
-        reject(new Error(`Server error (${xhr.status})`));
+        reject(new Error(`Server returned invalid response: ${xhr.responseText.substring(0, 50)}...`));
       }
     };
 
-    xhr.onerror = (e) => {
-      console.error('[Upload] XHR Fatal Error:', e);
-      reject(new Error('Network request failed. Please check your internet connection and ensure the server is reachable.'));
+    xhr.onerror = () => {
+      reject(new Error('Network request failed during upload. Check your internet connection.'));
     };
 
-    xhr.ontimeout = () => {
-      reject(new Error('Upload timed out.'));
-    };
-
-    xhr.timeout = 60000; // 1 minute
-    
-    console.log(`[Upload] Sending ${filename} to ${API_BASE_URL}/api/upload...`);
     xhr.send(formData);
   });
 };
+
+/**
+ * Bulk upload files to Supabase via central API
+ * @param {Array<string>} fileUris - Array of local file URIs
+ * @param {string} folder - Destination folder in the bucket
+ * @returns {Promise<Array<string>>} Array of uploaded public URLs
+ */
+export const uploadFilesBulk = async (fileUris, folder = 'general') => {
+  if (!fileUris || fileUris.length === 0) return [];
+  
+  console.log(`[Bulk Upload] Starting upload of ${fileUris.length} files to ${folder}...`);
+  const url = `${API_BASE_URL}/api/upload-bulk`;
+  console.log(`[Bulk Upload] URL: ${url}`);
+
+  const formData = new FormData();
+  
+  fileUris.forEach((uri, index) => {
+    let filename = `upload_${Date.now()}_${index}.jpg`;
+    try {
+      const parts = uri.split('/');
+      filename = parts[parts.length - 1] || filename;
+    } catch (e) {}
+
+    let uploadUri = uri;
+    if (Platform.OS === 'android' && !uri.startsWith('content://') && !uri.startsWith('file://')) {
+      uploadUri = `file://${uri}`;
+    }
+
+    formData.append('file', {
+      uri: uploadUri,
+      type: 'image/jpeg',
+      name: filename,
+    });
+  });
+
+  formData.append('bucket', 'vendor-documents');
+  formData.append('folder', folder);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json',
+        // Note: Do NOT set Content-Type header when using FormData with fetch
+      },
+    });
+
+    console.log(`[Bulk Upload] Response Status: ${response.status}`);
+    
+    const responseText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error(`[Bulk Upload] Failed to parse response: ${responseText.substring(0, 100)}`);
+      throw new Error(`Server returned invalid response: ${response.status}`);
+    }
+
+    if (response.ok && data.success) {
+      const urls = (data.files || [])
+        .filter(f => f.success || f.url)
+        .map(f => f.url);
+      
+      console.log(`[Bulk Upload] Success! ${urls.length} files uploaded`);
+      return urls;
+    } else {
+      const errorMsg = data.error || data.message || `Upload failed (${response.status})`;
+      console.error(`[Bulk Upload] Server error: ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+  } catch (error) {
+    console.error(`[Bulk Upload] Network or internal error:`, error);
+    if (error.message.includes('Network request failed')) {
+      throw new Error(`Network request failed. Please check if the server at ${API_BASE_URL} is reachable from your device/emulator.`);
+    }
+    throw error;
+  }
+};
+
 
 
 /**
@@ -1491,6 +1564,7 @@ export default {
   register,
   registerVendor,
   uploadFile,
+  uploadFilesBulk,
   detectLocation,
   startAISession,
   processAIAnswer,

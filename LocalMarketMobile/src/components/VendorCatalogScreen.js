@@ -13,7 +13,7 @@ import { getSidebarControl } from '../utils/sidebarControl';
 import { handleShare } from '../utils/vendorActions';
 import ExitConfirmModal from './ExitConfirmModal';
 import { BackHandler } from 'react-native';
-import { getCategories, createVendorProduct, updateVendorProduct, deleteVendorProduct, uploadFile, getVendorProducts } from '../services/api';
+import { getCategories, createVendorProduct, updateVendorProduct, deleteVendorProduct, uploadFile, uploadFilesBulk, getVendorProducts } from '../services/api';
 import { AI_DEFAULT_ITEMS, getSuggestedItemsByCategory } from '../constants/aiDefaultItems';
 
 const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
@@ -79,7 +79,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     description: '',
     inStock: true,
     bestSeller: false,
-    image: null,
+    images: [], // Support for multiple images
   });
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
@@ -200,7 +200,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       unit: '',
       description: '',
       bestSeller: false,
-      image: null,
+      images: [],
     });
     setShowAddForm(true);
   };
@@ -216,6 +216,21 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     const foundCategory = categories.find(c => c.id === categoryId);
     const categoryName = foundCategory ? foundCategory.name : (item.category_name || item.category || '');
 
+    // Parse image_url if it's a JSON array
+    let images = [];
+    const rawImageUrl = item.image_url || item.imageUrl || '';
+    if (rawImageUrl) {
+      if (rawImageUrl.startsWith('[') && rawImageUrl.endsWith(']')) {
+        try {
+          images = JSON.parse(rawImageUrl);
+        } catch (e) {
+          images = [rawImageUrl];
+        }
+      } else {
+        images = [rawImageUrl];
+      }
+    }
+
     setFormData({
       name: item.name || '',
       price: (item.price !== undefined ? item.price : '').toString().replace('₹', ''),
@@ -227,19 +242,26 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       description: item.description || '',
       bestSeller: item.is_featured === true || item.bestSeller === true,
       inStock: item.status === 'Active' || item.is_active !== false,
-      image: item.image_url || item.imageUrl || null,
+      images: images,
     });
     setShowAddForm(true);
   };
 
   const handleSelectAIProduct = (item) => {
+    let images = [];
+    if (item.image_urls && Array.isArray(item.image_urls)) {
+      images = item.image_urls;
+    } else if (item.image_url) {
+      images = [item.image_url];
+    }
+
     setFormData({
       ...formData,
       name: item.name,
       description: item.description,
       price: item.price,
       mrp: (parseInt(item.price) * 1.2).toFixed(0),
-      image: item.image_url,
+      images: images,
     });
     setShowAIModal(false);
   };
@@ -274,12 +296,14 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       {
         mediaType: 'photo',
         quality: 0.8,
+        selectionLimit: 0, // Allow multiple selection
       },
       (response) => {
-        if (response.assets && response.assets[0]) {
+        if (response.assets && response.assets.length > 0) {
+          // Append new images to existing ones
           setFormData({
             ...formData,
-            image: response.assets[0]
+            images: [...formData.images, ...response.assets]
           });
         }
       }
@@ -308,39 +332,38 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       return;
     }
 
-    if (!formData.image) {
-      Alert.alert('Image Required', 'Please upload an image for this item.');
+    if (!formData.images || formData.images.length === 0) {
+      Alert.alert('Image Required', 'Please upload at least one image for this item.');
       return;
     }
 
-
     setSaving(true);
     try {
-      let uploadedUrl = formData.image?.uri || formData.image;
-      
-      if (formData.image?.uri && !formData.image.uri.startsWith('http')) {
+      // Separate already uploaded URLs and new local files
+      const existingUrls = formData.images.filter(img => typeof img === 'string' && img.startsWith('http'));
+      const localFileUris = formData.images
+        .filter(img => typeof img !== 'string' || !img.startsWith('http'))
+        .map(img => img.uri || (typeof img === 'string' ? img : null))
+        .filter(uri => uri !== null);
+
+      let newlyUploadedUrls = [];
+      if (localFileUris.length > 0) {
         try {
-          uploadedUrl = await uploadFile(formData.image.uri, 'product-images', formData.image.type || 'image/jpeg');
+          newlyUploadedUrls = await uploadFilesBulk(localFileUris, 'product-images');
         } catch (uploadErr) {
-          console.error('Image upload failed:', uploadErr);
-          Alert.alert(
-            'Upload Failed', 
-            `Could not upload product image. ${uploadErr.message || 'Please try again or use a different image.'}`
-          );
-          setSaving(false);
-          return;
-        }
-      } else if (typeof formData.image === 'string' && !formData.image.startsWith('http') && formData.image.startsWith('file://')) {
-        // Handle case where image is just a file URI string
-        try {
-          uploadedUrl = await uploadFile(formData.image, 'product-images', 'image/jpeg');
-        } catch (uploadErr) {
-          console.error('Image upload failed (string URI):', uploadErr);
-          Alert.alert('Upload Failed', 'Could not upload product image.');
+          console.error('Bulk image upload failed:', uploadErr);
+          Alert.alert('Upload Failed', `Could not upload one or more images. ${uploadErr.message}`);
           setSaving(false);
           return;
         }
       }
+
+      const uploadedUrls = [...existingUrls, ...newlyUploadedUrls];
+
+      // Store as JSON string if multiple, or just the string if one (for backward compatibility)
+      const finalImageUrl = uploadedUrls.length > 1 
+        ? JSON.stringify(uploadedUrls) 
+        : (uploadedUrls[0] || '');
 
 
       const productPayload = {
@@ -349,7 +372,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         price: parseFloat(formData.price),
         uom: formData.unit,
         description: formData.description,
-        image_url: uploadedUrl, 
+        image_url: finalImageUrl, 
         status: formData.inStock ? 'Active' : 'Inactive', // Use status as discovered via testing
         is_active: formData.inStock !== false, // Still include for safety
         is_featured: formData.bestSeller || false,
@@ -401,8 +424,8 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           originalPrice: (savedProduct.mrp || formData.mrp) ? `₹${savedProduct.mrp || formData.mrp}` : undefined,
           discount: discount,
           inStock: (savedProduct.is_active !== false),
-          imageUrl: savedProduct.image_url || uploadedUrl,
-          image_url: savedProduct.image_url || uploadedUrl,
+          imageUrl: uploadedUrls[0] || '',
+          image_url: finalImageUrl,
         };
 
         let updatedProducts;
@@ -450,7 +473,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       description: '',
       inStock: true,
       bestSeller: false,
-      image: null
+      images: []
     });
 
   };
@@ -535,7 +558,12 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                     style={styles.suggestionCard}
                     onPress={() => handleSelectAIProduct(item)}
                   >
-                    <Image source={{ uri: item.image_url }} style={styles.suggestionImage} />
+                    <Image 
+                      source={{ 
+                        uri: item.image_urls ? item.image_urls[0] : item.image_url 
+                      }} 
+                      style={styles.suggestionImage} 
+                    />
                     <View style={styles.suggestionInfo}>
                       <Text style={styles.suggestionName}>{item.name}</Text>
                       <Text style={styles.suggestionPrice}>₹{item.price}</Text>
@@ -769,25 +797,24 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                 <ScrollView showsVerticalScrollIndicator={false} style={styles.formScroll}>
                   <View style={styles.formSection}>
                     <View style={styles.imageUploadSection}>
-                      <Text style={styles.inputLabel}>Product Photo *</Text>
-                      <TouchableOpacity style={styles.singleImageSelector} onPress={handleImagePicker}>
-                        {formData.image ? (
-                          <View style={styles.selectedImageContainer}>
+                      <Text style={styles.inputLabel}>Product Photos *</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagesPreviewScroll}>
+                        {(formData.images || []).map((img, index) => (
+                          <View key={index} style={styles.previewImageWrapper}>
                             <Image 
-                              source={formData.image.uri ? { uri: formData.image.uri } : (typeof formData.image === 'string' ? { uri: formData.image } : formData.image)}
-                              style={styles.selectedImageLarge} 
+                              source={img?.uri ? { uri: img.uri } : (typeof img === 'string' ? { uri: img } : img)}
+                              style={styles.previewImage} 
                             />
-                            <View style={styles.editImageIcon}>
-                              <Icon name={getIconName('Camera')} size={20} color={COLORS.white} />
-                            </View>
+                            <TouchableOpacity style={styles.removeImageBadge} onPress={() => removeImage(index)}>
+                              <Icon name="x" size={12} color="#FFF" />
+                            </TouchableOpacity>
                           </View>
-                        ) : (
-                          <View style={styles.imagePlaceholder}>
-                            <Icon name={getIconName('Plus')} size={32} color={COLORS.textMuted} />
-                            <Text style={styles.placeholderText}>Tap to add photo</Text>
-                          </View>
-                        )}
-                      </TouchableOpacity>
+                        ))}
+                        <TouchableOpacity style={styles.addImageSquare} onPress={handleImagePicker}>
+                          <Icon name="plus" size={24} color={COLORS.textMuted} />
+                          <Text style={styles.addPhotoText}>Add</Text>
+                        </TouchableOpacity>
+                      </ScrollView>
                     </View>
 
                     <View style={styles.formFieldsStack}>
@@ -796,7 +823,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                         <TextInput
                           style={styles.input}
                           value={formData.name}
-                          onChangeText={(text) => setFormData({ ...formData, name: text })}
+                          onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
                           placeholder="e.g. Fresh Apples"
                           placeholderTextColor={COLORS.textMuted}
                         />
@@ -808,7 +835,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           <TextInput
                             style={styles.input}
                             value={formData.price}
-                            onChangeText={(text) => setFormData({ ...formData, price: text.replace(/[^0-9]/g, '') })}
+                            onChangeText={(text) => setFormData(prev => ({ ...prev, price: text.replace(/[^0-9]/g, '') }))}
                             placeholder="0"
                             keyboardType="numeric"
                             placeholderTextColor={COLORS.textMuted}
@@ -819,7 +846,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           <TextInput
                             style={styles.input}
                             value={formData.mrp}
-                            onChangeText={(text) => setFormData({ ...formData, mrp: text.replace(/[^0-9]/g, '') })}
+                            onChangeText={(text) => setFormData(prev => ({ ...prev, mrp: text.replace(/[^0-9]/g, '') }))}
                             placeholder="0"
                             keyboardType="numeric"
                             placeholderTextColor={COLORS.textMuted}
@@ -833,7 +860,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                         <View style={styles.typeToggle}>
                           <TouchableOpacity
                             style={[styles.typeButton, formData.type === 'Product' && styles.typeButtonActive]}
-                            onPress={() => setFormData({ ...formData, type: 'Product' })}
+                            onPress={() => setFormData(prev => ({ ...prev, type: 'Product' }))}
                           >
                             <Text style={[styles.typeButtonText, formData.type === 'Product' && styles.typeButtonTextActive]}>
                               Product
@@ -841,7 +868,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           </TouchableOpacity>
                           <TouchableOpacity
                             style={[styles.typeButton, formData.type === 'Service' && styles.typeButtonActive]}
-                            onPress={() => setFormData({ ...formData, type: 'Service' })}
+                            onPress={() => setFormData(prev => ({ ...prev, type: 'Service' }))}
                           >
                             <Text style={[styles.typeButtonText, formData.type === 'Service' && styles.typeButtonTextActive]}>
                               Service
@@ -850,7 +877,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                         </View>
                       </View>
 
-                      <View style={styles.inputRow}>
+                      <View style={[styles.inputRow, (showCategoryDropdown || showUnitDropdown) && { zIndex: 1000 }]}>
                         {/* Category Dropdown */}
                         <View style={styles.inputGroup}>
                           <Text style={styles.inputLabel}>Category</Text>
@@ -865,19 +892,25 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           </TouchableOpacity>
                           {showCategoryDropdown && (
                             <View style={styles.dropdownList}>
-                              <ScrollView nestedScrollEnabled={true}>
-                                {categories.map((cat) => (
-                                  <TouchableOpacity
-                                    key={cat.id}
-                                    style={styles.dropdownItem}
-                                    onPress={() => {
-                                      setFormData({ ...formData, categoryId: cat.id, categoryName: cat.name });
-                                      setShowCategoryDropdown(false);
-                                    }}
-                                  >
-                                    <Text style={styles.dropdownItemText}>{cat.name}</Text>
-                                  </TouchableOpacity>
-                                ))}
+                              <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
+                                {categories.length > 0 ? (
+                                  categories.map((cat) => (
+                                    <TouchableOpacity
+                                      key={cat.id}
+                                      style={styles.dropdownItem}
+                                      onPress={() => {
+                                        setFormData(prev => ({ ...prev, categoryId: cat.id, categoryName: cat.name }));
+                                        setShowCategoryDropdown(false);
+                                      }}
+                                    >
+                                      <Text style={styles.dropdownItemText}>{cat.name}</Text>
+                                    </TouchableOpacity>
+                                  ))
+                                ) : (
+                                  <View style={styles.dropdownItem}>
+                                    <Text style={styles.dropdownItemText}>No categories found</Text>
+                                  </View>
+                                )}
                               </ScrollView>
                             </View>
                           )}
@@ -897,13 +930,13 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           </TouchableOpacity>
                           {showUnitDropdown && (
                             <View style={styles.dropdownList}>
-                              <ScrollView nestedScrollEnabled={true}>
+                              <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
                                 {units.map((unit) => (
                                   <TouchableOpacity
                                     key={unit}
                                     style={styles.dropdownItem}
                                     onPress={() => {
-                                      setFormData({ ...formData, unit: unit });
+                                      setFormData(prev => ({ ...prev, unit: unit }));
                                       setShowUnitDropdown(false);
                                     }}
                                   >
@@ -922,7 +955,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                         <TextInput
                           style={[styles.input, styles.textArea]}
                           value={formData.description}
-                          onChangeText={(text) => setFormData({ ...formData, description: text })}
+                          onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
                           placeholder="Describe your product/service..."
                           placeholderTextColor={COLORS.textMuted}
                           multiline
@@ -936,7 +969,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           <Text style={styles.toggleLabel}>Best Seller</Text>
                           <Switch
                             value={formData.bestSeller}
-                            onValueChange={(value) => setFormData({ ...formData, bestSeller: value })}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, bestSeller: value }))}
                             trackColor={{ false: '#E5E7EB', true: COLORS.orange }}
                             thumbColor={COLORS.white}
                           />
@@ -965,7 +998,24 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.productCard}>
-                <Image source={{ uri: item.imageUrl || item.image_url }} style={styles.productImage} />
+                <Image 
+                  source={{ 
+                    uri: (() => {
+                      const url = item.imageUrl || item.image_url;
+                      if (!url) return '';
+                      if (typeof url === 'string' && url.startsWith('[') && url.endsWith(']')) {
+                        try {
+                          const parsed = JSON.parse(url);
+                          return Array.isArray(parsed) ? (parsed[0] || '') : url;
+                        } catch (e) {
+                          return url;
+                        }
+                      }
+                      return url;
+                    })() 
+                  }} 
+                  style={styles.productImage} 
+                />
                 <View style={styles.productInfo}>
                   <Text style={styles.productName}>{item.name}</Text>
                   <Text style={styles.productCategory}>{item.category}</Text>
@@ -1733,6 +1783,50 @@ const createStyles = (COLORS) => StyleSheet.create({
     textAlign: 'center',
     color: COLORS.textMuted,
     fontSize: 14,
+  },
+  imagesPreviewScroll: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+  },
+  previewImageWrapper: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  previewImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  removeImageBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#ef4444',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFF',
+  },
+  addImageSquare: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.divider,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  addPhotoText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 4,
+    fontWeight: '600',
   },
 });
 
