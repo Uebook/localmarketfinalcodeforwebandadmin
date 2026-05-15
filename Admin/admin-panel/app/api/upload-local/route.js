@@ -37,65 +37,82 @@ export async function POST(request) {
         }
 
         const contentType = request.headers.get('content-type') || '';
-        if (!contentType.includes('multipart/form-data')) {
-            return NextResponse.json(
-                { error: 'Invalid Content-Type. Use multipart/form-data' },
-                { status: 400, headers: corsHeaders }
-            );
-        }
+        
+        let results = [];
 
-        const formData = await request.formData();
-        const files = formData.getAll('file');
+        // CASE 1: JSON BASE64 UPLOAD (For Mobile Apps with network restrictions)
+        if (contentType.includes('application/json')) {
+            const body = await request.json();
+            const { base64, fileName, mimeType } = body;
 
-        if (!files || files.length === 0) {
-            return NextResponse.json(
-                { error: 'No files provided in the "file" field' },
-                { status: 400, headers: corsHeaders }
-            );
-        }
-
-        console.log(`[Upload Local] Processing ${files.length} file(s)`);
-
-        const results = await Promise.all(files.map(async (file) => {
-            try {
-                // More resilient check for file objects
-                if (!file || typeof file.arrayBuffer !== 'function') {
-                    console.warn(`[Upload Local] Invalid file item received:`, typeof file);
-                    return { name: file?.name || 'unknown', error: 'Invalid file object' };
-                }
-
-                const timestamp = Date.now();
-                // Clean filename to prevent path traversal or shell issues
-                const safeName = (file.name || 'upload.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
-                const filename = `${timestamp}-${safeName}`;
-                const filePath = join(IMAGES_DIR, filename);
-
-                const arrayBuffer = await file.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
-                
-                await writeFile(filePath, buffer);
-
-                // 4. Set permissions to be globally readable (optional but helpful on some VPS)
-                try {
-                    await chmod(filePath, 0o644);
-                } catch (e) {
-                    console.log(`[Upload Local] Could not set permissions: ${e.message}`);
-                }
-                
-                const publicUrl = `${PUBLIC_BASE_URL}/${filename}`;
-                console.log(`[Upload Local] Saved: ${filename} (${file.size} bytes)`);
-
-                return {
-                    name: file.name,
-                    success: true,
-                    url: publicUrl,
-                    size: file.size
-                };
-            } catch (err) {
-                console.error(`[Upload Local] Error saving ${file?.name}:`, err.message);
-                return { name: file?.name || 'unknown', error: err.message };
+            if (!base64) {
+                return NextResponse.json({ error: 'No base64 data provided' }, { status: 400, headers: corsHeaders });
             }
-        }));
+
+            const timestamp = Date.now();
+            const safeName = (fileName || 'upload.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filename = `${timestamp}-${safeName}`;
+            const filePath = join(IMAGES_DIR, filename);
+
+            const buffer = Buffer.from(base64, 'base64');
+            await writeFile(filePath, buffer);
+
+            try { await chmod(filePath, 0o644); } catch (e) {}
+
+            results.push({
+                name: fileName,
+                success: true,
+                url: `${PUBLIC_BASE_URL}/${filename}`,
+                size: buffer.length
+            });
+        } 
+        // CASE 2: MULTIPART FORM DATA (Standard Web Upload)
+        else if (contentType.includes('multipart/form-data')) {
+            const formData = await request.formData();
+            const files = formData.getAll('file');
+
+            if (!files || files.length === 0) {
+                return NextResponse.json(
+                    { error: 'No files provided in the "file" field' },
+                    { status: 400, headers: corsHeaders }
+                );
+            }
+
+            console.log(`[Upload Local] Processing ${files.length} file(s)`);
+
+            results = await Promise.all(files.map(async (file) => {
+                try {
+                    if (!file || typeof file.arrayBuffer !== 'function') {
+                        return { name: file?.name || 'unknown', error: 'Invalid file object' };
+                    }
+
+                    const timestamp = Date.now();
+                    const safeName = (file.name || 'upload.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const filename = `${timestamp}-${safeName}`;
+                    const filePath = join(IMAGES_DIR, filename);
+
+                    const arrayBuffer = await file.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    
+                    await writeFile(filePath, buffer);
+                    try { await chmod(filePath, 0o644); } catch (e) {}
+                    
+                    return {
+                        name: file.name,
+                        success: true,
+                        url: `${PUBLIC_BASE_URL}/${filename}`,
+                        size: file.size
+                    };
+                } catch (err) {
+                    return { name: file?.name || 'unknown', error: err.message };
+                }
+            }));
+        } else {
+            return NextResponse.json(
+                { error: 'Invalid Content-Type. Use multipart/form-data or application/json' },
+                { status: 400, headers: corsHeaders }
+            );
+        }
 
         const successCount = results.filter(r => r.success).length;
         

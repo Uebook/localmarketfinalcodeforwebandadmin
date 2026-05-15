@@ -295,8 +295,11 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     launchImageLibrary(
       {
         mediaType: 'photo',
-        quality: 0.8,
-        selectionLimit: 0, // Allow multiple selection
+        quality: 0.5,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        includeBase64: true, // Get base64 string
+        selectionLimit: 0, 
       },
       (response) => {
         if (response.assets && response.assets.length > 0) {
@@ -308,6 +311,47 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         }
       }
     );
+  };
+
+  const handleDirectUploadTest = async () => {
+    if (formData.images.length === 0) {
+      Alert.alert('Error', 'Please select an image first');
+      return;
+    }
+
+    const image = formData.images[0];
+    console.log('[Test Upload] Starting test for:', image.uri);
+
+    try {
+      const image = formData.images[0];
+      console.log('[Test Upload] Starting Base64 JSON test for:', image.uri);
+
+      // We are sending JSON, which we know works on your phone!
+      const response = await fetch('https://admin.lokall.in/api/upload-local', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          base64: image.base64,
+          fileName: image.fileName || `test_${Date.now()}.jpg`,
+          mimeType: image.type || 'image/jpeg'
+        }),
+      });
+
+      const result = await response.json();
+      console.log('[Test Upload] Base64 Result:', result);
+      
+      if (result.success) {
+        Alert.alert('VICTORY!', 'The image was uploaded successfully using the Base64 method!');
+      } else {
+        Alert.alert('Server Error', result.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('[Test Upload] Error:', error);
+      Alert.alert('Upload Error', error.message);
+    }
   };
 
   const removeImage = (index) => {
@@ -822,6 +866,10 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                         <TouchableOpacity style={styles.addImageSquare} onPress={handleImagePicker}>
                           <Icon name="plus" size={24} color={COLORS.textMuted} />
                           <Text style={styles.addPhotoText}>Add</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.addImageSquare, { borderColor: '#10B981' }]} onPress={handleDirectUploadTest}>
+                          <Icon name="upload" size={24} color="#10B981" />
+                          <Text style={[styles.addPhotoText, { color: '#10B981' }]}>Test</Text>
                         </TouchableOpacity>
                       </ScrollView>
                     </View>
