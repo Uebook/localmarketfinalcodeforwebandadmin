@@ -864,14 +864,21 @@ export const updateVendorProfile = async (id, profileData) => {
  * @param {string} mimeType - The mime type of the file
  * @returns {Promise<string>} The URL of the uploaded file
  */
-export const uploadFile = async (fileUri, folder = 'general', mimeType = 'image/jpeg') => {
+export const uploadFile = async (assetOrUri, folder = 'general', mimeType = 'image/jpeg') => {
   try {
-    // Convert URI to an asset-like object for uploadToVPS
+    // If we already have an asset object with base64, use it directly
+    if (typeof assetOrUri === 'object' && assetOrUri.base64) {
+      return await uploadToVPS(assetOrUri);
+    }
+
+    // Fallback for legacy URI strings
     const asset = {
-      uri: fileUri,
-      type: mimeType,
-      name: fileUri.split('/').pop() || `upload_${Date.now()}.jpg`
+      uri: typeof assetOrUri === 'string' ? assetOrUri : assetOrUri.uri,
+      type: typeof assetOrUri === 'object' ? assetOrUri.type : mimeType,
+      name: (typeof assetOrUri === 'string' ? assetOrUri.split('/').pop() : assetOrUri.fileName) || `upload_${Date.now()}.jpg`,
+      base64: typeof assetOrUri === 'object' ? assetOrUri.base64 : null
     };
+    
     return await uploadToVPS(asset);
   } catch (error) {
     console.error('[uploadFile] Error:', error);

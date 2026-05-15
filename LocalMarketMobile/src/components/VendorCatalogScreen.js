@@ -313,10 +313,6 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     );
   };
 
-    } catch (error) {
-      console.error('[Add Image] Error:', error);
-    }
-  };
 
   const removeImage = (index) => {
     const updatedImages = [...formData.images];

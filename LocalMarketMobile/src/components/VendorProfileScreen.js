@@ -174,10 +174,10 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   const handleImagePick = async (type) => {
     const options = {
       mediaType: 'photo',
-      includeBase64: false,
+      includeBase64: true, // Crucial: Get the base64 string
       maxHeight: 1200,
       maxWidth: 1200,
-      quality: 0.8,
+      quality: 0.6, // Compressed quality
     };
 
     Alert.alert(
@@ -233,12 +233,12 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
 
     if (result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
-      console.log('[ImagePick] Success:', asset.uri);
-      await handleUpload(asset.uri, type, asset.type); 
+      console.log('[ImagePick] Success, starting upload...');
+      await handleUpload(asset, type); // Pass the whole asset object
     }
   };
 
-  const handleUpload = async (uri, type, mimeType) => {
+  const handleUpload = async (asset, type) => {
     if (!vendorData?.id) return;
 
     const isCover = type === 'cover';
@@ -247,9 +247,8 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
     try {
       setUploading(true);
 
-      // 1. Upload file to Supabase
-      const folder = isCover ? 'shop-photos' : 'id-proofs';
-      const uploadedUrl = await uploadFile(uri, folder, mimeType);
+      // 1. Upload file to VPS (now uses Base64)
+      const uploadedUrl = await uploadFile(asset, isCover ? 'shop-photos' : 'id-proofs');
 
       if (uploadedUrl) {
         // 2. Update vendor profile in DB
