@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, chmod } from 'fs/promises';
 import { join, resolve } from 'path';
 import { existsSync } from 'fs';
 
@@ -70,6 +70,13 @@ export async function POST(request) {
                 const buffer = Buffer.from(arrayBuffer);
                 
                 await writeFile(filePath, buffer);
+
+                // 4. Set permissions to be globally readable (optional but helpful on some VPS)
+                try {
+                    await chmod(filePath, 0o644);
+                } catch (e) {
+                    console.log(`[Upload Local] Could not set permissions: ${e.message}`);
+                }
                 
                 const publicUrl = `${PUBLIC_BASE_URL}/${filename}`;
                 console.log(`[Upload Local] Saved: ${filename} (${file.size} bytes)`);

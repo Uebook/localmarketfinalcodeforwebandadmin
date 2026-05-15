@@ -1,20 +1,19 @@
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
-import { NextResponse } from 'next/server';
 import { existsSync } from 'fs';
 
 export async function GET(request, { params }) {
     const { filename } = params;
+    // Force absolute path resolution relative to the app root
     const filePath = resolve(process.cwd(), 'public', 'images', filename);
 
     if (!existsSync(filePath)) {
-        return new NextResponse('Image not found', { status: 404 });
+        return new Response('Image not found on disk', { status: 404 });
     }
 
     try {
         const fileBuffer = await readFile(filePath);
         
-        // Determine content type based on extension
         const ext = filename.split('.').pop().toLowerCase();
         const contentTypes = {
             'jpg': 'image/jpeg',
@@ -26,14 +25,15 @@ export async function GET(request, { params }) {
         };
         const contentType = contentTypes[ext] || 'application/octet-stream';
 
-        return new NextResponse(fileBuffer, {
+        return new Response(fileBuffer, {
             headers: {
                 'Content-Type': contentType,
+                'Content-Length': fileBuffer.length.toString(),
                 'Cache-Control': 'public, max-age=31536000, immutable',
             },
         });
     } catch (error) {
         console.error(`[Image Server] Error serving ${filename}:`, error);
-        return new NextResponse(`Error reading image: ${error.message}`, { status: 500 });
+        return new Response(`Error reading image: ${error.message}`, { status: 500 });
     }
 }
