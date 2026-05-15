@@ -17,7 +17,7 @@ Created a comprehensive API service file with all user-related API functions:
 - `getUserTheme()` / `updateUserTheme()` - User theme preferences
 - `getSearchReports()` - Search analytics
 
-**Base URL**: `https://admin.lokall.in`
+**Base URL**: `https://lokall.in`
 
 ### 2. **Categories API Integration**
 

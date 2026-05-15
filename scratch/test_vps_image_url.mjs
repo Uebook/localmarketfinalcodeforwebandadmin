@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const API_BASE_URL = 'https://admin.lokall.in';
+const API_BASE_URL = 'https://lokall.in';
 
 async function testVPSImageUpload() {
     console.log(`--- Testing VPS Image Upload API: ${API_BASE_URL}/api/upload-local ---`);

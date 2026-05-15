@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // Use 10.0.2.2 for Android emulators to reach localhost on the host machine
 // Use your actual local IP (192.168.1.42) instead of 10.0.2.2 for better reachability from the emulator on Mac
 // Live production URL
-export const API_BASE_URL = 'https://admin.lokall.in';
+export const API_BASE_URL = 'https://lokall.in';
 
 /**
  * Generic fetch wrapper with error handling
