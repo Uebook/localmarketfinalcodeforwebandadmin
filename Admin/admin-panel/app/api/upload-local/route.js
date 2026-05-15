@@ -17,7 +17,8 @@ const corsHeaders = {
 export async function POST(request) {
     console.log(`[Upload Local] Received request at ${new Date().toISOString()}`);
     try {
-        // 1. Ensure the Images directory exists
+        console.log(`[Upload Local] Target directory: ${IMAGES_DIR}`);
+        // 1. Ensure the images directory exists
         try {
             if (!existsSync(IMAGES_DIR)) {
                 console.log(`[Upload Local] Creating directory: ${IMAGES_DIR}`);
