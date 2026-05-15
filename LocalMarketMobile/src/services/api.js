@@ -4,8 +4,8 @@ import { Platform } from 'react-native';
 // Standard bridge for Android emulator to host localhost
 // Use 10.0.2.2 for Android emulators to reach localhost on the host machine
 // Use your actual local IP (192.168.1.42) instead of 10.0.2.2 for better reachability from the emulator on Mac
-// Use the live production URL (Confirmed Working)
-export const API_BASE_URL = 'https://admin.lokall.in';
+// Using http temporarily to debug SSL issues in the emulator
+export const API_BASE_URL = 'http://admin.lokall.in';
 
 /**
  * Generic fetch wrapper with error handling
