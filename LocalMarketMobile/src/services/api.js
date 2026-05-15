@@ -974,7 +974,7 @@ const uploadSingleToSupabase = async (asset, folder) => {
 
 /**
  * Upload images to VPS local storage via /api/upload-local
- * Files are saved to /var/www/localmarket/Images/ on the server
+ * Files are saved to /var/www/localmarket/images/ on the server
  */
 const uploadToVPS = (asset) => {
   return new Promise((resolve, reject) => {
