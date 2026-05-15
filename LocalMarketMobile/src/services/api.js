@@ -877,39 +877,32 @@ export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
     const formData = new FormData();
 
     // Normalize URI for Android
-    let uploadUri = fileUri;
-    if (Platform.OS === 'android' && !fileUri.startsWith('content://') && !fileUri.startsWith('file://')) {
-      uploadUri = `file://${fileUri}`;
-    }
+export const uploadFile = (fileUri, folder = 'general', mimeType = 'image/jpeg') => {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    const fileName = fileUri.split('/').pop();
 
-    // React Native's FormData.append for files
     formData.append('file', {
-      uri: uploadUri,
-      type: mimeType || 'image/jpeg',
-      name: filename,
+      uri: Platform.OS === 'android' ? fileUri : fileUri.replace('file://', ''),
+      type: mimeType,
+      name: fileName,
     });
-
-    formData.append('bucket', 'vendor-documents');
     formData.append('folder', folder);
 
     const xhr = new XMLHttpRequest();
-
-    xhr.open('POST', `${API_BASE_URL}/api/upload`);
-
-    // Set headers if needed, but NOT Content-Type for FormData
-    xhr.setRequestHeader('Accept', 'application/json');
+    
+    // Switch to upload-local for VPS storage as per latest server deployment
+    xhr.open('POST', `${API_BASE_URL}/api/upload-local`);
 
     xhr.onload = () => {
-      console.log(`[Upload] XHR Status: ${xhr.status}`);
+      console.log('[Upload] Status:', xhr.status);
       try {
         const response = JSON.parse(xhr.responseText);
-        if (xhr.status >= 200 && xhr.status < 300) {
-          if (response.url) {
-            console.log('[Upload] Success! URL:', response.url);
-            resolve(response.url);
-          } else {
-            reject(new Error('Upload succeeded but no URL was returned'));
-          }
+        if (xhr.status === 200 && response.success) {
+          // VPS upload-local returns an array of files, take the first one
+          const fileUrl = response.files && response.files[0] ? response.files[0].url : (response.url || '');
+          console.log('[Upload] Success URL:', fileUrl);
+          resolve(fileUrl);
         } else {
           const errorMsg = response.error || response.message || `Upload failed (${xhr.status})`;
           reject(new Error(errorMsg));
