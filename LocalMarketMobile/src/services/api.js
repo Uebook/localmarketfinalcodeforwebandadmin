@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // Use 10.0.2.2 for Android emulators to reach localhost on the host machine
 // Use your actual local IP (192.168.1.42) instead of 10.0.2.2 for better reachability from the emulator on Mac
 // Live production URL
-export const API_BASE_URL = 'https://lokall.in';
+export const API_BASE_URL = 'https://admin.lokall.in';
 
 /**
  * Generic fetch wrapper with error handling
@@ -858,66 +858,25 @@ export const updateVendorProfile = async (id, profileData) => {
 };
 
 /**
- * Upload a file to the server using FormData
+ * Upload a file to the VPS local storage using FormData
  * @param {string} fileUri - The local URI of the file
- * @param {string} folder - The destination folder on the server
+ * @param {string} folder - The destination folder (optional)
+ * @param {string} mimeType - The mime type of the file
  * @returns {Promise<string>} The URL of the uploaded file
  */
-export const uploadFile = async (fileUri, folder, mimeType = 'image/jpeg') => {
-  return new Promise((resolve, reject) => {
-    console.log(`[Upload] Starting upload to ${folder}... URI: ${fileUri}`);
-
-    // Safely extract filename
-    let filename = `upload_${Date.now()}.jpg`;
-    try {
-      const parts = fileUri.split('/');
-      filename = parts[parts.length - 1] || filename;
-    } catch (e) { }
-
-    const formData = new FormData();
-
-    // Normalize URI for Android
-export const uploadFile = (fileUri, folder = 'general', mimeType = 'image/jpeg') => {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    const fileName = fileUri.split('/').pop();
-
-    formData.append('file', {
-      uri: Platform.OS === 'android' ? fileUri : fileUri.replace('file://', ''),
+export const uploadFile = async (fileUri, folder = 'general', mimeType = 'image/jpeg') => {
+  try {
+    // Convert URI to an asset-like object for uploadToVPS
+    const asset = {
+      uri: fileUri,
       type: mimeType,
-      name: fileName,
-    });
-    formData.append('folder', folder);
-
-    const xhr = new XMLHttpRequest();
-    
-    // Switch to upload-local for VPS storage as per latest server deployment
-    xhr.open('POST', `${API_BASE_URL}/api/upload-local`);
-
-    xhr.onload = () => {
-      console.log('[Upload] Status:', xhr.status);
-      try {
-        const response = JSON.parse(xhr.responseText);
-        if (xhr.status === 200 && response.success) {
-          // VPS upload-local returns an array of files, take the first one
-          const fileUrl = response.files && response.files[0] ? response.files[0].url : (response.url || '');
-          console.log('[Upload] Success URL:', fileUrl);
-          resolve(fileUrl);
-        } else {
-          const errorMsg = response.error || response.message || `Upload failed (${xhr.status})`;
-          reject(new Error(errorMsg));
-        }
-      } catch (e) {
-        reject(new Error(`Server returned invalid response: ${xhr.responseText.substring(0, 50)}...`));
-      }
+      name: fileUri.split('/').pop() || `upload_${Date.now()}.jpg`
     };
-
-    xhr.onerror = () => {
-      reject(new Error('Network request failed during upload. Check your internet connection.'));
-    };
-
-    xhr.send(formData);
-  });
+    return await uploadToVPS(asset);
+  } catch (error) {
+    console.error('[uploadFile] Error:', error);
+    throw error;
+  }
 };
 
 /**
@@ -978,45 +937,74 @@ const uploadSingleToSupabase = async (asset, folder) => {
  */
 const uploadToVPS = (asset) => {
   return new Promise((resolve, reject) => {
-    const uploadUri = Platform.OS === 'android'
-      ? asset.uri
-      : asset.uri.replace('file://', '');
+    try {
+      const uploadUri = Platform.OS === 'android'
+        ? asset.uri
+        : asset.uri.replace('file://', '');
 
-    const filename = asset.fileName || asset.name || `photo_${Date.now()}.jpg`;
-    const mimeType = asset.type || 'image/jpeg';
+      const filename = asset.fileName || asset.name || `photo_${Date.now()}.jpg`;
+      const mimeType = asset.type || 'image/jpeg';
 
-    const formData = new FormData();
-    formData.append('file', { uri: uploadUri, type: mimeType, name: filename });
+      console.log(`[VPS Upload] Preparing upload: ${filename} (${mimeType})`);
+      console.log(`[VPS Upload] URI: ${uploadUri}`);
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${API_BASE_URL}/api/upload-local`);
-    xhr.setRequestHeader('Accept', 'application/json');
+      const formData = new FormData();
+      // Important: The object MUST have uri, type, and name for React Native's FormData to treat it as a file
+      formData.append('file', { 
+        uri: uploadUri, 
+        type: mimeType, 
+        name: filename 
+      });
 
-    xhr.onload = () => {
-      console.log(`[VPS Upload] Status: ${xhr.status}`);
-      try {
-        const data = JSON.parse(xhr.responseText);
-        if (xhr.status >= 200 && xhr.status < 300 && data.success) {
-          const file = data.files?.[0];
-          if (file?.url) {
-            console.log(`[VPS Upload] Success: ${file.url}`);
-            resolve(file.url);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}/api/upload-local`);
+      
+      // Set headers
+      xhr.setRequestHeader('Accept', 'application/json');
+      // Do NOT set Content-Type header when using FormData; let the browser/RN set it with the boundary
+
+      xhr.onload = () => {
+        console.log(`[VPS Upload] Status: ${xhr.status} for ${filename}`);
+        try {
+          if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            if (data.success && data.files && data.files[0]) {
+              const fileUrl = data.files[0].url;
+              console.log(`[VPS Upload] ✅ Success: ${fileUrl}`);
+              resolve(fileUrl);
+            } else {
+              console.error('[VPS Upload] ❌ Server error:', data);
+              reject(new Error(data.error || 'Server reported failure but no error message'));
+            }
           } else {
-            reject(new Error('No URL returned'));
+            console.error(`[VPS Upload] ❌ HTTP ${xhr.status}:`, xhr.responseText);
+            reject(new Error(`Server error (${xhr.status})`));
           }
-        } else {
-          reject(new Error(data.error || `Upload failed (${xhr.status})`));
+        } catch (e) {
+          console.error('[VPS Upload] ❌ Parsing error:', e, xhr.responseText);
+          reject(new Error('Invalid response from server'));
         }
-      } catch (e) {
-        reject(new Error(`Invalid server response: ${xhr.responseText?.substring(0, 80)}`));
-      }
-    };
+      };
 
-    xhr.onerror = () => {
-      reject(new Error('Network error. Check your connection.'));
-    };
+      xhr.onerror = (e) => {
+        console.error('[VPS Upload] ❌ Network error:', e);
+        reject(new Error('Network request failed. Please check your internet connection.'));
+      };
 
-    xhr.send(formData);
+      xhr.ontimeout = () => {
+        console.error('[VPS Upload] ❌ Timeout');
+        reject(new Error('Upload timed out. Please try again.'));
+      };
+
+      // Optional: Set a timeout (60 seconds)
+      xhr.timeout = 60000;
+
+      console.log(`[VPS Upload] 📤 Sending to ${API_BASE_URL}/api/upload-local...`);
+      xhr.send(formData);
+    } catch (err) {
+      console.error('[VPS Upload] ❌ Setup error:', err);
+      reject(err);
+    }
   });
 };
 

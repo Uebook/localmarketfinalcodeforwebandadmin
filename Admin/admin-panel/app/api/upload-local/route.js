@@ -14,6 +14,10 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+export async function OPTIONS() {
+    return new NextResponse(null, { headers: corsHeaders });
+}
+
 export async function POST(request) {
     console.log(`[Upload Local] Received request at ${new Date().toISOString()}`);
     try {
