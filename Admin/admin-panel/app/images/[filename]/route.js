@@ -33,6 +33,7 @@ export async function GET(request, { params }) {
             },
         });
     } catch (error) {
-        return new NextResponse('Error reading image', { status: 500 });
+        console.error(`[Image Server] Error serving ${filename}:`, error);
+        return new NextResponse(`Error reading image: ${error.message}`, { status: 500 });
     }
 }
