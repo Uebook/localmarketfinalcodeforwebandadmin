@@ -30,8 +30,9 @@ function normalizeVendor(v) {
         address: v.address ?? '',
         landmark: v.landmark ?? '',
         pincode: v.pincode ?? '',
-        imageUrl: v.imageUrl ?? v.image_url ?? v.shopFrontPhotoUrl ?? v.shop_front_photo_url ?? null,
-        shopFrontPhotoUrl: v.shopFrontPhotoUrl ?? v.shop_front_photo_url ?? v.imageUrl ?? v.image_url ?? null,
+        imageUrl: v.imageUrl ?? v.image_url ?? v.profileImageUrl ?? v.profile_image_url ?? v.shopFrontPhotoUrl ?? v.shop_front_photo_url ?? null,
+        shopFrontPhotoUrl: v.shopFrontPhotoUrl ?? v.shop_front_photo_url ?? v.imageUrl ?? v.image_url ?? v.profileImageUrl ?? v.profile_image_url ?? null,
+        profileImageUrl: v.profileImageUrl ?? v.profile_image_url ?? v.imageUrl ?? v.image_url ?? null,
     };
 }
 

@@ -471,17 +471,17 @@ export default function VendorProfile({ vendor: initialVendor, onBack }) {
               {/* Business Photo / Shop Front */}
               <div>
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Business Photo</span>
-                {vendor.shopFrontPhotoUrl || vendor.imageUrl ? (
+                {vendor.shopFrontPhotoUrl || vendor.imageUrl || vendor.profileImageUrl ? (
                   <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                     <img
-                      src={vendor.shopFrontPhotoUrl || vendor.imageUrl}
+                      src={vendor.shopFrontPhotoUrl || vendor.imageUrl || vendor.profileImageUrl}
                       alt="Business Photo"
                       className="w-full h-48 object-cover cursor-pointer"
-                      onClick={() => window.open(vendor.shopFrontPhotoUrl || vendor.imageUrl, '_blank')}
+                      onClick={() => window.open(vendor.shopFrontPhotoUrl || vendor.imageUrl || vendor.profileImageUrl, '_blank')}
                     />
                     <div className="p-2 border-t border-gray-200 text-center">
                       <button
-                        onClick={() => window.open(vendor.shopFrontPhotoUrl || vendor.imageUrl, '_blank')}
+                        onClick={() => window.open(vendor.shopFrontPhotoUrl || vendor.imageUrl || vendor.profileImageUrl, '_blank')}
                         className="text-xs font-bold text-orange-600 hover:text-orange-700"
                       >
                         View Full Photo

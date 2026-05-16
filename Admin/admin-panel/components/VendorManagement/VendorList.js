@@ -683,9 +683,9 @@ export default function VendorList({ onViewProfile }) {
                     <tr key={vendor.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative w-16 h-16">
-                          {vendor.imageUrl || vendor.shopFrontPhotoUrl ? (
+                          {vendor.imageUrl || vendor.shopFrontPhotoUrl || vendor.profileImageUrl ? (
                             <img
-                              src={vendor.imageUrl || vendor.shopFrontPhotoUrl}
+                              src={vendor.imageUrl || vendor.shopFrontPhotoUrl || vendor.profileImageUrl}
                               alt={vendor.name || 'Vendor'}
                               className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                               onError={(e) => {
@@ -697,7 +697,7 @@ export default function VendorList({ onViewProfile }) {
                             />
                           ) : null}
                           <div
-                            className={`image-placeholder w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center ${vendor.imageUrl || vendor.shopFrontPhotoUrl ? 'hidden' : ''}`}
+                            className={`image-placeholder w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center ${vendor.imageUrl || vendor.shopFrontPhotoUrl || vendor.profileImageUrl ? 'hidden' : ''}`}
                           >
                             <span className="text-gray-400 text-xs">No Image</span>
                           </div>
