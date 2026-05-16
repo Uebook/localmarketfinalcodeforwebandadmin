@@ -17,6 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { requestPasswordResetOTP, resetPassword } from '../services/api';
+import Logo from './Logo';
 
 const ForgotPasswordScreen = ({ onBack }) => {
   const COLORS = useThemeColors();
@@ -150,11 +151,7 @@ const ForgotPasswordScreen = ({ onBack }) => {
 
           <View style={styles.heroSection}>
             <View style={styles.logoContainer}>
-               <Image 
-                 source={require('../assets/lokall_shop_illustration.jpg')} 
-                 style={styles.heroImage} 
-                 resizeMode="contain"
-               />
+               <Logo size={60} />
             </View>
             <Text style={styles.brandName}>LOKALL</Text>
             <Text style={styles.brandTagline}>Security Center</Text>

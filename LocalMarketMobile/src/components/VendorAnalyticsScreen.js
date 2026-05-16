@@ -403,7 +403,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
         hideCart={true}
-        profileImage={vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url}
+        profileImage={vendorData?.profile_image_url || vendorData?.profileImageUrl || vendorData?.imageUrl || vendorData?.image_url}
       />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -413,8 +413,15 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
             colors={['#1E293B', '#334155']}
             style={styles.premiumCover}
           >
+            {(vendorData?.profile_image_url || vendorData?.profileImageUrl || vendorData?.image_url || vendorData?.imageUrl) && (
+              <Image 
+                source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl || vendorData.image_url || vendorData.imageUrl }} 
+                style={StyleSheet.absoluteFill} 
+                opacity={0.6}
+              />
+            )}
             <View style={styles.coverOverlay} />
-            <TouchableOpacity style={styles.editCoverBtn}>
+            <TouchableOpacity style={styles.editCoverBtn} onPress={() => navigation.navigate('Settings')}>
               <Icon name="camera" size={14} color="#FFF" />
               <Text style={styles.editCoverText}>Change Cover</Text>
             </TouchableOpacity>
@@ -424,9 +431,9 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
             <View style={styles.profileHeaderRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatarInner}>
-                  {(vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) ? (
+                  {(vendorData?.profile_image_url || vendorData?.profileImageUrl || vendorData?.imageUrl || vendorData?.image_url) ? (
                     <Image 
-                      source={{ uri: vendorData.imageUrl || vendorData.image || vendorData.image_url || vendorData.profilePhotoUrl || vendorData.profile_image_url }} 
+                      source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl || vendorData.imageUrl || vendorData.image_url }} 
                       style={styles.avatarImage} 
                     />
                   ) : (

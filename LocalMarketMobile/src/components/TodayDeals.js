@@ -16,7 +16,7 @@ const TodayDeals = ({ navigation, data = [] }) => {
         {safeData.map((item) => {
           const savings = (item.mrp || 0) - (item.price || 0);
           const vendorData = item.vendors || item.vendor || item;
-          const imageUrl = item.image_url || item.imageUrl || (vendorData && (vendorData.image_url || vendorData.imageUrl));
+          const imageUrl = (vendorData && (vendorData.profile_image_url || vendorData.profileImageUrl)) || item.image_url || item.imageUrl || (vendorData && (vendorData.image_url || vendorData.imageUrl));
 
           return (
             <TouchableOpacity

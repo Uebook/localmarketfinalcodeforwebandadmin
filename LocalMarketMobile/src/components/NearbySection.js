@@ -68,7 +68,7 @@ const NearbySection = ({ vendors, onBusinessClick, onSeeAll, locationState }) =>
           rating: parseFloat(vendor.rating) || 4.2,
           reviewCount: vendor.reviewCount || 48,
           distance: 'Near you',
-          imageUrl: vendor.imageUrl || vendor.image_url || (vendor.images && vendor.images[0]),
+          imageUrl: vendor.profile_image_url || vendor.profileImageUrl || vendor.imageUrl || vendor.image_url || (vendor.images && vendor.images[0]),
           address: vendor.address || '',
           phone: vendor.contactNumber || vendor.phone || '',
         }));

@@ -36,7 +36,7 @@ const MegaSavingsSection = ({ data = [], navigation }) => {
         {safeData.map((item) => {
           const savings = (item.mrp || 0) - (item.price || item.offline || 0);
           const savingsPct = item.mrp > 0 ? Math.round((savings / item.mrp) * 100) : 0;
-          const displayImage = item.image || item.imageUrl || item.image_url || item.profile_image_url;
+          const displayImage = item.profile_image_url || item.profileImageUrl || item.image || item.imageUrl || item.image_url;
 
           return (
             <TouchableOpacity

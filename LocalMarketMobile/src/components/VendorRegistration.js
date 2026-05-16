@@ -112,7 +112,7 @@ const DropdownPicker = ({ label, required, value, options, onSelect, loading, di
 const PhotoUpload = ({ label, value, onPress }) => (
   <TouchableOpacity style={fieldStyles.photoBox} onPress={onPress} activeOpacity={0.7}>
     {value ? (
-      <Image source={{ uri: value }} style={fieldStyles.photoImage} />
+      <Image source={{ uri: typeof value === 'string' ? value : value.uri }} style={fieldStyles.photoImage} />
     ) : (
       <>
         <Icon name="camera" size={28} color="#94A3B8" />
@@ -166,12 +166,15 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     mobile: '', email: '', password: '', confirmPassword: '',
     address: '', state: '', city: '', area: '', circle: '', pincode: '',
     latitude: null, longitude: null,
-    idProofUrl: '', businessPhotoUrl: '', shopDocumentUrl: '',
+    latitude: null, longitude: null,
+    idProof: null, businessPhoto: null, shopDocument: null,
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const update = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
@@ -248,9 +251,9 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
       if (!formData.address?.trim()) { setError('Full address is required'); return false; }
       if (!formData.pincode || formData.pincode.length < 6) { setError('Valid 6-digit pincode is required'); return false; }
     } else if (step === 5) {
-      if (!formData.idProofUrl) { setError('ID Proof photo is required'); return false; }
-      if (!formData.businessPhotoUrl) { setError('Business Photo is required'); return false; }
-      if (!formData.shopDocumentUrl) { setError('Shop Document is required'); return false; }
+      if (!formData.idProof) { setError('ID Proof photo is required'); return false; }
+      if (!formData.businessPhoto) { setError('Business Photo is required'); return false; }
+      if (!formData.shopDocument) { setError('Shop Document is required'); return false; }
     }
     return true;
   };
@@ -269,8 +272,14 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   };
 
   const pickImage = (field) => {
-    launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, (res) => {
-      if (res.assets?.[0]) update(field, res.assets[0].uri);
+    launchImageLibrary({ 
+      mediaType: 'photo', 
+      quality: 0.7, 
+      includeBase64: true 
+    }, (res) => {
+      if (res.assets?.[0]) {
+        update(field, res.assets[0]);
+      }
     });
   };
 
@@ -278,37 +287,20 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      let idProofUrl = formData.idProofUrl;
-      let businessPhotoUrl = formData.businessPhotoUrl;
-      let shopDocumentUrl = formData.shopDocumentUrl;
+      let idProofUrl = null;
+      let profileImageUrl = null;
+      let kycDocumentUrl = null;
 
-      // Individual image uploads with fallback to original URI if fails
-      // We wrap each in try-catch so one fail doesn't block overall registration
-      if (idProofUrl && !idProofUrl.startsWith('http')) {
-        try {
-          idProofUrl = await uploadFile(idProofUrl, 'id-proofs');
-        } catch (e) {
-          console.warn('ID Proof upload failed, proceeding without it:', e.message);
-          idProofUrl = null; 
-        }
-      }
-      if (businessPhotoUrl && !businessPhotoUrl.startsWith('http')) {
-        try {
-          businessPhotoUrl = await uploadFile(businessPhotoUrl, 'shop-photos');
-        } catch (e) {
-          console.warn('Business Photo upload failed, proceeding without it:', e.message);
-          businessPhotoUrl = null;
-        }
-      }
-      if (shopDocumentUrl && !shopDocumentUrl.startsWith('http')) {
-        try {
-          shopDocumentUrl = await uploadFile(shopDocumentUrl, 'kyc-documents');
-        } catch (e) {
-          console.warn('Shop Document upload failed, proceeding without it:', e.message);
-          shopDocumentUrl = null;
-        }
-      }
+      // Parallel uploads for better performance
+      const [idRes, profileRes, kycRes] = await Promise.allSettled([
+        formData.idProof ? uploadFile(formData.idProof, 'kyc-documents') : Promise.resolve(null),
+        formData.businessPhoto ? uploadFile(formData.businessPhoto, 'vendor-profiles') : Promise.resolve(null),
+        formData.shopDocument ? uploadFile(formData.shopDocument, 'kyc-documents') : Promise.resolve(null),
+      ]);
 
+      if (idRes.status === 'fulfilled') idProofUrl = idRes.value;
+      if (profileRes.status === 'fulfilled') profileImageUrl = profileRes.value;
+      if (kycRes.status === 'fulfilled') kycDocumentUrl = kycRes.value;
 
       const response = await registerVendor({
         businessName: formData.businessName,
@@ -326,7 +318,9 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
         latitude: formData.latitude,
         longitude: formData.longitude,
         password: formData.password,
-        idProofUrl, businessPhotoUrl, shopDocumentUrl,
+        idProofUrl: idProofUrl,
+        businessPhotoUrl: profileImageUrl,
+        shopDocumentUrl: kycDocumentUrl,
       });
 
       if (response?.vendor) {
@@ -338,7 +332,8 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     } catch (err) {
       console.error('Registration error:', err);
       // Show actual error message if available
-      setError(err.message || 'Registration failed. Please try again.');
+      setErrorMessage(err.message || 'Registration failed. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setIsLoading(false);
     }
@@ -499,15 +494,15 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
             <Text style={styles.stepSub}>Upload the required documents for verification</Text>
             <View style={styles.photoGrid}>
               <View style={styles.photoItem}>
-                <PhotoUpload label="ID Proof *" value={formData.idProofUrl} onPress={() => pickImage('idProofUrl')} />
+                <PhotoUpload label="ID Proof *" value={formData.idProof} onPress={() => pickImage('idProof')} />
                 <Text style={styles.photoCaption}>Aadhaar / PAN / Voter ID</Text>
               </View>
               <View style={styles.photoItem}>
-                <PhotoUpload label="Business Photo *" value={formData.businessPhotoUrl} onPress={() => pickImage('businessPhotoUrl')} />
+                <PhotoUpload label="Business Photo *" value={formData.businessPhoto} onPress={() => pickImage('businessPhoto')} />
                 <Text style={styles.photoCaption}>Shop front photo</Text>
               </View>
             </View>
-            <PhotoUpload label="Shop Document / KYC *" value={formData.shopDocumentUrl} onPress={() => pickImage('shopDocumentUrl')} />
+            <PhotoUpload label="Shop Document / KYC *" value={formData.shopDocument} onPress={() => pickImage('shopDocument')} />
             <Text style={[styles.photoCaption, { marginTop: 4 }]}>GST / Shop License / Rent Agreement</Text>
           </View>
         )}
@@ -542,6 +537,31 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
               activeOpacity={0.8}
             >
               <Text style={successModalStyles.buttonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        visible={showErrorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowErrorModal(false)}
+      >
+        <View style={successModalStyles.overlay}>
+          <View style={successModalStyles.content}>
+            <View style={[successModalStyles.iconCircle, { backgroundColor: '#FEE2E2' }]}>
+              <Icon name="x-circle" size={48} color="#DC2626" />
+            </View>
+            <Text style={[successModalStyles.title, { color: '#991B1B' }]}>Registration Failed</Text>
+            <Text style={successModalStyles.message}>{errorMessage}</Text>
+            <TouchableOpacity
+              style={[successModalStyles.button, { backgroundColor: '#DC2626' }]}
+              onPress={() => setShowErrorModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={successModalStyles.buttonText}>Try Again</Text>
             </TouchableOpacity>
           </View>
         </View>

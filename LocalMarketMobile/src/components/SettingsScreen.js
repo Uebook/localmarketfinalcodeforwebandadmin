@@ -60,7 +60,7 @@ const SettingsScreen = ({
         mobile: profileData.mobile || profileData.phone || profileData.contactNumber || '',
         location: locationStr,
         email: profileData.email || '',
-        photo: profileData.profilePhotoUrl || profileData.ownerPhotoUrl || profileData.imageUrl || ''
+        photo: profileData.profile_image_url || profileData.profilePhotoUrl || profileData.imageUrl || profileData.image_url || ''
       });
     }
   }, [profileData]);

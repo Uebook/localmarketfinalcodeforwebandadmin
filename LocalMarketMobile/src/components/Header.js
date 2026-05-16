@@ -32,6 +32,7 @@ const Header = ({
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   const iconColor = transparent ? COLORS.white : COLORS.textPrimary;
+  const displayImage = profileImage;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -101,8 +102,8 @@ const Header = ({
               style={styles.profileButton}
               activeOpacity={0.7}
             >
-              {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              {displayImage ? (
+                <Image source={{ uri: displayImage }} style={styles.profileImage} />
               ) : (
                 <Icon name="user" size={22} color={iconColor} />
               )}

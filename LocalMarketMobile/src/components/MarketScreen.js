@@ -164,7 +164,7 @@ const MarketScreen = ({ navigation, route }) => {
         {/* Main Image with Gradient Overlay */}
         <View style={styles.imageContainer}>
           <Image 
-            source={{ uri: item.imageUrl || item.image_url || (item.images && item.images[0]) }} 
+            source={{ uri: item.profile_image_url || item.profileImageUrl || item.imageUrl || item.image_url || (item.images && item.images[0]) }} 
             style={styles.vendorImage} 
           />
           <LinearGradient

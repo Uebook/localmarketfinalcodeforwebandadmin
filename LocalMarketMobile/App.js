@@ -202,7 +202,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
           showLocationPicker={showLocationPicker}
           setShowLocationPicker={setShowLocationPicker}
           notificationCount={notificationCount}
-          profileImage={userRole === 'vendor' ? (vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) : (userData?.photo || userData?.imageUrl)}
+          profileImage={userRole === 'vendor' ? (vendorData?.profile_image_url || vendorData?.profileImageUrl || vendorData?.imageUrl || vendorData?.image_url) : (userData?.photo || userData?.imageUrl)}
         />
       )}
       <Tab.Navigator

@@ -193,7 +193,7 @@ const SearchResults = ({
             reviewCount: vendor.reviewCount || vendor.review_count || (parseInt(String(vendor.id).charCodeAt(0)) % 100) + 10,
             distance: distanceStr,
             distanceValue: distanceValue, // Store raw value for sorting/filtering
-            imageUrl: vendor.imageUrl || vendor.image_url,
+            imageUrl: vendor.profile_image_url || vendor.profileImageUrl || vendor.imageUrl || vendor.image_url,
             address: vendor.address || `${vendor.city || ''} ${vendor.state || ''}`?.trim() || 'Nearby',
             isVerified: vendor.kycStatus === 'Approved' || vendor.kyc_status === 'Approved',
             matchingProducts: vendor.matchingProducts || vendor.products || [],

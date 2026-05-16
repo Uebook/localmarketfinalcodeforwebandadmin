@@ -53,8 +53,8 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   
   const normalizedVendor = {
     ...vendorData,
-    imageUrl: getVal('imageUrl') || getVal('image_url') || getVal('image'),
-    profileImageUrl: getVal('profileImageUrl') || getVal('profile_image_url') || getVal('imageUrl') || getVal('image_url') || getVal('image') || getVal('profilePhotoUrl'),
+    imageUrl: getVal('image_url') || getVal('imageUrl') || getVal('image'),
+    profileImageUrl: getVal('profile_image_url') || getVal('profileImageUrl') || getVal('imageUrl') || getVal('image_url'),
     ownerName: getVal('ownerName') || getVal('owner_name'),
     contactNumber: getVal('contactNumber') || getVal('contact_number') || getVal('phone'),
     openTime: getVal('openTime') || getVal('open_time'),

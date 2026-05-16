@@ -559,9 +559,9 @@ const VendorDetails = ({ navigation, route }) => {
       >
         <View style={styles.heroSection}>
           <Animated.View style={styles.parallaxWrapper}>
-            {(vendorInfo.image_url || vendorInfo.imageUrl) ? (
+            {(vendorInfo.profile_image_url || vendorInfo.profileImageUrl || vendorInfo.image_url || vendorInfo.imageUrl) ? (
               <Animated.Image
-                source={{ uri: vendorInfo.image_url || vendorInfo.imageUrl }}
+                source={{ uri: vendorInfo.profile_image_url || vendorInfo.profileImageUrl || vendorInfo.image_url || vendorInfo.imageUrl }}
                 style={styles.heroImage}
               />
             ) : (
@@ -599,9 +599,9 @@ const VendorDetails = ({ navigation, route }) => {
         <View style={styles.contentCard}>
           <View style={styles.vendorHeaderMain}>
             <View style={styles.logoCircleLarge}>
-              {(vendorInfo.image_url || vendorInfo.imageUrl) ? (
+              {(vendorInfo.profile_image_url || vendorInfo.profileImageUrl || vendorInfo.image_url || vendorInfo.imageUrl) ? (
                 <Image
-                  source={{ uri: vendorInfo.image_url || vendorInfo.imageUrl }}
+                  source={{ uri: vendorInfo.profile_image_url || vendorInfo.profileImageUrl || vendorInfo.image_url || vendorInfo.imageUrl }}
                   style={styles.logoImageLarge}
                 />
               ) : (

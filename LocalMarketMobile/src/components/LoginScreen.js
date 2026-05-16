@@ -36,6 +36,7 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
   const [error, setError] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Permission handling
   const [showPermissions, setShowPermissions] = useState(false);
@@ -44,7 +45,7 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
 
   const handleLogin = async () => {
     console.log('[Login] handleLogin called', { loginMethod, isLocalPlusMode, mobile, email });
-    
+
     if (loginMethod === 'mobile' && mobile.length < 10) {
       setError('Please enter a valid 10-digit mobile number');
       return;
@@ -57,6 +58,11 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
 
     if (!password) {
       setError('Please enter your password');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError('Please accept the Privacy Policy and Terms & Conditions');
       return;
     }
 
@@ -144,11 +150,7 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
           {/* Hero Branding */}
           <View style={styles.heroSection}>
             <View style={styles.logoContainer}>
-               <Image 
-                 source={require('../assets/lokall_shop_illustration.jpg')} 
-                 style={styles.heroImage} 
-                 resizeMode="contain"
-               />
+              <Logo size={80} />
             </View>
             <Text style={styles.brandName}>LOKALL</Text>
             <Text style={styles.brandTagline}>Your Market, Digitized.</Text>
@@ -156,14 +158,14 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
 
           {/* Role Toggle */}
           <View style={styles.roleToggleContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.roleTab, !isLocalPlusMode && styles.roleTabActive]}
               onPress={handleCustomerLogin}
               activeOpacity={0.8}
             >
               <Text style={[styles.roleTabText, !isLocalPlusMode && styles.roleTabTextActive]}>Customer</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.roleTab, isLocalPlusMode && styles.roleTabActive]}
               onPress={handleLocalPlusLogin}
               activeOpacity={0.8}
@@ -182,17 +184,17 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
 
             {/* Method Selector (Mobile/Email) */}
             <View style={styles.methodContainer}>
-               {['mobile', 'email'].map((method) => (
-                 <TouchableOpacity
-                   key={method}
-                   onPress={() => handleMethodChange(method)}
-                   style={[styles.methodItem, loginMethod === method && styles.methodItemActive]}
-                 >
-                   <Text style={[styles.methodText, loginMethod === method && styles.methodTextActive]}>
-                     {method.charAt(0).toUpperCase() + method.slice(1)}
-                   </Text>
-                 </TouchableOpacity>
-               ))}
+              {['mobile', 'email'].map((method) => (
+                <TouchableOpacity
+                  key={method}
+                  onPress={() => handleMethodChange(method)}
+                  style={[styles.methodItem, loginMethod === method && styles.methodItemActive]}
+                >
+                  <Text style={[styles.methodText, loginMethod === method && styles.methodTextActive]}>
+                    {method.charAt(0).toUpperCase() + method.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
             {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
@@ -238,11 +240,27 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
               </View>
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.forgotBtn}
               onPress={onForgotPassword}
             >
               <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            {/* Terms and Privacy Checkbox */}
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setAcceptedTerms(!acceptedTerms)}
+              activeOpacity={0.7}
+            >
+              <Icon
+                name={acceptedTerms ? 'check-square' : 'square'}
+                size={20}
+                color={acceptedTerms ? '#F97316' : '#94A3B8'}
+              />
+              <Text style={styles.checkboxText}>
+                I accept the <Text style={styles.linkText}>Privacy Policy</Text> and <Text style={styles.linkText}>Terms & Conditions</Text>
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -268,7 +286,7 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
             </TouchableOpacity>
 
             {!isLocalPlusMode && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.registerBtn}
                 onPress={() => onRegister && onRegister(false)}
               >
@@ -279,7 +297,7 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
             )}
 
             {isLocalPlusMode && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.registerBtn}
                 onPress={() => onRegister && onRegister(true)}
               >
@@ -293,8 +311,8 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
 
 
           <View style={styles.footer}>
-             <Text style={styles.footerText}>Secure Login Powered by</Text>
-             <Text style={styles.footerBrand}>LOKALL CLOUD</Text>
+            <Text style={styles.footerText}>Secure Login Powered by</Text>
+            <Text style={styles.footerBrand}>LOKALL CLOUD</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -813,6 +831,24 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFF',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    gap: 12,
+    paddingHorizontal: 4,
+  },
+  checkboxText: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '500',
+    flex: 1,
+    lineHeight: 18,
+  },
+  linkText: {
+    color: '#F97316',
+    fontWeight: '700',
   },
 });
 

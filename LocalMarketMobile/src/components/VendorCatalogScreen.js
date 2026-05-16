@@ -45,7 +45,14 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         imageUrl: p.image_url || p.imageUrl || null,
       }));
 
-      setProducts(mappedProducts);
+      // Sort products by ID descending to show latest at top
+      const sortedProducts = [...mappedProducts].sort((a, b) => {
+        const idA = parseInt(String(a.id).replace(/\D/g, '')) || 0;
+        const idB = parseInt(String(b.id).replace(/\D/g, '')) || 0;
+        return idB - idA;
+      });
+
+      setProducts(sortedProducts);
       if (setVendorData) {
         setVendorData(prev => ({ ...prev, products: mappedProducts }));
       }
@@ -62,7 +69,12 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
 
   useEffect(() => {
     if (vendorData?.products) {
-      setProducts(vendorData.products);
+      const sorted = [...vendorData.products].sort((a, b) => {
+        const idA = parseInt(String(a.id).replace(/\D/g, '')) || 0;
+        const idB = parseInt(String(b.id).replace(/\D/g, '')) || 0;
+        return idB - idA;
+      });
+      setProducts(sorted);
     }
   }, [vendorData?.products]);
 
@@ -614,7 +626,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
         onProfileClick={handleProfileClick}
         onNotificationClick={handleNotificationClick}
         hideCart={true}
-        profileImage={vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url}
+        profileImage={vendorData?.profile_image_url || vendorData?.profileImageUrl || vendorData?.imageUrl || vendorData?.image_url}
       />
 
       <ScrollView 
@@ -635,8 +647,15 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             colors={['#1E293B', '#334155']}
             style={styles.premiumCover}
           >
+            {(vendorData?.profile_image_url || vendorData?.profileImageUrl || vendorData?.image_url || vendorData?.imageUrl) && (
+              <Image 
+                source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl || vendorData.image_url || vendorData.imageUrl }} 
+                style={StyleSheet.absoluteFill} 
+                opacity={0.6}
+              />
+            )}
             <View style={styles.coverOverlay} />
-            <TouchableOpacity style={styles.editCoverBtn}>
+            <TouchableOpacity style={styles.editCoverBtn} onPress={() => navigation.navigate('Profile')}>
               <Icon name="camera" size={14} color="#FFF" />
               <Text style={styles.editCoverText}>Change Cover</Text>
             </TouchableOpacity>
@@ -646,9 +665,9 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
             <View style={styles.profileHeaderRow}>
               <View style={styles.avatarWrapper}>
                 <View style={styles.avatarInner}>
-                  {(vendorData?.imageUrl || vendorData?.image || vendorData?.image_url || vendorData?.profilePhotoUrl || vendorData?.profile_image_url) ? (
+                  {(vendorData?.profile_image_url || vendorData?.profileImageUrl || vendorData?.imageUrl || vendorData?.image_url) ? (
                     <Image 
-                      source={{ uri: vendorData.imageUrl || vendorData.image || vendorData.image_url || vendorData.profilePhotoUrl || vendorData.profile_image_url }} 
+                      source={{ uri: vendorData.profile_image_url || vendorData.profileImageUrl || vendorData.imageUrl || vendorData.image_url }} 
                       style={styles.avatarImage} 
                     />
                   ) : (

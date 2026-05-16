@@ -88,7 +88,7 @@ const SavedScreen = ({ navigation, savedIds = [], onToggleSave, locationState })
   };
 
   const renderBusinessCard = ({ item }) => {
-    const imgSource = item.profileImageUrl || item.imageUrl || item.shopFrontPhotoUrl;
+    const imgSource = item.profile_image_url || item.profileImageUrl || item.imageUrl || item.image_url || item.shopFrontPhotoUrl;
 
     return (
       <TouchableOpacity
