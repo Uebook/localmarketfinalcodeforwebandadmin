@@ -86,6 +86,7 @@ export async function POST(req) {
             id_proof_url: idProofUrl || null,
             shop_front_photo_url: businessPhotoUrl || null,
             image_url: businessPhotoUrl || null,
+            profile_image_url: businessPhotoUrl || null,
             shop_proof_url: shopDocumentUrl || null, 
             display_id: displayId, 
             state: state || null,

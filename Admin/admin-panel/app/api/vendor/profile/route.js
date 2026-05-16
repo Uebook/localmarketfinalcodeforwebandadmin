@@ -41,8 +41,8 @@ export async function GET(req) {
             activationStatus: v.status || 'Active',
             rating: v.rating || 0,
             reviewCount: v.review_count || 0,
-            profileImageUrl: v.profile_image_url || null,
-            imageUrl: v.image_url || v.shop_front_photo_url || null,
+            profileImageUrl: v.profile_image_url || v.image_url || v.shop_front_photo_url || null,
+            imageUrl: v.image_url || v.shop_front_photo_url || v.profile_image_url || null,
             about: v.about || '',
             openTime: v.open_time || '09:00 AM',
             closeTime: v.close_time || '09:00 PM', // Mobile expects closeTime
