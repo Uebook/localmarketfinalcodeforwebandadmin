@@ -61,7 +61,7 @@ const Header = ({
                 <Text style={styles.locationCity} numberOfLines={1}>
                   {locationState?.loading
                     ? 'Detecting...'
-                    : (locationState?.circle || (locationState?.city === 'Amritsar' ? 'Select Market Area' : locationState?.city) || locationState?.displayLabel || 'Pick Location')}
+                    : (locationState?.town || locationState?.area || locationState?.circle || (locationState?.city === 'Amritsar' ? 'Select Market Area' : locationState?.city) || locationState?.displayLabel || 'Pick Location')}
                 </Text>
               </View>
               <Icon name="chevron-down" size={12} color={COLORS.textSecondary} />

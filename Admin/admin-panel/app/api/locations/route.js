@@ -71,10 +71,28 @@ export async function POST(req) {
             );
         }
 
-        const inserted = await supabaseRestInsert('/rest/v1/locations', [
-            { state, city, town, tehsil, sub_tehsil, circle, market_icon },
-        ]);
-        return Response.json({ location: Array.isArray(inserted) ? inserted[0] : inserted }, { status: 200 });
+        try {
+            const inserted = await supabaseRestInsert('/rest/v1/locations', [
+                { state, city, town, tehsil, sub_tehsil, circle, market_icon },
+            ]);
+            return Response.json({ location: Array.isArray(inserted) ? inserted[0] : inserted }, { status: 200 });
+        } catch (dbErr) {
+            const dbErrMsg = dbErr?.message || '';
+            if (dbErrMsg.includes('23505') || dbErrMsg.includes('already exists') || dbErrMsg.includes('unique constraint')) {
+                if (circle) {
+                    return Response.json(
+                        { error: `This Circle/Area ("${town}") already has a market or mapping assigned. You cannot create a duplicate.` },
+                        { status: 409 }
+                    );
+                } else {
+                    return Response.json(
+                        { error: `The Circle/Area "${town}" already exists in ${city}, ${state}.` },
+                        { status: 409 }
+                    );
+                }
+            }
+            throw dbErr;
+        }
     } catch (e) {
         let errorMessage = e?.message || 'Failed to add location';
         if (errorMessage.includes('does not exist') || errorMessage.includes('relation')) {
@@ -148,7 +166,11 @@ export async function PATCH(req) {
 
         return Response.json({ error: 'id or renameFrom/renameTo required' }, { status: 400 });
     } catch (e) {
-        return Response.json({ error: e?.message || 'Failed to update location' }, { status: 500 });
+        let errorMessage = e?.message || 'Failed to update location';
+        if (errorMessage.includes('23505') || errorMessage.includes('already exists') || errorMessage.includes('unique constraint')) {
+            errorMessage = 'A location or market mapping already exists for this Area/Circle combination.';
+        }
+        return Response.json({ error: errorMessage }, { status: 500 });
     }
 }
 

@@ -8,6 +8,10 @@ export default function LocationManagement() {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [circleSearchQuery, setCircleSearchQuery] = useState('');
+  const [marketSearchQuery, setMarketSearchQuery] = useState('');
+  const [subTehsilSearchQuery, setSubTehsilSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedTown, setSelectedTown] = useState('');
@@ -205,7 +209,7 @@ export default function LocationManagement() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create market');
       
-      setLocations(prev => [data.location, ...prev]);
+      await reloadLocations();
       setMarketFormData({ state: '', city: '', circleArea: '', name: '', icon: '' });
       setShowAddMarketForm(false);
       setResult({ success: true, message: `Market "${marketFormData.name}" created successfully.` });
@@ -285,7 +289,15 @@ export default function LocationManagement() {
   };
 
   const handleRenameMarket = async () => {
-    if (!editingMarket.newName.trim() || editingMarket.newName === editingMarket.oldName) {
+    const hasNameChanged = editingMarket.newName.trim() !== editingMarket.oldName;
+    const hasIconChanged = editingMarket.icon !== (circleIcons[editingMarket.oldName] || '');
+
+    if (!editingMarket.newName.trim()) {
+      setResult({ success: false, message: 'Market name cannot be empty' });
+      return;
+    }
+
+    if (!hasNameChanged && !hasIconChanged) {
       setEditingMarket(null);
       return;
     }
@@ -297,7 +309,7 @@ export default function LocationManagement() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           renameFrom: editingMarket.oldName,
-          renameTo: editingMarket.newName,
+          renameTo: hasNameChanged ? editingMarket.newName : undefined,
           marketIcon: editingMarket.icon
         })
       });
@@ -357,6 +369,59 @@ export default function LocationManagement() {
   const cityCount = useMemo(() => new Set(locations.map(l => `${l.state}::${l.city}`)).size, [locations]);
   const townCount = useMemo(() => new Set(locations.map(l => `${l.state}::${l.city}::${l.town}`)).size, [locations]);
 
+  const filteredLocations = useMemo(() => {
+    let result = locations;
+    
+    // Apply hierarchy filters from browser selections if set
+    if (selectedState) {
+      result = result.filter(l => l.state === selectedState);
+    }
+    if (selectedCity) {
+      result = result.filter(l => l.city === selectedCity);
+    }
+    if (selectedTown) {
+      result = result.filter(l => l.town === selectedTown);
+    }
+    if (selectedTehsil) {
+      result = result.filter(l => l.tehsil === selectedTehsil);
+    }
+    
+    // Apply search query filter if set
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(l => 
+        (l.state && l.state.toLowerCase().includes(query)) ||
+        (l.city && l.city.toLowerCase().includes(query)) ||
+        (l.town && l.town.toLowerCase().includes(query)) ||
+        (l.tehsil && l.tehsil.toLowerCase().includes(query)) ||
+        (l.sub_tehsil && l.sub_tehsil.toLowerCase().includes(query)) ||
+        (l.circle && l.circle.toLowerCase().includes(query))
+      );
+    }
+    
+    return result;
+  }, [locations, selectedState, selectedCity, selectedTown, selectedTehsil, searchQuery]);
+
+  const filteredCircles = useMemo(() => {
+    const circlesList = Array.from(new Set(locations.map(l => l.town))).sort();
+    if (!circleSearchQuery.trim()) return circlesList;
+    const query = circleSearchQuery.toLowerCase().trim();
+    return circlesList.filter(c => c && c.toLowerCase().includes(query));
+  }, [locations, circleSearchQuery]);
+
+  const filteredMarkets = useMemo(() => {
+    const marketsList = Array.from(new Set(locations.filter(l => l.circle).map(l => l.circle))).sort();
+    if (!marketSearchQuery.trim()) return marketsList;
+    const query = marketSearchQuery.toLowerCase().trim();
+    return marketsList.filter(m => m && m.toLowerCase().includes(query));
+  }, [locations, marketSearchQuery]);
+
+  const filteredSubTehsils = useMemo(() => {
+    if (!subTehsilSearchQuery.trim()) return subTehsils;
+    const query = subTehsilSearchQuery.toLowerCase().trim();
+    return subTehsils.filter(st => st && st.toLowerCase().includes(query));
+  }, [subTehsils, subTehsilSearchQuery]);
+
   // reloadLocations moved up
 
   const tabs = [
@@ -375,8 +440,39 @@ export default function LocationManagement() {
         </div>
       )}
       {result && (
-        <div className={`rounded-lg p-4 ${result.success ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-          {result.message}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-6 animate-in fade-in zoom-in duration-200 text-center">
+            <div className="flex flex-col items-center gap-4">
+              {result.success ? (
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                </div>
+              )}
+              
+              <h3 className={`text-xl font-bold ${result.success ? 'text-green-900' : 'text-red-950'}`}>
+                {result.success ? 'Success' : 'Error'}
+              </h3>
+              
+              <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
+                {result.message}
+              </p>
+            </div>
+            
+            <button
+              onClick={() => setResult(null)}
+              className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg ${
+                result.success 
+                  ? 'bg-green-600 hover:bg-green-700 shadow-green-200' 
+                  : 'bg-red-600 hover:bg-red-700 shadow-red-200'
+              }`}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
 
@@ -407,17 +503,31 @@ export default function LocationManagement() {
       {activeTab === 'circles' && (
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Circle (Area) Management</h2>
                 <p className="text-sm text-gray-500 mt-1">Hierarchical Flow: State → City → Circle</p>
               </div>
-              <button
-                onClick={() => setShowAddCircleForm(!showAddCircleForm)}
-                className="gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition"
-              >
-                {showAddCircleForm ? 'Cancel' : '+ Create New Circle'}
-              </button>
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="relative w-full md:w-64">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search circles..."
+                    value={circleSearchQuery}
+                    onChange={(e) => setCircleSearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowAddCircleForm(!showAddCircleForm)}
+                  className="gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition whitespace-nowrap"
+                >
+                  {showAddCircleForm ? 'Cancel' : '+ Create New Circle'}
+                </button>
+              </div>
             </div>
 
             {showAddCircleForm && (
@@ -469,7 +579,7 @@ export default function LocationManagement() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Array.from(new Set(locations.map(l => l.town))).sort().map((circle, idx) => (
+              {filteredCircles.map((circle, idx) => (
                 <div key={idx} className="p-4 border border-gray-100 rounded-xl bg-slate-50 flex items-center justify-between group">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
@@ -557,17 +667,31 @@ export default function LocationManagement() {
       {activeTab === 'markets' && (
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Market Management</h2>
                 <p className="text-sm text-gray-500 mt-1">Select an existing Circle to add a specific Market Hub</p>
               </div>
-              <button
-                onClick={() => setShowAddMarketForm(!showAddMarketForm)}
-                className="gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition"
-              >
-                {showAddMarketForm ? 'Cancel' : '+ Add New Market'}
-              </button>
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="relative w-full md:w-64">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search markets..."
+                    value={marketSearchQuery}
+                    onChange={(e) => setMarketSearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowAddMarketForm(!showAddMarketForm)}
+                  className="gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition whitespace-nowrap"
+                >
+                  {showAddMarketForm ? 'Cancel' : '+ Add New Market'}
+                </button>
+              </div>
             </div>
 
             {showAddMarketForm && (
@@ -690,7 +814,7 @@ export default function LocationManagement() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
-              {Array.from(new Set(locations.filter(l => l.circle).map(l => l.circle))).sort().map((circle, idx) => (
+              {filteredMarkets.map((circle, idx) => (
                 <div key={idx} className="p-4 border border-gray-100 rounded-xl bg-slate-50 flex items-center justify-between group relative">
                     <div className="flex items-center gap-3">
                       {circleIcons[circle] ? (
@@ -999,18 +1123,32 @@ export default function LocationManagement() {
 
               {selectedState && selectedCity && selectedTown && selectedTehsil && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sub-Tehsils</label>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700">Sub-Tehsils</label>
+                    <div className="relative w-full md:w-64">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Search sub-tehsils..."
+                        value={subTehsilSearchQuery}
+                        onChange={(e) => setSubTehsilSearchQuery(e.target.value)}
+                        className="w-full pl-8 pr-4 py-1.5 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                      />
+                    </div>
+                  </div>
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    {subTehsils.length > 0 ? (
+                    {filteredSubTehsils.length > 0 ? (
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {subTehsils.map((subTehsil, index) => (
-                          <div key={index} className="bg-white px-3 py-2 rounded border border-gray-200">
+                        {filteredSubTehsils.map((subTehsil, index) => (
+                          <div key={index} className="bg-white px-3 py-2 rounded border border-gray-200 text-sm">
                             {subTehsil}
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">No sub-tehsils available</p>
+                      <p className="text-gray-500 text-sm">No matching sub-tehsils available</p>
                     )}
                   </div>
                 </div>
@@ -1020,7 +1158,21 @@ export default function LocationManagement() {
 
           {/* Location List */}
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">All Locations</h2>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <h2 className="text-xl font-bold text-gray-900">All Locations</h2>
+              <div className="relative w-full md:w-80">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search locations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                />
+              </div>
+            </div>
             {loading ? (
               <div className="text-sm text-gray-600">Loading locations…</div>
             ) : null}
@@ -1037,7 +1189,7 @@ export default function LocationManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {locations.slice(0, 500).map((l) => (
+                  {filteredLocations.slice(0, 500).map((l) => (
                     <tr key={l.id} className="hover:bg-gray-50">
                       <td className="px-4 py-2 text-gray-900">{l.state}</td>
                       <td className="px-4 py-2 text-gray-900">{l.city}</td>
@@ -1050,7 +1202,13 @@ export default function LocationManagement() {
                 </tbody>
               </table>
             </div>
-            <p className="text-sm text-gray-500 mt-4">Showing first {Math.min(500, locations.length)} locations.</p>
+            <p className="text-sm text-gray-500 mt-4">
+              {searchQuery.trim() || selectedState ? (
+                `Found ${filteredLocations.length} match${filteredLocations.length === 1 ? '' : 'es'}. Showing first ${Math.min(500, filteredLocations.length)}.`
+              ) : (
+                `Showing first ${Math.min(500, locations.length)} locations.`
+              )}
+            </p>
           </div>
         </>
       )}
