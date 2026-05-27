@@ -101,7 +101,7 @@ export const ThemeProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching global active theme:', error);
+        console.warn('Error fetching global active theme:', error);
       }
 
       // 3. If no local selection and no active global theme, try user's preference
@@ -120,14 +120,14 @@ export const ThemeProvider = ({ children }) => {
             }
           }
         } catch (error) {
-          console.error('Error fetching user theme:', error);
+          console.warn('Error fetching user theme:', error);
         }
 
         // Final fallback if nothing found
         applyTheme('default');
       }
     } catch (error) {
-      console.error('Error loading theme:', error);
+      console.warn('Error loading theme:', error);
       applyTheme('default');
     }
   };
@@ -162,7 +162,7 @@ export const ThemeProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching theme from API:', error);
+        console.warn('Error fetching theme from API:', error);
       }
     }
 
@@ -251,7 +251,7 @@ export const ThemeProvider = ({ children }) => {
         console.log('User theme saved to DB:', themeId);
       }
     } catch (error) {
-      console.error('Error saving user theme to DB:', error);
+      console.warn('Error saving user theme to DB:', error);
       // Continue even if save fails - theme is still applied locally
     }
   };

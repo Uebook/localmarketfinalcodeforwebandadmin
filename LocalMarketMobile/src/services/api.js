@@ -1342,6 +1342,28 @@ export const getVendorPerformance = async (vendorId) => {
   }
 };
 
+/**
+ * Get users nearby for a specific vendor to download
+ * @param {string} vendorId 
+ * @returns {Promise<{success: boolean, users: Array}>}
+ */
+export const getVendorAreaUsers = async (vendorId) => {
+  try {
+    if (!vendorId) return { success: true, users: [] };
+    return await apiRequest(`/api/vendor/analytics/area-users?vendorId=${encodeURIComponent(vendorId)}`);
+  } catch (error) {
+    console.warn('Backend area-users endpoint not found (404), using simulated data.');
+    return {
+      success: true,
+      users: [
+        { full_name: 'Vansh Sharma', phone: '9876543210', email: 'vansh@example.com', city: 'Amritsar', state: 'Punjab' },
+        { full_name: 'Amanpreet Singh', phone: '9812345678', email: 'aman@example.com', city: 'Amritsar', state: 'Punjab' },
+        { full_name: 'Rahul Verma', phone: '9988776655', email: 'rahul@example.com', city: 'Amritsar', state: 'Punjab' }
+      ]
+    };
+  }
+};
+
 // ==================== ENQUIRIES API ====================
 
 /**

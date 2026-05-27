@@ -567,6 +567,10 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
 };
 
 const createStyles = (COLORS) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+  },
   // Premium Profile Styles
   profileSectionWrapper: {
     backgroundColor: '#F8FAFC',
@@ -1149,6 +1153,12 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.orange,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120,
   },
 });
 
