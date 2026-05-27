@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Share, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Share, RefreshControl, Modal } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -28,6 +28,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
   const [enquiries, setEnquiries] = useState(vendorData?.enquiries || []);
   const [refreshing, setRefreshing] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
 
   useEffect(() => {
     const backAction = () => {
@@ -308,7 +309,12 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
             enquiries.map((enquiry) => {
               const statusStyle = getStatusStyle(enquiry.status);
               return (
-                <View key={enquiry.id} style={styles.enquiryCard}>
+                <TouchableOpacity
+                  key={enquiry.id}
+                  style={styles.enquiryCard}
+                  activeOpacity={0.8}
+                  onPress={() => setSelectedEnquiry(enquiry)}
+                >
                   <View style={styles.enquiryHeader}>
                     <View style={styles.enquiryUser}>
                       <View style={styles.userAvatar}>
@@ -351,7 +357,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
                       </TouchableOpacity>
                     )}
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           ) : (
@@ -369,8 +375,162 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
         onCancel={() => setShowExitModal(false)}
         onConfirm={() => BackHandler.exitApp()}
       />
+
+      {/* Enquiry Detail Modal */}
+      {selectedEnquiry && (() => {
+        const matchedProduct = getProductFromMessage(selectedEnquiry.message);
+        const statusStyle = getStatusStyle(selectedEnquiry.status);
+        
+        return (
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={!!selectedEnquiry}
+            onRequestClose={() => setSelectedEnquiry(null)}
+          >
+            <TouchableOpacity 
+              style={styles.modalOverlay} 
+              activeOpacity={1} 
+              onPress={() => setSelectedEnquiry(null)}
+            >
+              <View style={styles.modalContainer}>
+                {/* Modal Header */}
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Enquiry Details</Text>
+                  <TouchableOpacity 
+                    style={styles.modalCloseButton}
+                    onPress={() => setSelectedEnquiry(null)}
+                  >
+                    <Icon name="x" size={20} color={COLORS.textPrimary} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Modal Content */}
+                <ScrollView 
+                  style={styles.modalScrollView}
+                  contentContainerStyle={styles.modalScrollContent}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {/* Status Badge */}
+                  <View style={styles.modalStatusWrapper}>
+                    <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor, alignSelf: 'flex-start' }]}>
+                      <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
+                        {selectedEnquiry.status}
+                      </Text>
+                    </View>
+                    <Text style={styles.modalDateText}>{selectedEnquiry.date}</Text>
+                  </View>
+
+                  {/* Customer Information */}
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>👤 Customer Information</Text>
+                    <View style={styles.modalInfoCard}>
+                      <View style={styles.customerHeaderRow}>
+                        <View style={styles.customerAvatarLarge}>
+                          <Icon name="user" size={28} color={COLORS.textMuted} />
+                        </View>
+                        <View style={styles.customerMeta}>
+                          <Text style={styles.customerNameLarge}>{selectedEnquiry.customerName}</Text>
+                          <Text style={styles.customerPhoneText}>{selectedEnquiry.phone || 'No phone number'}</Text>
+                        </View>
+                      </View>
+                      
+                      {selectedEnquiry.phone ? (
+                        <View style={styles.actionButtonsRow}>
+                          <TouchableOpacity 
+                            style={[styles.actionButtonMedium, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}
+                            onPress={() => handleCall(selectedEnquiry.phone)}
+                          >
+                            <Icon name="phone" size={16} color="#16A34A" />
+                            <Text style={[styles.actionButtonTextMedium, { color: '#16A34A' }]}>Call</Text>
+                          </TouchableOpacity>
+                          
+                          <TouchableOpacity 
+                            style={[styles.actionButtonMedium, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}
+                            onPress={() => handleMessage(selectedEnquiry.phone)}
+                          >
+                            <Icon name="message-circle" size={16} color="#059669" />
+                            <Text style={[styles.actionButtonTextMedium, { color: '#059669' }]}>WhatsApp</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  {/* Enquiry Message */}
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>💬 Enquiry Message</Text>
+                    <View style={styles.quoteCard}>
+                      <Text style={styles.quoteText}>"{selectedEnquiry.message}"</Text>
+                    </View>
+                  </View>
+
+                  {/* Product Details Section (if matched) */}
+                  {matchedProduct ? (
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>🛍️ Associated Product</Text>
+                      <View style={styles.modalProductCard}>
+                        {matchedProduct.imageUrl ? (
+                          <Image 
+                            source={{ uri: matchedProduct.imageUrl }} 
+                            style={styles.modalProductImage} 
+                          />
+                        ) : (
+                          <View style={styles.modalProductImageFallback}>
+                            <Icon name="box" size={32} color={COLORS.textMuted} />
+                          </View>
+                        )}
+                        <View style={styles.modalProductDetails}>
+                          <Text style={styles.modalProductName} numberOfLines={2}>
+                            {matchedProduct.name}
+                          </Text>
+                          <Text style={styles.modalProductCategory}>
+                            {matchedProduct.category || 'General'}
+                          </Text>
+                          
+                          <View style={styles.modalPriceContainer}>
+                            <Text style={styles.modalProductPrice}>
+                              ₹{matchedProduct.price}
+                            </Text>
+                            {matchedProduct.mrp && matchedProduct.mrp > matchedProduct.price ? (
+                              <Text style={styles.modalProductMrp}>
+                                ₹{matchedProduct.mrp}
+                              </Text>
+                            ) : null}
+                          </View>
+                          
+                          {matchedProduct.description ? (
+                            <Text style={styles.modalProductDescription} numberOfLines={3}>
+                              {matchedProduct.description}
+                            </Text>
+                          ) : null}
+                        </View>
+                      </View>
+                    </View>
+                  ) : null}
+                </ScrollView>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        );
+      })()}
     </View>
   );
+};
+
+const getProductFromMessage = (message) => {
+  if (!message || !vendorData?.products) return null;
+  const msgLower = message.toLowerCase();
+  
+  // Sort products by name length descending to match longest name first
+  const sortedProducts = [...vendorData.products].sort((a, b) => b.name.length - a.name.length);
+  
+  for (const prod of sortedProducts) {
+    if (prod.name && msgLower.includes(prod.name.toLowerCase())) {
+      return prod;
+    }
+  }
+  return null;
 };
 
 const createStyles = (COLORS) => StyleSheet.create({
@@ -707,6 +867,216 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  // Modal Popup Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#FFF',
+    width: '100%',
+    maxHeight: '85%',
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 10,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  modalStatusWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalDateText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalSectionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#475569',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  modalInfoCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  customerHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  customerAvatarLarge: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  customerMeta: {
+    flex: 1,
+  },
+  customerNameLarge: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 2,
+  },
+  customerPhoneText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionButtonMedium: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  actionButtonTextMedium: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  quoteCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.orange,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  quoteText: {
+    fontSize: 14,
+    color: '#334155',
+    lineHeight: 22,
+    fontStyle: 'italic',
+    fontWeight: '500',
+  },
+  modalProductCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    flexDirection: 'row',
+    padding: 12,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  modalProductImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+  },
+  modalProductImageFallback: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalProductDetails: {
+    flex: 1,
+  },
+  modalProductName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 2,
+  },
+  modalProductCategory: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  modalPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  modalProductPrice: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.orange,
+  },
+  modalProductMrp: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    textDecorationLine: 'line-through',
+  },
+  modalProductDescription: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 18,
   },
 });
 
