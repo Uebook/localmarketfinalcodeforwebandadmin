@@ -74,7 +74,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     };
 
     fetchAllAnalytics();
-  }, [vendorData?.id]);
+  }, [vendorData?.id, vendorData?.city, vendorData?.category]);
 
   React.useEffect(() => {
     const backAction = () => {
@@ -94,14 +94,14 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
 
   // Performance data (mapping real stats)
   const performanceData = {
-    totalUsers1KM: performanceStats.areaUsers || 450,
-    activeUsersSearching: performanceStats.activeUsers || 120,
-    searchesInCategory: performanceStats.categorySearches || 45,
-    shopViews: performanceStats.views || 0,
-    usersComparedPrices: performanceStats.leads || 0,
-    usersClickedContact: (performanceStats.calls || 0) + (performanceStats.whatsapp || 0),
-    conversionEstimate: `${performanceStats.enquiries || 0}-${(performanceStats.enquiries || 0) + 5} sales`,
-    pricePosition: (performanceStats.enquiries || 0) > 5 ? 'Competitive' : 'Lower',
+    totalUsers1KM: performanceStats.areaUsers ?? 450,
+    activeUsersSearching: performanceStats.activeUsers ?? 120,
+    searchesInCategory: performanceStats.categorySearches ?? 45,
+    shopViews: performanceStats.views ?? 0,
+    usersComparedPrices: performanceStats.leads ?? 0,
+    usersClickedContact: (performanceStats.calls ?? 0) + (performanceStats.whatsapp ?? 0),
+    conversionEstimate: `${performanceStats.enquiries ?? 0}-${(performanceStats.enquiries ?? 0) + 5} sales`,
+    pricePosition: (performanceStats.enquiries ?? 0) > 5 ? 'Competitive' : 'Lower',
     rating: vendorData?.rating || '4.5',
     priceUpdates: 1,
   };

@@ -917,7 +917,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     justifyContent: 'center',
   },
   modalScrollView: {
-    flex: 1,
+    flexGrow: 0,
   },
   modalScrollContent: {
     padding: 20,
