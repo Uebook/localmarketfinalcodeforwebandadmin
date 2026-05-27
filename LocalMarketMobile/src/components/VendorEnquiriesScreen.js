@@ -378,7 +378,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
 
       {/* Enquiry Detail Modal */}
       {selectedEnquiry && (() => {
-        const matchedProduct = getProductFromMessage(selectedEnquiry.message);
+        const matchedProduct = getProductFromMessage(selectedEnquiry.message, vendorData);
         const statusStyle = getStatusStyle(selectedEnquiry.status);
         
         return (
@@ -518,7 +518,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
   );
 };
 
-const getProductFromMessage = (message) => {
+const getProductFromMessage = (message, vendorData) => {
   if (!message || !vendorData?.products) return null;
   const msgLower = message.toLowerCase();
   
