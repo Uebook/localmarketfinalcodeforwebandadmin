@@ -388,11 +388,12 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
             visible={!!selectedEnquiry}
             onRequestClose={() => setSelectedEnquiry(null)}
           >
-            <TouchableOpacity 
-              style={styles.modalOverlay} 
-              activeOpacity={1} 
-              onPress={() => setSelectedEnquiry(null)}
-            >
+            <View style={styles.modalOverlay}>
+              <TouchableOpacity 
+                style={styles.modalOverlayBackground} 
+                activeOpacity={1} 
+                onPress={() => setSelectedEnquiry(null)}
+              />
               <View style={styles.modalContainer}>
                 {/* Modal Header */}
                 <View style={styles.modalHeader}>
@@ -510,7 +511,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
                   ) : null}
                 </ScrollView>
               </View>
-            </TouchableOpacity>
+            </View>
           </Modal>
         );
       })()}
@@ -876,10 +877,14 @@ const createStyles = (COLORS) => StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+  modalOverlayBackground: {
+    ...StyleSheet.absoluteFillObject,
+  },
   modalContainer: {
     backgroundColor: '#FFF',
     width: '100%',
     maxHeight: '85%',
+    flexShrink: 1,
     borderRadius: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
