@@ -58,6 +58,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
         ]);
 
         if (perfRes?.success) {
+          console.log('[VendorAnalyticsScreen] getVendorPerformance response stats:', JSON.stringify(perfRes.stats, null, 2));
           setPerformanceStats(perfRes.stats);
         }
 
@@ -94,9 +95,9 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
 
   // Performance data (mapping real stats)
   const performanceData = {
-    totalUsers1KM: performanceStats.areaUsers ?? 450,
-    activeUsersSearching: performanceStats.activeUsers ?? 120,
-    searchesInCategory: performanceStats.categorySearches ?? 45,
+    totalUsers1KM: performanceStats.areaUsers ?? 0,
+    activeUsersSearching: performanceStats.activeUsers ?? 0,
+    searchesInCategory: performanceStats.categorySearches ?? 0,
     shopViews: performanceStats.views ?? 0,
     usersComparedPrices: performanceStats.leads ?? 0,
     usersClickedContact: (performanceStats.calls ?? 0) + (performanceStats.whatsapp ?? 0),

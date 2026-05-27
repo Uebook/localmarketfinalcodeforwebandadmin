@@ -1324,19 +1324,19 @@ export const getVendorPerformance = async (vendorId) => {
     const res = await apiRequest(`/api/vendor/analytics/performance?vendorId=${encodeURIComponent(vendorId)}`);
     return res;
   } catch (error) {
-    console.warn('Backend analytics endpoint not found (404), using simulated data for display.');
-    // Return realistic mock data so the UI remains functional during development/testing
+    console.warn('Backend analytics endpoint not found (404), using zeroed stats.');
     return {
       success: true,
       stats: {
-        leads: 15,
-        views: 124,
-        enquiries: 6,
-        calls: 18,
-        whatsapp: 22,
-        areaUsers: 750,
-        activeUsers: 145,
-        categorySearches: 68,
+        leads: 0,
+        views: 0,
+        enquiries: 0,
+        calls: 0,
+        whatsapp: 0,
+        areaUsers: 0,
+        activeUsers: 0,
+        categorySearches: 0,
+        recentLeads: [],
       }
     };
   }
