@@ -268,12 +268,12 @@ export default function LocationManagement() {
   };
    // Removed duplicate editingMarket state declaration from here
 
-  const handleDeleteMarket = async (marketName) => {
+  const handleDeleteMarket = async (id, marketName) => {
     if (!window.confirm(`Are you sure you want to delete the market "${marketName}"? This will unassign all locations and vendors from this market.`)) return;
     
     try {
       setLoading(true);
-      const res = await fetch(`/api/locations?marketName=${encodeURIComponent(marketName)}`, {
+      const res = await fetch(`/api/locations?id=${id}&marketName=${encodeURIComponent(marketName)}`, {
         method: 'DELETE'
       });
       const data = await res.json();
@@ -289,15 +289,24 @@ export default function LocationManagement() {
   };
 
   const handleRenameMarket = async () => {
-    const hasNameChanged = editingMarket.newName.trim() !== editingMarket.oldName;
-    const hasIconChanged = editingMarket.icon !== (circleIcons[editingMarket.oldName] || '');
+    const original = locations.find(l => l.id === editingMarket.id);
+    const hasStateChanged = original?.state !== editingMarket.state;
+    const hasCityChanged = original?.city !== editingMarket.city;
+    const hasCircleAreaChanged = original?.town !== editingMarket.circleArea;
+    const hasNameChanged = original?.circle !== editingMarket.newName.trim();
+    const hasIconChanged = original?.market_icon !== editingMarket.icon;
 
     if (!editingMarket.newName.trim()) {
       setResult({ success: false, message: 'Market name cannot be empty' });
       return;
     }
 
-    if (!hasNameChanged && !hasIconChanged) {
+    if (!editingMarket.state || !editingMarket.city || !editingMarket.circleArea) {
+      setResult({ success: false, message: 'State, City, and Circle Area are required' });
+      return;
+    }
+
+    if (!hasStateChanged && !hasCityChanged && !hasCircleAreaChanged && !hasNameChanged && !hasIconChanged) {
       setEditingMarket(null);
       return;
     }
@@ -308,8 +317,13 @@ export default function LocationManagement() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          renameFrom: editingMarket.oldName,
-          renameTo: hasNameChanged ? editingMarket.newName : undefined,
+          id: editingMarket.id,
+          state: editingMarket.state,
+          city: editingMarket.city,
+          town: editingMarket.circleArea,
+          tehsil: editingMarket.circleArea,
+          subTehsil: editingMarket.circleArea,
+          circle: editingMarket.newName.trim(),
           marketIcon: editingMarket.icon
         })
       });
@@ -410,11 +424,28 @@ export default function LocationManagement() {
   }, [locations, circleSearchQuery]);
 
   const filteredMarkets = useMemo(() => {
-    const marketsList = Array.from(new Set(locations.filter(l => l.circle).map(l => l.circle))).sort();
+    const marketsList = locations.filter(l => l.circle);
+    // Sort by market name
+    marketsList.sort((a, b) => (a.circle || '').localeCompare(b.circle || ''));
     if (!marketSearchQuery.trim()) return marketsList;
     const query = marketSearchQuery.toLowerCase().trim();
-    return marketsList.filter(m => m && m.toLowerCase().includes(query));
+    return marketsList.filter(m => 
+      (m.circle && m.circle.toLowerCase().includes(query)) ||
+      (m.town && m.town.toLowerCase().includes(query)) ||
+      (m.city && m.city.toLowerCase().includes(query)) ||
+      (m.state && m.state.toLowerCase().includes(query))
+    );
   }, [locations, marketSearchQuery]);
+
+  const editCities = useMemo(() => {
+    if (!editingMarket?.state) return [];
+    return Array.from(new Set(locations.filter(l => l.state === editingMarket.state).map(l => l.city))).sort();
+  }, [locations, editingMarket?.state]);
+
+  const editTowns = useMemo(() => {
+    if (!editingMarket?.state || !editingMarket?.city) return [];
+    return Array.from(new Set(locations.filter(l => l.state === editingMarket.state && l.city === editingMarket.city).map(l => l.town))).sort();
+  }, [locations, editingMarket?.state, editingMarket?.city]);
 
   const filteredSubTehsils = useMemo(() => {
     if (!subTehsilSearchQuery.trim()) return subTehsils;
@@ -814,12 +845,12 @@ export default function LocationManagement() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
-              {filteredMarkets.map((circle, idx) => (
-                <div key={idx} className="p-4 border border-gray-100 rounded-xl bg-slate-50 flex items-center justify-between group relative">
+              {filteredMarkets.map((market, idx) => (
+                <div key={market.id || idx} className="p-4 border border-gray-100 rounded-xl bg-slate-50 flex items-center justify-between group relative">
                     <div className="flex items-center gap-3">
-                      {circleIcons[circle] ? (
+                      {market.market_icon ? (
                         <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200">
-                          <img src={circleIcons[circle]} alt={circle} className="w-full h-full object-cover" />
+                          <img src={market.market_icon} alt={market.circle} className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
@@ -827,20 +858,30 @@ export default function LocationManagement() {
                         </div>
                       )}
                       <div>
-                        <span className="font-bold text-gray-900">{circle}</span>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Active Market</p>
+                        <span className="font-bold text-gray-900">{market.circle}</span>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
+                          Circle: {market.town} ({market.city}, {market.state})
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={() => setEditingMarket({ oldName: circle, newName: circle, icon: circleIcons[circle] || '' })}
+                        onClick={() => setEditingMarket({ 
+                          id: market.id,
+                          oldName: market.circle,
+                          newName: market.circle,
+                          icon: market.market_icon || '',
+                          state: market.state,
+                          city: market.city,
+                          circleArea: market.town
+                        })}
                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Edit Market"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                       </button>
                       <button 
-                        onClick={() => handleDeleteMarket(circle)}
+                        onClick={() => handleDeleteMarket(market.id, market.circle)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete Market"
                       >
@@ -863,20 +904,58 @@ export default function LocationManagement() {
                   </button>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-4 text-left">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Market Name</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">State</label>
+                    <select
+                      value={editingMarket.state || ''}
+                      onChange={(e) => setEditingMarket({ ...editingMarket, state: e.target.value, city: '', circleArea: '' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="">Select State</option>
+                      {states.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">City</label>
+                    <select
+                      value={editingMarket.city || ''}
+                      onChange={(e) => setEditingMarket({ ...editingMarket, city: e.target.value, circleArea: '' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-orange-500"
+                      disabled={!editingMarket.state}
+                    >
+                      <option value="">Select City</option>
+                      {editCities.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Circle / Area</label>
+                    <select
+                      value={editingMarket.circleArea || ''}
+                      onChange={(e) => setEditingMarket({ ...editingMarket, circleArea: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-orange-500"
+                      disabled={!editingMarket.city}
+                    >
+                      <option value="">-- Choose Existing Circle --</option>
+                      {editTowns.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Market Name</label>
                     <input
                       type="text"
                       value={editingMarket.newName}
                       onChange={(e) => setEditingMarket({ ...editingMarket, newName: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 shadow-sm"
                       placeholder="Enter market name"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Market Icon</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Market Icon</label>
                     <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
                       {editingMarket.icon ? (
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden shadow-md group">

@@ -14,9 +14,15 @@ CREATE TABLE IF NOT EXISTS public.locations (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create unique index to prevent duplicate locations
-CREATE UNIQUE INDEX IF NOT EXISTS locations_unique_hierarchy_idx 
-  ON public.locations(state, city, town, tehsil, sub_tehsil);
+-- Create unique index to prevent duplicate base locations (where circle/market is null)
+CREATE UNIQUE INDEX IF NOT EXISTS locations_unique_circle_null_idx 
+  ON public.locations(state, city, town, tehsil, sub_tehsil) 
+  WHERE circle IS NULL;
+
+-- Create unique index to prevent duplicate markets (where circle/market is not null)
+CREATE UNIQUE INDEX IF NOT EXISTS locations_unique_circle_not_null_idx 
+  ON public.locations(state, city, town, tehsil, sub_tehsil, circle) 
+  WHERE circle IS NOT NULL;
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_locations_state ON public.locations(state);

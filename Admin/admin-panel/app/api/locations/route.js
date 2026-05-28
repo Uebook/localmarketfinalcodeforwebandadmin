@@ -81,7 +81,7 @@ export async function POST(req) {
             if (dbErrMsg.includes('23505') || dbErrMsg.includes('already exists') || dbErrMsg.includes('unique constraint')) {
                 if (circle) {
                     return Response.json(
-                        { error: `This Circle/Area ("${town}") already has a market or mapping assigned. You cannot create a duplicate.` },
+                        { error: `The market "${circle}" already exists in the Circle/Area "${town}".` },
                         { status: 409 }
                     );
                 } else {
@@ -110,6 +110,16 @@ export async function PATCH(req) {
         const renameTo = body?.renameTo;
 
         if (id) {
+            // Fetch current record to check if circle name is changing
+            let oldCircleName = null;
+            try {
+                const currentRows = await supabaseRestGet(`/rest/v1/locations?id=eq.${id}`);
+                const currentRecord = Array.isArray(currentRows) ? currentRows[0] : currentRows;
+                oldCircleName = currentRecord?.circle;
+            } catch (fetchErr) {
+                console.error('Failed to fetch current location for change detection:', fetchErr);
+            }
+
             const patch = {};
             if (body.state !== undefined) patch.state = toStr(body.state);
             if (body.city !== undefined) patch.city = toStr(body.city);
@@ -122,6 +132,19 @@ export async function PATCH(req) {
             }
 
             const updated = await supabaseRestPatch(`/rest/v1/locations?id=eq.${id}`, patch);
+
+            // If market name (circle) was renamed, update associated vendors as well
+            if (oldCircleName && patch.circle && oldCircleName !== patch.circle) {
+                try {
+                    await supabaseRestPatch(
+                        `/rest/v1/vendors?circle=eq.${encodeURIComponent(oldCircleName)}`,
+                        { circle: patch.circle }
+                    );
+                } catch (ve) {
+                    console.error('Failed to rename circle in vendors table:', ve);
+                }
+            }
+
             return Response.json({ location: Array.isArray(updated) ? updated[0] : updated }, { status: 200 });
         } else if (renameFrom) { // Handle renaming circle and/or updating market_icon for all locations in that circle
             const updates = {};
@@ -182,7 +205,27 @@ export async function DELETE(req) {
         const circleNameParam = searchParams.get('circleName');
 
         if (id) {
+            let marketName = null;
+            try {
+                const currentRows = await supabaseRestGet(`/rest/v1/locations?id=eq.${id}`);
+                const currentRecord = Array.isArray(currentRows) ? currentRows[0] : currentRows;
+                marketName = currentRecord?.circle;
+            } catch (fetchErr) {
+                console.error('Failed to fetch location for vendor unassignment detection:', fetchErr);
+            }
+
             await supabaseRestDelete(`/rest/v1/locations?id=eq.${id}`);
+
+            if (marketName) {
+                try {
+                    await supabaseRestPatch(
+                        `/rest/v1/vendors?circle=eq.${encodeURIComponent(marketName)}`,
+                        { circle: null }
+                    );
+                } catch (ve) {
+                    console.error('Failed to clear circle in vendors table:', ve);
+                }
+            }
             return Response.json({ success: true }, { status: 200 });
         } else if (marketName) {
             // Use DELETE instead of PATCH to remove the specific market record
