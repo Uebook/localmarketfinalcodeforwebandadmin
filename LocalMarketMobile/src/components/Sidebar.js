@@ -204,6 +204,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
                     <MenuItem iconName="Home" label="Home" onPress={() => handleNav('home')} />
                     <MenuItem iconName="Grid" label="Categories" onPress={() => handleNav('categories')} />
                     <MenuItem iconName="Bookmark" label="Saved Items" onPress={() => handleNav('saved')} />
+                    <MenuItem iconName="Clipboard" label="My Requirements" onPress={() => handleNav('requirements')} />
                   </CollapsibleSection>
 
                   <View style={styles.divider} />
@@ -241,6 +242,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName 
                       iconName="Activity"
                       label="Analytics & Overview"
                       onPress={() => handleNav('business-analytics')}
+                    />
+                    <MenuItem
+                      iconName="Map"
+                      label="Nearby Leads"
+                      onPress={() => handleNav('vendor-leads')}
                     />
                     <MenuItem
                       iconName="Plus"

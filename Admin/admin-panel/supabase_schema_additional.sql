@@ -190,3 +190,50 @@ ALTER TABLE public.e_auction_bids ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (allow service role to access everything)
 -- Policies for public.e_auctions were already defined above.
+
+-- Custom Requirements
+CREATE TABLE IF NOT EXISTS public.custom_requirements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  buyer_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  category TEXT NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  unit TEXT DEFAULT 'pcs',
+  budget_min NUMERIC(10,2),
+  budget_max NUMERIC(10,2),
+  lat NUMERIC(10,6),
+  lng NUMERIC(10,6),
+  location_text TEXT,
+  radius_km INTEGER DEFAULT 2,
+  status TEXT DEFAULT 'active', -- 'active', 'accepted', 'expired'
+  expires_at TIMESTAMPTZ,
+  photos TEXT[],
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_custom_requirements_buyer ON public.custom_requirements(buyer_id);
+CREATE INDEX IF NOT EXISTS idx_custom_requirements_status ON public.custom_requirements(status);
+CREATE INDEX IF NOT EXISTS idx_custom_requirements_location ON public.custom_requirements(lat, lng);
+
+-- Vendor Quotations
+CREATE TABLE IF NOT EXISTS public.vendor_quotations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requirement_id UUID REFERENCES public.custom_requirements(id) ON DELETE CASCADE,
+  vendor_id UUID REFERENCES public.vendors(id) ON DELETE CASCADE,
+  price NUMERIC(10,2) NOT NULL,
+  delivery_time TEXT,
+  note TEXT,
+  status TEXT DEFAULT 'pending', -- 'pending', 'accepted', 'rejected'
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(requirement_id, vendor_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_vendor_quotations_req ON public.vendor_quotations(requirement_id);
+CREATE INDEX IF NOT EXISTS idx_vendor_quotations_vendor ON public.vendor_quotations(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_vendor_quotations_status ON public.vendor_quotations(status);
+
+ALTER TABLE public.custom_requirements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vendor_quotations ENABLE ROW LEVEL SECURITY;

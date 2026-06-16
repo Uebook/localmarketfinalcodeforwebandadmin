@@ -91,6 +91,11 @@ import AIServiceFlow from './src/components/AIServiceFlow';
 import MarketScreen from './src/components/MarketScreen';
 import CartScreen from './src/components/CartScreen';
 import Header from './src/components/Header';
+import PostRequirementScreen from './src/components/PostRequirementScreen';
+import MyRequirementsScreen from './src/components/MyRequirementsScreen';
+import RequirementDetailsScreen from './src/components/RequirementDetailsScreen';
+import VendorRequirementsFeed from './src/components/VendorRequirementsFeed';
+import SubmitQuotationScreen from './src/components/SubmitQuotationScreen';
 import { setVendorSidebarControl } from './src/utils/vendorSidebarControl';
 
 import { setSidebarControl } from './src/utils/sidebarControl';
@@ -213,15 +218,15 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
             iconName = 'home';
           } else if (route.name === 'Categories') {
             iconName = 'grid';
-          } else if (route.name === 'Compare') {
-            iconName = 'shuffle';
+          } else if (route.name === 'Quote') {
+            iconName = 'file-text';
           } else if (route.name === 'Saved') {
             iconName = 'heart';
           } else if (route.name === 'Profile') {
             iconName = 'user';
           }
 
-          const activeColor = route.name === 'Compare' ? '#CA8A04' : themeColors.orange;
+          const activeColor = route.name === 'Quote' ? '#CA8A04' : themeColors.orange;
 
           return {
             tabBarIcon: ({ focused }) => {
@@ -286,7 +291,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
           {(props) => <CategoriesScreen {...props} locationState={locationState} />}
         </Tab.Screen>
         <Tab.Screen 
-          name="Compare"
+          name="Quote"
           listeners={{
             tabPress: e => {
               if (!isServiceAvailable) {
@@ -296,7 +301,7 @@ function MainTabs({ route, userRole, vendorData, setVendorData, userData, setUse
             },
           }}
         >
-          {(props) => <SearchScreen {...props} locationState={locationState} />}
+          {(props) => <MyRequirementsScreen {...props} locationState={locationState} userData={userData} />}
         </Tab.Screen>
         <Tab.Screen 
           name="Saved"
@@ -572,6 +577,8 @@ function App() {
       // Vendor navigation
       if (tab === 'business-analytics') {
         navigationRef.current?.navigate('VendorTabs', { screen: 'Analytics' });
+      } else if (tab === 'vendor-leads') {
+        navigationRef.current?.navigate('VendorRequirementsFeed', { vendorData, locationState });
       } else if (tab === 'business-products' || tab === 'business-add-product' || tab === 'business-add-service') {
         navigationRef.current?.navigate('VendorTabs', { screen: 'Catalogue' });
       } else if (tab === 'business-enquiries') {
@@ -597,6 +604,8 @@ function App() {
         navigationRef.current?.navigate('MainTabs', {
           screen: 'Categories',
         });
+      } else if (tab === 'requirements') {
+        navigationRef.current?.navigate('MyRequirements', { userData });
       }
     }
   };
@@ -893,6 +902,11 @@ function App() {
             </Stack.Screen>
             <Stack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+            <Stack.Screen name="PostRequirement" component={PostRequirementScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="MyRequirements" component={MyRequirementsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="RequirementDetails" component={RequirementDetailsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="VendorRequirementsFeed" component={VendorRequirementsFeed} options={{ headerShown: false }} />
+            <Stack.Screen name="SubmitQuotation" component={SubmitQuotationScreen} options={{ headerShown: false }} />
             <Stack.Screen name="VendorRegistration">
               {(props) => (
                 <VendorRegistration

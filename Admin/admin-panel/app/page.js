@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Dashboard from '../components/Dashboard';
 import UserManagement from '../components/Dashboard/UserManagement';
+import RequirementsManagement from '../components/RequirementsManagement';
 import VendorManagement from '../components/VendorManagement';
 import CategoryManagement from '../components/CategoryManagement';
 import PriceVerification from '../components/PriceVerification';
@@ -66,6 +67,8 @@ export default function AdminPanel() {
     switch (activeSection) {
       case 'dashboard':
         return 'Dashboard';
+      case 'requirements':
+        return 'Local Leads & Bids';
       case 'users':
         return 'User Management';
       case 'vendors':
@@ -105,6 +108,8 @@ export default function AdminPanel() {
     switch (activeSection) {
       case 'dashboard':
         return <Dashboard onNavigate={setActiveSection} />;
+      case 'requirements':
+        return <RequirementsManagement />;
       case 'users':
         return <UserManagement />;
       case 'vendors':

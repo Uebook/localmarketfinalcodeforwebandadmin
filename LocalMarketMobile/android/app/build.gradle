@@ -1,6 +1,9 @@
-apply plugin: "com.android.application"
-apply plugin: "org.jetbrains.kotlin.android"
-apply plugin: "com.facebook.react"
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "com.facebook.react"
+}
+
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -75,15 +78,31 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdkVersion 36
 
     namespace "com.localmarketmobile"
     defaultConfig {
         applicationId "com.localmarketmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
+            // ndk { abiFilters "armeabi-v7a","arm64-v8a","x86","x86_64" } // removed to avoid conflict with splits
+    }
+
+    // Added support for 16KB memory page sizes and ABI splits
+    splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi-v7a","arm64-v8a","x86","x86_64"
+            universalApk false
+        }
+    }
+    androidResources {
+        packagingOptions {
+            doNotStrip "**/*.so"
+        }
     }
     
     // Ensure fonts are included in the build

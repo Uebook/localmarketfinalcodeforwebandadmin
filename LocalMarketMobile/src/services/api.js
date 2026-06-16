@@ -6,6 +6,7 @@ import { Platform } from 'react-native';
 // Use your actual local IP (192.168.1.42) instead of 10.0.2.2 for better reachability from the emulator on Mac
 // Live production URL
 export const API_BASE_URL = 'https://admin.lokall.in';
+// export const API_BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
 /**
  * Generic fetch wrapper with error handling
@@ -1559,6 +1560,72 @@ export const getBrands = async () => {
   }
 };
 
+// ==================== CUSTOM REQUIREMENTS & QUOTATIONS ====================
+
+export const postRequirement = async (requirementData) => {
+  return await apiRequest('/api/custom-requirements', {
+    method: 'POST',
+    body: JSON.stringify(requirementData),
+  });
+};
+
+export const getRequirements = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (filters.buyer_id) params.set('buyer_id', filters.buyer_id);
+    if (filters.lat) params.set('lat', filters.lat);
+    if (filters.lng) params.set('lng', filters.lng);
+    if (filters.category) params.set('category', filters.category);
+    if (filters.radius) params.set('radius', filters.radius);
+    
+    return await apiRequest(`/api/custom-requirements?${params.toString()}`);
+  } catch (error) {
+    console.error('Error getting requirements:', error);
+    return { success: false, requirements: [] };
+  }
+};
+
+export const updateRequirementStatus = async (id, status) => {
+  return await apiRequest('/api/custom-requirements', {
+    method: 'PATCH',
+    body: JSON.stringify({ id, status }),
+  });
+};
+
+export const submitQuotation = async (quotationData) => {
+  return await apiRequest('/api/vendor-quotations', {
+    method: 'POST',
+    body: JSON.stringify(quotationData),
+  });
+};
+
+export const getQuotations = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (filters.requirement_id) params.set('requirement_id', filters.requirement_id);
+    if (filters.vendor_id) params.set('vendor_id', filters.vendor_id);
+    
+    return await apiRequest(`/api/vendor-quotations?${params.toString()}`);
+  } catch (error) {
+    console.error('Error getting quotations:', error);
+    return { success: false, quotations: [] };
+  }
+};
+
+export const updateQuotationStatus = async (id, status) => {
+  return await apiRequest('/api/vendor-quotations', {
+    method: 'PATCH',
+    body: JSON.stringify({ id, status }),
+  });
+};
+
+export const updateQuotationDetails = async (id, updates) => {
+  return await apiRequest('/api/vendor-quotations', {
+    method: 'PATCH',
+    body: JSON.stringify({ id, ...updates }),
+  });
+};
+
 export default {
   getCategories,
   getThemes,
@@ -1601,6 +1668,12 @@ export default {
   getTodayDeals,
   getBrands,
   getMarketHubStats,
+  postRequirement,
+  getRequirements,
+  updateRequirementStatus,
+  submitQuotation,
+  getQuotations,
+  updateQuotationStatus,
+  updateQuotationDetails,
   apiRequest,
 };
-
