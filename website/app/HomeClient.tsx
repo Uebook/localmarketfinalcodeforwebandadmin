@@ -17,6 +17,8 @@ import SalesSection from '@/components/SalesSection';
 import BusinessCardCompact from '@/components/BusinessCardCompact';
 import SearchSuggestions from '@/components/SearchSuggestions';
 import MarketCard from '@/components/MarketCard';
+import CheapestMarketCard from '@/components/CheapestMarketCard';
+import NearbyCirclesSection from '@/components/NearbyCirclesSection';
 
 // ──────────────────────────────────────────
 // Fallback / Initial Empty States
@@ -324,39 +326,22 @@ export default function HomeClient({ initialCategories }: HomeClientProps) {
           </form>
         </div>
 
+        {/* Cheapest Market Card */}
+        <div className="mb-10">
+          <CheapestMarketCard
+            city={locationState.city}
+            circle={dbCircles[0]?.name || ''}
+            onLocationChange={() => detectLocation()}
+          />
+        </div>
+
         {/* Neighborhood Markets */}
-        {!loadingCircles && (dbCircles.length > 0 || Object.keys(marketsByCity).length > 0) && (
-          <div className="space-y-10 my-10">
-            {Object.entries(
-              dbCircles.length > 0
-                ? dbCircles.reduce((acc: Record<string, any[]>, circle) => {
-                  const area = circle.town || circle.city || 'Other Areas';
-                  if (!acc[area]) acc[area] = [];
-                  acc[area].push(circle);
-                  return acc;
-                }, {})
-                : (marketsByCity[cityDisplay] ? { [cityDisplay]: marketsByCity[cityDisplay] } : {})
-            ).map(([area, areaCircles]: [string, any[]]) => (
-              <section key={area} className="relative">
-                <div className="flex items-center gap-4 mb-5">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] bg-white pr-4 relative z-10">{area}</h3>
-                  <div className="h-[2px] w-full bg-slate-100 absolute top-1/2 left-0 -translate-y-1/2" />
-                </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-4 sm:gap-6">
-                  {areaCircles.map((circle: any) => (
-                    <MarketCard
-                      key={circle.name}
-                      name={circle.name}
-                      shops={circle.shops || 0}
-                      icon={circle.icon || circle.imageUrl}
-                      href={`/market/${encodeURIComponent(circle.name)}`}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
+        <div className="my-10">
+          <NearbyCirclesSection
+            circles={dbCircles}
+            loading={loadingCircles}
+          />
+        </div>
 
         {/* Categories Section */}
         <section className="mb-8">

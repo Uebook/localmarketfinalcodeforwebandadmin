@@ -4,7 +4,7 @@ import { useState, useEffect, createContext, useContext, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { Activity, Package, MessageSquare, Star, User, Upload, MessageCircle, Loader2, LogOut, Bell, X } from 'lucide-react';
+import { Activity, Package, MessageSquare, Star, User, Upload, MessageCircle, Loader2, LogOut, Bell, X, Target } from 'lucide-react';
 import Link from 'next/link';
 
 interface VendorSession {
@@ -61,6 +61,7 @@ export default function VendorDashboardLayout({ children, hideTabs = false }: Ve
     { id: 'catalog', label: 'Catalogue', icon: Package, href: '/vendor/dashboard/catalog' },
     { id: 'offers', label: 'Offer & Sale', icon: Star, href: '/vendor/dashboard/offers' },
     { id: 'enquiries', label: 'Enquiries', icon: MessageSquare, href: '/vendor/dashboard/enquiries' },
+    { id: 'requirements', label: 'Local Leads', icon: Target, href: '/vendor/dashboard/requirements' },
     { id: 'reviews', label: 'Reviews', icon: Star, href: '/vendor/dashboard/reviews' },
     { id: 'profile', label: 'Profile', icon: User, href: '/vendor/dashboard/profile' },
     { id: 'bulk-update', label: 'Bulk Update', icon: Upload, href: '/vendor/dashboard/bulk-update' },
