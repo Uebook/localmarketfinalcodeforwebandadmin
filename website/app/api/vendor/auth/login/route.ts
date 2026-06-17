@@ -38,7 +38,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Account exists but no password is set. Use Forgot Password or contact support.' }, { status: 403 });
         }
 
-        const isPasswordCorrect = await bcrypt.compare(password, v.password);
+        let isPasswordCorrect = false;
+        if (v.password.startsWith('$2a$') || v.password.startsWith('$2b$') || v.password.startsWith('$2y$')) {
+            isPasswordCorrect = await bcrypt.compare(password, v.password);
+        } else {
+            isPasswordCorrect = password === v.password;
+        }
+
         if (!isPasswordCorrect) {
             return NextResponse.json({ error: 'Incorrect password. Please try again.' }, { status: 401 });
         }
