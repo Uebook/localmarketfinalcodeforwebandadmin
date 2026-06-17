@@ -56,8 +56,8 @@ export async function GET(request: NextRequest) {
 
         // 2. Extract best names for matching
         const a: any = addr;
-        const mainArea = a.village || a.hamlet || a.suburb || a.neighbourhood || a.subdistrict || '';
-        const city = a.city || a.town || a.city_district || '';
+        const mainArea = a.village || a.hamlet || a.suburb || a.neighbourhood || a.subdistrict || a.road || a.commercial || a.retail || a.industrial || '';
+        const city = a.city || a.town || a.city_district || a.county || a.state_district || a.municipality || '';
         const state = a.state || '';
 
         // 3. Match against Market Circles (Parallel Optimized)
@@ -75,9 +75,17 @@ export async function GET(request: NextRequest) {
         }
 
         // 4. Construct response
+        // Prioritize local area over state name. If matchedCircle matches the state name, fallback to city/mainArea.
+        let displayLabel = matchedCircle;
+        if (!displayLabel || displayLabel.toLowerCase() === state.toLowerCase()) {
+            displayLabel = mainArea && city 
+                ? `${mainArea}, ${city}` 
+                : city || mainArea || state || 'Your Location';
+        }
+
         return NextResponse.json({
             success: true,
-            displayLabel: matchedCircle || (mainArea && city ? `${mainArea}, ${city}` : mainArea || city || state || 'Your Location'),
+            displayLabel: displayLabel,
             matchedCircle: matchedCircle,
             address: addr
         }, {

@@ -44,14 +44,7 @@ export default function PostRequirementPage() {
       return;
     }
 
-    // Set initial location from hook
-    if (locationState.city) {
-      setLocationName(locationState.city);
-      setLat(locationState.lat);
-      setLng(locationState.lng);
-    }
-
-    // Load categories
+    // Load categories once on mount
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
@@ -64,7 +57,16 @@ export default function PostRequirementPage() {
       })
       .catch(err => console.error('Failed to load categories:', err))
       .finally(() => setLoadingCategories(false));
-  }, [locationState.city, locationState.lat, locationState.lng, router]);
+  }, [router]);
+
+  // Sync location State changes separately
+  useEffect(() => {
+    if (locationState.city) {
+      setLocationName(locationState.city);
+    }
+    if (locationState.lat) setLat(locationState.lat);
+    if (locationState.lng) setLng(locationState.lng);
+  }, [locationState.city, locationState.lat, locationState.lng]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,10 +299,18 @@ export default function PostRequirementPage() {
                     </div>
                     <button
                       type="button"
+                      disabled={locationState.loading}
                       onClick={() => detectLocation()}
-                      className="px-4 py-3 bg-slate-900 text-white hover:bg-slate-800 font-black uppercase tracking-wider text-xs rounded-xl transition-all"
+                      className="px-4 py-3 bg-slate-900 text-white hover:bg-slate-800 font-black uppercase tracking-wider text-xs rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
-                      Detect
+                      {locationState.loading ? (
+                        <>
+                          <Loader2 size={12} className="w-3.5 h-3.5 animate-spin" />
+                          Detecting...
+                        </>
+                      ) : (
+                        'Detect'
+                      )}
                     </button>
                   </div>
                 </div>
