@@ -249,8 +249,7 @@ export default function Header({
               { label: 'Home', href: '/' },
               { label: 'Categories', href: '/categories' },
               { label: 'Offer & Sale', href: '/offers' },
-              // { label: 'E-Auction', href: '/eauction' },
-              // { label: 'Draws', href: '/draws' },
+              { label: 'My Requirements', href: '/requirements/my' },
               { label: 'Saved', href: '/saved' },
             ].map((link) => (
               <Link

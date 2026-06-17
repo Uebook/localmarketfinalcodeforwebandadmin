@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Home, Grid, Bookmark, Briefcase, HelpCircle, Settings, LogOut, User, ChevronDown, ChevronUp, Gavel, Ticket } from 'lucide-react';
+import { X, Home, Grid, Bookmark, Briefcase, HelpCircle, Settings, LogOut, User, ChevronDown, ChevronUp, Gavel, Ticket, Target } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -89,6 +89,10 @@ export default function Sidebar({ isOpen, onClose, onNavigate, userRole = 'custo
                       <button onClick={() => { onNavigate('categories'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
                         <Grid size={20} />
                         <span>Categories</span>
+                      </button>
+                      <button onClick={() => { onNavigate('requirements/my'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
+                        <Target size={20} />
+                        <span>My Requirements</span>
                       </button>
                       <button onClick={() => { onNavigate('saved'); onClose(); }} className="w-full flex items-center gap-3 p-2 text-gray-900 hover:bg-primary/10 rounded-lg">
                         <Bookmark size={20} />
