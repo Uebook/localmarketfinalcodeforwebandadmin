@@ -250,7 +250,7 @@ export default function Header({
               { label: 'Categories', href: '/categories' },
               { label: 'Offer & Sale', href: '/offers' },
               user?.role === 'vendor'
-                ? { label: 'Nearby', href: '/vendor/dashboard/requirements' }
+                ? { label: 'Your Bids', href: '/vendor/dashboard/requirements' }
                 : { label: 'My Requirements', href: '/requirements/my' },
               { label: 'Saved', href: '/saved' },
             ].map((link) => (
