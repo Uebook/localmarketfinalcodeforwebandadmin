@@ -30,6 +30,7 @@ const Header = ({
   const { cartCount } = useCart();
   const styles = createStyles(COLORS, transparent);
   const [showLocationModal, setShowLocationModal] = useState(false);
+  console.log('[Header] Render. showLocationModal:', showLocationModal, 'showLocationPicker:', !!showLocationPicker);
 
   const iconColor = transparent ? COLORS.white : COLORS.textPrimary;
   const displayImage = profileImage;
@@ -41,7 +42,10 @@ const Header = ({
           {/* Left: Drawer */}
           <View style={styles.leftSection}>
             <TouchableOpacity
-              onPress={onMenuClick}
+              onPress={() => {
+                console.log('[Header] Menu clicked, calling onMenuClick:', typeof onMenuClick);
+                if (onMenuClick) onMenuClick();
+              }}
               style={styles.menuButton}
               activeOpacity={0.7}
             >
@@ -54,7 +58,10 @@ const Header = ({
             <TouchableOpacity
               style={styles.locationButton}
               activeOpacity={0.7}
-              onPress={() => setShowLocationModal(true)}
+              onPress={() => {
+                console.log('[Header] Location button clicked, showing modal');
+                setShowLocationModal(true);
+              }}
             >
               <Icon name="map-pin" size={16} color={COLORS.orange} />
               <View style={styles.locationTextBlock}>
@@ -192,6 +199,8 @@ const Header = ({
 const createStyles = (COLORS, transparent) => StyleSheet.create({
   safeArea: {
     backgroundColor: transparent ? 'transparent' : COLORS.white,
+    zIndex: 100,
+    elevation: 100,
   },
   header: {
     height: 64,

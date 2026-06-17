@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   facebook_url TEXT,
   twitter_url TEXT,
   instagram_url TEXT,
+  android_app_version TEXT DEFAULT '0.0.1',
+  android_app_url TEXT DEFAULT 'https://play.google.com/store/apps/details?id=com.localmarketmobile',
+  ios_app_version TEXT DEFAULT '0.0.1',
+  ios_app_url TEXT DEFAULT 'https://apps.apple.com/app/localmarketmobile',
+  force_update BOOLEAN DEFAULT false,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 

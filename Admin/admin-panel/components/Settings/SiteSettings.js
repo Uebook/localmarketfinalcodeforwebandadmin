@@ -14,7 +14,12 @@ export default function SiteSettings() {
         whatsapp_number: '',
         facebook_url: '',
         twitter_url: '',
-        instagram_url: ''
+        instagram_url: '',
+        android_app_version: '0.0.1',
+        android_app_url: 'https://play.google.com/store/apps/details?id=com.localmarketmobile',
+        ios_app_version: '0.0.1',
+        ios_app_url: 'https://apps.apple.com/app/localmarketmobile',
+        force_update: false
     });
 
     useEffect(() => {
@@ -190,6 +195,69 @@ export default function SiteSettings() {
                                     />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* App Updates Section */}
+                    <div className="space-y-6 pt-4">
+                        <h3 className="text-lg font-bold text-gray-900 border-b pb-2 flex items-center gap-2">
+                            <span className="text-orange-500">📱</span> App Updates
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">Android App Version</label>
+                                <input
+                                    type="text"
+                                    value={settings.android_app_version || ''}
+                                    onChange={(e) => setSettings({ ...settings, android_app_version: e.target.value })}
+                                    className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none transition"
+                                    placeholder="e.g., 0.0.1"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">Android Play Store Link</label>
+                                <input
+                                    type="url"
+                                    value={settings.android_app_url || ''}
+                                    onChange={(e) => setSettings({ ...settings, android_app_url: e.target.value })}
+                                    className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none transition"
+                                    placeholder="https://play.google.com/..."
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">iOS App Version</label>
+                                <input
+                                    type="text"
+                                    value={settings.ios_app_version || ''}
+                                    onChange={(e) => setSettings({ ...settings, ios_app_version: e.target.value })}
+                                    className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none transition"
+                                    placeholder="e.g., 0.0.1"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">iOS App Store Link</label>
+                                <input
+                                    type="url"
+                                    value={settings.ios_app_url || ''}
+                                    onChange={(e) => setSettings({ ...settings, ios_app_url: e.target.value })}
+                                    className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none transition"
+                                    placeholder="https://apps.apple.com/..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 mt-4">
+                            <input
+                                type="checkbox"
+                                id="force_update"
+                                checked={settings.force_update || false}
+                                onChange={(e) => setSettings({ ...settings, force_update: e.target.checked })}
+                                className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                            />
+                            <label htmlFor="force_update" className="text-sm font-bold text-gray-700">
+                                Force Update (Users cannot skip the update)
+                            </label>
                         </div>
                     </div>
 

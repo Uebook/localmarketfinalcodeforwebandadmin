@@ -7,6 +7,7 @@ import { getIconName } from '../utils/iconMapping';
 import BulkPriceUpdate from './BulkPriceUpdate';
 import FeedbackForm from './FeedbackForm';
 import { submitReviewReply, getVendorPerformance } from '../services/api';
+import AppUpdatePrompt from './AppUpdatePrompt';
 
 const VendorDashboard = ({
   navigation,
@@ -376,6 +377,7 @@ const VendorDashboard = ({
 
   return (
     <View style={styles.container}>
+      <AppUpdatePrompt />
       <SafeAreaView edges={['top']} style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerInfo}>

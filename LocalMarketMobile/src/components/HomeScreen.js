@@ -33,6 +33,7 @@ import QuickCategories from './QuickCategories';
 import ExitConfirmModal from './ExitConfirmModal';
 import { BackHandler } from 'react-native';
 import { getIconName } from '../utils/iconMapping';
+import AppUpdatePrompt from './AppUpdatePrompt';
 
 
 
@@ -384,6 +385,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
 
   return (
     <View style={styles.container}>
+      <AppUpdatePrompt />
       <View style={styles.whiteBackground} />
 
       <ScrollView

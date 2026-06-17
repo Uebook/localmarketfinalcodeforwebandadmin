@@ -7,6 +7,7 @@ import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const Sidebar = ({ isOpen, onClose, onNavigate, userRole = 'customer', userName = 'Guest User', userEmail = '', userLocation = 'Amritsar, India' }) => {
+  console.log('[Sidebar] Render. isOpen:', isOpen);
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
   const [expandedSections, setExpandedSections] = useState({
