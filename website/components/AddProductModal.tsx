@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, Image as ImageIcon, Check } from 'lucide-react';
+import { X, Loader2, Image as ImageIcon, Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface AddProductModalProps {
     isOpen: boolean;
@@ -30,12 +30,39 @@ export default function AddProductModal({ isOpen, onClose, onSuccess, vendorId, 
     });
 
     const units = ['Piece', 'Kg', 'Litre', 'Pack', 'Box', 'Dozen'];
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (showCategoryDropdown || showUnitDropdown) {
+                const target = e.target as HTMLElement;
+                if (!target.closest('.dropdown-container')) {
+                    setShowCategoryDropdown(false);
+                    setShowUnitDropdown(false);
+                }
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showCategoryDropdown, showUnitDropdown]);
 
     useEffect(() => {
         if (isOpen) {
             fetch('/api/vendor/products')
                 .then(res => res.json())
-                .then(data => setCategories(data.categories || []))
+                .then(data => {
+                    const fetchedCategories = data.categories || [];
+                    setCategories(fetchedCategories);
+                    
+                    // If product has category_name but no ID (e.g. from AI Smart Add), try to match it
+                    if (product && product.category_name && !product.category_id) {
+                        const matchedCat = fetchedCategories.find((c: any) => c.name.toLowerCase() === product.category_name.toLowerCase());
+                        if (matchedCat) {
+                            setFormData(prev => ({ ...prev, categoryId: matchedCat.id }));
+                        }
+                    }
+                })
                 .catch(err => console.error('Failed to fetch categories:', err));
 
             if (product) {
@@ -46,7 +73,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess, vendorId, 
                     mrp: product.mrp?.toString() || '',
                     uom: product.uom || 'Piece',
                     categoryId: product.category_id || '',
-                    imageUrl: product.image_url || '',
+                    imageUrl: product.image_url || product.image_urls?.[0] || '',
                     type: product.type || product.product_type || 'Product',
                     inStock: product.is_active ?? product.inStock ?? true,
                     isBestSeller: product.is_best_seller ?? product.isBestSeller ?? false,
@@ -247,28 +274,73 @@ export default function AddProductModal({ isOpen, onClose, onSuccess, vendorId, 
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all"
                                     />
                                 </div>
-                                <div className="space-y-1.5">
+                                <div className="space-y-1.5 relative dropdown-container">
                                     <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Unit</label>
-                                    <select
-                                        value={formData.uom}
-                                        onChange={e => setFormData({ ...formData, uom: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all appearance-none"
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowUnitDropdown(!showUnitDropdown);
+                                            setShowCategoryDropdown(false);
+                                        }}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                                     >
-                                        {units.map(u => <option key={u} value={u}>{u}</option>)}
-                                    </select>
+                                        <span className={formData.uom ? 'text-slate-900 font-bold text-sm' : 'text-slate-400 text-sm font-bold'}>
+                                            {formData.uom || 'Select Unit'}
+                                        </span>
+                                        {showUnitDropdown ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                                    </button>
+                                    {showUnitDropdown && (
+                                        <div className="absolute z-50 w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                                            {units.map((unit) => (
+                                                <button
+                                                    key={unit}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData({ ...formData, uom: unit });
+                                                        setShowUnitDropdown(false);
+                                                    }}
+                                                    className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors text-sm font-bold text-slate-700 border-b border-slate-50 last:border-0"
+                                                >
+                                                    {unit}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 relative dropdown-container">
                                 <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Category</label>
-                                <select
-                                    value={formData.categoryId}
-                                    onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all appearance-none"
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowCategoryDropdown(!showCategoryDropdown);
+                                        setShowUnitDropdown(false);
+                                    }}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                                 >
-                                    <option value="">Select Category</option>
-                                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
+                                    <span className={formData.categoryId ? 'text-slate-900 font-bold text-sm' : 'text-slate-400 text-sm font-bold'}>
+                                        {categories.find(c => c.id === formData.categoryId)?.name || 'Select Category'}
+                                    </span>
+                                    {showCategoryDropdown ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                                </button>
+                                {showCategoryDropdown && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                                        {categories.map((cat) => (
+                                            <button
+                                                key={cat.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData({ ...formData, categoryId: cat.id });
+                                                    setShowCategoryDropdown(false);
+                                                }}
+                                                className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors text-sm font-bold text-slate-700 border-b border-slate-50 last:border-0"
+                                            >
+                                                {cat.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
 

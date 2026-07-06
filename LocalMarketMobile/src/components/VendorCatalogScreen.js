@@ -97,6 +97,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [selectedAICategory, setSelectedAICategory] = useState(null);
+  const [aiSearchQuery, setAiSearchQuery] = useState('');
   const [saving, setSaving] = useState(false);
 
   const [categories, setCategories] = useState([]);
@@ -578,25 +579,52 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.suggestionsList}>
               {selectedAICategory ? (
-                getSuggestedItemsByCategory(selectedAICategory).map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.suggestionCard}
-                    onPress={() => handleSelectAIProduct(item)}
-                  >
-                    <Image 
-                      source={{ 
-                        uri: item.image_urls ? item.image_urls[0] : item.image_url 
-                      }} 
-                      style={styles.suggestionImage} 
+                <>
+                  <View style={{ marginBottom: 15, position: 'relative' }}>
+                    <Icon name="search" size={20} color={COLORS.textSecondary} style={{ position: 'absolute', left: 15, top: 13, zIndex: 1 }} />
+                    <TextInput
+                      style={[styles.input, { paddingLeft: 45, backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}
+                      placeholder={`Search in ${selectedAICategory}...`}
+                      value={aiSearchQuery}
+                      onChangeText={setAiSearchQuery}
+                      placeholderTextColor={COLORS.textSecondary}
                     />
-                    <View style={styles.suggestionInfo}>
-                      <Text style={styles.suggestionName}>{item.name}</Text>
-                      <Text style={styles.suggestionPrice}>₹{item.price}</Text>
+                  </View>
+                  {getSuggestedItemsByCategory(selectedAICategory)
+                    .filter(item => 
+                      item.name.toLowerCase().includes(aiSearchQuery.toLowerCase()) || 
+                      item.description.toLowerCase().includes(aiSearchQuery.toLowerCase())
+                    )
+                    .map((item, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.suggestionCard}
+                        onPress={() => handleSelectAIProduct(item)}
+                      >
+                        <Image 
+                          source={{ 
+                            uri: item.image_urls ? item.image_urls[0] : item.image_url 
+                          }} 
+                          style={styles.suggestionImage} 
+                        />
+                        <View style={styles.suggestionInfo}>
+                          <Text style={styles.suggestionName} numberOfLines={1}>{item.name}</Text>
+                          <Text style={{ fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 }} numberOfLines={2}>{item.description}</Text>
+                          <Text style={styles.suggestionPrice}>₹{item.price}</Text>
+                        </View>
+                        <Icon name="plus-circle" size={24} color={COLORS.orange} />
+                      </TouchableOpacity>
+                  ))}
+                  {getSuggestedItemsByCategory(selectedAICategory).filter(item => 
+                      item.name.toLowerCase().includes(aiSearchQuery.toLowerCase()) || 
+                      item.description.toLowerCase().includes(aiSearchQuery.toLowerCase())
+                  ).length === 0 && (
+                    <View style={styles.emptySuggestions}>
+                      <Icon name="search" size={40} color={COLORS.border} style={{ marginBottom: 10 }} />
+                      <Text style={styles.noSuggestionsText}>No matching items found</Text>
                     </View>
-                    <Icon name="plus-circle" size={24} color={COLORS.orange} />
-                  </TouchableOpacity>
-                ))
+                  )}
+                </>
               ) : (
                 <View style={styles.emptySuggestions}>
                   <Text style={styles.noSuggestionsText}>Select a category above to see suggestions</Text>

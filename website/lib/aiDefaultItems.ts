@@ -1,9 +1,17 @@
 /**
  * AI-Generated Default Items for various categories
- * These help vendors quickly populate their catalog.
+ * These help vendors quickly populate their catalog on the website.
  */
 
-export const AI_DEFAULT_ITEMS = {
+export interface AIProductSuggestion {
+    name: string;
+    description: string;
+    price: string;
+    image_urls: string[];
+    category: string;
+}
+
+export const AI_DEFAULT_ITEMS: Record<string, AIProductSuggestion[]> = {
     "Groceries": [
         {
             "name": "Milk",
@@ -5016,10 +5024,10 @@ export const AI_DEFAULT_ITEMS = {
     ]
 };
 
-export const getSuggestedItemsByCategory = (categoryName) => {
+export const getSuggestedItemsByCategory = (categoryName: string): AIProductSuggestion[] => {
     return AI_DEFAULT_ITEMS[categoryName] || [];
 };
 
-export const getAllCategoriesWithSuggestions = () => {
+export const getAllCategoriesWithSuggestions = (): string[] => {
     return Object.keys(AI_DEFAULT_ITEMS);
 };

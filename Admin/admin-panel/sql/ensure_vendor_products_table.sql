@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS public.vendor_products (
     uom TEXT, -- Unit of Measure (kg, piece, litre, etc.)
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
     image_url TEXT,
+    is_best_seller BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -29,6 +30,23 @@ BEGIN
         ADD COLUMN is_active BOOLEAN DEFAULT true;
         
         COMMENT ON COLUMN public.vendor_products.is_active IS 'Whether this product is currently active/available';
+    END IF;
+END $$;
+
+-- Add is_best_seller column if it doesn't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'vendor_products' 
+        AND column_name = 'is_best_seller'
+    ) THEN
+        ALTER TABLE public.vendor_products 
+        ADD COLUMN is_best_seller BOOLEAN DEFAULT false;
+        
+        COMMENT ON COLUMN public.vendor_products.is_best_seller IS 'Whether this product is marked as a best seller';
     END IF;
 END $$;
 

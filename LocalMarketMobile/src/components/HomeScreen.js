@@ -162,13 +162,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
       }
     };
 
-    // PRIORITIZE SAVED DATA (Unless forceRedetect is true)
-    if (!forceRedetect) {
-      const userFallbackSuccess = await getFallbackFromUser();
-      if (userFallbackSuccess) {
-        return; // Saved data found and used, stop here
-      }
-    }
+
 
     // START AUTO-DETECTION (GPS -> IP Fallback)
     const hasPermission = await requestLocationPermission();

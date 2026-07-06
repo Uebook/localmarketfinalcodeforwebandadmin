@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLayout';
-import { Plus, Edit, Trash2, Search, Package, Loader2, IndianRupee } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Package, Loader2, IndianRupee, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import AddProductModal from '@/components/AddProductModal';
+import AIProductAddModal from '@/components/AIProductAddModal';
+import { AIProductSuggestion } from '@/lib/aiDefaultItems';
 import BulkInventoryUpload from '@/components/BulkInventoryUpload';
 import { Download as DownloadIcon } from 'lucide-react';
 
@@ -13,6 +15,7 @@ function CatalogueContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
 
@@ -38,6 +41,22 @@ function CatalogueContent() {
     setDeleting(null);
   };
 
+  const handleAISelect = (product: AIProductSuggestion) => {
+    // Convert AI suggestion into the format expected by AddProductModal
+    const prefilledProduct = {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        mrp: (parseFloat(product.price) * 1.2).toFixed(0),
+        uom: 'Piece',
+        image_url: product.image_urls[0],
+        category_name: product.category,
+    };
+    setEditingProduct(prefilledProduct);
+    setIsAIModalOpen(false);
+    setIsAddModalOpen(true);
+  };
+
   if (loading) {
     return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin" size={24} style={{ color: 'var(--primary)' }} /></div>;
   }
@@ -56,6 +75,12 @@ function CatalogueContent() {
             className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all"
           >
             <DownloadIcon size={16} className="rotate-180" /> Bulk Upload
+          </button>
+          <button
+            onClick={() => setIsAIModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-orange-50 text-orange-600 rounded-xl font-bold text-sm hover:bg-orange-100 border border-orange-100 transition-all"
+          >
+            <Sparkles size={16} /> AI Smart Add
           </button>
           <button
             onClick={() => {
@@ -89,6 +114,12 @@ function CatalogueContent() {
         onSuccess={() => refresh()}
         vendorId={vendor?.id || ''}
         product={editingProduct}
+      />
+
+      <AIProductAddModal 
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        onSelectProduct={handleAISelect}
       />
 
       {/* Search */}

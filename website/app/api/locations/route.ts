@@ -22,6 +22,10 @@ export async function GET(request: Request) {
       // Get towns for a city
       query = `/rest/v1/locations?city=eq.${encodeURIComponent(parentValue!)}&select=town`;
       transform = (data: any[]) => Array.from(new Set(data.map(item => item.town))).sort();
+    } else if (parentType === 'town-circles') {
+      // Get circles for a town
+      query = `/rest/v1/locations?town=eq.${encodeURIComponent(parentValue!)}&select=circle`;
+      transform = (data: any[]) => Array.from(new Set(data.map(item => item.circle).filter(Boolean))).sort();
     } else if (parentType === 'town') {
       // Get tehsils for a town
       query = `/rest/v1/locations?town=eq.${encodeURIComponent(parentValue!)}&select=tehsil`;

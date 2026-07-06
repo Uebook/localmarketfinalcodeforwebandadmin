@@ -151,7 +151,7 @@ export default function VendorRegisterPage() {
     const fetchMarkets = async () => {
       setIsLoadingMarkets(true);
       try {
-        const res = await fetch(`/api/locations?parentType=town&parentValue=${encodeURIComponent(formData.area)}`);
+        const res = await fetch(`/api/locations?parentType=town-circles&parentValue=${encodeURIComponent(formData.area)}`);
         const data = await res.json();
         if (data.success) setDbMarkets(data.data);
       } catch (err) {

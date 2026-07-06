@@ -128,9 +128,6 @@ export default function LoginPage() {
       localStorage.setItem('localmarket_user', JSON.stringify(user));
       window.dispatchEvent(new Event('authchange'));
 
-      // Auto-detect location on login
-      detectLocation();
-
       setSuccess(mode === 'login' ? `Welcome back, ${user.name || 'there'}! 🎉` : `Account created! Welcome, ${user.name}! 🎉`);
 
       // Trigger animation for mobile login
