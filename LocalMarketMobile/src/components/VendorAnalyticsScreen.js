@@ -81,21 +81,7 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
     fetchAllAnalytics();
   }, [vendorData?.id, vendorData?.city, vendorData?.category]);
 
-  React.useEffect(() => {
-    const backAction = () => {
-      if (navigation.isFocused()) {
-        setShowExitModal(true);
-        return true;
-      }
-      return false;
-    };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-    return () => {
-      backHandler.remove();
-    };
-  }, [navigation]);
 
   // Performance data (mapping real stats)
   const performanceData = {
@@ -715,8 +701,6 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
         {/* High Demand Products */}
         {renderHighDemandProducts()}
 
-        {/* Auto Recommendations */}
-        {renderRecommendations()}
 
         {/* Quick Stats */}
         <View style={styles.quickStatsCard}>
@@ -856,11 +840,6 @@ const VendorAnalyticsScreen = ({ navigation, vendorData }) => {
         </View>
       </Modal>
 
-      <ExitConfirmModal 
-        visible={showExitModal}
-        onCancel={() => setShowExitModal(false)}
-        onConfirm={() => BackHandler.exitApp()}
-      />
     </View>
   );
 };

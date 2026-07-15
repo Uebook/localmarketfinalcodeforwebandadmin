@@ -572,7 +572,7 @@ export default function LocationManagement() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
                     >
                       <option value="">Select State</option>
-                      {states.map(s => <option key={s} value={s}>{s}</option>)}
+                      {[...states].sort((a,b) => a.localeCompare(b)).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
@@ -584,7 +584,7 @@ export default function LocationManagement() {
                       disabled={!circleFormData.state}
                     >
                       <option value="">Select City</option>
-                      {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                      {[...cities].sort((a,b) => a.localeCompare(b)).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
@@ -746,7 +746,7 @@ export default function LocationManagement() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
                         >
                           <option value="">Select State</option>
-                          {states.map(s => <option key={s} value={s}>{s}</option>)}
+                          {[...states].sort((a,b) => a.localeCompare(b)).map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </div>
                       <div>
@@ -758,7 +758,7 @@ export default function LocationManagement() {
                           disabled={!marketFormData.state}
                         >
                           <option value="">Select City</option>
-                          {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                          {[...cities].sort((a,b) => a.localeCompare(b)).map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                     </div>
@@ -772,7 +772,7 @@ export default function LocationManagement() {
                         disabled={!marketFormData.city}
                       >
                         <option value="">-- Choose Existing Circle --</option>
-                        {towns.map(t => <option key={t} value={t}>{t}</option>)}
+                        {[...towns].sort((a,b) => a.localeCompare(b)).map(t => <option key={t} value={t}>{t}</option>)}
                       </select>
                       <p className="text-[10px] text-gray-400 mt-1 font-medium italic">Don't see your circle? Create it in the "Manage Circles" tab first.</p>
                     </div>
@@ -913,7 +913,7 @@ export default function LocationManagement() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-orange-500"
                     >
                       <option value="">Select State</option>
-                      {states.map(s => <option key={s} value={s}>{s}</option>)}
+                      {[...states].sort((a,b) => a.localeCompare(b)).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
 
@@ -926,7 +926,7 @@ export default function LocationManagement() {
                       disabled={!editingMarket.state}
                     >
                       <option value="">Select City</option>
-                      {editCities.map(c => <option key={c} value={c}>{c}</option>)}
+                      {[...editCities].sort((a,b) => a.localeCompare(b)).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
 
@@ -939,7 +939,7 @@ export default function LocationManagement() {
                       disabled={!editingMarket.city}
                     >
                       <option value="">-- Choose Existing Circle --</option>
-                      {editTowns.map(t => <option key={t} value={t}>{t}</option>)}
+                      {[...editTowns].sort((a,b) => a.localeCompare(b)).map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
 

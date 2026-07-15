@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, StyleSheet } from 'react-native';
-import Logo from './Logo';
+import Icon from 'react-native-vector-icons/Feather';
 
 const ImageWithFallback = ({ source, style, resizeMode = 'cover', ...props }) => {
   const [error, setError] = React.useState(false);
@@ -30,7 +30,7 @@ const ImageWithFallback = ({ source, style, resizeMode = 'cover', ...props }) =>
 
     return (
       <View style={[flatStyle, { backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}>
-        <Logo size={detectedSize * 0.7} />
+        <Icon name="shopping-bag" size={detectedSize * 0.4} color="#94A3B8" />
       </View>
     );
   }

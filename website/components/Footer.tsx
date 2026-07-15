@@ -42,15 +42,12 @@ const Footer = () => {
                     <div className="space-y-6">
                         <Link href="/" className="flex items-center gap-2 group">
                             <Image
-                                src="/lokall-logo.svg"
+                                src="/finallogo.jpeg"
                                 alt="LOKALL Logo"
                                 width={48}
                                 height={48}
-                                className="group-hover:scale-105 transition-transform duration-300"
+                                className="group-hover:scale-105 transition-transform duration-300 object-contain rounded-md"
                             />
-                            <span className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                                LOKALL
-                            </span>
                         </Link>
                         <p className="text-slate-400 leading-relaxed max-w-xs">
                             India's first local price intelligence app. We empower users to find the cheapest nearby markets and products with live performance data.

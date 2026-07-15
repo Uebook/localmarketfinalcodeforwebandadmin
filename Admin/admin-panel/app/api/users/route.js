@@ -1,4 +1,4 @@
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
   return typeof v === 'string' ? v.trim() : '';
@@ -112,6 +112,20 @@ export async function PATCH(req) {
       return Response.json({ user: null, warning: 'Sync failed: Database unreachable' });
     }
     return Response.json({ error: e?.message || 'Failed to update user' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = toStr(searchParams.get('id'));
+    if (!id) return Response.json({ error: 'id is required' }, { status: 400 });
+
+    await supabaseRestDelete(`/rest/v1/users?id=eq.${encodeURIComponent(id)}`);
+    return Response.json({ success: true, message: 'User deleted successfully' });
+  } catch (e) {
+    console.error('User DELETE Error:', e);
+    return Response.json({ error: e?.message || 'Failed to delete user' }, { status: 500 });
   }
 }
 

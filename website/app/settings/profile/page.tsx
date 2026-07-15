@@ -172,7 +172,7 @@ export default function ProfileSettingsPage() {
                         className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white"
                       >
                         <option value="">Select State</option>
-                        {INDIAN_STATES.map(state => (
+                        {[...INDIAN_STATES].sort((a,b) => a.localeCompare(b)).map(state => (
                           <option key={state} value={state}>{state}</option>
                         ))}
                       </select>
@@ -183,7 +183,7 @@ export default function ProfileSettingsPage() {
                         className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 bg-white disabled:bg-gray-50"
                       >
                         <option value="">Select City</option>
-                        {profileData.state && STATE_CITIES[profileData.state]?.map(city => (
+                        {profileData.state && [...(STATE_CITIES[profileData.state] || [])].sort((a,b) => a.localeCompare(b)).map(city => (
                           <option key={city} value={city}>{city}</option>
                         ))}
                       </select>

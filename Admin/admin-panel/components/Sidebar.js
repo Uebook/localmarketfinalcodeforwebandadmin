@@ -13,6 +13,7 @@ const menuItems = [
   { id: 'festive-offers', label: 'Festive Offers', icon: '🎉' },
   { id: 'banners', label: 'Banner Management', icon: '🖼️' },
   { id: 'featured', label: 'Home Featured', icon: '✨' },
+  { id: 'home-image', label: 'Home Image', icon: '🖼️' },
   { id: 'e-auction', label: 'E-Auction & Draw', icon: '🎲' },
   { id: 'circle-analytics', label: 'Circle Analytics', icon: '📊' },
   { id: 'reports', label: 'Reports & Analytics', icon: '📈' },
@@ -31,12 +32,12 @@ export default function Sidebar({ activeSection, setActiveSection, onLogout }) {
           <button
             key={item.id}
             onClick={() => setActiveSection(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeSection === item.id
+            className={`w-full flex items-center text-left gap-3 px-4 py-3 rounded-lg transition-all ${activeSection === item.id
               ? 'gradient-primary text-white shadow-md'
               : 'text-gray-700 hover:bg-gray-100'
               }`}
           >
-            <span className="text-xl">{item.icon}</span>
+            <span className="text-xl shrink-0">{item.icon}</span>
             <span className="font-medium">{item.label}</span>
           </button>
         ))}
@@ -46,9 +47,9 @@ export default function Sidebar({ activeSection, setActiveSection, onLogout }) {
       <div className="p-4 border-t border-gray-200 space-y-2">
         <button
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all"
+          className="w-full flex items-center text-left gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all"
         >
-          <span className="text-xl">🚪</span>
+          <span className="text-xl shrink-0">🚪</span>
           <span className="font-medium">Log Out</span>
         </button>
         <div className="text-xs text-gray-500 text-center pt-2">

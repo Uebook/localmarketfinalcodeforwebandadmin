@@ -1,6 +1,103 @@
 import { NextResponse } from 'next/server';
 import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
 
+async function applyPromotionsToSearchResults(data: { results: any[], query?: string, count?: number }, format?: string) {
+    const results = data.results;
+    if (!Array.isArray(results) || results.length === 0) return data;
+
+    const vendorIds = new Set<string>();
+    const isFlatProducts = format === 'products' || format === 'suggestions';
+
+    if (isFlatProducts) {
+        results.forEach((p: any) => {
+            if (p.vendor_id) vendorIds.add(p.vendor_id);
+        });
+    } else {
+        results.forEach((v: any) => {
+            if (v.id) vendorIds.add(v.id);
+            if (Array.isArray(v.matchingProducts)) {
+                v.matchingProducts.forEach((mp: any) => {
+                    if (mp.vendor_id) vendorIds.add(mp.vendor_id);
+                });
+            }
+        });
+    }
+
+    const uniqueVendorIds = Array.from(vendorIds);
+    if (uniqueVendorIds.length === 0) return data;
+
+    const formattedIds = uniqueVendorIds.join(',');
+    const activeOffers = await supabaseRestGet(`/rest/v1/festive_offers?status=eq.active&vendor_ids=ov.{${formattedIds}}`).catch(() => []);
+
+    if (!Array.isArray(activeOffers) || activeOffers.length === 0) return data;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const applyPromo = (p: any, vId: string) => {
+        const basePrice = p.price ? parseFloat(p.price) : 0;
+        let finalPrice = basePrice;
+        let appliedOffer = null;
+
+        if (basePrice > 0 && vId) {
+            const vendorOffers = activeOffers.filter((o: any) => 
+                Array.isArray(o.vendor_ids) && o.vendor_ids.includes(vId)
+            );
+
+            for (const offer of vendorOffers) {
+                const isDateValid = (!offer.start_date || todayStr >= offer.start_date) && 
+                                    (!offer.end_date || todayStr <= offer.end_date);
+                if (!isDateValid || offer.status !== 'active') continue;
+
+                let applies = false;
+                if (offer.offer_scope === 'all') {
+                    applies = true;
+                } else if (offer.offer_scope === 'specific_products') {
+                    applies = Array.isArray(offer.product_ids) && offer.product_ids.includes(p.id);
+                } else if (offer.offer_scope === 'specific_categories') {
+                    applies = Array.isArray(offer.category_ids) && offer.category_ids.includes(p.category_id);
+                }
+
+                if (applies) {
+                    if (offer.offer_type === 'Discount %' && offer.discount_percent) {
+                        finalPrice = basePrice * (1 - parseFloat(offer.discount_percent) / 100);
+                        appliedOffer = offer;
+                        break;
+                    } else if (offer.offer_type === 'Flat Discount' && offer.flat_discount_amount) {
+                        finalPrice = Math.max(0, basePrice - parseFloat(offer.flat_discount_amount));
+                        appliedOffer = offer;
+                        break;
+                    }
+                }
+            }
+        }
+
+        finalPrice = Math.round(finalPrice * 100) / 100;
+        return {
+            ...p,
+            price: finalPrice,
+            original_price: finalPrice < basePrice ? basePrice : null,
+            applied_offer_id: appliedOffer?.id || null
+        };
+    };
+
+    if (isFlatProducts) {
+        data.results = results.map((p: any) => {
+            if (p.type === 'vendor' || p.type === 'category') return p;
+            return applyPromo(p, p.vendor_id);
+        });
+    } else {
+        data.results = results.map((v: any) => {
+            const updated = { ...v };
+            if (Array.isArray(v.matchingProducts)) {
+                updated.matchingProducts = v.matchingProducts.map((mp: any) => applyPromo(mp, v.id || mp.vendor_id));
+            }
+            return updated;
+        });
+    }
+
+    return data;
+}
+
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
@@ -120,7 +217,8 @@ export async function GET(request: Request) {
                                     price: p.price,
                                     image: p.image_url,
                                     online_price: p.online_price,
-                                    mrp: p.mrp
+                                    mrp: p.mrp,
+                                    category_id: p.category_id
                                 }]
                             });
                         } else {
@@ -132,7 +230,8 @@ export async function GET(request: Request) {
                                     price: p.price,
                                     image: p.image_url,
                                     online_price: p.online_price,
-                                    mrp: p.mrp
+                                    mrp: p.mrp,
+                                    category_id: p.category_id
                                 });
                             }
                         }
@@ -140,11 +239,11 @@ export async function GET(request: Request) {
                 });
             }
 
-            return NextResponse.json({ 
+            return NextResponse.json(await applyPromotionsToSearchResults({ 
                 results: offerResults,
                 query: lowerQuery,
                 count: offerResults.length
-            });
+            }));
         }
         // Special Keyword: Price Drops
         else if (lowerQuery === 'pricedrops' || lowerQuery === 'price drop' || lowerQuery === 'drops') {
@@ -161,7 +260,7 @@ export async function GET(request: Request) {
                 drops = await supabaseRestGet(fallbackDrops).catch(() => []);
             }
 
-            return NextResponse.json({ 
+            return NextResponse.json(await applyPromotionsToSearchResults({ 
                 results: (drops || []).map((p: any) => {
                     const vendor = p.vendors || {};
                     return {
@@ -173,13 +272,14 @@ export async function GET(request: Request) {
                             price: p.price,
                             mrp: p.mrp,
                             image: p.image_url,
-                            online_price: p.online_price
+                            online_price: p.online_price,
+                            category_id: p.category_id
                         }]
                     };
                 }),
                 query: lowerQuery,
                 count: (drops || []).length
-            });
+            }));
         }
         // Special Keyword: Mega Savings
         else if (lowerQuery === 'megasavings' || lowerQuery === 'savings') {
@@ -196,7 +296,7 @@ export async function GET(request: Request) {
                 savings = await supabaseRestGet(fallbackSavings).catch(() => []);
             }
 
-            return NextResponse.json({ 
+            return NextResponse.json(await applyPromotionsToSearchResults({ 
                 results: (savings || []).map((p: any) => {
                     const vendor = p.vendors || {};
                     return {
@@ -208,13 +308,14 @@ export async function GET(request: Request) {
                             price: p.price,
                             mrp: p.mrp,
                             image: p.image_url,
-                            online_price: p.online_price
+                            online_price: p.online_price,
+                            category_id: p.category_id
                         }]
                     };
                 }),
                 query: lowerQuery,
                 count: (savings || []).length
-            });
+            }));
         } else {
             // 2. Search vendors by Name/Category with location filter
             let vendorQuery = `/rest/v1/vendors?select=*&status=eq.Active`;
@@ -261,6 +362,7 @@ export async function GET(request: Request) {
                             image: p.image_url,
                             online_price: p.online_price,
                             vendor_id: v.id,
+                            category_id: p.category_id,
                             vendor: normalizeVendor(v)
                         };
                         productList.push(productItem);
@@ -331,6 +433,7 @@ export async function GET(request: Request) {
                                             image: p.image_url,
                                             online_price: p.online_price,
                                             vendor_id: v.id,
+                                            category_id: p.category_id,
                                             vendor: normalizeVendor(v)
                                         });
                                     });
@@ -352,6 +455,7 @@ export async function GET(request: Request) {
                                         image: p.image_url,
                                         online_price: p.online_price,
                                         vendor_id: v.id,
+                                        category_id: p.category_id,
                                         vendor: normalizeVendor(v)
                                     })) : []
                                 });
@@ -436,12 +540,12 @@ export async function GET(request: Request) {
                 });
             }
 
-            if (format === 'products' || format === 'suggestions') {
-                return NextResponse.json({
+             if (format === 'products' || format === 'suggestions') {
+                return NextResponse.json(await applyPromotionsToSearchResults({
                     results: productList,
                     query: lowerQuery,
                     count: productList.length
-                });
+                }, 'products'));
             }
 
             // 4. Final Aggregation for "Cheaper than online" badge support
@@ -455,11 +559,11 @@ export async function GET(request: Request) {
                 }
             });
 
-            return NextResponse.json({
+            return NextResponse.json(await applyPromotionsToSearchResults({
                 results,
                 query: lowerQuery,
                 count: results.length
-            });
+            }));
         }
     } catch (error: any) {
         console.error('Search API Error:', error);

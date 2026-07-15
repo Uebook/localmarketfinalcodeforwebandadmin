@@ -15,6 +15,7 @@ import LocationManagement from '../components/LocationManagement';
 import PaymentFeesManagement from '../components/PaymentFeesManagement';
 import FestiveOffersManagement from '../components/FestiveOffersManagement';
 import BannerManagement from '../components/BannerManagement';
+import HomeImageManagement from '../components/HomeImageManagement';
 import EAuctionManagement from '../components/EAuctionManagement';
 import CircleAnalytics from '../components/Analytics/CircleAnalytics';
 import FeaturedManagement from '../components/FeaturedManagement';
@@ -89,6 +90,8 @@ export default function AdminPanel() {
         return 'Festive Offers Management';
       case 'banners':
         return 'Banner Management';
+      case 'home-image':
+        return 'Home Image Management';
       case 'featured':
         return 'Home Featured Management';
       case 'e-auction':
@@ -130,6 +133,8 @@ export default function AdminPanel() {
         return <FestiveOffersManagement />;
       case 'banners':
         return <BannerManagement />;
+      case 'home-image':
+        return <HomeImageManagement />;
       case 'featured':
         return <FeaturedManagement />;
       case 'e-auction':

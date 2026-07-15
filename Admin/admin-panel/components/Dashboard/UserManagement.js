@@ -136,6 +136,28 @@ export default function UserManagement() {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    if (!confirm('Are you sure you want to permanently delete this user? This cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/users?id=${userId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data?.error || 'Failed to delete user');
+        return;
+      }
+
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      alert('User deleted successfully');
+    } catch (e) {
+      alert(`Failed to delete user: ${e.message}`);
+    }
+  };
+
   const handleEdit = (user) => {
     setEditingUser({ ...user });
   };
@@ -571,6 +593,12 @@ export default function UserManagement() {
                             className="text-green-600 hover:text-green-900 font-medium"
                           >
                             View
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="text-red-600 hover:text-red-950 font-medium"
+                          >
+                            Delete
                           </button>
                         </div>
                       </td>

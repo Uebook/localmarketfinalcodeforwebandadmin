@@ -231,6 +231,17 @@ export default function ProductList() {
         setEditingProduct({ ...product });
     };
 
+    const handleAddNewProduct = () => {
+        setEditingProduct({
+            name: '',
+            brand: '',
+            uom: 'kg',
+            default_mrp: 0,
+            category_id: selectedCategory || '',
+            image_url: '',
+        });
+    };
+
     const handleSaveProduct = async () => {
         if (!editingProduct.name?.trim()) {
             alert('Product name is required');
@@ -239,8 +250,12 @@ export default function ProductList() {
 
         try {
             setSaving(true);
-            const res = await fetch(`/api/master-products?id=${editingProduct.id}`, {
-                method: 'PATCH',
+            const isNew = !editingProduct.id;
+            const url = isNew ? '/api/master-products' : `/api/master-products?id=${editingProduct.id}`;
+            const method = isNew ? 'POST' : 'PATCH';
+
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: editingProduct.name,
@@ -253,14 +268,14 @@ export default function ProductList() {
             });
             const data = await res.json().catch(() => ({}));
 
-            if (!res.ok) throw new Error(data?.error || 'Failed to update product');
+            if (!res.ok) throw new Error(data?.error || `Failed to ${isNew ? 'create' : 'update'} product`);
 
             // Reload products
             await loadProducts();
             setEditingProduct(null);
-            alert('Product updated successfully');
+            alert(`Product ${isNew ? 'created' : 'updated'} successfully`);
         } catch (e) {
-            alert(`Failed to update product: ${e.message}`);
+            alert(`Failed to save product: ${e.message}`);
         } finally {
             setSaving(false);
         }
@@ -283,6 +298,12 @@ export default function ProductList() {
                         <p className="text-sm text-gray-600 mt-1">View and manage all master products</p>
                     </div>
                     <div className="flex gap-2">
+                        <button
+                            onClick={handleAddNewProduct}
+                            className="px-4 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+                        >
+                            ➕ Add Product
+                        </button>
                         {products.length > 0 && (
                             <>
                                 <button
@@ -498,7 +519,7 @@ export default function ProductList() {
             {editingProduct && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Edit Product</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">{editingProduct.id ? 'Edit Product' : 'Add New Product'}</h3>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>

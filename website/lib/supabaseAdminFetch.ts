@@ -125,3 +125,26 @@ export async function supabaseRestInsert(path: string, data: Record<string, any>
 
   return await res.json();
 }
+
+export async function supabaseRestDelete(path: string) {
+  assertSupabaseEnv();
+  const key = getKey();
+  const url = `${SUPABASE_URL}${path}`;
+
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      apikey: key!,
+      Authorization: `Bearer ${key!}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Supabase REST error (${res.status}): ${text || res.statusText}`);
+  }
+
+  // DELETE usually returns 204 No Content, so we don't try to parse JSON
+  return { success: true };
+}

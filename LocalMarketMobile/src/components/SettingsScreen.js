@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, ActivityIndicator, StatusBar, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, ActivityIndicator, StatusBar, Platform, Alert } from 'react-native';
 import Image from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import FeedbackForm from './FeedbackForm';
 import { FESTIVAL_THEMES } from '../constants/festivalThemes';
-import { getThemes, updateUserTheme, updateUser } from '../services/api';
+import { getThemes, updateUserTheme, updateUser, deleteUserAccount } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserId, updateUserData as updateStorageUserData } from '../utils/userStorage';
 import { useTheme } from './ThemeProvider';
@@ -144,6 +144,44 @@ const SettingsScreen = ({
     }
   };
 
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to permanently delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoadingProfile(true);
+              const userId = await getUserId();
+              if (!userId) {
+                Alert.alert('Error', 'User ID not found');
+                return;
+              }
+              await deleteUserAccount(userId);
+              Alert.alert('Success', 'Account deleted successfully', [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    if (onLogout) onLogout();
+                  }
+                }
+              ]);
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              Alert.alert('Error', error.message || 'Failed to delete account');
+            } finally {
+              setLoadingProfile(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const renderInfoItem = (icon, label, value) => (
     <View style={styles.infoItem}>
       <View style={styles.infoIconContainer}>
@@ -267,6 +305,15 @@ const SettingsScreen = ({
         <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
           <Icon name="log-out" size={20} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
+        {/* Delete Account Button */}
+        <TouchableOpacity 
+          style={[styles.logoutButton, { marginTop: 12, borderColor: '#EF4444', borderWidth: 1, backgroundColor: 'transparent' }]} 
+          onPress={handleDeleteAccount}
+        >
+          <Icon name="trash-2" size={20} color="#EF4444" />
+          <Text style={[styles.logoutText, { color: '#EF4444' }]}>Delete Account</Text>
         </TouchableOpacity>
 
         {/* App Info */}

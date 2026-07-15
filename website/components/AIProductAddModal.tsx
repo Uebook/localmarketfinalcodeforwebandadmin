@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Sparkles, PlusCircle, Search } from 'lucide-react';
-import Image from 'next/image';
+import { X, Sparkles, PlusCircle, Search, ChevronDown } from 'lucide-react';
 import { getAllCategoriesWithSuggestions, getSuggestedItemsByCategory, AIProductSuggestion } from '@/lib/aiDefaultItems';
 
 interface AIProductAddModalProps {
@@ -12,8 +11,8 @@ interface AIProductAddModalProps {
 }
 
 export default function AIProductAddModal({ isOpen, onClose, onSelectProduct }: AIProductAddModalProps) {
-    const categories = getAllCategoriesWithSuggestions();
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const categories = getAllCategoriesWithSuggestions().sort((a, b) => a.localeCompare(b));
+    const [selectedCategory, setSelectedCategory] = useState<string>(categories[0] || '');
     const [searchQuery, setSearchQuery] = useState('');
 
     if (!isOpen) return null;
@@ -46,49 +45,58 @@ export default function AIProductAddModal({ isOpen, onClose, onSelectProduct }: 
                 </div>
 
                 <div className="flex-1 overflow-hidden flex flex-col">
-                    {/* Category Selector */}
-                    <div className="p-4 sm:p-6 border-b border-slate-100">
-                        <div className="flex flex-wrap items-center gap-3">
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all border-2 whitespace-nowrap ${
-                                        selectedCategory === cat 
-                                        ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm'
-                                        : 'border-slate-100 bg-white text-slate-600 hover:border-slate-200'
-                                    }`}
+                    {/* Category & Search Controls */}
+                    <div className="flex flex-col sm:flex-row gap-4 p-4 sm:p-6 border-b border-slate-100 bg-white">
+                        {/* Category Dropdown */}
+                        <div className="flex-1 relative">
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                            <div className="relative">
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => {
+                                        setSelectedCategory(e.target.value);
+                                        setSearchQuery(''); // Reset search query when category changes
+                                    }}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-50 transition-all font-bold text-slate-700 shadow-sm appearance-none cursor-pointer pr-10"
                                 >
-                                    {cat}
-                                </button>
-                            ))}
+                                    {categories.map((cat) => (
+                                        <option key={cat} value={cat}>
+                                            {cat}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
+                                    <ChevronDown size={18} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Search Box */}
+                        <div className="flex-1 relative">
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Search Products</label>
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <input 
+                                    type="text"
+                                    placeholder={`Search in ${selectedCategory}...`}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-50 transition-all font-medium text-slate-700 shadow-sm"
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Suggestions Grid */}
-                    <div className="flex-1 overflow-y-auto bg-slate-50 flex flex-col">
-                        {selectedCategory ? (
-                            <div className="p-4 sm:p-6 flex-1 flex flex-col">
-                                {/* Search Bar */}
-                                <div className="relative mb-6">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input 
-                                        type="text"
-                                        placeholder={`Search in ${selectedCategory}...`}
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-50 transition-all font-medium text-slate-700 shadow-sm"
-                                    />
-                                </div>
-
-                                {filteredSuggestions.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                                        {filteredSuggestions.map((item, index) => (
-                                            <div 
-                                                key={index}
-                                                onClick={() => onSelectProduct(item)}
-                                                className="bg-white rounded-2xl p-3 border border-slate-100 hover:border-orange-200 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group flex flex-col"
-                                            >
+                    {/* Suggestions ScrollView */}
+                    <div className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6">
+                        {filteredSuggestions.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                                {filteredSuggestions.map((item, index) => (
+                                    <div 
+                                        key={index}
+                                        onClick={() => onSelectProduct(item)}
+                                        className="bg-white rounded-2xl p-3 border border-slate-100 hover:border-orange-200 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group flex flex-col"
+                                    >
                                         <div className="relative h-40 w-full rounded-xl overflow-hidden mb-3">
                                             <img 
                                                 src={item.image_urls[0]} 
@@ -107,19 +115,11 @@ export default function AIProductAddModal({ isOpen, onClose, onSelectProduct }: 
                                     </div>
                                 ))}
                             </div>
-                            ) : (
-                                <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60 py-12">
-                                    <Search size={48} className="text-slate-300 mb-4" />
-                                    <p className="text-lg font-bold text-slate-500">No matching items found</p>
-                                    <p className="text-sm font-medium text-slate-400 mt-1">Try a different search term in {selectedCategory}</p>
-                                </div>
-                            )}
-                            </div>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-center opacity-50 py-12">
-                                <Sparkles size={48} className="text-slate-300 mb-4" />
-                                <p className="text-lg font-bold text-slate-500">Select a category above</p>
-                                <p className="text-sm font-medium text-slate-400 mt-1">to see AI suggestions for your shop</p>
+                            <div className="h-full flex flex-col items-center justify-center text-center opacity-60 py-12">
+                                <Search size={48} className="text-slate-300 mb-4" />
+                                <p className="text-lg font-bold text-slate-500">No matching items found</p>
+                                <p className="text-sm font-medium text-slate-400 mt-1">Try a different search term in {selectedCategory}</p>
                             </div>
                         )}
                     </div>
@@ -129,3 +129,4 @@ export default function AIProductAddModal({ isOpen, onClose, onSelectProduct }: 
         </div>
     );
 }
+

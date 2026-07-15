@@ -14,17 +14,21 @@ export default function PromoCarousel() {
     fetch('/api/banners')
       .then(res => res.json())
       .then(data => {
-        if (data.banners && data.banners.length > 0) {
-          // Map the API structure slightly to fit the UI gracefully
-          const apiBanners = data.banners.map((b: any) => ({
-            id: b.id,
-            title: b.title,
-            subtitle: "Exclusive Local Offer", // Default fallback subtitle since DB doesn't have it
-            imageUrl: b.imageUrl,
-            ctaText: "Claim Now", // Default
-            link: b.linkUrl || "#"
-          }));
-          setBanners(apiBanners);
+        if (data.banners) {
+          if (data.banners.length > 0) {
+            // Map the API structure slightly to fit the UI gracefully
+            const apiBanners = data.banners.map((b: any) => ({
+              id: b.id,
+              title: b.title,
+              subtitle: "Exclusive Local Offer", // Default fallback subtitle since DB doesn't have it
+              imageUrl: b.imageUrl,
+              ctaText: "Claim Now", // Default
+              link: b.linkUrl || "#"
+            }));
+            setBanners(apiBanners);
+          } else {
+            setBanners([]);
+          }
         }
       })
       .catch(err => console.error('Failed to fetch banners:', err));
@@ -45,6 +49,10 @@ export default function PromoCarousel() {
   const prev = () => {
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
   };
+
+  if (banners.length === 0) {
+    return null;
+  }
 
   return (
     <div

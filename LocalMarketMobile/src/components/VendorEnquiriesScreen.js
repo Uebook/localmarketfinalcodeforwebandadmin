@@ -30,21 +30,7 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
   const [showExitModal, setShowExitModal] = useState(false);
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
 
-  useEffect(() => {
-    const backAction = () => {
-      if (navigation.isFocused()) {
-        setShowExitModal(true);
-        return true;
-      }
-      return false;
-    };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-    return () => {
-      backHandler.remove();
-    };
-  }, [navigation]);
 
   // Sync enquiries when vendorData changes
   useEffect(() => {
@@ -370,11 +356,8 @@ const VendorEnquiriesScreen = ({ navigation, vendorData, setVendorData }) => {
         </View>
       </ScrollView>
 
-      <ExitConfirmModal 
-        visible={showExitModal}
-        onCancel={() => setShowExitModal(false)}
-        onConfirm={() => BackHandler.exitApp()}
-      />
+
+
 
       {/* Enquiry Detail Modal */}
       {selectedEnquiry && (() => {

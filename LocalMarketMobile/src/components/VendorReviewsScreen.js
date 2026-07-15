@@ -20,21 +20,7 @@ const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
 
-  React.useEffect(() => {
-    const backAction = () => {
-      if (navigation.isFocused()) {
-        setShowExitModal(true);
-        return true;
-      }
-      return false;
-    };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-    return () => {
-      backHandler.remove();
-    };
-  }, [navigation]);
 
   const [locationState] = React.useState({
     lat: vendorData?.location?.lat || null,
@@ -298,11 +284,6 @@ const VendorReviewsScreen = ({ navigation, vendorData, setVendorData }) => {
         </View>
       </ScrollView>
 
-      <ExitConfirmModal 
-        visible={showExitModal}
-        onCancel={() => setShowExitModal(false)}
-        onConfirm={() => BackHandler.exitApp()}
-      />
     </View>
   );
 };

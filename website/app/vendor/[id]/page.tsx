@@ -83,6 +83,16 @@ export default function VendorDetailsPage() {
   }, [params.id]);
 
   useEffect(() => {
+    if (!params.id) return;
+    // Track profile view quietly
+    fetch('/api/vendor/track-view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vendorId: params.id })
+    }).catch(err => console.error('Failed to track profile view', err));
+  }, [params.id]);
+
+  useEffect(() => {
     if (!params.id || activeTab !== 'reviews') return;
 
     // Polling for real-time updates (especially reviews)
@@ -335,11 +345,11 @@ export default function VendorDetailsPage() {
                     return (
                       <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200">
                         <Image
-                          src="/lokall-logo.svg"
+                          src="/finallogo.jpeg"
                           alt="LOKALL Logo Fallback"
                           width={120}
                           height={120}
-                          className="opacity-20 grayscale"
+                          className="opacity-20 grayscale object-contain"
                         />
                         <span className="mt-4 text-xs font-black text-slate-400 uppercase tracking-widest">Image coming soon</span>
                       </div>
@@ -635,7 +645,7 @@ export default function VendorDetailsPage() {
                                       if (comparisonPrice > product.price) {
                                         return (
                                           <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
-                                            Save ₹{comparisonPrice - product.price}
+                                            Save ₹{Math.round((comparisonPrice - product.price) * 100) / 100}
                                           </span>
                                         );
                                       }
@@ -646,7 +656,12 @@ export default function VendorDetailsPage() {
                                   <div className="flex items-baseline flex-wrap gap-3 mt-2">
                                     <div className="flex flex-col">
                                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Lokall Price</span>
-                                      <span className="font-black text-lg text-orange-600">₹{product.price}</span>
+                                      <div className="flex items-baseline gap-1.5">
+                                        <span className="font-black text-lg text-orange-600">₹{product.price}</span>
+                                        {product.original_price && product.original_price > product.price && (
+                                          <span className="text-slate-400 text-xs line-through font-medium">₹{product.original_price}</span>
+                                        )}
+                                      </div>
                                     </div>
                                     {product.online_price && (
                                       <div className="flex flex-col border-l border-slate-200 pl-3">

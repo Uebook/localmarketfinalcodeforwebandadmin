@@ -29,8 +29,10 @@ const VendorDashboard = ({
     views: 0,
     enquiries: 0,
     calls: 0,
+    calls: 0,
     whatsapp: 0
   });
+  const [trendingSearches, setTrendingSearches] = useState([]);
   const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
@@ -47,6 +49,9 @@ const VendorDashboard = ({
           const res = await getVendorPerformance(vendor.id);
           if (res?.success) {
             setPerformanceStats(res.stats);
+            if (res.trendingSearches) {
+              setTrendingSearches(res.trendingSearches);
+            }
           }
         } catch (error) {
           console.error('Error fetching dashboard stats:', error);
@@ -111,6 +116,29 @@ const VendorDashboard = ({
           </View>
         </View>
       </View>
+
+      {trendingSearches.length > 0 && (
+        <View style={styles.trendingContainer}>
+          <View style={styles.trendingHeader}>
+            <View>
+              <Text style={styles.trendingTitle}>Trending in your area</Text>
+              <Text style={styles.trendingSubtitle}>Top searches around {vendor?.city || 'you'}</Text>
+            </View>
+            <Icon name={getIconName('TrendingUp')} size={20} color="#f97316" />
+          </View>
+          <View style={styles.trendingList}>
+            {trendingSearches.map((item, index) => (
+              <View key={index} style={styles.trendingItem}>
+                <Icon name={getIconName('Search')} size={12} color="#94a3b8" />
+                <Text style={styles.trendingItemText}>{item.query}</Text>
+                <View style={styles.trendingCountBadge}>
+                  <Text style={styles.trendingCountText}>{item.count}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       <View style={styles.accountStatusCard}>
         <View style={styles.accountStatusHeader}>
@@ -210,7 +238,6 @@ const VendorDashboard = ({
       const res = await submitReviewReply(reviewId, replyText.trim());
       if (res && res.success) {
         if (onUpdateVendor) {
-          // Triggers a refresh so new replies show up
           onUpdateVendor();
         }
         setReplyInputActive(null);
@@ -395,7 +422,6 @@ const VendorDashboard = ({
         </View>
       </SafeAreaView>
 
-      {/* Profile Completion */}
       <View style={styles.completionBar}>
         <View style={styles.completionHeader}>
           <Text style={styles.completionLabel}>Profile Completion</Text>
@@ -406,7 +432,6 @@ const VendorDashboard = ({
         </View>
       </View>
 
-      {/* Tabs */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -437,7 +462,6 @@ const VendorDashboard = ({
         ))}
       </ScrollView>
 
-      {/* Tab Content */}
       <ScrollView style={styles.contentScroll}>
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'products' && renderProducts()}
@@ -451,7 +475,6 @@ const VendorDashboard = ({
             onBack={() => setActiveTab('overview')}
             vendorProducts={vendor?.products || []}
             onUpdatePrices={() => {
-              // Refresh products after update
               setActiveTab('products');
             }}
           />
@@ -462,7 +485,6 @@ const VendorDashboard = ({
             onBack={() => setActiveTab('overview')}
             userRole="vendor"
             onSubmit={(feedbackData) => {
-              // Handle feedback submission
               console.log('Feedback submitted:', feedbackData);
               setActiveTab('overview');
             }}
@@ -917,6 +939,63 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  trendingContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  trendingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  trendingTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  trendingSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  trendingList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  trendingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    gap: 6,
+  },
+  trendingItemText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#334155',
+    textTransform: 'uppercase',
+  },
+  trendingCountBadge: {
+    backgroundColor: '#ffedd5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  trendingCountText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#ea580c',
   },
 });
 

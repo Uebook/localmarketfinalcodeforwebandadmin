@@ -274,7 +274,7 @@ export const getDynamicLocations = async (parentType, parentValue) => {
     if (parentType && parentValue) {
       if (parentType === 'state') params.set('state', parentValue);
       else if (parentType === 'city') params.set('city', parentValue);
-      else if (parentType === 'town') params.set('town', parentValue);
+      else if (parentType === 'town' || parentType === 'town-circles') params.set('town', parentValue);
       else if (parentType === 'tehsil') params.set('tehsil', parentValue);
     }
 
@@ -298,6 +298,9 @@ export const getDynamicLocations = async (parentType, parentValue) => {
     } else if (parentType === 'town') {
       // Get unique tehsils for this town
       data = Array.from(new Set(locations.map(l => l.tehsil))).filter(Boolean);
+    } else if (parentType === 'town-circles') {
+      // Get unique circles (Specific Markets) for this town
+      data = Array.from(new Set(locations.map(l => l.circle))).filter(Boolean);
     } else if (parentType === 'tehsil') {
       // Get unique sub-tehsils
       data = Array.from(new Set(locations.map(l => l.sub_tehsil))).filter(Boolean);
@@ -346,6 +349,42 @@ export const reverseGeocode = async (lat, lng) => {
   } catch (error) {
     console.error('Error reverse geocoding:', error);
     throw error;
+  }
+};
+
+export const searchPlaces = async (query) => {
+  try {
+    // Try requesting from backend first
+    return await apiRequest(`/api/places/search?q=${encodeURIComponent(query)}`);
+  } catch (error) {
+    console.warn('Backend places search failed, falling back to direct OpenStreetMap Nominatim query:', error);
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&addressdetails=1&limit=5`;
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'LocalMarketMobileApp/1.0 (contact@localmarket.com)',
+          'Accept-Language': 'en-US,en;q=0.9',
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.map((item) => ({
+          display_name: item.display_name,
+          lat: item.lat,
+          lon: item.lon,
+          address: {
+            road: item.address.road || '',
+            suburb: item.address.suburb || item.address.neighbourhood || '',
+            city: item.address.city || item.address.town || item.address.village || '',
+            state: item.address.state || '',
+            postcode: item.address.postcode || '',
+          }
+        }));
+      }
+    } catch (directError) {
+      console.error('Direct Nominatim request failed:', directError);
+    }
+    return [];
   }
 };
 
@@ -1075,9 +1114,8 @@ export const updateOffer = async (offerData) => {
  * @returns {Promise<Object>}
  */
 export const deleteOffer = async (offerId) => {
-  return await apiRequest('/api/festive-offers', {
-    method: 'PATCH',
-    body: JSON.stringify({ id: offerId, status: 'inactive' }),
+  return await apiRequest(`/api/festive-offers?id=${encodeURIComponent(offerId)}`, {
+    method: 'DELETE',
   });
 };
 
@@ -1626,11 +1664,56 @@ export const updateQuotationDetails = async (id, updates) => {
   });
 };
 
+/**
+ * Delete user account
+ * @param {string} userId
+ */
+export const deleteUserAccount = async (userId) => {
+  return await apiRequest(`/api/users?id=${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Delete vendor account
+ * @param {string} vendorId
+ */
+export const deleteVendorAccount = async (vendorId) => {
+  return await apiRequest(`/api/vendors/${encodeURIComponent(vendorId)}`, {
+    method: 'DELETE',
+  });
+};
+
+export const getHomeImage = async () => {
+  try {
+    return await apiRequest('/api/home-image');
+  } catch (error) {
+    console.error('Error getting home image:', error);
+    return null;
+  }
+};
+
+/**
+ * Track a vendor profile view
+ */
+export const trackProfileView = async (vendorId) => {
+  if (!vendorId) return;
+  try {
+    await apiRequest('/api/vendor/track-view', {
+      method: 'POST',
+      body: JSON.stringify({ vendorId })
+    });
+  } catch (err) {
+    console.warn('Failed to track profile view:', err);
+  }
+};
+
 export default {
   getCategories,
   getThemes,
   getActiveTheme,
   getBanners,
+  getHomeImage,
   getFestiveOffers,
   getNotifications,
   markNotificationsRead,
@@ -1676,4 +1759,9 @@ export default {
   updateQuotationStatus,
   updateQuotationDetails,
   apiRequest,
+  deleteUserAccount,
+  deleteVendorAccount,
+  trackProfileView,
+  searchPlaces,
+  reverseGeocode,
 };

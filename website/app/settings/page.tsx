@@ -64,6 +64,44 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to permanently delete your account? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('User session not found.');
+        router.push('/login');
+        return;
+      }
+
+      const res = await fetch(`/api/auth/profile?id=${userId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data?.error || 'Failed to delete account');
+        return;
+      }
+
+      // Clear session keys
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userPhone');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('selectedFestivalTheme');
+
+      alert('Account deleted successfully.');
+      router.push('/login');
+    } catch (e: any) {
+      alert(`Error deleting account: ${e.message}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header
@@ -122,6 +160,14 @@ export default function SettingsPage() {
         >
           <LogOut size={20} />
           <span>Logout</span>
+        </button>
+
+        {/* Delete Account Button */}
+        <button
+          onClick={handleDeleteAccount}
+          className="w-full mt-4 flex items-center justify-center gap-2 py-3 sm:py-4 border border-red-500 text-red-500 hover:bg-red-50 rounded-xl font-semibold transition-colors text-base sm:text-lg"
+        >
+          <span>Delete Account</span>
         </button>
       </div>
 

@@ -157,13 +157,12 @@ export default function Header({
             </button>
             <Link href="/" className="flex items-center gap-1.5 group">
               <Image
-                src="/lokall-logo.svg"
+                src="/finallogo.jpeg"
                 alt="LOKALL Logo"
-                width={42}
-                height={42}
-                className="group-hover:scale-105 transition-transform duration-300"
+                width={48}
+                height={48}
+                className="group-hover:scale-105 transition-transform duration-300 object-contain rounded-md"
               />
-              <span className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-primary transition-colors">LOKALL</span>
             </Link>
 
             <div className="relative" ref={locRef}>
@@ -369,7 +368,8 @@ export default function Header({
           updateLocation({
             city: display,
             lat: null,
-            lng: null
+            lng: null,
+            isManual: true
           });
         }}
         initialLocation={savedLocation}

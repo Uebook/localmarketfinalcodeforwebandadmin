@@ -87,7 +87,7 @@ export default function ProductDetailModal({
                                                  </span>
                                                  {product.online_price && product.online_price > product.price && (
                                                         <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full">
-                                                               Save ₹{product.online_price - product.price} vs Online
+                                                               Save ₹{Math.round((product.online_price - product.price) * 100) / 100} vs Online
                                                         </span>
                                                  )}
                                           </div>
@@ -98,7 +98,12 @@ export default function ProductDetailModal({
                                    <div className="flex items-center gap-6 mb-8 p-6 bg-slate-50 rounded-3xl border border-slate-100">
                                           <div className="space-y-1">
                                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Lokall Price</p>
-                                                 <p className="text-4xl font-black text-slate-900">₹{product.price}</p>
+                                                 <div className="flex items-baseline gap-2">
+                                                        <p className="text-4xl font-black text-slate-900">₹{product.price}</p>
+                                                        {product.original_price && product.original_price > product.price && (
+                                                               <p className="text-xl font-bold text-slate-300 line-through">₹{product.original_price}</p>
+                                                        )}
+                                                 </div>
                                           </div>
                                           {(product.online_price || product.mrp) && (
                                                  <div className="h-12 w-px bg-slate-200" />

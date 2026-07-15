@@ -69,17 +69,43 @@ function ProfileContent() {
         setError(data.error || 'Failed to save');
       } else {
         setSuccess('Profile updated!');
-        setIsEditing(false);
         refresh();
+        setTimeout(() => setSuccess(''), 3000);
         // Update localStorage session
         const session = JSON.parse(localStorage.getItem('localmarket_vendor') || '{}');
         localStorage.setItem('localmarket_vendor', JSON.stringify({ ...session, ...form, ownerName: form.owner_name }));
-        setTimeout(() => setSuccess(''), 3000);
+        setIsEditing(false);
       }
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      setError('Save failed');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to permanently delete your vendor account? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/vendor/profile?id=${displayVendor.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data?.error || 'Failed to delete account');
+        return;
+      }
+
+      // Clear session keys
+      localStorage.removeItem('localmarket_vendor');
+
+      alert('Vendor account deleted successfully.');
+      window.location.href = '/vendor/login';
+    } catch (e: any) {
+      alert(`Error deleting account: ${e.message}`);
+    }
   };
 
   if (loading) {
@@ -274,7 +300,17 @@ function ProfileContent() {
           ))}
         </div>
         {displayVendor.id && (
-          <p className="text-[10px] text-slate-300 mt-3 font-mono">System ID: {String(displayVendor.id).toUpperCase()}</p>
+          <div className="mt-4 flex flex-col gap-2">
+            <p className="text-[10px] text-slate-300 font-mono">System ID: {String(displayVendor.id).toUpperCase()}</p>
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <button
+                onClick={handleDeleteAccount}
+                className="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1 transition-colors"
+              >
+                Delete Vendor Account
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

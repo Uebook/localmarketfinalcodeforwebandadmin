@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 // GET /api/vendor/profile?id=xxx  — fetch full vendor data + products + enquiries + reviews
 export async function GET(request: NextRequest) {
@@ -53,10 +53,56 @@ export async function GET(request: NextRequest) {
                 id_proof_url: v.id_proof_url || null,
                 shop_proof_url: v.shop_proof_url || null,
             },
-            products: Array.isArray(products) ? products.map((p: any) => ({
-                ...p,
-                category_name: p.categories?.name || p.category_name || ''
-            })) : [],
+            products: Array.isArray(products) ? products.map((p: any) => {
+                const categoryName = p.categories?.name || p.category_name || '';
+                
+                // Calculate dynamic promo price if there are active offers
+                const basePrice = p.price ? parseFloat(p.price) : 0;
+                let finalPrice = basePrice;
+                let appliedOffer = null;
+
+                if (Array.isArray(offers) && offers.length > 0 && basePrice > 0) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    for (const offer of offers) {
+                        // Check date bounds and status
+                        const isDateValid = (!offer.start_date || todayStr >= offer.start_date) && 
+                                            (!offer.end_date || todayStr <= offer.end_date);
+                        if (!isDateValid || offer.status !== 'active') continue;
+
+                        let applies = false;
+                        if (offer.offer_scope === 'all') {
+                            applies = true;
+                        } else if (offer.offer_scope === 'specific_products') {
+                            applies = Array.isArray(offer.product_ids) && offer.product_ids.includes(p.id);
+                        } else if (offer.offer_scope === 'specific_categories') {
+                            applies = Array.isArray(offer.category_ids) && offer.category_ids.includes(p.category_id);
+                        }
+
+                        if (applies) {
+                            if (offer.offer_type === 'Discount %' && offer.discount_percent) {
+                                finalPrice = basePrice * (1 - parseFloat(offer.discount_percent) / 100);
+                                appliedOffer = offer;
+                                break;
+                            } else if (offer.offer_type === 'Flat Discount' && offer.flat_discount_amount) {
+                                finalPrice = Math.max(0, basePrice - parseFloat(offer.flat_discount_amount));
+                                appliedOffer = offer;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Round to 2 decimal places
+                finalPrice = Math.round(finalPrice * 100) / 100;
+
+                return {
+                    ...p,
+                    category_name: categoryName,
+                    price: finalPrice,
+                    original_price: finalPrice < basePrice ? basePrice : null,
+                    applied_offer_id: appliedOffer?.id || null
+                };
+            }) : [],
             enquiries: Array.isArray(enquiries) ? enquiries : [],
             reviews: Array.isArray(reviews) ? reviews : [],
             offers: Array.isArray(offers) ? offers : [],
@@ -89,5 +135,19 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ success: true, vendor: Array.isArray(result) ? result[0] : result });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        if (!id) return NextResponse.json({ error: 'Vendor ID required' }, { status: 400 });
+
+        await supabaseRestDelete(`/rest/v1/vendors?id=eq.${id}`);
+        return NextResponse.json({ success: true, message: 'Vendor account deleted successfully' });
+    } catch (error: any) {
+        console.error('Vendor DELETE error:', error);
+        return NextResponse.json({ error: error.message || 'Failed to delete vendor account' }, { status: 500 });
     }
 }

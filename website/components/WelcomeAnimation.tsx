@@ -64,52 +64,16 @@ export default function WelcomeAnimation({ onComplete }: WelcomeAnimationProps) 
                                                  initial={{ rotate: -10, scale: 0.5, opacity: 0 }}
                                                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
                                                  transition={{ type: "spring", damping: 12, stiffness: 100, delay: 0.2 }}
-                                                 className="relative w-28 h-28 mx-auto mb-8 flex items-center justify-center"
+                                                 className="relative w-48 h-48 mx-auto mb-8 flex items-center justify-center"
                                           >
                                                  <Image
-                                                        src="/lokall-logo.svg"
+                                                        src="/finallogo.jpeg"
                                                         alt="LOKALL"
-                                                        width={112}
-                                                        height={112}
-                                                        className="drop-shadow-[0_0_30px_rgba(34,204,170,0.5)]"
+                                                        width={180}
+                                                        height={180}
+                                                        className="object-contain rounded-xl"
                                                         priority
                                                  />
-                                                 {/* Pulsing glow ring */}
-                                                 <motion.div
-                                                        className="absolute inset-0 rounded-full border-2 border-cyan-400/30"
-                                                        animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0, 0.6] }}
-                                                        transition={{ duration: 2, repeat: Infinity }}
-                                                 />
-                                          </motion.div>
-
-                                          {/* Staggered LOKALL Text */}
-                                          <div className="flex justify-center mb-4 overflow-hidden py-2">
-                                                 {letters.map((char, i) => (
-                                                        <motion.span
-                                                               key={i}
-                                                               initial={{ y: 80, opacity: 0 }}
-                                                               animate={{ y: 0, opacity: 1 }}
-                                                               transition={{
-                                                                      duration: 0.6,
-                                                                      ease: [0.22, 1, 0.36, 1],
-                                                                      delay: 0.4 + i * 0.1,
-                                                               }}
-                                                               className="text-6xl sm:text-7xl font-black tracking-tighter inline-block mx-0.5"
-                                                               style={{ textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                                                        >
-                                                               {char}
-                                                        </motion.span>
-                                                 ))}
-                                          </div>
-
-                                          <motion.div
-                                                 initial={{ opacity: 0, letterSpacing: "0.5em" }}
-                                                 animate={{ opacity: 1, letterSpacing: "0.3em" }}
-                                                 transition={{ duration: 1, delay: 1 }}
-                                          >
-                                                 <p className="text-cyan-400 font-black uppercase text-[11px] sm:text-xs">
-                                                        Your Local Market, Digitalized
-                                                 </p>
                                           </motion.div>
 
                                           {/* Bottom Progress Bar */}

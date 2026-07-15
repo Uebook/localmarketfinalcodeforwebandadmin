@@ -127,7 +127,7 @@ export default function FoodPlazaRegisterPage() {
                                                                              <select required value={formData.cuisineType} onChange={(e) => handleChange('cuisineType', e.target.value)}
                                                                                     className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none font-medium appearance-none">
                                                                                     <option value="">Select Cuisine</option>
-                                                                                    {CUISINE_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                                                    {[...CUISINE_TYPES].sort((a,b) => a.localeCompare(b)).map(c => <option key={c} value={c}>{c}</option>)}
                                                                              </select>
                                                                       </div>
                                                                </div>
@@ -189,11 +189,11 @@ export default function FoodPlazaRegisterPage() {
                                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                                                       <select value={formData.state} onChange={(e) => handleChange('state', e.target.value)} className="px-5 py-4 bg-slate-50 rounded-2xl font-medium outline-none">
                                                                              <option value="">State</option>
-                                                                             {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                                             {[...INDIAN_STATES].sort((a,b) => a.localeCompare(b)).map(s => <option key={s} value={s}>{s}</option>)}
                                                                       </select>
                                                                       <select value={formData.city} onChange={(e) => handleChange('city', e.target.value)} disabled={!formData.state} className="px-5 py-4 bg-slate-50 rounded-2xl font-medium outline-none disabled:opacity-50">
                                                                              <option value="">City</option>
-                                                                             {formData.state && STATE_CITIES[formData.state]?.map(c => <option key={c} value={c}>{c}</option>)}
+                                                                             {formData.state && [...(STATE_CITIES[formData.state] || [])].sort((a,b) => a.localeCompare(b)).map(c => <option key={c} value={c}>{c}</option>)}
                                                                       </select>
                                                                       <input type="text" value={formData.pincode} onChange={(e) => handleChange('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
                                                                              placeholder="Pincode" className="px-5 py-4 bg-slate-50 rounded-2xl font-medium outline-none" />

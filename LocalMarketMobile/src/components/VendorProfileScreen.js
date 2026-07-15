@@ -17,28 +17,14 @@ import { shouldBlockVendor, VENDOR_STATUS } from '../utils/paymentUtils';
 import ExitConfirmModal from './ExitConfirmModal';
 import { BackHandler } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { uploadFile, updateVendorProfile, getVendorProfile, getCategories } from '../services/api';
+import { uploadFile, updateVendorProfile, getVendorProfile, getCategories, deleteVendorAccount } from '../services/api';
 import { ActivityIndicator, } from 'react-native';
 // import Image from './ImageWithFallback';
-const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
+const VendorProfileScreen = ({ navigation, vendorData, setVendorData, onLogout }) => {
   const COLORS = useThemeColors();
   const styles = createStyles(COLORS);
 
-  React.useEffect(() => {
-    const backAction = () => {
-      if (navigation.isFocused()) {
-        setShowExitModal(true);
-        return true;
-      }
-      return false;
-    };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-    return () => {
-      backHandler.remove();
-    };
-  }, [navigation]);
   const [locationState] = useState({
     lat: vendorData?.location?.lat || null,
     lng: vendorData?.location?.lng || null,
@@ -63,6 +49,40 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
   };
 
   const [priceAlerts, setPriceAlerts] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to permanently delete your vendor account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (!normalizedVendor.id) {
+                Alert.alert('Error', 'Vendor ID not found');
+                return;
+              }
+              await deleteVendorAccount(normalizedVendor.id);
+              Alert.alert('Success', 'Vendor account deleted successfully', [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    if (onLogout) onLogout();
+                  }
+                }
+              ]);
+            } catch (error) {
+              console.error('Error deleting vendor:', error);
+              Alert.alert('Error', error.message || 'Failed to delete account');
+            }
+          }
+        }
+      ]
+    );
+  };
   const [bulkUploads, setBulkUploads] = useState(false);
   const [showWriteReview, setShowWriteReview] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
@@ -95,14 +115,14 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
       .then(data => {
         const cats = data?.categories || [];
         if (cats.length > 0) {
-          setCategories(cats.map(c => c.name));
+          setCategories(cats.map(c => c.name).sort((a,b) => a.localeCompare(b)));
         } else {
-          setCategories(DUMMY_CATEGORIES);
+          setCategories([...DUMMY_CATEGORIES].sort((a,b) => a.localeCompare(b)));
         }
       })
       .catch(err => {
         console.error('Error fetching categories:', err);
-        setCategories(DUMMY_CATEGORIES);
+        setCategories([...DUMMY_CATEGORIES].sort((a,b) => a.localeCompare(b)));
       })
       .finally(() => setLoadingCats(false));
   }, []);
@@ -564,39 +584,32 @@ const VendorProfileScreen = ({ navigation, vendorData, setVendorData }) => {
               </View>
             </View>
           </View>
+
+          {/* Delete Vendor Account Button */}
+          <TouchableOpacity 
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#FEF2F2',
+              borderColor: '#FEE2E2',
+              borderWidth: 1,
+              borderRadius: 16,
+              paddingVertical: 14,
+              marginHorizontal: 16,
+              marginTop: 20,
+              gap: 8
+            }} 
+            onPress={handleDeleteAccount}
+          >
+            <Icon name="trash-2" size={18} color="#EF4444" />
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#EF4444' }}>Delete Account</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Shop Preferences */}
-        <View style={styles.preferencesSection}>
-          <Text style={styles.sectionTitle}>SHOP PREFERENCES</Text>
-
-          <View style={styles.preferenceItem}>
-            <Text style={styles.preferenceLabel}>Receive Price Alerts</Text>
-            <Switch
-              value={priceAlerts}
-              onValueChange={setPriceAlerts}
-              trackColor={{ false: '#E5E7EB', true: COLORS.orange }}
-              thumbColor={COLORS.white}
-            />
-          </View>
-
-          <View style={styles.preferenceItem}>
-            <Text style={styles.preferenceLabel}>Allow Bulk Uploads</Text>
-            <Switch
-              value={bulkUploads}
-              onValueChange={setBulkUploads}
-              trackColor={{ false: '#E5E7EB', true: COLORS.orange }}
-              thumbColor={COLORS.white}
-            />
-          </View>
-        </View>
       </ScrollView>
 
-      <ExitConfirmModal 
-        visible={showExitModal}
-        onCancel={() => setShowExitModal(false)}
-        onConfirm={() => BackHandler.exitApp()}
-      />
+
 
       {/* Write Review Modal */}
       <WriteReview

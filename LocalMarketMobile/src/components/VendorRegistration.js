@@ -11,13 +11,15 @@ import {
   Platform,
   Modal,
   Pressable,
+  PermissionsAndroid,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { getIconName } from '../utils/iconMapping';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { registerVendor, uploadFile, getCategories, getDynamicLocations } from '../services/api';
+import { registerVendor, uploadFile, getCategories, getDynamicLocations, searchPlaces, reverseGeocode } from '../services/api';
+import Geolocation from '@react-native-community/geolocation';
 import Image from './ImageWithFallback';
 import Logo from './Logo';
 
@@ -25,7 +27,7 @@ const ORANGE = '#EA580C';
 const BLUE = '#4A6CF7';
 
 // ─── Reusable Focused Input ────────────────────────────────────────────────
-const FocusedInput = ({ label, required, placeholder, value, onChangeText, keyboardType, multiline, numberOfLines, prefix, secureTextEntry, rightElement }) => {
+const FocusedInput = ({ label, required, placeholder, value, onChangeText, keyboardType, multiline, numberOfLines, prefix, secureTextEntry, rightElement, onFocus, onBlur }) => {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
   return (
@@ -48,8 +50,14 @@ const FocusedInput = ({ label, required, placeholder, value, onChangeText, keybo
           keyboardType={keyboardType || 'default'}
           multiline={multiline}
           numberOfLines={numberOfLines}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onFocus={() => {
+            setFocused(true);
+            onFocus?.();
+          }}
+          onBlur={() => {
+            setFocused(false);
+            onBlur?.();
+          }}
           autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
           underlineColorAndroid="transparent"
           secureTextEntry={secureTextEntry}
@@ -161,6 +169,13 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   const [loadingTowns, setLoadingTowns] = useState(false);
   const [loadingMarkets, setLoadingMarkets] = useState(false);
 
+  // Address autocomplete & Pinning states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isPinning, setIsPinning] = useState(false);
+
   const [formData, setFormData] = useState({
     businessName: '', ownerName: '', category: '', subCategory: '',
     mobile: '', email: '', password: '', confirmPassword: '',
@@ -222,10 +237,112 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
   useEffect(() => {
     if (!formData.area) { setMarkets([]); return; }
     setLoadingMarkets(true);
-    getDynamicLocations('town', formData.area)
+    getDynamicLocations('town-circles', formData.area)
       .then(data => setMarkets(data?.data || []))
       .catch(() => {}).finally(() => setLoadingMarkets(false));
   }, [formData.area]);
+
+  const handleSearchPlaces = async (query) => {
+    setSearchQuery(query);
+    if (!query || query.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const res = await searchPlaces(query);
+      setSuggestions(res || []);
+      setShowSuggestions(true);
+    } catch (err) {
+      console.error('Failed to search places:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectLocation = (loc) => {
+    const addr = loc.address || {};
+    
+    // Parse city
+    const parsedCity = addr.city || addr.town || addr.village || '';
+    
+    setFormData(prev => ({
+      ...prev,
+      latitude: parseFloat(loc.lat),
+      longitude: parseFloat(loc.lon),
+      address: loc.display_name,
+      state: addr.state || prev.state,
+      city: parsedCity || prev.city,
+      pincode: addr.postcode || prev.pincode,
+      area: addr.suburb || addr.neighbourhood || prev.area,
+    }));
+    setSearchQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const requestLocationPermission = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+      return true;
+    } catch (err) {
+      console.warn('Permission error:', err);
+      return false;
+    }
+  };
+
+  const handlePinLocation = async () => {
+    setIsPinning(true);
+    const hasPermission = await requestLocationPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Location permissions are required to pin your current location.');
+      setIsPinning(false);
+      return;
+    }
+
+    Geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await reverseGeocode(latitude, longitude);
+          if (res && res.address) {
+            const addr = res.address;
+            const parsedCity = addr.city || addr.town || addr.village || '';
+            setFormData(prev => ({
+              ...prev,
+              latitude,
+              longitude,
+              address: res.display_name,
+              state: addr.state || prev.state,
+              city: parsedCity || prev.city,
+              pincode: addr.postcode || prev.pincode,
+              area: addr.suburb || addr.neighbourhood || prev.area,
+            }));
+          } else {
+            setFormData(prev => ({ ...prev, latitude, longitude }));
+          }
+        } catch (err) {
+          console.warn('Reverse geocode failed:', err);
+          setFormData(prev => ({ ...prev, latitude, longitude }));
+        } finally {
+          setIsPinning(false);
+        }
+      },
+      (error) => {
+        console.warn('Geolocation error:', error);
+        Alert.alert('Location Error', 'Failed to get your current location. Please make sure GPS is turned on.');
+        setIsPinning(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  };
 
   const validate = () => {
     setError('');
@@ -250,6 +367,7 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
     } else if (step === 4) {
       if (!formData.address?.trim()) { setError('Full address is required'); return false; }
       if (!formData.pincode || formData.pincode.length < 6) { setError('Valid 6-digit pincode is required'); return false; }
+      if (!formData.latitude || !formData.longitude) { setError('Please pin your location or search for your address to set GPS coordinates'); return false; }
     } else if (step === 5) {
       if (!formData.idProof) { setError('ID Proof photo is required'); return false; }
       if (!formData.businessPhoto) { setError('Business Photo is required'); return false; }
@@ -470,20 +588,96 @@ const VendorRegistration = ({ navigation, onComplete, onCancel }) => {
           <View style={styles.stepBlock}>
             <Text style={styles.stepTitle}>Storefront Details</Text>
             <Text style={styles.stepSub}>Help customers find your exact shop location</Text>
-            <FocusedInput label="Full Address" required value={formData.address} onChangeText={v => update('address', v)} placeholder="Shop No, Building Name, Street..." multiline numberOfLines={3} />
+
+            {/* Pin location header row */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={fieldStyles.label}>Pin Your Business Location <Text style={fieldStyles.required}>*</Text></Text>
+              <TouchableOpacity 
+                onPress={handlePinLocation} 
+                disabled={isPinning} 
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                activeOpacity={0.7}
+              >
+                {isPinning ? (
+                  <ActivityIndicator size="small" color={ORANGE} />
+                ) : (
+                  <Icon name="navigation" size={12} color={ORANGE} />
+                )}
+                <Text style={{ fontSize: 12, fontWeight: '700', color: ORANGE }}>
+                  {isPinning ? 'Detecting...' : 'Pin Current Location'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Places search autocomplete input */}
+            <View style={[styles.searchContainer, { zIndex: 100 }]}>
+              <FocusedInput
+                label="Search Address"
+                placeholder="Search for your shop address or area..."
+                value={searchQuery}
+                onChangeText={handleSearchPlaces}
+                onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+                prefix={<Icon name="search" size={16} color="#94A3B8" />}
+                rightElement={
+                  isSearching ? (
+                    <ActivityIndicator size="small" color={ORANGE} style={{ marginRight: 8 }} />
+                  ) : searchQuery.length > 0 ? (
+                    <TouchableOpacity onPress={() => handleSearchPlaces('')} style={{ marginRight: 8 }}>
+                      <Icon name="x" size={16} color="#94A3B8" />
+                    </TouchableOpacity>
+                  ) : null
+                }
+              />
+              
+              {showSuggestions && suggestions.length > 0 && (
+                <View style={styles.suggestionList}>
+                  <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled={true}>
+                    {suggestions.map((loc, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        style={styles.suggestionItem}
+                        onPress={() => handleSelectLocation(loc)}
+                      >
+                        <Icon name="map-pin" size={14} color="#64748B" />
+                        <View style={styles.suggestionTextContainer}>
+                          <Text style={styles.suggestionTitle} numberOfLines={1}>
+                            {loc.display_name.split(',')[0]}
+                          </Text>
+                          <Text style={styles.suggestionSubtitle} numberOfLines={2}>
+                            {loc.display_name.split(',').slice(1).join(',').trim()}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* Latitude and Longitude read-only boxes */}
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+              <View style={[styles.coordinateCard, formData.latitude && styles.coordinateCardActive]}>
+                <Icon name="map-pin" size={14} color={formData.latitude ? '#16A34A' : '#94A3B8'} />
+                <View style={{ marginLeft: 8 }}>
+                  <Text style={styles.coordinateLabel}>Latitude</Text>
+                  <Text style={styles.coordinateValue}>
+                    {formData.latitude ? formData.latitude.toFixed(6) : 'Not Pinned'}
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.coordinateCard, formData.longitude && styles.coordinateCardActive]}>
+                <Icon name="map-pin" size={14} color={formData.longitude ? '#16A34A' : '#94A3B8'} />
+                <View style={{ marginLeft: 8 }}>
+                  <Text style={styles.coordinateLabel}>Longitude</Text>
+                  <Text style={styles.coordinateValue}>
+                    {formData.longitude ? formData.longitude.toFixed(6) : 'Not Pinned'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <FocusedInput label="Full Address (Will be auto-filled from pin)" required value={formData.address} onChangeText={v => update('address', v)} placeholder="Shop No, Building Name, Street..." multiline numberOfLines={3} />
             <FocusedInput label="Pincode" required value={formData.pincode} onChangeText={v => update('pincode', v.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" placeholder="e.g. 110001" />
-            
-            {/* Hiding Detect Location for now as per request
-            <TouchableOpacity 
-              style={styles.locationDetectionBtn}
-              onPress={() => {
-                Alert.alert('Coming Soon', 'GPS detection will be available in the next update.');
-              }}
-            >
-              <Icon name="navigation" size={16} color={ORANGE} />
-              <Text style={styles.locationDetectionText}>Detect Current Location</Text>
-            </TouchableOpacity>
-            */}
           </View>
         )}
 
@@ -689,6 +883,76 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: ORANGE,
+  },
+  coordinateCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+  },
+  coordinateCardActive: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  coordinateLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    color: '#94A3B8',
+    letterSpacing: 0.5,
+  },
+  coordinateValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  searchContainer: {
+    position: 'relative',
+    marginBottom: 16,
+    zIndex: 100,
+  },
+  suggestionList: {
+    position: 'absolute',
+    top: 52,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    maxHeight: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    zIndex: 999,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  suggestionTextContainer: {
+    marginLeft: 8,
+    flex: 1,
+  },
+  suggestionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  suggestionSubtitle: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
   },
 });
 

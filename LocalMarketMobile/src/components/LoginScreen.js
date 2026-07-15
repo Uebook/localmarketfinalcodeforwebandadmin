@@ -150,10 +150,8 @@ const LoginScreen = ({ onLogin, onRegister, onForgotPassword }) => {
           {/* Hero Branding */}
           <View style={styles.heroSection}>
             <View style={styles.logoContainer}>
-              <Logo size={80} />
+              <Logo size={140} />
             </View>
-            <Text style={styles.brandName}>LOKALL</Text>
-            <Text style={styles.brandTagline}>Your Market, Digitized.</Text>
           </View>
 
           {/* Role Toggle */}
@@ -482,17 +480,18 @@ const createStyles = (COLORS) => StyleSheet.create({
     marginBottom: 40,
   },
   logoContainer: {
-    width: 100,
-    height: 100,
+    width: 140,
+    height: 140,
     borderRadius: 24,
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowRadius: 15,
+    elevation: 8,
     marginBottom: 16,
   },
   heroImage: {

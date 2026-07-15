@@ -8,7 +8,7 @@ import { getIconName } from '../utils/iconMapping';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { getVendorSidebarControl } from '../utils/vendorSidebarControl';
 import { getSidebarControl } from '../utils/sidebarControl';
-import { getFestiveOffers, createOffer, updateOffer, deleteOffer } from '../services/api';
+import { getFestiveOffers, createOffer, updateOffer, deleteOffer, getCategories } from '../services/api';
 
 const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
   const COLORS = useThemeColors();
@@ -26,12 +26,14 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [savingOffer, setSavingOffer] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    code: '',
     discountAmount: '',
     validUntil: '',
+    offerScope: 'all',
+    categoryIds: [],
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -40,6 +42,20 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
   useEffect(() => {
     fetchOffers();
   }, [vendorData?.id]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+        if (data && data.categories) {
+          setCategories(data.categories);
+        }
+      } catch (err) {
+        console.error('Error fetching categories in offers screen:', err);
+      }
+    };
+    loadCategories();
+  }, []);
 
   const fetchOffers = async () => {
     if (!vendorData?.id) return;
@@ -72,9 +88,10 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     setFormData({
       title: '',
       description: '',
-      code: '',
       discountAmount: '',
       validUntil: '',
+      offerScope: 'all',
+      categoryIds: [],
     });
     setShowCreateForm(true);
   };
@@ -85,9 +102,10 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     setFormData({
       title: offer.title || '',
       description: offer.description || '',
-      code: offer.code || offer.discount_code || '',
       discountAmount: offer.discount_percent ? `${offer.discount_percent}%` : (offer.discountAmount || ''),
       validUntil: offer.end_date || offer.validUntil || '',
+      offerScope: offer.offer_scope || 'all',
+      categoryIds: offer.category_ids || [],
     });
     setShowCreateForm(true);
   };
@@ -117,7 +135,7 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
   };
 
   const handleSaveOffer = async () => {
-    if (!formData.title || !formData.code || !formData.discountAmount) {
+    if (!formData.title || !formData.discountAmount) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
@@ -134,7 +152,6 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     const offerPayload = {
       title: formData.title,
       description: formData.description,
-      code: formData.code,
       type: 'vendor',
       target: 'specific',
       vendor_ids: [vendorData.id],
@@ -142,6 +159,8 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
       end_date: endDate,
       discount_percent: parseFloat(String(formData.discountAmount).replace('%', '')) || null,
       status: 'active',
+      offer_scope: formData.offerScope,
+      category_ids: formData.categoryIds,
     };
 
     try {
@@ -160,9 +179,10 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
         setFormData({
           title: '',
           description: '',
-          code: '',
           discountAmount: '',
           validUntil: '',
+          offerScope: 'all',
+          categoryIds: [],
         });
         Alert.alert('Success', `Offer ${editingOffer ? 'updated' : 'created'} successfully`);
       }
@@ -180,9 +200,10 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
     setFormData({
       title: '',
       description: '',
-      code: '',
       discountAmount: '',
       validUntil: '',
+      offerScope: 'all',
+      categoryIds: [],
     });
   };
 
@@ -392,18 +413,6 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>DISCOUNT CODE</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={formData.code}
-                    onChangeText={(text) => setFormData({ ...formData, code: text.toUpperCase() })}
-                    placeholder="E.G. SAVE20"
-                    placeholderTextColor={COLORS.textMuted}
-                    autoCapitalize="characters"
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>DISCOUNT VALUE</Text>
                   <TextInput
                     style={styles.input}
@@ -413,6 +422,60 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
                     placeholderTextColor={COLORS.textMuted}
                   />
                 </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>OFFER SCOPE</Text>
+                  <View style={styles.scopeToggleContainer}>
+                    <TouchableOpacity
+                      style={[styles.scopeButton, formData.offerScope === 'all' && styles.scopeButtonActive]}
+                      onPress={() => setFormData({ ...formData, offerScope: 'all' })}
+                    >
+                      <Text style={[styles.scopeButtonText, formData.offerScope === 'all' && styles.scopeButtonTextActive]}>
+                        All Products
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.scopeButton, formData.offerScope === 'specific_categories' && styles.scopeButtonActive]}
+                      onPress={() => setFormData({ ...formData, offerScope: 'specific_categories' })}
+                    >
+                      <Text style={[styles.scopeButtonText, formData.offerScope === 'specific_categories' && styles.scopeButtonTextActive]}>
+                        Categories
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {formData.offerScope === 'specific_categories' && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>SELECT CATEGORIES (SELECT MULTIPLE)</Text>
+                    <ScrollView style={styles.categoryListContainer} nestedScrollEnabled={true}>
+                      {categories.map((cat) => {
+                        const isChecked = formData.categoryIds?.includes(cat.id);
+                        return (
+                          <TouchableOpacity
+                            key={cat.id}
+                            style={styles.categorySelectItem}
+                            onPress={() => {
+                              const updated = isChecked
+                                ? formData.categoryIds.filter(id => id !== cat.id)
+                                : [...(formData.categoryIds || []), cat.id];
+                              setFormData({ ...formData, categoryIds: updated });
+                            }}
+                          >
+                            <Icon
+                              name={isChecked ? 'check-square' : 'square'}
+                              size={18}
+                              color={isChecked ? COLORS.orange : COLORS.textMuted}
+                            />
+                            <Text style={[styles.categorySelectText, isChecked && styles.categorySelectTextActive]}>
+                              {cat.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                )}
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>VALID UNTIL</Text>
@@ -492,11 +555,19 @@ const VendorOffersScreen = ({ navigation, vendorData, setVendorData }) => {
                   <Text style={styles.cardDesc} numberOfLines={2}>{offer.description}</Text>
                   
                   <View style={styles.cardFooter}>
-                    <View style={styles.codeWrapper}>
-                      <Text style={styles.codeLabel}>USE CODE:</Text>
-                      <View style={styles.codeBox}>
-                        <Text style={styles.codeValue}>{offer.code || offer.discount_code || 'N/A'}</Text>
-                      </View>
+                    <View style={{ flex: 1, marginRight: 8 }}>
+                      <Text style={{ fontSize: 9, fontWeight: '700', color: COLORS.textMuted, marginBottom: 2 }}>
+                        {offer.offer_scope === 'specific_categories' ? 'CATEGORIES' : 'SCOPE'}
+                      </Text>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS.textSecondary }} numberOfLines={1}>
+                        {offer.offer_scope === 'all' || !offer.offer_scope ? 'All Products' :
+                          offer.offer_scope === 'specific_categories' ? (
+                            Array.isArray(offer.category_ids) && offer.category_ids.length > 0
+                              ? offer.category_ids.map(cid => categories.find(c => c.id === cid)?.name || 'Category').join(', ')
+                              : 'None selected'
+                          ) : 'Specific Products'
+                        }
+                      </Text>
                     </View>
                     <View style={styles.expiryBox}>
                       <Icon name="clock" size={10} color={COLORS.textMuted} />
@@ -1159,6 +1230,62 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 120,
+  },
+  scopeToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
+    padding: 3,
+    gap: 4,
+  },
+  scopeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  scopeButtonActive: {
+    backgroundColor: COLORS.white,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  scopeButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+  },
+  scopeButtonTextActive: {
+    color: COLORS.textPrimary,
+    fontWeight: '700',
+  },
+  categoryListContainer: {
+    maxHeight: 160,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    padding: 10,
+  },
+  categorySelectItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    gap: 10,
+  },
+  categorySelectText: {
+    fontSize: 14,
+    color: COLORS.textPrimary,
+    fontWeight: '500',
+  },
+  categorySelectTextActive: {
+    color: COLORS.orange,
+    fontWeight: '700',
   },
 });
 

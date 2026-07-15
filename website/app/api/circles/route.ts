@@ -85,17 +85,7 @@ export async function GET(request: Request) {
         }
 
         // 2. Fetch vendor counts per circle to show "X shops"
-        const vendors = await supabaseRestGet('/rest/v1/vendors?select=circle,status').catch(() => []);
-        const circleStats: Record<string, { shops: number; city: string; icon: string | null }> = {};
-
-        vendors.forEach((v: any) => {
-            if (v.circle && v.status === 'Active') {
-                if (!circleStats[v.circle]) {
-                    circleStats[v.circle] = { shops: 0, city: '', icon: null };
-                }
-                circleStats[v.circle].shops++;
-            }
-        });
+        const vendors = await supabaseRestGet('/rest/v1/vendors?select=circle,town,status,city').catch(() => []);
 
         // 3. Fetch Market Comparison Stats (for % lower price display)
         const comparisonStats = await supabaseRestGet('/rest/v1/market_comparison_stats?select=*').catch(() => []);
@@ -115,11 +105,37 @@ export async function GET(request: Request) {
         locations.forEach((loc: any) => {
             if (loc.circle) {
                 if (!circlesMap[loc.circle]) {
+                    // Count active vendors matching this circle (either directly or via parent macro circle/town)
+                    const matchedShops = Array.isArray(vendors) ? vendors.filter((v: any) => {
+                        if (v.status !== 'Active') return false;
+
+                        // Verify city matches to avoid counting vendors from other cities
+                        const vCity = v.city?.trim().toLowerCase();
+                        const locCity = loc.city?.trim().toLowerCase();
+                        if (vCity !== locCity) return false;
+                        
+                        const vCircle = v.circle?.trim().toLowerCase();
+                        const vTown = v.town?.trim().toLowerCase();
+                        const locCircle = loc.circle?.trim().toLowerCase();
+                        const locTown = loc.town?.trim().toLowerCase();
+
+                        // Match 1: Direct circle match
+                        if (vCircle === locCircle) return true;
+
+                        // Match 2: Vendor registered with macro-circle (v.circle is North Circle) matching loc.town (NORTH CIRCLE)
+                        if (vCircle && locTown && vCircle === locTown) return true;
+
+                        // Match 3: Vendor town matches loc.town and circle is not specified or same as town
+                        if (vTown && locTown && vTown === locTown && (!vCircle || vCircle === vTown)) return true;
+
+                        return false;
+                    }).length : 0;
+
                     circlesMap[loc.circle] = {
                         name: loc.circle,
                         city: loc.city,
                         town: loc.town || loc.city,
-                        shops: circleStats[loc.circle]?.shops || 0,
+                        shops: matchedShops,
                         lower_price_pct: savingsMap[loc.circle] || 0,
                         common_products_count: countMap[loc.circle] || 0,
                         icon: loc.market_icon || null,

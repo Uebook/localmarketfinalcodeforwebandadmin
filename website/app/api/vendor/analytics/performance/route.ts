@@ -10,8 +10,8 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Vendor ID is required' }, { status: 400 });
         }
 
-        // 1. Fetch basic vendor stats (city, category)
-        const vendorRes = await supabaseRestGet(`/rest/v1/vendors?id=eq.${vendorId}&select=city,category`);
+        // 1. Fetch basic vendor stats (city, category, profile_views)
+        const vendorRes = await supabaseRestGet(`/rest/v1/vendors?id=eq.${vendorId}&select=city,category,profile_views,search_appearances`);
         const vendor = Array.isArray(vendorRes) ? vendorRes[0] : null;
 
         // 2. Count enquiries
@@ -36,6 +36,22 @@ export async function GET(request: Request) {
             ? areaLogs.filter((log: any) => log.search_query?.toLowerCase().includes(category.toLowerCase())).length 
             : 0;
 
+        // 5. Aggregate top 5 trending searches in this city
+        const counts: Record<string, number> = {};
+        if (Array.isArray(areaLogs)) {
+            areaLogs.forEach((log: any) => {
+                const q = log.search_query?.toLowerCase().trim();
+                if (q) {
+                    counts[q] = (counts[q] || 0) + 1;
+                }
+            });
+        }
+
+        const trendingSearches = Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([query, count]) => ({ query, count }));
+
         return NextResponse.json({
             success: true,
             stats: {
@@ -48,7 +64,8 @@ export async function GET(request: Request) {
                 areaUsers: Math.max(totalAreaSearches * 5, 450), // Simulation multiplier
                 activeUsers: Math.max(totalAreaSearches, 120),
                 categorySearches: Math.max(categorySearches, 45),
-            }
+            },
+            trendingSearches
         });
 
     } catch (error: any) {

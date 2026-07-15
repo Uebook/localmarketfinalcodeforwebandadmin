@@ -1,4 +1,4 @@
-import { supabaseRestGet } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 function toStr(v) {
     return typeof v === 'string' ? v : '';
@@ -117,6 +117,20 @@ export async function GET(req) {
             { error: e?.message || 'Failed to load vendors' },
             { status: 500 }
         );
+    }
+}
+
+export async function DELETE(req) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = toStr(searchParams.get('id'));
+        if (!id) return Response.json({ error: 'id is required' }, { status: 400 });
+
+        await supabaseRestDelete(`/rest/v1/vendors?id=eq.${encodeURIComponent(id)}`);
+        return Response.json({ success: true, message: 'Vendor deleted successfully' });
+    } catch (e) {
+        console.error('Vendor DELETE Error:', e);
+        return Response.json({ error: e?.message || 'Failed to delete vendor' }, { status: 500 });
     }
 }
 

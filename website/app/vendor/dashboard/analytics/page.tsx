@@ -275,60 +275,7 @@ function AnalyticsContent() {
         loading={isLoadingAnalytics} 
       />
 
-      {/* Auto Recommendations */}
-      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Auto Recommendations</h2>
-          <span className="text-sm text-gray-900 font-medium">{dynamicRecommendations.length} suggestions</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {dynamicRecommendations.map((rec, index) => {
-            const Icon = getIcon(rec.icon);
-            return (
-              <div
-                key={index}
-                className={`p-4 rounded-lg border-2 ${rec.priority === 'high'
-                  ? 'border-orange-200 bg-orange-50'
-                  : rec.priority === 'medium'
-                    ? 'border-blue-200 bg-blue-50'
-                    : 'border-gray-200 bg-gray-50'
-                  }`}
-              >
-                <div className="flex items-start gap-3">
-                  <Icon className={`${rec.priority === 'high' ? 'text-orange-600' : rec.priority === 'medium' ? 'text-blue-600' : 'text-gray-900'
-                    }`} size={24} />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className={`font-semibold ${rec.priority === 'high' ? 'text-orange-900' : rec.priority === 'medium' ? 'text-blue-900' : 'text-gray-900'
-                        }`}>
-                        {rec.title}
-                      </p>
-                      {rec.priority === 'high' && (
-                        <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">
-                          High Priority
-                        </span>
-                      )}
-                    </div>
-                    <p className={`text-sm ${rec.priority === 'high' ? 'text-orange-700' : rec.priority === 'medium' ? 'text-blue-700' : 'text-gray-900'
-                      }`}>
-                      {rec.description}
-                    </p>
-                    <button 
-                      onClick={() => router.push('/vendor/dashboard/catalog')}
-                      className={`mt-3 text-sm font-medium ${rec.priority === 'high' ? 'text-orange-600 hover:text-orange-700' :
-                      rec.priority === 'medium' ? 'text-blue-600 hover:text-blue-700' :
-                        'text-gray-900 hover:text-gray-700'
-                      }`}
-                    >
-                      Take Action →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+
     </div>
   );
 }

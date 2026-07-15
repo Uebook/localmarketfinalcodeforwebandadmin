@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image as RNImage, ImageBackground, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image as RNImage, ImageBackground, Alert, RefreshControl } from 'react-native';
 import Image from './ImageWithFallback';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +15,7 @@ import TopCategoriesGrid from './TopCategoriesGrid';
 import NearbySection from './NearbySection';
 import HorizontalSection from './HorizontalSection';
 import PromoCarousel from './PromoCarousel';
-import { getCategories, detectLocation, getMegaSavings, getPriceDrops, getBrands } from '../services/api';
+import { getCategories, detectLocation, getMegaSavings, getPriceDrops, getBrands, getHomeImage } from '../services/api';
 
 import DraggableAIButton from './DraggableAIButton';
 
@@ -44,6 +44,17 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
   const isServiceAvailable = locationState?.city === 'Amritsar' || !!locationState?.circle;
 
   const [categories, setCategories] = useState([]);
+  const [dynamicHomeImage, setDynamicHomeImage] = useState(null);
+  const [heroConfig, setHeroConfig] = useState({
+    headline: 'Your Entire',
+    headline_color: '#FFFFFF',
+    highlight_text: 'Local Market,',
+    highlight_color: COLORS.orange,
+    subheadline: 'Discover Instantly.',
+    subheadline_color: '#FFFFFF',
+    description: 'Find best deals, compare prices & locate your\nfavorite local shops in seconds.',
+    description_color: '#E5E7EB'
+  });
   const [megaSavingsData, setMegaSavingsData] = useState([]);
   const [priceDropsData, setPriceDropsData] = useState([]);
   const [verifiedVendors, setVerifiedVendors] = useState([]);
@@ -51,6 +62,24 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
   const [premiumBrands, setPremiumBrands] = useState([]);
   const [todayDealsData, setTodayDealsData] = useState([]);
   const [loadingSections, setLoadingSections] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadCategories(),
+        loadHomeImage(),
+        (locationState?.city || locationState?.circle || locationState?.town) 
+          ? loadSectionsData(locationState.city, locationState.circle || locationState.town) 
+          : Promise.resolve()
+      ]);
+    } catch (error) {
+      console.error('Refresh error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [locationState?.city, locationState?.circle, locationState?.town]);
 
   // --- Fallback helpers defined at component scope so all functions can access them ---
   const getFallbackFromUser = async () => {
@@ -210,7 +239,7 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
           console.warn("Geolocation signal failed, trying IP fallback...", error);
           handleIpOnlyFallback();
         },
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+        { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
       );
     } else {
       console.log('No GPS permission, trying IP fallback...');
@@ -251,23 +280,37 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
 
   const [showExitModal, setShowExitModal] = useState(false);
 
-  useEffect(() => {
-    const backAction = () => {
-      if (navigation.isFocused()) {
-        setShowExitModal(true);
-        return true;
-      }
-      return false;
-    };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-    return () => backHandler.remove();
-  }, [navigation]);
 
   useEffect(() => {
     fetchLocation();
     loadCategories();
+    loadHomeImage();
   }, []);
+
+  const loadHomeImage = async () => {
+    try {
+      const data = await getHomeImage();
+      if (data && data.homeImage) {
+        if (data.homeImage.image_url) {
+          setDynamicHomeImage(data.homeImage.image_url);
+        }
+        
+        setHeroConfig(prev => ({
+          headline: data.homeImage.headline || prev.headline,
+          headline_color: data.homeImage.headline_color || prev.headline_color,
+          highlight_text: data.homeImage.highlight_text || prev.highlight_text,
+          highlight_color: data.homeImage.highlight_color || prev.highlight_color,
+          subheadline: data.homeImage.subheadline || prev.subheadline,
+          subheadline_color: data.homeImage.subheadline_color || prev.subheadline_color,
+          description: data.homeImage.description || prev.description,
+          description_color: data.homeImage.description_color || prev.description_color
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to load dynamic home image', err);
+    }
+  };
 
   useEffect(() => {
     if (locationState.city || locationState.circle || locationState.town) {
@@ -386,23 +429,28 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.orange]}
+            tintColor={COLORS.orange}
+          />
+        }
       >
         {/* New Premium Hero Section */}
         <ImageBackground
-          source={require('../assets/home.jpg')}
+          source={dynamicHomeImage ? { uri: dynamicHomeImage } : require('../assets/home.jpg')}
           style={styles.premiumHero}
           imageStyle={styles.heroImageBg}
         >
           <View style={styles.heroOverlay}>
             <View style={styles.heroContent}>
               <View style={styles.heroLeft}>
-                <Text style={styles.heroTitleMain}>Your Entire</Text>
-                <Text style={styles.heroTitleAccent}>Local Market,</Text>
-                <Text style={styles.heroTitleSmall}>Discover Instantly.</Text>
-                <Text style={styles.heroSubtitle}>
-                  Find best deals, compare prices & locate your{"\n"}
-                  favorite local shops in seconds.
-                </Text>
+                <Text style={[styles.heroTitleMain, { color: heroConfig.headline_color }]}>{heroConfig.headline}</Text>
+                <Text style={[styles.heroTitleAccent, { color: heroConfig.highlight_color }]}>{heroConfig.highlight_text}</Text>
+                <Text style={[styles.heroTitleSmall, { color: heroConfig.subheadline_color }]}>{heroConfig.subheadline}</Text>
+                <Text style={[styles.heroSubtitle, { color: heroConfig.description_color }]}>{heroConfig.description}</Text>
               </View>
             </View>
           </View>
@@ -670,11 +718,6 @@ const HomeScreen = ({ navigation, route, locationState, setLocationState, onLoca
 
       <DraggableAIButton onPress={() => navigation.navigate('AIServiceFlow')} />
 
-      <ExitConfirmModal 
-        visible={showExitModal}
-        onCancel={() => setShowExitModal(false)}
-        onConfirm={() => BackHandler.exitApp()}
-      />
     </View>
   );
 };

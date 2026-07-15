@@ -528,7 +528,7 @@ export default function VendorRegisterPage() {
                     <option value="" className="text-gray-400">
                       {isLoadingCategories ? 'Loading categories...' : 'Select category'}
                     </option>
-                    {categories.map((cat: any) => (
+                    {[...categories].sort((a,b) => a.name.localeCompare(b.name)).map((cat: any) => (
                       <option key={cat.id} value={cat.name}>
                         {cat.name}
                       </option>
@@ -547,7 +547,7 @@ export default function VendorRegisterPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
                     >
                       <option value="" className="text-gray-400">Select specialization</option>
-                      {SERVICE_CATEGORIES.map(cat => (
+                      {[...SERVICE_CATEGORIES].sort((a,b) => a.localeCompare(b)).map(cat => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
@@ -746,7 +746,7 @@ export default function VendorRegisterPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
                     >
                       <option value="">{isLoadingStates ? 'Loading states...' : 'Select state'}</option>
-                      {dbStates.map(state => (
+                      {[...dbStates].sort((a,b) => a.localeCompare(b)).map(state => (
                         <option key={state} value={state}>{state}</option>
                       ))}
                     </select>
@@ -766,7 +766,7 @@ export default function VendorRegisterPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white disabled:bg-gray-50 disabled:cursor-not-allowed"
                     >
                       <option value="">{isLoadingCities ? 'Loading cities...' : 'Select city'}</option>
-                      {dbCities.map(city => (
+                      {[...dbCities].sort((a,b) => a.localeCompare(b)).map(city => (
                         <option key={city} value={city}>{city}</option>
                       ))}
                     </select>
@@ -789,7 +789,7 @@ export default function VendorRegisterPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white disabled:opacity-50"
                     >
                       <option value="">{isLoadingTowns ? 'Loading...' : 'Select Circle / Area'}</option>
-                      {dbTowns.map(area => (
+                      {[...dbTowns].sort((a,b) => a.localeCompare(b)).map(area => (
                         <option key={area} value={area}>{area}</option>
                       ))}
                       {!isLoadingTowns && formData.city && <option value="Other">Other / Not Listed</option>}
@@ -807,7 +807,7 @@ export default function VendorRegisterPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white disabled:opacity-50"
                     >
                       <option value="">{isLoadingMarkets ? 'Loading...' : 'Select Market'}</option>
-                      {dbMarkets.map(market => (
+                      {[...dbMarkets].sort((a,b) => a.localeCompare(b)).map(market => (
                         <option key={market} value={market}>{market}</option>
                       ))}
                       {!isLoadingMarkets && formData.area && <option value="Other">Other / Not Listed</option>}
@@ -873,7 +873,7 @@ export default function VendorRegisterPage() {
                 {/* Business Photo Upload */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Business Photo / Self Photo <span className="text-red-500">*</span>
+                    Photo of the Shop/Office/business <span className="text-red-500">*</span>
                   </label>
                   <div className={`relative border-2 border-dashed rounded-xl p-6 transition-colors ${formData.businessPhoto ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary'
                     }`}>

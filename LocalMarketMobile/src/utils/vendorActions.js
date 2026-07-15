@@ -38,6 +38,27 @@ export const handlePreview = (navigation, vendorData) => {
     navigation.navigate('VendorDetails', { business: businessData });
   }
 };
+export const calculateProfileStrength = (vendor) => {
+  if (!vendor) return 0;
+  let score = 0;
+  
+  const getVal = (key) => vendor[key];
+  const name = getVal('name') || getVal('shop_name');
+  const owner = getVal('ownerName') || getVal('owner_name') || getVal('owner');
+  const category = getVal('category') || getVal('category_name');
+  const contact = getVal('contactNumber') || getVal('contact_number') || getVal('phone');
+  const address = getVal('address');
+  const openTime = getVal('openTime') || getVal('open_time');
+  const closeTime = getVal('closeTime') || getVal('close_time');
+  const image = getVal('profileImageUrl') || getVal('profile_image_url') || getVal('imageUrl') || getVal('image_url') || getVal('image');
 
-
-
+  if (name) score += 15;
+  if (owner) score += 15;
+  if (category) score += 15;
+  if (contact) score += 15;
+  if (address) score += 15;
+  if (openTime || closeTime) score += 10;
+  if (image) score += 15;
+  
+  return score;
+};

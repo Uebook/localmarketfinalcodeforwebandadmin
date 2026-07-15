@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestPatch, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 export async function GET(req: NextRequest) {
     try {
@@ -78,5 +78,25 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: 'Database unreachable.' }, { status: 503 });
         }
         return NextResponse.json({ error: 'Failed to update profile.' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+        }
+
+        await supabaseRestDelete(`/rest/v1/users?id=eq.${encodeURIComponent(id)}`);
+        return NextResponse.json({ success: true, message: 'Account deleted successfully' });
+    } catch (error: any) {
+        console.error('Profile DELETE error:', error);
+        if (error.message?.includes('fetch failed') || error.message?.includes('ENOTFOUND')) {
+            return NextResponse.json({ error: 'Database unreachable.' }, { status: 503 });
+        }
+        return NextResponse.json({ error: 'Failed to delete account.' }, { status: 500 });
     }
 }

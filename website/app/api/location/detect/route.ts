@@ -10,16 +10,35 @@ export async function GET(request: NextRequest) {
         // IP-based fallback if no lat/lng provided or geocoding fails
         const getIpLocation = async () => {
             try {
-                const ipRes = await fetch('https://ipapi.co/json/', { next: { revalidate: 3600 } });
-                if (ipRes.ok) {
-                    const ipData = await ipRes.json();
+                // Check if Vercel provided the city in headers
+                const vercelCity = request.headers.get('x-vercel-ip-city');
+                const vercelRegion = request.headers.get('x-vercel-ip-country-region');
+                
+                if (vercelCity) {
                     return {
-                        city: ipData.city,
-                        state: ipData.region,
-                        displayLabel: `${ipData.city}, ${ipData.region}`
+                        city: decodeURIComponent(vercelCity),
+                        state: vercelRegion ? decodeURIComponent(vercelRegion) : '',
+                        displayLabel: `${decodeURIComponent(vercelCity)}, ${vercelRegion ? decodeURIComponent(vercelRegion) : ''}`
                     };
                 }
-            } catch (e) { /* ignore */ }
+
+                // Fallback to IP API using the client's actual IP, not Vercel's IP
+                const forwardedFor = request.headers.get('x-forwarded-for');
+                const clientIp = forwardedFor ? forwardedFor.split(',')[0].trim() : '';
+                
+                const ipUrl = clientIp ? `http://ip-api.com/json/${clientIp}` : 'http://ip-api.com/json/';
+                const ipRes = await fetch(ipUrl, { next: { revalidate: 3600 } });
+                if (ipRes.ok) {
+                    const ipData = await ipRes.json();
+                    if (ipData.status === 'success') {
+                        return {
+                            city: ipData.city,
+                            state: ipData.regionName,
+                            displayLabel: `${ipData.city}, ${ipData.regionName}`
+                        };
+                    }
+                }
+            } catch (e) { console.error('IP Fallback Error', e); }
             return null;
         };
 

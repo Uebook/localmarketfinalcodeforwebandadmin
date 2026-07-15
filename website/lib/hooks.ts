@@ -6,7 +6,11 @@ export interface LocationState {
     city: string;
     loading: boolean;
     error: string | null;
+    isManual?: boolean;
 }
+
+let isDetectingGlobal = false;
+let hasAutoDetectedGlobal = false;
 
 export const useLocation = () => {
     const [location, setLocation] = useState<LocationState>({
@@ -20,17 +24,34 @@ export const useLocation = () => {
     useEffect(() => {
         const loadLocation = () => {
             const savedLocation = localStorage.getItem('localmarket_location');
+            let parsed = null;
+            
             if (savedLocation) {
                 try {
-                    const parsed = JSON.parse(savedLocation);
-                    if (parsed.city) {
-                        setLocation({ ...parsed, loading: false, error: null });
-                    }
+                    parsed = JSON.parse(savedLocation);
                 } catch (e) {
                     console.error('Failed to parse saved location', e);
                 }
+            }
+
+            if (parsed && parsed.isManual) {
+                // User manually selected this, keep it
+                setLocation({ ...parsed, loading: false, error: null });
             } else {
-                setLocation(prev => ({ ...prev, loading: false }));
+                // Show old detected location temporarily if available
+                if (parsed && parsed.city) {
+                    setLocation({ ...parsed, loading: false, error: null });
+                }
+
+                // Automatically trigger detection if not already doing so
+                if (!hasAutoDetectedGlobal && !isDetectingGlobal) {
+                    isDetectingGlobal = true;
+                    hasAutoDetectedGlobal = true;
+                    // Small timeout ensures detectLocation is fully initialized
+                    setTimeout(() => {
+                        detectLocation();
+                    }, 500);
+                }
             }
         };
 
@@ -90,8 +111,20 @@ export const useLocation = () => {
         // Use a persistent timeout to ensure we don't hang if getCurrentPosition hangs
         const maxWait = setTimeout(() => {
             console.warn('useLocation: Geolocation request timed out (client-side)');
-            updateLocation({ loading: false, error: 'Location detection timed out. Please select manually.' });
-        }, 15000); // 15s total safety net
+            // On timeout, try IP fallback directly instead of just failing
+            fetch('/api/location/detect')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.city) {
+                        isDetectingGlobal = false;
+                        updateLocation({ city: data.displayLabel, loading: false, error: null, isManual: false });
+                    } else {
+                        updateLocation({ loading: false, error: 'Location detection timed out. Please select manually.' });
+                    }
+                }).catch(() => {
+                    updateLocation({ loading: false, error: 'Location detection timed out. Please select manually.' });
+                });
+        }, 6000); // 6s total safety net
 
         navigator.geolocation.getCurrentPosition(
             async (position) => {
@@ -108,9 +141,11 @@ export const useLocation = () => {
                     console.log('useLocation: API Detection Result:', data);
 
                     const displayLabel = data.displayLabel || 'Your Area';
-                    updateLocation({ lat, lng, city: displayLabel, loading: false, error: null });
+                    isDetectingGlobal = false;
+                    updateLocation({ lat, lng, city: displayLabel, loading: false, error: null, isManual: false });
                 } catch (err: any) {
                     console.error('useLocation: API call failed', err);
+                    isDetectingGlobal = false;
                     updateLocation({ lat, lng, city: 'Unknown Location', loading: false, error: 'Service temporarily slow. Please select manually.' });
                 }
             },
@@ -124,7 +159,8 @@ export const useLocation = () => {
                     const res = await fetch('/api/location/detect');
                     const data = await res.json();
                     if (data.success && data.city) {
-                        updateLocation({ city: data.displayLabel, loading: false, error: null });
+                        isDetectingGlobal = false;
+                        updateLocation({ city: data.displayLabel, loading: false, error: null, isManual: false });
                         return;
                     }
                 } catch (e) { /* ignore */ }
@@ -135,7 +171,7 @@ export const useLocation = () => {
                 
                 updateLocation({ loading: false, error: msg });
             },
-            { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+            { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000 }
         );
     }, [updateLocation]);
 

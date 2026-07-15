@@ -18,6 +18,8 @@ function OffersContent() {
     const [success, setSuccess] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const [categories, setCategories] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
     const [form, setForm] = useState({
         title: '',
         description: '',
@@ -29,7 +31,29 @@ function OffersContent() {
         start_date: new Date().toISOString().split('T')[0],
         end_date: '',
         image_url: '',
+        category_ids: [] as string[],
+        product_ids: [] as string[],
     });
+
+    useEffect(() => {
+        if (displayVendor?.id) {
+            fetch(`/api/vendor/profile?id=${displayVendor.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.products) setProducts(data.products);
+                })
+                .catch(err => console.error('Failed to load products', err));
+        }
+    }, [displayVendor?.id]);
+
+    useEffect(() => {
+        fetch('/api/categories')
+            .then(res => res.json())
+            .then(data => {
+                if (data.categories) setCategories(data.categories);
+            })
+            .catch(err => console.error('Failed to load categories', err));
+    }, []);
 
     useEffect(() => {
         if (displayVendor?.id) {
@@ -40,7 +64,7 @@ function OffersContent() {
     const loadOffers = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`/api/festive-offers?vendorId=${displayVendor.id}&status=all`);
+            const res = await fetch(`/api/festive-offers?vendorId=${displayVendor.id}&status=active`);
             if (res.ok) {
                 const data = await res.json();
                 setOffers(data);
@@ -95,6 +119,8 @@ function OffersContent() {
                     start_date: new Date().toISOString().split('T')[0],
                     end_date: '',
                     image_url: '',
+                    category_ids: [],
+                    product_ids: [],
                 });
                 loadOffers();
                 setTimeout(() => setSuccess(''), 3000);
@@ -132,10 +158,8 @@ function OffersContent() {
         if (!confirm('Are you sure you want to delete this offer?')) return;
 
         try {
-            const res = await fetch('/api/festive-offers', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, status: 'inactive' }),
+            const res = await fetch(`/api/festive-offers?id=${id}`, {
+                method: 'DELETE',
             });
             if (res.ok) {
                 loadOffers();
@@ -280,6 +304,7 @@ function OffersContent() {
                                     <option value="all">All Products</option>
                                     <option value="min_purchase">Minimum Purchase Value</option>
                                     <option value="specific_products">Specific Products</option>
+                                    <option value="specific_categories">Specific Categories</option>
                                 </select>
                             </div>
                             {form.offer_type === 'Discount %' && (
@@ -316,6 +341,62 @@ function OffersContent() {
                                         placeholder="e.g. 500"
                                         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:border-slate-400"
                                     />
+                                </div>
+                            )}
+                            {form.offer_scope === 'specific_categories' && (
+                                <div className="sm:col-span-2">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Select Categories</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 border border-slate-200 rounded-xl p-3.5 max-h-[160px] overflow-y-auto bg-slate-50/30">
+                                        {categories.map((cat) => {
+                                            const isChecked = form.category_ids?.includes(cat.id);
+                                            return (
+                                                <label key={cat.id} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        onChange={() => {
+                                                            const updated = isChecked
+                                                                ? form.category_ids.filter(id => id !== cat.id)
+                                                                : [...(form.category_ids || []), cat.id];
+                                                            setForm({ ...form, category_ids: updated });
+                                                        }}
+                                                        className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 w-4 h-4 cursor-pointer"
+                                                    />
+                                                    {cat.name}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                            {form.offer_scope === 'specific_products' && (
+                                <div className="sm:col-span-2">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Select Products</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 border border-slate-200 rounded-xl p-3.5 max-h-[160px] overflow-y-auto bg-slate-50/30">
+                                        {products.length > 0 ? (
+                                            products.map((prod) => {
+                                                const isChecked = form.product_ids?.includes(prod.id);
+                                                return (
+                                                    <label key={prod.id} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            onChange={() => {
+                                                                const updated = isChecked
+                                                                    ? form.product_ids.filter(id => id !== prod.id)
+                                                                    : [...(form.product_ids || []), prod.id];
+                                                                setForm({ ...form, product_ids: updated });
+                                                            }}
+                                                            className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 w-4 h-4 cursor-pointer"
+                                                        />
+                                                        {prod.name} (₹{prod.price})
+                                                    </label>
+                                                );
+                                            })
+                                        ) : (
+                                            <p className="text-xs text-slate-400 p-2 col-span-2">No products found. Please add products to your catalogue first.</p>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                             <div>
@@ -361,7 +442,7 @@ function OffersContent() {
                     </div>
                 ) : (
                     offers.map((offer) => (
-                        <div key={offer.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between">
+                        <div key={offer.id} className="relative overflow-hidden bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between">
                             <div>
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
@@ -384,7 +465,7 @@ function OffersContent() {
                                         </div>
                                     )}
                                     <div className="mt-28" /> {/* Spacer for absolute images */}
-                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${offer.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'
+                                    <span className={`relative z-10 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${offer.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'
                                         }`}>
                                         {offer.status}
                                     </span>
@@ -404,6 +485,16 @@ function OffersContent() {
                                     <div className="flex items-center gap-2 text-[10px] font-medium text-slate-400 ml-3.5">
                                         {offer.offer_scope === 'all' ? 'Applied on All Products' :
                                             offer.offer_scope === 'min_purchase' ? `On orders above ₹${offer.min_purchase_amount}` :
+                                                offer.offer_scope === 'specific_categories' ? `Categories: ${
+                                                    Array.isArray(offer.category_ids) && offer.category_ids.length > 0
+                                                        ? offer.category_ids.map((cid: string) => categories.find(c => c.id === cid)?.name || cid).join(', ')
+                                                        : 'None selected'
+                                                }` :
+                                                offer.offer_scope === 'specific_products' ? `Products: ${
+                                                    Array.isArray(offer.product_ids) && offer.product_ids.length > 0
+                                                        ? offer.product_ids.map((pid: string) => products.find(p => p.id === pid)?.name || pid).join(', ')
+                                                        : 'None selected'
+                                                }` :
                                                 'Specific Products'}
                                     </div>
                                     <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
@@ -428,6 +519,8 @@ function OffersContent() {
                                             start_date: offer.start_date,
                                             end_date: offer.end_date,
                                             image_url: offer.image_url || '',
+                                            category_ids: offer.category_ids || [],
+                                            product_ids: offer.product_ids || [],
                                         });
                                         setShowForm(true);
                                     }}

@@ -147,7 +147,7 @@ export default function ProfileEditPage() {
                                     className="w-full pl-9 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-gray-900 appearance-none bg-white"
                                 >
                                     <option value="">Select state...</option>
-                                    {INDIAN_STATES.map((s) => (
+                                    {[...INDIAN_STATES].sort((a,b) => a.localeCompare(b)).map((s) => (
                                         <option key={s} value={s}>{s}</option>
                                     ))}
                                 </select>
@@ -166,7 +166,7 @@ export default function ProfileEditPage() {
                                     className="w-full px-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-gray-900 appearance-none bg-white disabled:bg-gray-50"
                                 >
                                     <option value="">Select city...</option>
-                                    {form.state && STATE_CITIES[form.state]?.map((c) => (
+                                    {form.state && [...(STATE_CITIES[form.state] || [])].sort((a,b) => a.localeCompare(b)).map((c) => (
                                         <option key={c} value={c}>{c}</option>
                                     ))}
                                 </select>

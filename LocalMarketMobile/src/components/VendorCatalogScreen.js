@@ -93,31 +93,20 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
     bestSeller: false,
     images: [], // Support for multiple images
   });
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [showUnitModal, setShowUnitModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
-  const [selectedAICategory, setSelectedAICategory] = useState(null);
+  const [selectedAICategory, setSelectedAICategory] = useState(Object.keys(AI_DEFAULT_ITEMS).sort((a, b) => a.localeCompare(b))[0] || null);
   const [aiSearchQuery, setAiSearchQuery] = useState('');
+  const [showAICategoryDropdown, setShowAICategoryDropdown] = useState(false);
+  const [aiCategorySearchQuery, setAiCategorySearchQuery] = useState('');
   const [saving, setSaving] = useState(false);
 
   const [categories, setCategories] = useState([]);
   const units = ['Piece', 'Kg', 'Litre', 'Pack', 'Box', 'Dozen'];
 
-  useEffect(() => {
-    const backAction = () => {
-      if (navigation.isFocused()) {
-        setShowExitModal(true);
-        return true;
-      }
-      return false;
-    };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-    return () => {
-      backHandler.remove();
-    };
-  }, [navigation]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -272,11 +261,12 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
       ...formData,
       name: item.name,
       description: item.description,
-      price: item.price,
-      mrp: (parseInt(item.price) * 1.2).toFixed(0),
+      price: item.price ? String(item.price) : '',
+      mrp: item.price ? (parseInt(item.price) * 1.2).toFixed(0) : '',
       images: images,
     });
     setShowAIModal(false);
+    setShowAddForm(true);
   };
 
   const handleDeleteItem = async (itemId) => {
@@ -541,100 +531,150 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
   };
 
   const renderAIModal = () => (
-    <Modal
-      visible={showAIModal}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setShowAIModal(false)}
-    >
-      <View style={styles.suggestionModalOverlay}>
-        <View style={styles.suggestionModalContent}>
-          <View style={styles.suggestionModalHeader}>
-            <Text style={styles.suggestionModalTitle}>AI Product Suggestions</Text>
-            <TouchableOpacity onPress={() => setShowAIModal(false)}>
-              <Icon name="x" size={24} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-          </View>
+    <>
+      <Modal
+        visible={showAIModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAIModal(false)}
+      >
+        <View style={styles.suggestionModalOverlay}>
+          <View style={styles.suggestionModalContent}>
+            <View style={styles.suggestionModalHeader}>
+              <Text style={styles.suggestionModalTitle}>AI Product Suggestions</Text>
+              <TouchableOpacity onPress={() => setShowAIModal(false)}>
+                <Icon name="x" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.categoryList}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {Object.keys(AI_DEFAULT_ITEMS).sort().map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    styles.aicategoryChip,
-                    selectedAICategory === cat && styles.selectedAICategoryChip
-                  ]}
-                  onPress={() => setSelectedAICategory(cat)}
-                >
-                  <Text style={[
-                    styles.aicategoryText,
-                    selectedAICategory === cat && styles.selectedAICategoryText
-                  ]}>{cat}</Text>
-                </TouchableOpacity>
-              ))}
+            {/* Category Dropdown Picker Button */}
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => setShowAICategoryDropdown(true)}
+            >
+              <View style={styles.dropdownButtonContent}>
+                <Text style={styles.dropdownButtonLabel}>Category</Text>
+                <Text style={styles.dropdownButtonValue} numberOfLines={1}>
+                  {selectedAICategory || 'Select Category'}
+                </Text>
+              </View>
+              <Icon name="chevron-down" size={20} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginTop: 5 }}>
+              <View style={styles.suggestionsList}>
+                {selectedAICategory ? (
+                  <>
+                    <View style={{ marginBottom: 15, position: 'relative' }}>
+                      <Icon name="search" size={20} color={COLORS.textSecondary} style={{ position: 'absolute', left: 15, top: 13, zIndex: 1 }} />
+                      <TextInput
+                        style={[styles.input, { paddingLeft: 45, backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}
+                        placeholder={`Search in ${selectedAICategory}...`}
+                        value={aiSearchQuery}
+                        onChangeText={setAiSearchQuery}
+                        placeholderTextColor={COLORS.textSecondary}
+                      />
+                    </View>
+                    {getSuggestedItemsByCategory(selectedAICategory)
+                      .filter(item => 
+                        item.name.toLowerCase().includes(aiSearchQuery.toLowerCase()) || 
+                        item.description.toLowerCase().includes(aiSearchQuery.toLowerCase())
+                      )
+                      .map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.suggestionCard}
+                          onPress={() => handleSelectAIProduct(item)}
+                        >
+                          <Image 
+                            source={{ 
+                              uri: item.image_urls ? item.image_urls[0] : item.image_url 
+                            }} 
+                            style={styles.suggestionImage} 
+                          />
+                          <View style={styles.suggestionInfo}>
+                            <Text style={styles.suggestionName} numberOfLines={1}>{item.name}</Text>
+                            <Text style={{ fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 }} numberOfLines={2}>{item.description}</Text>
+                            <Text style={styles.suggestionPrice}>₹{item.price}</Text>
+                          </View>
+                          <Icon name="plus-circle" size={24} color={COLORS.orange} />
+                        </TouchableOpacity>
+                    ))}
+                    {getSuggestedItemsByCategory(selectedAICategory).filter(item => 
+                        item.name.toLowerCase().includes(aiSearchQuery.toLowerCase()) || 
+                        item.description.toLowerCase().includes(aiSearchQuery.toLowerCase())
+                    ).length === 0 && (
+                      <View style={styles.emptySuggestions}>
+                        <Icon name="search" size={40} color={COLORS.border} style={{ marginBottom: 10 }} />
+                        <Text style={styles.noSuggestionsText}>No matching items found</Text>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <View style={styles.emptySuggestions}>
+                    <Text style={styles.noSuggestionsText}>Select a category to see suggestions</Text>
+                  </View>
+                )}
+              </View>
             </ScrollView>
           </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.suggestionsList}>
-              {selectedAICategory ? (
-                <>
-                  <View style={{ marginBottom: 15, position: 'relative' }}>
-                    <Icon name="search" size={20} color={COLORS.textSecondary} style={{ position: 'absolute', left: 15, top: 13, zIndex: 1 }} />
-                    <TextInput
-                      style={[styles.input, { paddingLeft: 45, backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]}
-                      placeholder={`Search in ${selectedAICategory}...`}
-                      value={aiSearchQuery}
-                      onChangeText={setAiSearchQuery}
-                      placeholderTextColor={COLORS.textSecondary}
-                    />
-                  </View>
-                  {getSuggestedItemsByCategory(selectedAICategory)
-                    .filter(item => 
-                      item.name.toLowerCase().includes(aiSearchQuery.toLowerCase()) || 
-                      item.description.toLowerCase().includes(aiSearchQuery.toLowerCase())
-                    )
-                    .map((item, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={styles.suggestionCard}
-                        onPress={() => handleSelectAIProduct(item)}
-                      >
-                        <Image 
-                          source={{ 
-                            uri: item.image_urls ? item.image_urls[0] : item.image_url 
-                          }} 
-                          style={styles.suggestionImage} 
-                        />
-                        <View style={styles.suggestionInfo}>
-                          <Text style={styles.suggestionName} numberOfLines={1}>{item.name}</Text>
-                          <Text style={{ fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 }} numberOfLines={2}>{item.description}</Text>
-                          <Text style={styles.suggestionPrice}>₹{item.price}</Text>
-                        </View>
-                        <Icon name="plus-circle" size={24} color={COLORS.orange} />
-                      </TouchableOpacity>
-                  ))}
-                  {getSuggestedItemsByCategory(selectedAICategory).filter(item => 
-                      item.name.toLowerCase().includes(aiSearchQuery.toLowerCase()) || 
-                      item.description.toLowerCase().includes(aiSearchQuery.toLowerCase())
-                  ).length === 0 && (
-                    <View style={styles.emptySuggestions}>
-                      <Icon name="search" size={40} color={COLORS.border} style={{ marginBottom: 10 }} />
-                      <Text style={styles.noSuggestionsText}>No matching items found</Text>
-                    </View>
-                  )}
-                </>
-              ) : (
-                <View style={styles.emptySuggestions}>
-                  <Text style={styles.noSuggestionsText}>Select a category above to see suggestions</Text>
-                </View>
-              )}
-            </View>
-          </ScrollView>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+
+      {/* AI Category Sub-Modal (Dropdown list) */}
+      <Modal
+        visible={showAICategoryDropdown}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAICategoryDropdown(false)}
+      >
+        <TouchableOpacity 
+          style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' }} 
+          activeOpacity={1}
+          onPress={() => setShowAICategoryDropdown(false)}
+        >
+          <View style={{ backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '70%', padding: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B' }}>Select AI Category</Text>
+              <TouchableOpacity onPress={() => setShowAICategoryDropdown(false)}>
+                <Icon name="x" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={{ backgroundColor: '#F1F5F9', borderRadius: 10, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+              <Icon name="search" size={16} color="#64748B" />
+              <TextInput
+                style={{ flex: 1, paddingVertical: 10, paddingHorizontal: 8, fontSize: 14, color: '#0F172A' }}
+                placeholder="Search category..."
+                placeholderTextColor="#94A3B8"
+                value={aiCategorySearchQuery}
+                onChangeText={setAiCategorySearchQuery}
+              />
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {Object.keys(AI_DEFAULT_ITEMS).sort((a, b) => a.localeCompare(b))
+                .filter(cat => cat.toLowerCase().includes(aiCategorySearchQuery.toLowerCase()))
+                .map((cat) => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={{ paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                    onPress={() => {
+                      setSelectedAICategory(cat);
+                      setShowAICategoryDropdown(false);
+                      setAiSearchQuery(''); // Reset product search query when category changes
+                      setAiCategorySearchQuery(''); // Reset category search query
+                    }}
+                  >
+                    <Text style={{ fontSize: 16, color: '#0F172A', fontWeight: selectedAICategory === cat ? '700' : '400' }}>{cat}</Text>
+                    {selectedAICategory === cat && <Icon name="check" size={18} color="#F97316" />}
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
   );
 
   return (
@@ -855,7 +895,7 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                   </TouchableOpacity>
                 )}
 
-                <ScrollView showsVerticalScrollIndicator={false} style={styles.formScroll}>
+                <ScrollView showsVerticalScrollIndicator={false} style={styles.formScroll} nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
                   <View style={styles.formSection}>
                     <View style={styles.imageUploadSection}>
                       <Text style={styles.inputLabel}>Product Photos *</Text>
@@ -938,43 +978,22 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                         </View>
                       </View>
 
-                      <View style={[styles.inputRow, (showCategoryDropdown || showUnitDropdown) && { zIndex: 1000 }]}>
+                      <View style={styles.inputRow}>
                         {/* Category Dropdown */}
                         <View style={styles.inputGroup}>
                           <Text style={styles.inputLabel}>Category</Text>
                           <TouchableOpacity
                             style={styles.dropdown}
-                            onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                            onPress={() => {
+                              setCategorySearchQuery('');
+                              setShowCategoryModal(true);
+                            }}
                           >
                             <Text style={[styles.dropdownText, !formData.categoryId ? styles.dropdownPlaceholder : null]} numberOfLines={1}>
                               {formData.categoryName || 'Select'}
                             </Text>
                             <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
                           </TouchableOpacity>
-                          {showCategoryDropdown && (
-                            <View style={styles.dropdownList}>
-                              <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
-                                {categories.length > 0 ? (
-                                  categories.map((cat) => (
-                                    <TouchableOpacity
-                                      key={cat.id}
-                                      style={styles.dropdownItem}
-                                      onPress={() => {
-                                        setFormData(prev => ({ ...prev, categoryId: cat.id, categoryName: cat.name }));
-                                        setShowCategoryDropdown(false);
-                                      }}
-                                    >
-                                      <Text style={styles.dropdownItemText}>{cat.name}</Text>
-                                    </TouchableOpacity>
-                                  ))
-                                ) : (
-                                  <View style={styles.dropdownItem}>
-                                    <Text style={styles.dropdownItemText}>No categories found</Text>
-                                  </View>
-                                )}
-                              </ScrollView>
-                            </View>
-                          )}
                         </View>
 
                         {/* Unit Dropdown */}
@@ -982,31 +1001,13 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
                           <Text style={styles.inputLabel}>Unit</Text>
                           <TouchableOpacity
                             style={styles.dropdown}
-                            onPress={() => setShowUnitDropdown(!showUnitDropdown)}
+                            onPress={() => setShowUnitModal(true)}
                           >
                             <Text style={[styles.dropdownText, !formData.unit && styles.dropdownPlaceholder]}>
                               {formData.unit || 'Select'}
                             </Text>
                             <Icon name={getIconName('ChevronDown')} size={16} color={COLORS.textMuted} />
                           </TouchableOpacity>
-                          {showUnitDropdown && (
-                            <View style={styles.dropdownList}>
-                              <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
-                                {units.map((unit) => (
-                                  <TouchableOpacity
-                                    key={unit}
-                                    style={styles.dropdownItem}
-                                    onPress={() => {
-                                      setFormData(prev => ({ ...prev, unit: unit }));
-                                      setShowUnitDropdown(false);
-                                    }}
-                                  >
-                                    <Text style={styles.dropdownItemText}>{unit}</Text>
-                                  </TouchableOpacity>
-                                ))}
-                              </ScrollView>
-                            </View>
-                          )}
                         </View>
                       </View>
 
@@ -1111,11 +1112,96 @@ const VendorCatalogScreen = ({ navigation, vendorData, setVendorData }) => {
           />
       </ScrollView>
 
-      <ExitConfirmModal 
-        visible={showExitModal}
-        onCancel={() => setShowExitModal(false)}
-        onConfirm={() => BackHandler.exitApp()}
-      />
+
+      {/* Category Picker Modal */}
+      <Modal
+        visible={showCategoryModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowCategoryModal(false)}
+      >
+        <TouchableOpacity 
+          style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' }} 
+          activeOpacity={1}
+          onPress={() => setShowCategoryModal(false)}
+        >
+          <View style={{ backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', padding: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B' }}>Select Category</Text>
+              <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
+                <Icon name="x" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={{ backgroundColor: '#F1F5F9', borderRadius: 10, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+              <Icon name="search" size={16} color="#64748B" />
+              <TextInput
+                style={{ flex: 1, paddingVertical: 10, paddingHorizontal: 8, fontSize: 14, color: '#0F172A' }}
+                placeholder="Search category..."
+                placeholderTextColor="#94A3B8"
+                value={categorySearchQuery}
+                onChangeText={setCategorySearchQuery}
+              />
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {categories
+                .filter(cat => (cat.name || '').toLowerCase().includes(categorySearchQuery.toLowerCase()))
+                .map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={{ paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                    onPress={() => {
+                      setFormData(prev => ({ ...prev, categoryId: cat.id, categoryName: cat.name }));
+                      setShowCategoryModal(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 16, color: '#0F172A', fontWeight: formData.categoryId === cat.id ? '700' : '400' }}>{cat.name}</Text>
+                    {formData.categoryId === cat.id && <Icon name="check" size={18} color="#F97316" />}
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Unit Picker Modal */}
+      <Modal
+        visible={showUnitModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowUnitModal(false)}
+      >
+        <TouchableOpacity 
+          style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' }} 
+          activeOpacity={1}
+          onPress={() => setShowUnitModal(false)}
+        >
+          <View style={{ backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '50%', padding: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B' }}>Select Unit</Text>
+              <TouchableOpacity onPress={() => setShowUnitModal(false)}>
+                <Icon name="x" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {units.map((unit) => (
+                <TouchableOpacity
+                  key={unit}
+                  style={{ paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                  onPress={() => {
+                    setFormData(prev => ({ ...prev, unit: unit }));
+                    setShowUnitModal(false);
+                  }}
+                >
+                  <Text style={{ fontSize: 16, color: '#0F172A', fontWeight: formData.unit === unit ? '700' : '400' }}>{unit}</Text>
+                  {formData.unit === unit && <Icon name="check" size={18} color="#F97316" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View >
   );
 };
@@ -1764,7 +1850,7 @@ const createStyles = (COLORS) => StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 24,
     width: '100%',
-    maxHeight: '80%',
+    height: '80%',
     padding: 20,
   },
   suggestionModalHeader: {
@@ -1777,6 +1863,33 @@ const createStyles = (COLORS) => StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: COLORS.textPrimary,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 15,
+  },
+  dropdownButtonContent: {
+    flex: 1,
+  },
+  dropdownButtonLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  dropdownButtonValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
   },
   categoryList: {
     marginBottom: 15,

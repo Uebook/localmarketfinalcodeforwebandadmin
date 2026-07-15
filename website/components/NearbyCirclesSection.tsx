@@ -71,7 +71,9 @@ export default function NearbyCirclesSection({ circles, loading }: NearbyCircles
                     {circle.name}
                   </h3>
                   <p className="text-white/80 font-bold text-xs">
-                    {circle.shops || 10}+ Active Stores
+                    {circle.shops !== undefined ? (
+                      circle.shops === 0 ? '0 Active Stores' : `${circle.shops}+ Active Stores`
+                    ) : '10+ Active Stores'}
                   </p>
                   
                   <div className="mt-4 inline-flex items-center gap-1 bg-white/20 border border-white/30 rounded-full px-3 py-1.5 text-[10px] font-bold text-white uppercase tracking-wider">

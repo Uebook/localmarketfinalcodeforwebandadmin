@@ -105,7 +105,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Vendor-specific tabs
-function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' }) {
+function VendorTabs({ vendorData, setVendorData, handleLogout, initialRouteName = 'Analytics' }) {
   const insets = useSafeAreaInsets();
   const themeColors = useThemeColors();
   
@@ -181,7 +181,7 @@ function VendorTabs({ vendorData, setVendorData, initialRouteName = 'Analytics' 
         {(props) => <VendorReviewsScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />}
       </Tab.Screen>
       <Tab.Screen name="Profile">
-        {(props) => <VendorProfileScreen {...props} vendorData={vendorData} setVendorData={setVendorData} />}
+        {(props) => <VendorProfileScreen {...props} vendorData={vendorData} setVendorData={setVendorData} onLogout={handleLogout} />}
       </Tab.Screen>
     </Tab.Navigator>
   );
@@ -376,6 +376,88 @@ function App() {
   });
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const navigationRef = useRef(null);
+
+  const performLocationDetection = () => {
+    setLocationState(prev => ({ ...prev, loading: true }));
+    import('./src/services/api').then(({ detectLocation }) => {
+      import('react-native').then(({ PermissionsAndroid, Platform }) => {
+        const doDetect = async () => {
+          try {
+            let hasPermission = true;
+            if (Platform.OS === 'android') {
+              const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+              );
+              hasPermission = granted === PermissionsAndroid.RESULTS.GRANTED;
+            }
+            if (hasPermission) {
+              const Geolocation = require('@react-native-community/geolocation').default;
+              Geolocation.getCurrentPosition(
+                async (pos) => {
+                  try {
+                    const data = await detectLocation(pos.coords.latitude, pos.coords.longitude);
+                    if (data && data.success) {
+                      setLocationState({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        displayLabel: data.displayLabel || 'Your Area',
+                        city: data.address?.city || data.address?.town || '',
+                        circle: data.matchedCircle || '',
+                        town: data.address?.suburb || data.address?.neighbourhood || data.address?.village || data.address?.town || '',
+                        area: data.address?.suburb || data.address?.neighbourhood || data.address?.village || '',
+                        fullAddress: data.address?.display_name || data.displayLabel || '',
+                        loading: false,
+                        error: null,
+                        state: data.address?.state || '',
+                      });
+                      return;
+                    }
+                  } catch (e) {}
+                  // GPS geocoding failed, try IP
+                  try {
+                    const ipData = await detectLocation();
+                    if (ipData && ipData.success) {
+                      setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
+                    } else {
+                      setLocationState(prev => ({ ...prev, loading: false }));
+                    }
+                  } catch(e) { setLocationState(prev => ({ ...prev, loading: false })); }
+                },
+                async () => {
+                  // GPS signal failed, try IP
+                  try {
+                    const ipData = await detectLocation();
+                    if (ipData && ipData.success) {
+                      setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
+                    } else {
+                      setLocationState(prev => ({ ...prev, loading: false }));
+                    }
+                  } catch(e) { setLocationState(prev => ({ ...prev, loading: false })); }
+                },
+                { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+              );
+            } else {
+              // No permission, try IP
+              const ipData = await detectLocation().catch(() => null);
+              if (ipData && ipData.success) {
+                setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
+              } else {
+                setLocationState(prev => ({ ...prev, loading: false }));
+              }
+            }
+          } catch (err) {
+            setLocationState(prev => ({ ...prev, loading: false }));
+          }
+        };
+        doDetect();
+      }).catch(() => setLocationState(prev => ({ ...prev, loading: false })));
+    }).catch(() => setLocationState(prev => ({ ...prev, loading: false })));
+  };
+
+  // Auto-detect location on startup
+  useEffect(() => {
+    performLocationDetection();
+  }, []);
 
   // Set sidebar control for all screens - set immediately
   useEffect(() => {
@@ -703,6 +785,7 @@ function App() {
                     {...props}
                     vendorData={vendorData}
                     setVendorData={setVendorData}
+                    handleLogout={handleLogout}
                     initialRouteName={initialRoute}
                   />
                 )}
@@ -720,83 +803,7 @@ function App() {
                     notificationCount={notificationCount}
                      locationState={locationState}
                      onLocationChange={setLocationState}
-                     onRedetect={() => {
-                       // Safe re-detect: set loading state, then trigger GPS
-                       setLocationState(prev => ({ ...prev, loading: true }));
-                       import('./src/services/api').then(({ detectLocation }) => {
-                         import('react-native').then(({ PermissionsAndroid, Platform }) => {
-                           const doDetect = async () => {
-                             try {
-                               let hasPermission = true;
-                               if (Platform.OS === 'android') {
-                                 const granted = await PermissionsAndroid.request(
-                                   PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-                                 );
-                                 hasPermission = granted === PermissionsAndroid.RESULTS.GRANTED;
-                               }
-                               if (hasPermission) {
-                                 const Geolocation = require('@react-native-community/geolocation').default;
-                                 Geolocation.getCurrentPosition(
-                                   async (pos) => {
-                                     try {
-                                       const data = await detectLocation(pos.coords.latitude, pos.coords.longitude);
-                                       if (data && data.success) {
-                                         setLocationState({
-                                           lat: pos.coords.latitude,
-                                           lng: pos.coords.longitude,
-                                           displayLabel: data.displayLabel || 'Your Area',
-                                           city: data.address?.city || data.address?.town || '',
-                                           circle: data.matchedCircle || '',
-                                           town: data.address?.suburb || data.address?.neighbourhood || data.address?.village || data.address?.town || '',
-                                           area: data.address?.suburb || data.address?.neighbourhood || data.address?.village || '',
-                                           fullAddress: data.address?.display_name || data.displayLabel || '',
-                                           loading: false,
-                                           error: null,
-                                           state: data.address?.state || '',
-                                         });
-                                         return;
-                                       }
-                                     } catch (e) {}
-                                     // GPS geocoding failed, try IP
-                                     try {
-                                       const ipData = await detectLocation();
-                                       if (ipData && ipData.success) {
-                                         setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
-                                       } else {
-                                         setLocationState(prev => ({ ...prev, loading: false }));
-                                       }
-                                     } catch(e) { setLocationState(prev => ({ ...prev, loading: false })); }
-                                   },
-                                   async () => {
-                                     // GPS signal failed, try IP
-                                     try {
-                                       const ipData = await detectLocation();
-                                       if (ipData && ipData.success) {
-                                         setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
-                                       } else {
-                                         setLocationState(prev => ({ ...prev, loading: false }));
-                                       }
-                                     } catch(e) { setLocationState(prev => ({ ...prev, loading: false })); }
-                                   },
-                                   { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
-                                 );
-                               } else {
-                                 // No permission, try IP
-                                 const ipData = await detectLocation().catch(() => null);
-                                 if (ipData && ipData.success) {
-                                   setLocationState(prev => ({ ...prev, displayLabel: ipData.displayLabel || prev.displayLabel, city: ipData.city || prev.city, loading: false }));
-                                 } else {
-                                   setLocationState(prev => ({ ...prev, loading: false }));
-                                 }
-                               }
-                             } catch(e) {
-                               setLocationState(prev => ({ ...prev, loading: false }));
-                             }
-                           };
-                           doDetect();
-                         });
-                       }).catch(() => setLocationState(prev => ({ ...prev, loading: false })));
-                     }}
+                     onRedetect={performLocationDetection}
                      onMenuClick={() => setIsSidebarOpen(true)}
                      onProfileClick={() => navigationRef.current?.navigate('Settings')}
                      onNotificationClick={() => navigationRef.current?.navigate('Notifications')}

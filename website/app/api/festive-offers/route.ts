@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch } from '@/lib/supabaseAdminFetch';
+import { supabaseRestGet, supabaseRestInsert, supabaseRestPatch, supabaseRestDelete } from '@/lib/supabaseAdminFetch';
 
 // CORS headers helper
 function corsHeaders() {
@@ -79,6 +79,22 @@ export async function PATCH(request: Request) {
         });
     } catch (error: any) {
         console.error('Error updating festive offer:', error);
+        return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders() });
+    }
+}
+
+// DELETE /api/festive-offers - Delete an offer from DB
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        if (!id) {
+            return NextResponse.json({ error: 'ID is required' }, { status: 400, headers: corsHeaders() });
+        }
+        await supabaseRestDelete(`/rest/v1/festive_offers?id=eq.${id}`);
+        return NextResponse.json({ success: true, message: 'Offer deleted successfully' }, { headers: corsHeaders() });
+    } catch (error: any) {
+        console.error('Error deleting festive offer:', error);
         return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders() });
     }
 }

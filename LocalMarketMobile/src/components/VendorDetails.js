@@ -9,7 +9,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { getVendorProducts, getVendorReviews, getVendorProfile, submitReview } from '../services/api';
+import { getVendorProducts, getVendorReviews, getVendorProfile, submitReview, trackProfileView } from '../services/api';
 import { isVendorSaved, removeSavedVendor, saveVendor } from '../utils/savedVendors';
 import { useCart } from '../context/CartContext';
 import MapView from './MapView';
@@ -28,6 +28,18 @@ const VendorDetails = ({ navigation, route }) => {
   const { addToCart, cartItems, updateQuantity } = useCart();
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const styles = createStyles(COLORS, scrollY);
+
+  const [showHeader, setShowHeader] = useState(false);
+
+  useEffect(() => {
+    const listenerId = scrollY.addListener(({ value }) => {
+      const show = value > HEADER_SCROLL_DISTANCE - 20;
+      setShowHeader(prev => (prev !== show ? show : prev));
+    });
+    return () => {
+      scrollY.removeListener(listenerId);
+    };
+  }, []);
 
   const business = route.params?.business || route.params?.vendor || {};
   const targetVendorId = business?.id || business?.vendor_id || business?.vendorId || business?.vendorId || business?.vendor_id || business?.v_id;
@@ -48,6 +60,8 @@ const VendorDetails = ({ navigation, route }) => {
     if (targetVendorId) {
       loadData(targetVendorId);
       checkSaveStatus(targetVendorId);
+      // Track profile view asynchronously
+      trackProfileView(targetVendorId);
     }
   }, [targetVendorId]);
 
@@ -244,15 +258,19 @@ const VendorDetails = ({ navigation, route }) => {
             <Text style={styles.distanceText}>0.6 km</Text>
           </View>
         </View>
-        <View style={styles.mapPreviewMini}>
+        <TouchableOpacity
+          style={styles.mapPreviewMini}
+          onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vendorInfo.address)}`)}
+          activeOpacity={0.8}
+        >
           <Image
-            source={{ uri: 'https://maps.googleapis.com/maps/api/staticmap?center=30.7333,76.7794&zoom=14&size=400x400&markers=color:red%7C30.7333,76.7794&key=YOUR_API_KEY' }}
+            source={{ uri: `https://static-maps.yandex.ru/1.x/?ll=${vendorInfo.longitude || 74.8723},${vendorInfo.latitude || 31.6340}&z=14&size=300,240&l=map&pt=${vendorInfo.longitude || 74.8723},${vendorInfo.latitude || 31.6340},pm2rdl` }}
             style={styles.mapImageMini}
           />
           <View style={styles.mapMarkerOverlay}>
             <Icon name="map-pin" size={24} color="#EF4444" fill="#EF4444" />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* About Section */}
@@ -325,7 +343,10 @@ const VendorDetails = ({ navigation, route }) => {
 
             <View style={styles.productGrid}>
               {filteredItems.length > 0 ? filteredItems.map((item) => {
-                const comparisonPrice = Math.max(item.online_price || 0, item.mrp || 0);
+                const baseOriginalPrice = item.original_price || item.originalPrice;
+                const comparisonPrice = baseOriginalPrice && baseOriginalPrice > item.price
+                  ? baseOriginalPrice
+                  : Math.max(item.online_price || 0, item.mrp || 0);
                 const savings = comparisonPrice > item.price ? comparisonPrice - item.price : 0;
                 const savingsPercent = savings > 0 ? Math.round((savings / comparisonPrice) * 100) : 0;
 
@@ -529,7 +550,7 @@ const VendorDetails = ({ navigation, route }) => {
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
 
       {/* Sticky Compact Header for Scroll */}
-      <Animated.View style={styles.stickyHeader}>
+      <Animated.View style={styles.stickyHeader} pointerEvents={showHeader ? 'auto' : 'none'}>
         <SafeAreaView edges={['top']} style={styles.stickyHeaderContent}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.stickyBackBtn}>
             <Icon name="arrow-left" size={22} color="#0F172A" />

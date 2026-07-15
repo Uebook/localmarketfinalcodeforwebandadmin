@@ -85,8 +85,8 @@ android {
         applicationId "com.localmarketmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "3.0"
+        versionCode 4
+        versionName "4.0"
             // ndk { abiFilters "armeabi-v7a","arm64-v8a","x86","x86_64" } // removed to avoid conflict with splits
     }
 
@@ -96,14 +96,10 @@ android {
             enable true
             reset()
             include "armeabi-v7a","arm64-v8a","x86","x86_64"
-            universalApk false
+            universalApk true
         }
     }
-    androidResources {
-        packagingOptions {
-            doNotStrip "**/*.so"
-        }
-    }
+    // Removed doNotStrip "**/*.so" to fix massive 600MB APK size
     
     // Ensure fonts are included in the build
     sourceSets {

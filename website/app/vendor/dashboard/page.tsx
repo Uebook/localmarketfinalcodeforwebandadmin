@@ -1,14 +1,30 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import VendorDashboardLayout, { useVendor } from '@/components/VendorDashboardLayout';
-import { Activity, Package, MessageSquare, Star, CheckCircle, XCircle, AlertCircle, ArrowRight, Download } from 'lucide-react';
+import { Activity, Package, MessageSquare, Star, CheckCircle, XCircle, AlertCircle, ArrowRight, Download, Search, TrendingUp } from 'lucide-react';
 
 function DashboardContent() {
   const router = useRouter();
   const { vendor, profile, products, enquiries, reviews } = useVendor();
 
   const displayVendor = profile || vendor;
+  const [trendingSearches, setTrendingSearches] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (displayVendor?.id) {
+      fetch(`/api/vendor/analytics/performance?vendorId=${displayVendor.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.trendingSearches) {
+            setTrendingSearches(data.trendingSearches);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [displayVendor?.id]);
+
   if (!displayVendor) return null;
 
   // Profile completion score
@@ -116,6 +132,33 @@ function DashboardContent() {
           ))}
         </div>
       </div>
+
+      {/* Top 5 Trending Searches */}
+      {trendingSearches.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-bold text-slate-900">Trending in your area</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Top 5 searched items around {displayVendor.city || 'your city'}</p>
+            </div>
+            <TrendingUp size={20} className="text-orange-500" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {trendingSearches.map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-xl"
+              >
+                <Search size={12} className="text-slate-400" />
+                <span className="text-xs font-bold text-slate-700 uppercase">{item.query}</span>
+                <span className="text-[10px] font-black text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-md">
+                  {item.count}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Enquiries */}
       {enquiries.length > 0 && (

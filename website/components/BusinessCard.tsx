@@ -91,7 +91,7 @@ export default function BusinessCard({ business, onClick, variant = 'default' }:
           )}
           {business.avgOnlinePrice && business.avgOfflinePrice && business.avgOnlinePrice > business.avgOfflinePrice && (
             <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/90 backdrop-blur-md text-white rounded-full shadow-lg border border-emerald-400/20 animate-pulse">
-              <span className="text-[10px] font-black uppercase tracking-tight">Save ₹{business.avgOnlinePrice - business.avgOfflinePrice}</span>
+              <span className="text-[10px] font-black uppercase tracking-tight">Save ₹{Math.round((business.avgOnlinePrice - business.avgOfflinePrice) * 100) / 100}</span>
             </div>
           )}
         </div>

@@ -130,9 +130,11 @@ const MarketScreen = ({ navigation, route }) => {
       <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
       <View style={styles.productPriceRow}>
         <Text style={styles.productPrice}>₹{product.price}</Text>
-        {product.mrp > product.price && (
+        {(product.original_price || product.originalPrice) > product.price ? (
+          <Text style={[styles.productMrp, { textDecorationLine: 'line-through' }]}>₹{product.original_price || product.originalPrice}</Text>
+        ) : product.mrp > product.price ? (
           <Text style={styles.productMrp}>₹{product.mrp}</Text>
-        )}
+        ) : null}
       </View>
       <Text style={styles.productVendor} numberOfLines={1}>
         {product.vendors?.shop_name?.toUpperCase() || product.vendor?.name?.toUpperCase() || 'LOCAL SHOP'}
